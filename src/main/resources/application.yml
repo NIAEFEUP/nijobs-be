@@ -1,0 +1,12 @@
+server:
+    port: 8000
+    context-path: /api
+
+spring: 
+    main:
+        banner-mode: "off"     
+
+logging: 
+    level: 
+        org: 
+            springframework: ERROR
