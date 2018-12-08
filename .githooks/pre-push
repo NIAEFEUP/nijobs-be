@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# save the file as <git_directory>/.git/hooks/pre-commit
-
 echo "Running Maven clean test for errors"
 # retrieving current working directory
 CWD=`pwd`

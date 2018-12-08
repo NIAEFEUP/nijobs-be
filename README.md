@@ -13,3 +13,7 @@ To run the project using maven, simply run the following command in the project'
 ```
 mvn spring-boot:run
 ```
+Before making any commits make sure to run the following command in the project's folder:
+```
+git config core.hooksPath .githooks
+```
