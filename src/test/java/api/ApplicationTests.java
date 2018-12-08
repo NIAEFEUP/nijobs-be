@@ -20,10 +20,10 @@ public class ApplicationTests {
 
     @Test
     public void hello() {
-        ResponseEntity<String> entity = this.restTemplate.getForEntity("/hello",
+        ResponseEntity<String> entity = this.restTemplate.getForEntity("/ni/hello",
                 String.class);
         assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(entity.getBody()).isEqualTo("Hello from Spring");
+        assertThat(entity.getBody()).isEqualTo("Hello from NIAEFEUP :)");
     }
 
     @Test
