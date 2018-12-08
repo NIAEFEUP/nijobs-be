@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# save the file as <git_directory>/.git/hooks/pre-commit
+
+echo "Running Maven clean test for errors"
+# retrieving current working directory
+CWD=`pwd`
+MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# go to main project dir
+cd $MAIN_DIR/../../
+# running maven clean test
+mvn clean test
+if [ $? -ne 0 ]; then
+  echo "Error while testing the code"
+  # go back to current working dir
+  cd $CWD
+  exit 1
+fi
+# go back to current working dir
+cd $CWD
