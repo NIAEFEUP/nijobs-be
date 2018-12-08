@@ -7,7 +7,7 @@ echo "Running Maven clean test for errors"
 CWD=`pwd`
 MAIN_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # go to main project dir
-cd $MAIN_DIR/../../
+cd $MAIN_DIR/../
 # running maven clean test
 mvn clean test
 if [ $? -ne 0 ]; then
