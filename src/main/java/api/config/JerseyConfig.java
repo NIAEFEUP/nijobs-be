@@ -1,6 +1,7 @@
 package api.config;
 
-import api.endpoints.*;
+import api.endpoints.HelloFromNIAEFEUPService;
+import api.endpoints.ReverseService;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.springframework.context.annotation.Configuration;
 

@@ -14,13 +14,5 @@ if [ $? -ne 0 ]; then
   cd $CWD
   exit 1
 fi
-# running maven clean test
-mvn clean test
-if [ $? -ne 0 ]; then
-  echo "Error while testing the code"
-  # go back to current working dir
-  cd $CWD
-  exit 1
-fi
 # go back to current working dir
 cd $CWD

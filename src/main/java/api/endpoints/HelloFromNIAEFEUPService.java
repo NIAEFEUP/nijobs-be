@@ -11,8 +11,8 @@ public class HelloFromNIAEFEUPService {
 
     @GET
     @Produces("text/plain")
-	@Path("/hello")
-    public String abc() {
+    @Path("/hello")
+    public final String abc() {
         return "Hello from NIAEFEUP :)";
     }
 }

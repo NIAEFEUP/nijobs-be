@@ -13,7 +13,7 @@ public class ReverseService {
 
     @GET
     @Produces("text/plain")
-    public String reverse(@QueryParam("data") @NotNull String data) {
+    public final String reverse(@QueryParam("data") @NotNull final String data) {
         return new StringBuilder(data).reverse().toString();
     }
 }
