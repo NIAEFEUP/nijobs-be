@@ -17,7 +17,7 @@ DROP TABLE IF EXISTS Company;
 CREATE TABLE Company (
 	id	 	INTEGER PRIMARY KEY AUTOINCREMENT,
 	name	TEXT,
-	contacts	TEXT NOT NULL, -- Não seria melhor ter email e telefone e um dos dois ter de existir?
+	contacts	TEXT NOT NULL, 
 	bio		TEXT NOT NULL
 );
 
@@ -55,9 +55,9 @@ CREATE TABLE Ad (
 	technologyId7 INTEGER REFERENCES Technology(id),
 	cityId INTEGER REFERENCES City(id),
 	title	TEXT,
-	publishDate	DATETIME, -- endDate - publishDate >= 1 and <= 6
+	publishDate	DATETIME, 
 	endDate	DATETIME,
-	jobDuration INTEGER, -- em que formato é que isto fica?
+	jobDuration INTEGER,
 	jobStartDate	DATE,
 	description	TEXT,
 	contacts 	TEXT NOT NULL,
