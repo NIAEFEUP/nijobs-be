@@ -15,6 +15,7 @@
         "eqeqeq": ["error", "always"],
         "semi": ["error", "always"],
         "linebreak-style": ["error", "unix"],
-        "quotes": ["error", "double"]
+        "quotes": ["error", "double"],
+        "no-console": ["warn"]
     }
 }
