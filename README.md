@@ -4,7 +4,6 @@
 [![Build Status](https://img.shields.io/travis/NIAEFEUP/nijobs-be/develop.svg?style=for-the-badge)](https://travis-ci.org/NIAEFEUP/nijobs-be)
 [![GitHub issues](https://img.shields.io/github/issues/NIAEFEUP/nijobs-be.svg?style=for-the-badge)](https://github.com/NIAEFEUP/nijobs-be/issues)
 [![GitHub license](https://img.shields.io/github/license/NIAEFEUP/nijobs-be.svg?style=for-the-badge)](https://github.com/NIAEFEUP/nijobs-be/blob/master/LICENSE)
-(TODO: Badges)
 
 
 A platform for companies to advertise their job opportunities to the students.
@@ -95,8 +94,8 @@ Testing is done using [`Mocha`](https://mochajs.org/) and [`Chai`](https://www.c
 
 ```
 .
-├── public :: Generated Website ends up here
-└── src :: Application source code
+├── test :: Unit tests
+└── src :: Source code
     ├── actions :: Redux Actions
     ├── components :: General React Components
     │   └── HomePage :: Example folder for components used in specific page
