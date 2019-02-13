@@ -23,7 +23,7 @@ router.get("/", (req, res) => {
 router.post("/", (req, res) => {
     if (!req.body.username) {
         res.status(400).json({
-            "sucess": false,
+            "success": false,
             "reason": "No username specified",
             "error_code": ERROR_TYPES.MISSING_FIELD,
         });

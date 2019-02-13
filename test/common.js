@@ -18,7 +18,7 @@ chai.use(chaiHttp);
 const should = chai.should();
 const server = require("../src/index");
 // module.exports.server = server;
-const request = chai.request(server);
+const request = () => chai.request(server);
 
 module.exports.should = should;
 module.exports.request = request;
