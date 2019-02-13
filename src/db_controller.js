@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 
-// FIX THIS BECAUSE OF LOCALHOST PROBLEMS
-const MONGO_URI = process.env.MONGO_URI || "mongodb://mongo:27017";
+// Default mongo port
+const DB_PORT = 27017;
+const DB_HOST = process.env.DB_HOSTNAME || "localhost";
+
+const MONGO_URI = process.env.MONGO_URI || `mongodb://${DB_HOST}:${DB_PORT}`;
 
 const DB_NAME = (process.env.NODE_ENV === "test" ? "test-db" : "nijobs-db");
 

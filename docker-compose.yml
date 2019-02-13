@@ -10,7 +10,8 @@ services:
       - ${HOST_PORT}:3000
     environment:
       - PORT=3000
-      - NODE_ENV=production
+      - NODE_ENV=prod
+      - DB_HOSTNAME=mongo
     depends_on:
       - mongo
   web-dev:
@@ -19,7 +20,8 @@ services:
       dockerfile: Dockerfile
     environment:
       - PORT=3001
-      - NODE_ENV=development
+      - NODE_ENV=dev
+      - DB_HOSTNAME=mongo
     volumes:
       - ./src:/usr/src/nijobs-be/src
     ports:
@@ -33,6 +35,7 @@ services:
     environment:
       - PORT=3002
       - NODE_ENV=test
+      - DB_HOSTNAME=mongo
     volumes:
       - ./src:/usr/src/nijobs-be/src
       - ./test:/usr/src/nijobs-be/test

@@ -32,7 +32,7 @@ The best approach to install `docker-compose` is to follow the offical guide [he
 
 ## Usage
 
-### Development
+### Development Environment
 To start developing, you must create a file `.env` with environment variables, which are explained in more detail [below](#env-file-specification).
 
 After creating the `.env` file, you must build a dev server.
@@ -49,9 +49,9 @@ docker-compose up web-dev
 
 This will create a development server with hot reloading which will listen on `http://localhost:<HOST_PORT>`.
 
-### Testing
+### Testing Environment
 
-To run the test suite, the workflow is similar to the development one:
+To run the test suite (mostly for CI/CD use), the workflow is similar to the development one:
 
 ```bash
 docker-compose build test
@@ -63,7 +63,7 @@ docker-compose up test mongo --exit-code-from test
 ```
 > A `test.sh` file is available in the project's root folder to run these commands on linux environments (simply run `./test.sh [--build]`)
 
-### Production Environment (TOCHANGE)
+### Production Environment
 
 The production environment is created by doing:
 
@@ -81,8 +81,9 @@ This environment doesn't have hot reloading or dev extensions and is made to be 
 
 ### Env File Specification
 
-- `HOST_PORT`= The port that the back-end server will expose (http://localhost:<HOST_PORT>)
+- `HOST_PORT`= The port that the server will expose (http://localhost:<HOST_PORT>)
 - `MONGO_URI`= [Optional] Specify a URI for an external mongo database
+- `DB_HOSTNAME`=  The hostname of the DB, in the case of not wanting to specify the full URI (defaults to `localhost`) - Useful for setting up docker containers, for example (the current docker configuration already considers this)
 
 ## Project Details
 
