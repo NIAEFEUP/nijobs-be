@@ -19,5 +19,4 @@ COPY ./src ./src
 # Copying .env file because it is necessary for the app to run
 COPY .env ./
 
-EXPOSE $PORT
 CMD ["npm", "run", "prod"]

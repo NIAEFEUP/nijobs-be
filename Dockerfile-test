@@ -22,5 +22,4 @@ COPY ./test ./test
 # Copying linting configuration (for running the linter)
 COPY .eslintrc.json .
 
-EXPOSE $PORT
 CMD ["npm", "test"]

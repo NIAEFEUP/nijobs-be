@@ -22,6 +22,4 @@ COPY .env ./
 # Copying test suite
 COPY ./test ./test
 
-
-EXPOSE $PORT
 CMD ["npm", "start"]
