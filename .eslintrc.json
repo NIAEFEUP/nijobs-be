@@ -1,10 +1,10 @@
-{
+{   
+    "extends": "eslint:recommended",
     "env": {
         "es6": true,
         "node": true,
         "mocha": true
     },
-    "extends": "eslint:recommended",
     "parserOptions": {
         "ecmaVersion": 2018,
         "sourceType": "module"
@@ -16,6 +16,6 @@
         "semi": ["error", "always"],
         "linebreak-style": ["error", "unix"],
         "quotes": ["error", "double"],
-        "no-console": ["error", {"allow": ["warn", "error", "info"]}]
+        "no-console": ["warn", {"allow": ["warn", "error"]}]
     }
 }

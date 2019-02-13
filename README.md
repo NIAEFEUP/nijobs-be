@@ -97,10 +97,8 @@ Testing is done using [`Mocha`](https://mochajs.org/) and [`Chai`](https://www.c
 ├── test :: Unit tests
 └── src :: Source code
     ├── routes :: Application Routes
-    ├── components :: General React Components
-    │   └── HomePage :: Example folder for components used in specific page
-    ├── pages :: Page Components
-    └── reducers :: Redux Reducers
+    ├── models :: Database Models
+    └── controllers :: Application controllers (e.g. middleware)
 
 ```
 
