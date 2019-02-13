@@ -1,0 +1,19 @@
+language: node_js
+
+node_js:  
+  - "node"
+
+sudo: required
+
+services:
+  - docker
+
+env:
+  - HOST_PORT=3000
+
+script:
+  - docker-compose up --exit-code-from test test mongo 
+
+cache:
+  directories:
+  - "node_modules"

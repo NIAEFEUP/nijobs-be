@@ -1,6 +1,5 @@
 # niJobs - BackEnd
 
-
 [![Build Status](https://img.shields.io/travis/NIAEFEUP/nijobs-be/develop.svg?style=for-the-badge)](https://travis-ci.org/NIAEFEUP/nijobs-be)
 [![GitHub issues](https://img.shields.io/github/issues/NIAEFEUP/nijobs-be.svg?style=for-the-badge)](https://github.com/NIAEFEUP/nijobs-be/issues)
 [![GitHub license](https://img.shields.io/github/license/NIAEFEUP/nijobs-be.svg?style=for-the-badge)](https://github.com/NIAEFEUP/nijobs-be/blob/master/LICENSE)
@@ -11,6 +10,8 @@ A platform for companies to advertise their job opportunities to the students.
 Made with ❤️ by NIAEFEUP.
 
 ## Installation
+
+(The following methods use Docker and Docker Compose. You can also develop directly using Node and MongoDB installed directly on your computer, but using containers ensures a more consistent configuration.)
 
 ### Prerequisites
 
@@ -37,51 +38,50 @@ To start developing, you must create a file `.env` with environment variables, w
 After creating the `.env` file, you must build a dev server.
 
 ```bash
-docker-compose build
+docker-compose build web-dev
 ```
 If you have already built the images/containers before you can simply run:
 ```bash
-docker-compose up
+docker-compose up web-dev
 ```
 
 > A `dev.sh` file is available in the project's root folder to run these commands on linux environments (simply run `./dev.sh [--build]`)
 
 This will create a development server with hot reloading which will listen on `http://localhost:<HOST_PORT>`.
 
-### Testing (TOCHANGE)
+### Testing
 
-To run the test suite, the workflow is similar to the development one.
-
-```bash
-./test.sh --build 
-```
-If you have already built the images/containers before you can simply run:
+To run the test suite, the workflow is similar to the development one:
 
 ```bash
-./test.sh 
+docker-compose build test
 ```
-> The `test.sh` file is available in the project's root folder
+After building the images/containers, the tests can be ran with:
+
+```bash
+docker-compose up test mongo --exit-code-from test
+```
+> A `test.sh` file is available in the project's root folder to run these commands on linux environments (simply run `./test.sh [--build]`)
 
 ### Production Environment (TOCHANGE)
 
 The production environment is created by doing:
 
 ```bash
-./prod.sh --build 
+docker-compose build web-prod
 ```
 If you have already built the images/containers before you can simply run:
 
 ```bash
-./prod.sh 
+docker-compose up web-prod
 ```
-> The `prod.sh` file is available in the project's root folder
+> A `prod.sh` file is available in the project's root folder to run these commands on linux environments (simply run `./prod.sh [--build]`)
 
-This environment doesn't have hot reloading and is made to be used in the main server which is running this aplication.
+This environment doesn't have hot reloading or dev extensions and is made to be used in the deployment server running this aplication.
 
 ### Env File Specification
 
 - `HOST_PORT`= The port that the back-end server will expose (http://localhost:<HOST_PORT>)
-- `CONTAINER_PORT`= The port where the app will run inside the container (Can be the same as `HOST_PORT`)
 - `MONGO_URI`= [Optional] Specify a URI for an external mongo database
 
 ## Project Details
@@ -96,7 +96,7 @@ Testing is done using [`Mocha`](https://mochajs.org/) and [`Chai`](https://www.c
 .
 ├── test :: Unit tests
 └── src :: Source code
-    ├── actions :: Redux Actions
+    ├── routes :: Application Routes
     ├── components :: General React Components
     │   └── HomePage :: Example folder for components used in specific page
     ├── pages :: Page Components

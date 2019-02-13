@@ -1,0 +1,46 @@
+version: "3"
+services:
+  web-prod:
+    build: 
+      context: .
+      dockerfile: Dockerfile-prod
+    volumes:
+      - ./src:/usr/src/nijobs-be/src
+    ports:
+      - ${HOST_PORT}:3000
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    depends_on:
+      - mongo
+  web-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3001
+      - NODE_ENV=development
+    volumes:
+      - ./src:/usr/src/nijobs-be/src
+    ports:
+      - "${HOST_PORT}:3001"
+    depends_on:
+      - mongo
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile-test
+    environment:
+      - PORT=3002
+      - NODE_ENV=test
+    volumes:
+      - ./src:/usr/src/nijobs-be/src
+      - ./test:/usr/src/nijobs-be/test
+    ports:
+      - "${HOST_PORT}:3002"
+    depends_on:
+      - mongo
+  mongo:
+    image: mongo
+    ports:
+      - "27017:27017"
