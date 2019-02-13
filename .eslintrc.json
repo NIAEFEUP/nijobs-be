@@ -16,6 +16,6 @@
         "semi": ["error", "always"],
         "linebreak-style": ["error", "unix"],
         "quotes": ["error", "double"],
-        "no-console": ["warn"]
+        "no-console": ["error", {"allow": ["warn", "error", "info"]}]
     }
 }

@@ -6,13 +6,15 @@
   "scripts": {
     "start": "nodemon src/index.js",
     "prod": "node src/index.js",
-    "test": "mocha --exit",
-    "lint": "eslint \"**/*.js\" --fix"
+    "lint": "eslint \"**/*.js\" --fix",
+    "pre-test": "npm run lint",
+    "do-test": "mocha --exit",
+    "test": "npm run pre-test && npm run do-test"
   },
   "husky": {
     "hooks": {
       "pre-commit": "npm run lint",
-      "pre-push": "npm run lint && npm run test"
+      "pre-push": "npm test"
     }
   },
   "repository": {

@@ -15,11 +15,9 @@ if (process.env.NODE_ENV === "production") {
     }
 }
 
-console.log("Connecting to Mongo DB...");
-
 db_connection
     .then(() => {
-        app.listen(PORT, () => console.log(`App listening on internal port ${PORT}`));
+        app.listen(PORT, () => console.info(`App listening on internal port ${PORT}`));
     })
     .catch((err) => {
         console.error("Error connecting to the DB (aborting): ", err);
