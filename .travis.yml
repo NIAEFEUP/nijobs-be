@@ -1,7 +1,7 @@
 language: node_js
 
 node_js:  
-  - "node"
+  - "lts/*"
 
 sudo: required
 
@@ -9,12 +9,14 @@ services:
   - docker
 
 env:
-  - HOST_PORT=3000
-  - DB_HOSTNAME=mongo
+  global:
+    - HOST_PORT=3000
+    - DB_HOSTNAME=mongo
+  matrix:
+    # Any separate test environment variables go here, one per line each creating a different test environment
 
 script:
   - docker-compose up --exit-code-from test test mongo 
 
 cache:
-  directories:
-  - "node_modules"
+  npm: true
