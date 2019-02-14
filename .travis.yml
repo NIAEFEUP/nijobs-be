@@ -16,7 +16,7 @@ env:
     # Any separate test environment variables go here, one per line each creating a different test environment
 
 script:
-  - docker-compose up --exit-code-from test test mongo 
+  - docker-compose up --exit-code-from test test
 
 cache:
   npm: true
