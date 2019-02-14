@@ -49,6 +49,7 @@ router.post("/", async (req, res) => {
 
     // Inserting user into db and replying with success or not
     try {
+        // Future note: the promise returns the inserted model, which can be useful for the response
         await ExampleUser.create({
             username: req.body.username,
             age: req.body.age

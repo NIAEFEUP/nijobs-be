@@ -3,6 +3,8 @@ const {
     request,
 } = require("./common");
 
+const ExampleUser = require("../src/models/ExampleUser");
+
 const ERROR_TYPES = require("../src/routes/errors/errorHandler");
 
 describe("Basic Mocha String Test", () => {
@@ -51,6 +53,10 @@ describe("GET /api/example/:name (example test, remove later)", () => {
 });
 
 describe("POST /api/example (example test, remove later)", () => {
+    beforeEach("Clearing the users", async () => {
+        await ExampleUser.deleteMany({});
+    });
+
     it("should return a malformed request error when no username is sent", () => {
         return request().post("/api/example")
             .send({})
@@ -64,9 +70,46 @@ describe("POST /api/example (example test, remove later)", () => {
     });
 
     it("should return success when the username is sent (user correctly inserted)", () => {
-        // Calling endpoint and checking status
+        const test_username = "wowzers";
 
-        // Verifying user inserted in db
+        // Calling endpoint and checking status
+        return request().post("/api/example")
+            .send({"username": test_username})
+            .then(async res => {
+                res.should.have.status(200);
+                res.body.should.be.an("object");
+                res.body.should.have.property("success").equal(true);
+                
+                // Verifying new user
+                const new_user = await ExampleUser.findOne({"username": test_username});
+                // Syntax switch to ensure that even if new_user is undefined this does not crash
+                should.exist(new_user);
+                new_user.should.have.property("username").equal(test_username);
+                new_user.should.have.property("age").equal(420); // default age
+            });
+    });
+
+    it("should return success when the username and age are sent (user correctly inserted)", () => {
+        const test_username = "testz";
+        const test_age = 101;
+
+        // Calling endpoint and checking status
+        return request().post("/api/example")
+            .send({
+                "username": test_username,
+                "age": test_age
+            }).then(async res => {
+                res.should.have.status(200);
+                res.body.should.be.an("object");
+                res.body.should.have.property("success").equal(true);
+                
+                // Verifying new user
+                const new_user = await ExampleUser.findOne({"username": test_username});
+                // Syntax switch to ensure that even if new_user is undefined this does not crash
+                should.exist(new_user);
+                new_user.should.have.property("username").equal(test_username);
+                new_user.should.have.property("age").equal(test_age);
+            });
     });
 
     // Future tests could test duplicate users, for example, among other things (these are just examples)
