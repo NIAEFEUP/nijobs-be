@@ -1,3 +1,5 @@
+//// Base file for unit test utilities
+
 require("dotenv").config();
 
 //During the test the env variable must be set to test
