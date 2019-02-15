@@ -5,12 +5,12 @@ const bodyParser = require("body-parser");
 
 const PORT = process.env.PORT || 4000;
 
-if (process.env.NODE_ENV === "production") {
-    if (!process.env.MONGO_URI) {
+if (!process.env.MONGO_URI) {
+    if (process.env.NODE_ENV === "production") {
         console.error("MONGO_URI was not defined in .env file and we are in production environment! Aborting!");
         process.exit(88);
     } else {
-        console.warn("MONGO_URI was not defined in .enf file, falling back to localhost defaults.");
+        console.warn("MONGO_URI was not defined in .env file, falling back to localhost defaults.");
     }
 }
 
