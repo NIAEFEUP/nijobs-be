@@ -1,0 +1,21 @@
+{   
+    "extends": "eslint:recommended",
+    "env": {
+        "es6": true,
+        "node": true,
+        "mocha": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 2018,
+        "sourceType": "module"
+    },
+    "rules": {
+        "indent": ["error", 4],
+        "brace-style": ["error", "1tbs"],
+        "eqeqeq": ["error", "always"],
+        "semi": ["error", "always"],
+        "linebreak-style": ["error", "unix"],
+        "quotes": ["error", "double"],
+        "no-console": ["warn", {"allow": ["warn", "error", "info"]}]
+    }
+}

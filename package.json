@@ -1,0 +1,40 @@
+{
+  "name": "nijobs-be",
+  "version": "1.0.0",
+  "description": "Back-End for NiJobs website",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "nodemon src/index.js",
+    "prod": "node src/index.js",
+    "lint": "eslint \"**/**/*.js\" --fix",
+    "pre-test": "npm run lint",
+    "do-test": "NODE_ENV=test mocha --exit",
+    "test": "npm run pre-test && npm run do-test"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint",
+      "pre-push": "npm test"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NIAEFEUP/nijobs-be.git"
+  },
+  "author": "NIAEFEUP",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "chai-http": "^4.2.1",
+    "eslint": "^5.13.0",
+    "husky": "^1.3.1",
+    "mocha": "^5.2.0",
+    "nodemon": "^1.18.10"
+  },
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "mongoose": "^5.4.11"
+  }
+}

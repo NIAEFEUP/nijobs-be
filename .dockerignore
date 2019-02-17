@@ -1,0 +1,14 @@
+# Items that don't need to be in a Docker image.
+# Anything not used by the build system should go here.
+Dockerfile
+docker-compose*.yml
+.dockerignore
+.gitignore
+README.md
+# Ignore .git and .cache folders
+.git
+.cache
+# Artifacts that will be built during image creation.
+# This should contain all files created during build
+node_modules
+npm-debug.log
