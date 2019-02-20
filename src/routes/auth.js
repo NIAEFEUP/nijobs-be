@@ -4,9 +4,21 @@ const passport = require("passport");
 
 const ERROR_TYPES = require("./errors/errorHandler");
 const Company = require("../models/Company");
-const {authRequired} = require("../auth_controller");
+const authRequired = require("../auth_controller");
 
+// Get logged in user
+router.get("/login", authRequired, (req, res) => {
+    const userInfo = req.user;
+    return res.status(200).json({
+        "success": true,
+        "data": {
+            "_id": userInfo._id,
+            "username": userInfo.username
+        }
+    });
+});
 
+// Login endpoint
 router.post("/login", passport.authenticate("local"), (req, res) => {
     return res.status(200).json({
         "success": true,
@@ -14,12 +26,7 @@ router.post("/login", passport.authenticate("local"), (req, res) => {
 });
 
 
-router.get("/login", authRequired, (req, res) => {
-    return res.status(200).json({
-        "success": true,
-    });
-});
-
+// Logout endpoint
 router.delete("/login", authRequired, (req, res) => {
     req.logout();
     return res.status(200).json({
@@ -27,6 +34,7 @@ router.delete("/login", authRequired, (req, res) => {
     });
 });
 
+// Register endpoint
 router.post("/register", async (req, res) => {
     // Username is required
     if (!req.body.username) {

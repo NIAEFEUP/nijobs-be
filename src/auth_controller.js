@@ -4,6 +4,7 @@ const LocalStrategy = require("passport-local").Strategy;
 const Company = require("./models/Company");
 const ERROR_TYPES = require("./routes/errors/errorHandler");
 
+// Middleware to require login in an endpoint
 const authRequired = (req, res, next) => {
     if(req.isAuthenticated()) {
         return next();
@@ -14,6 +15,7 @@ const authRequired = (req, res, next) => {
     });
 };
 
+// Passport configuration
 passport.use(new LocalStrategy(
     (username, password, done) => {
         Company.findOne({ username: username }, (err, company) => {
@@ -42,4 +44,4 @@ passport.deserializeUser(function(id, done) {
 });
 
 
-module.exports = {authRequired, passport};
+module.exports = authRequired;
