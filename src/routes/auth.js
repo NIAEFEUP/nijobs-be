@@ -4,6 +4,8 @@ const passport = require("passport");
 
 const ERROR_TYPES = require("./errors/errorHandler");
 const Company = require("../models/Company");
+const {authRequired} = require("../auth_controller");
+
 
 router.post("/login", passport.authenticate("local"), (req, res) => {
     return res.status(200).json({
@@ -11,14 +13,14 @@ router.post("/login", passport.authenticate("local"), (req, res) => {
     });
 });
 
-router.delete("/login", (req, res) => {
-    if(!req.user) {
-        return res.status(409).json({
-            "success": false,
-            "reason": "Not logged in"
-        });
-    }
 
+router.get("/login", authRequired, (req, res) => {
+    return res.status(200).json({
+        "success": true,
+    });
+});
+
+router.delete("/login", authRequired, (req, res) => {
     req.logout();
     return res.status(200).json({
         "success": true,

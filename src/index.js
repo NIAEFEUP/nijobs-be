@@ -54,7 +54,7 @@ app.use(session({
     }
 }));
 
-const passport = require("./auth_controller");
+const { passport } = require("./auth_controller");
 app.use(passport.initialize());
 app.use(passport.session());
 

@@ -2,7 +2,17 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const Company = require("./models/Company");
+const ERROR_TYPES = require("./routes/errors/errorHandler");
 
+const authRequired = (req, res, next) => {
+    if(req.isAuthenticated()) {
+        return next();
+    }
+    return res.status(401).json({
+        "reason": "Must be logged in",
+        "code": ERROR_TYPES.FORBIDDEN,
+    });
+};
 
 passport.use(new LocalStrategy(
     (username, password, done) => {
@@ -31,4 +41,5 @@ passport.deserializeUser(function(id, done) {
     });
 });
 
-module.exports = passport;
+
+module.exports = {authRequired, passport};
