@@ -1,7 +1,7 @@
 // Set up passport middleware for sessions
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
-const Company = require("./models/Company");
+const Account = require("./models/Account");
 const ERROR_TYPES = require("./routes/errors/errorHandler");
 
 // Middleware to require login in an endpoint
@@ -18,17 +18,17 @@ const authRequired = (req, res, next) => {
 // Passport configuration
 passport.use(new LocalStrategy(
     (username, password, done) => {
-        Company.findOne({ username: username }, (err, company) => {
+        Account.findOne({ username: username }, (err, user) => {
             if (err) {
                 return done(err); 
             }
-            if (!company) {
+            if (!user) {
                 return done(null, false, { message: "Incorrect username." });
             }
-            if (!company.validatePassword(password)) {
+            if (!user.validatePassword(password)) {
                 return done(null, false, { message: "Incorrect password." });
             }
-            return done(null, company);
+            return done(null, user);
         });
     }
 ));
@@ -38,8 +38,8 @@ passport.serializeUser(function(user, done) {
 });
   
 passport.deserializeUser(function(id, done) {
-    Company.findById(id, function(err, company) {
-        done(err, company);
+    Account.findById(id, function(err, user) {
+        done(err, user);
     });
 });
 

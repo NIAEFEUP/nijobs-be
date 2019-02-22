@@ -8,12 +8,12 @@ const hashPassword = password => {
     return hash;
 };
 
-const CompanySchema = new Schema({
+const AccountSchema = new Schema({
     username: {type: String, unique: true},
     password: {type: String}
 });
 
-CompanySchema.methods.validatePassword = function(password) {
+AccountSchema.methods.validatePassword = function(password) {
     try {
         return bcrypt.compareSync(password, this.password);
     } catch (error) {
@@ -21,12 +21,12 @@ CompanySchema.methods.validatePassword = function(password) {
     }
 };
 
-CompanySchema.pre("save", function (next) {
+AccountSchema.pre("save", function (next) {
     if ( this.password && this.isModified("password") ) {
         this.password = hashPassword(this.password);
     }
     next();
 });
 
-const Company = mongoose.model("Company", CompanySchema);
-module.exports = Company;
+const Account = mongoose.model("Account", AccountSchema);
+module.exports = Account;

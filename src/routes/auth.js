@@ -3,7 +3,7 @@ const router = express.Router();
 const passport = require("passport");
 
 const ERROR_TYPES = require("./errors/errorHandler");
-const Company = require("../models/Company");
+const Account = require("../models/Account");
 const authRequired = require("../auth_controller");
 
 // Get logged in user
@@ -56,8 +56,9 @@ router.post("/register", async (req, res) => {
 
     // Inserting user into db and replying with success or not
     try {
+
         // Future note: the promise returns the inserted model, which can be useful for the response
-        await Company.create({
+        await Account.create({
             username: req.body.username,
             password: req.body.password
         });
@@ -68,6 +69,7 @@ router.post("/register", async (req, res) => {
     } catch(err) {
         return res.status(500).json({
             "success": false,
+            "reason": "Duplicated username",
             "error_code": ERROR_TYPES.DB_ERROR
         });
     }
