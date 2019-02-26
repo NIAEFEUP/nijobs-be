@@ -7,8 +7,9 @@ const {TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES} = require("./Technol
 const AdSchema = new Schema({
     title: {type: String, required: true},
     publishDate: {type: Date, required: true},
-    endDate: {type: Date, required: true},
-    // Shouldn't this just be a String? Simplifies companies wanting to insert ranges and whatnot
+    // We also need to check the 6 month difference between both dates. (TODO)!
+    endDate: {type: Date, required: true, validate: [dateValidator, "End Date must be bigger or equal than the Publication Date"]},
+    // Shouldn't this just be a String? Simplifies companies wanting to insert ranges and whatnot (DISCUSS)
     jobDuration: {type: Number},
     jobStartDate: {type: Date},
     description: {type: String, maxlength: 1500, required: true},
@@ -38,6 +39,11 @@ const AdSchema = new Schema({
     isHidden: {type: Boolean},
     owner: {type: Types.ObjectId, ref: "Company", required: true},
 });
+
+// Check if the publication date is minor or equal than the end date.
+function dateValidator(value) {
+    return this.publishDate <= value;
+}
 
 const Ad = mongoose.model("Ad", AdSchema);
 
