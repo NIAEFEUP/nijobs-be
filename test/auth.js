@@ -1,6 +1,7 @@
 const {
     should,
     request,
+    agent,
 } = require("./common");
 
 const ERROR_TYPES = require("../src/routes/errors/errorHandler");
@@ -59,6 +60,8 @@ describe("Register endpoint test", () => {
 
 describe("Using already resgistered user", () => {
     before("Adding user", async () => {
+        this.agent = agent();
+
         this.user = {
             username: "user",
             password: "password"
@@ -81,25 +84,36 @@ describe("Using already resgistered user", () => {
 
 
     it("Log in with registered account", async () => {
-        return request().post("/api/login")
+        return this.agent.post("/api/login")
             .send(this.user)
+            .then(async res => {
+                res.should.have.cookie("connect.sid");
+                res.should.have.status(200);
+                res.body.should.be.an("object");
+                res.body.should.have.property("success").equal(true);
+            });
+    });
+
+    it("Get logged in user info", async () => {
+        return this.agent.get("/api/login")
+            .send()
+            .then(async res => {
+                res.should.have.status(200);
+                res.body.should.be.an("object");
+                res.body.should.have.property("success").equal(true);
+                res.body.should.have.nested.property("data.username").equal(this.user.username);
+            });
+    });
+
+    it("Log out with registered account", async () => {        
+        return this.agent.delete("/api/login")
+            .send()
             .then(async res => {
                 res.should.have.status(200);
                 res.body.should.be.an("object");
                 res.body.should.have.property("success").equal(true);
             });
     });
-    
-    // Cookie is to set so the logout can not be performed
-    // it("Log out with registered account", async () => {        
-    //     return request().delete("/api/login")
-    //         .send()
-    //         .then(async res => {
-    //             res.should.have.status(200);
-    //             res.body.should.be.an("object");
-    //             res.body.should.have.property("success").equal(true);
-    //         });
-    // });
 
 
 });

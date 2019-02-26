@@ -18,12 +18,14 @@ const chai = require("chai");
 const chaiHttp = require("chai-http");
 chai.use(chaiHttp);
 const should = chai.should();
-const server = require("../src/index");
+const {server, app} = require("../src/index");
 // module.exports.server = server;
 const request = () => chai.request(server);
+const agent = () => chai.request.agent(app);
 
 module.exports.should = should;
 module.exports.request = request;
+module.exports.agent = agent;
 
 module.exports.sleep = ms => {
     return new Promise(resolve => {

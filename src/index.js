@@ -89,7 +89,8 @@ const server = app.listen(PORT);
 if (process.env.NODE_ENV === "test") {
     console.info(`Server started in testing mode. Listening in internal port ${PORT}`);
     //Necessary for Chai HTTP requests (End-to-End testing)
-    module.exports = server;
+    module.exports.server = server;
+    module.exports.app = app;
 } else {
     console.info(`Server listening on internal port ${PORT}`);
 }    
