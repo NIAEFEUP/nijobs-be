@@ -5,8 +5,7 @@ const {FieldTypes, MIN_FIELDS, MAX_FIELDS} = require("./FieldTypes");
 const {TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES} = require("./TechnologyTypes");
 
 const AdSchema = new Schema({
-    // (DISCUSS) Max Length for title?
-    title: {type: String, maxlength: 80, required: true},
+    title: {type: String, maxlength: 90, required: true},
     publishDate: {type: Date, required: true},
     // We also need to check the 6 month difference between both dates. (TODO)!
     endDate: {type: Date, required: true, validate: [dateValidator, "End Date must be bigger or equal than the Publication Date"]},
@@ -15,7 +14,7 @@ const AdSchema = new Schema({
     jobStartDate: {type: Date},
     description: {type: String, maxlength: 1500, required: true},
 
-    // There should be at least one contact (TODO)
+    // There should be at least one contact (TODO) - Map (key/value) should be the solution
     contacts: {type: String, required: true},
 
     isPaid: {type: Boolean},
