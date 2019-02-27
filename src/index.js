@@ -81,7 +81,7 @@ app.use((req, res, next) => {
 const example = require("./routes/example");
 app.use("/api/example", example);
 const account = require("./routes/auth");
-app.use("/api", account);
+app.use("/api/auth", account);
 
 
 

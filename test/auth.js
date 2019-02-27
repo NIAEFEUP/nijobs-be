@@ -14,7 +14,7 @@ describe("Register endpoint test", () => {
     });
 
     it("Should return a malformed request (missing username)", () => {
-        return request().post("/api/register")
+        return request().post("/api/auth/register")
             .send({})
             .then(res => {
                 res.should.have.status(400);
@@ -26,7 +26,7 @@ describe("Register endpoint test", () => {
     });
 
     it("Should return a malformed request (missing password)", () => {
-        return request().post("/api/register")
+        return request().post("/api/auth/register")
             .send({
                 username: "user"
             })
@@ -44,7 +44,7 @@ describe("Register endpoint test", () => {
             username: "user",
             password: "password"
         };
-        return request().post("/api/register")
+        return request().post("/api/auth/register")
             .send(user)
             .then(async res => {
                 res.should.have.status(200);
@@ -71,7 +71,7 @@ describe("Using already resgistered user", () => {
     });
 
     it("Stop registering of users with duplicate usernames", () => {
-        return request().post("/api/register")
+        return request().post("/api/auth/register")
             .send(this.user)
             .then(async res => {
                 res.should.have.status(500);
@@ -84,7 +84,7 @@ describe("Using already resgistered user", () => {
 
 
     it("Log in with registered account", async () => {
-        return this.agent.post("/api/login")
+        return this.agent.post("/api/auth/login")
             .send(this.user)
             .then(async res => {
                 res.should.have.cookie("connect.sid");
@@ -95,7 +95,7 @@ describe("Using already resgistered user", () => {
     });
 
     it("Get logged in user info", async () => {
-        return this.agent.get("/api/login")
+        return this.agent.get("/api/auth/login")
             .send()
             .then(async res => {
                 res.should.have.status(200);
@@ -106,7 +106,7 @@ describe("Using already resgistered user", () => {
     });
 
     it("Log out with registered account", async () => {        
-        return this.agent.delete("/api/login")
+        return this.agent.delete("/api/auth/login")
             .send()
             .then(async res => {
                 res.should.have.status(200);
