@@ -82,6 +82,17 @@ describe("Using already resgistered user", () => {
             });
     });
 
+    it("Should return forbidden when retrieving the information of the logged in user", async () => {
+        return request().get("/api/auth/login")
+            .send()
+            .then(async res => {
+                res.should.have.status(401);
+                res.body.should.be.an("object");
+                res.body.should.have.property("success").equal(false);
+                res.body.should.have.property("reason").that.is.a("string");
+            });
+    });
+
 
     it("Log in with registered account", async () => {
         return this.agent.post("/api/auth/login")
@@ -112,6 +123,17 @@ describe("Using already resgistered user", () => {
                 res.should.have.status(200);
                 res.body.should.be.an("object");
                 res.body.should.have.property("success").equal(true);
+            });
+    });
+
+    it("Verify if the log out happen server side", async () => {
+        return this.agent.get("/api/auth/login")
+            .send()
+            .then(async res => {
+                res.should.have.status(401);
+                res.body.should.be.an("object");
+                res.body.should.have.property("success").equal(false);
+                res.body.should.have.property("reason").that.is.a("string");
             });
     });
 

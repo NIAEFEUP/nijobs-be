@@ -10,6 +10,7 @@ const authRequired = (req, res, next) => {
         return next();
     }
     return res.status(401).json({
+        "success": false,
         "reason": "Must be logged in",
         "code": ERROR_TYPES.FORBIDDEN,
     });
