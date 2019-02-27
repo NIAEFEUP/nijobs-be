@@ -22,12 +22,25 @@ const AdSchema = new Schema({
         required: true,
         validate: [
             validateEndDate,
-            "End Date must not differ from the Publish Date by more than 6 months"
+            `End Date must not differ from the Publish Date by more than ${AD_MAX_LIFETIME_MONTHS} months`
         ]
     },
 
-    // Shouldn't this just be a String? Simplifies companies wanting to insert ranges and whatnot (DISCUSS)
-    jobDuration: {type: Number},
+    jobMinDuration: {
+        type: Number,
+        required: function() {
+            // jobMinDuration is required if jobMaxDuration was specified
+            return !!this.jobMaxDuration;
+        }
+    },
+    jobMaxDuration: {
+        type: Number,
+        validate: [
+            validateJobMaxDuration,
+            "jobMaxDuration must be larger than jobMinDuration"
+        ]
+    },
+
     jobStartDate: {type: Date},
     description: {type: String, maxlength: 1500, required: true},
 
@@ -73,13 +86,19 @@ function validatePublishDate(value) {
 }
 
 const MONTH_IN_MS = 1000 * 3600 * 24 * 30.42;
+const AD_MAX_LIFETIME_MONTHS = 6;
 
 function validateEndDate(value) {
     // Milisseconds from publish date to end date (Ad is no longer valid)
     const timeDiff = value.getTime() - this.publishDate.getTime();
     const diffInMonths = timeDiff / MONTH_IN_MS;
 
-    return diffInMonths <= 6;
+    return diffInMonths <= AD_MAX_LIFETIME_MONTHS;
+}
+
+// jobMaxDuration must be larger than jobMinDuration
+function validateJobMaxDuration(value) {
+    return value >= this.jobMinDuration;
 }
 
 // Adding unique array mongo plugin - to ensure that the elements inside the arrays are in fact unique
