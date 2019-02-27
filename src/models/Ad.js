@@ -41,9 +41,9 @@ const AdSchema = new Schema({
 
     isPaid: {type: Boolean},
     vacancies: {type: Number},
-    jobType: {type: String, required: true, enum: Object.values(JobTypes)},
+    jobType: {type: String, required: true, enum: JobTypes},
     fields: {
-        type:[{type: String, enum: Object.values(FieldTypes)}],
+        type:[{type: String, enum: FieldTypes}],
         required: true,
         validate: [
             (val) => val.length >= MIN_FIELDS && val.length <= MAX_FIELDS,
@@ -51,7 +51,7 @@ const AdSchema = new Schema({
         ]
     },
     technologies: {
-        type:[{type: String, enum: Object.values(TechnologyTypes)}],
+        type:[{type: String, enum: TechnologyTypes}],
         required: true,
         validate: [
             (val) => val.length >= MIN_TECHNOLOGIES && val.length <= MAX_TECHNOLOGIES,
@@ -81,6 +81,6 @@ function validateEndDate(value) {
 const Ad = mongoose.model("Ad", AdSchema);
 
 // Useful for testing correct field implementation
-// console.log("DBG: ", AdSchema.path("publishDate"));
+// console.log("DBG: ", AdSchema.path("technologies"));
 
 module.exports = Ad;

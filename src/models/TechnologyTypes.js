@@ -1,18 +1,23 @@
-const TechnologyTypes = Object.freeze({
-    REACT : "React",
-    ANGULAR: "Angular",
-    VUE: "Vue",
-    NODEJS: "Node.js",
-    JAVA: "Java",
-    CPP: "C++",
-    C: "C",
-    CSHARP: "C#",
-    CLOJURE: "Clojure",
-    GO: "Go",
-    HASKELL: "Haskell",
-    SPRING_BOOT: "Spring Boot",
-    OTHER: "OTHER",
-});
+const TechnologyTypes = Object.freeze([
+    "React",
+    "Angular",
+    "Vue",
+    "Node.js",
+    "Java",
+    "C++",
+    "C",
+    "C#",
+    "Clojure",
+    "Go",
+    "Haskell",
+    "Spring Boot",
+    "Android",
+    "Flutter",
+    "Dart",
+    "PHP",
+    "CSS",
+    "Other",
+]);
 
 const MIN_TECHNOLOGIES = 1;
 const MAX_TECHNOLOGIES = 7;

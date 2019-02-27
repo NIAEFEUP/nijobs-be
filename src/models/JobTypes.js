@@ -1,9 +1,9 @@
-const JobTypes = Object.freeze({
-    FULL_TIME : "Full Time",
-    PART_TIME: "Part Time",
-    SUMMER_INTERNSHIP: "Summer Internship",
-    CURRICULAR_INTERNSHIP: "Curricular Internship",
-    OTHER: "Other",
-});
+const JobTypes = Object.freeze([
+    "Full-Time",
+    "Part-Time",
+    "Summer Internship",
+    "Curricular Internship",
+    "Other",
+]);
 
 module.exports = JobTypes;
