@@ -6,9 +6,24 @@ const {TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES} = require("./Technol
 
 const AdSchema = new Schema({
     title: {type: String, maxlength: 90, required: true},
-    publishDate: {type: Date, required: true},
-    // We also need to check the 6 month difference between both dates. (TODO)!
-    endDate: {type: Date, required: true, validate: [dateValidator, "End Date must be bigger or equal than the Publication Date"]},
+    publishDate: {
+        type: Date,
+        required: true,
+        validate: [
+            validatePublishDate,
+            "Publish Date must be smaller than the End Date"
+        ]
+    },
+
+    endDate: {
+        type: Date,
+        required: true,
+        validate: [
+            validateEndDate,
+            "End Date must not differ from the Publish Date by more than 6 months"
+        ]
+    },
+
     // Shouldn't this just be a String? Simplifies companies wanting to insert ranges and whatnot (DISCUSS)
     jobDuration: {type: Number},
     jobStartDate: {type: Date},
@@ -48,14 +63,24 @@ const AdSchema = new Schema({
     owner: {type: Types.ObjectId, ref: "Company", required: true},
 });
 
-// Check if the publication date is minor or equal than the end date.
-function dateValidator(value) {
-    return this.publishDate <= value;
+// Checking if the publication date is less than or equal than the end date.
+function validatePublishDate(value) {
+    return value <= this.endDate;
+}
+
+const MONTH_IN_MS = 1000 * 3600 * 24 * 30.42;
+
+function validateEndDate(value) {
+    // Milisseconds from publish date to end date (Ad is no longer valid)
+    const timeDiff = value.getTime() - this.publishDate.getTime();
+    const diffInMonths = timeDiff / MONTH_IN_MS;
+
+    return diffInMonths <= 6;
 }
 
 const Ad = mongoose.model("Ad", AdSchema);
 
 // Useful for testing correct field implementation
-console.log("DBG: ", AdSchema.path("contacts"));
+// console.log("DBG: ", AdSchema.path("publishDate"));
 
 module.exports = Ad;
