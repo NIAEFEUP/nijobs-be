@@ -87,7 +87,7 @@ describe("# 'Example' endpoint tests (example tests, remove later)", () => {
 
         // Future tests could test duplicate users, for example, among other things (these are just examples)
         // No callback: test is pending
-        it("when there are previous users (todo, example idea)");
+        // it("when there are previous users (todo, example idea)");
     });
 
     describe("GET /api/example (example test, remove later)", () => {
@@ -118,14 +118,8 @@ describe("# 'Example' endpoint tests (example tests, remove later)", () => {
                     "age": 901
                 };
 
-                this.test_user2 = {
-                    "username": "foobar",
-                    "age": 73
-                };
-
                 await ExampleUser.create([
-                    this.test_user1,
-                    this.test_user2
+                    this.test_user1
                 ]);
             });
 
@@ -136,11 +130,9 @@ describe("# 'Example' endpoint tests (example tests, remove later)", () => {
                         res.body.should.be.an("object");
                         res.body.should.have.property("success").equal(true);
                         res.body.should.have.property("users").that.is.an("array");
-                        res.body.users.should.have.lengthOf(2);
+                        res.body.users.should.have.lengthOf(1);
                         res.body.users[0].should.have.property("username", this.test_user1.username);
                         res.body.users[0].should.have.property("age", this.test_user1.age);
-                        res.body.users[1].should.have.property("username", this.test_user2.username);
-                        res.body.users[1].should.have.property("age", this.test_user2.age);
                     });
             });
         });
