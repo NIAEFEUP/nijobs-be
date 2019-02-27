@@ -14,8 +14,15 @@ const AdSchema = new Schema({
     jobStartDate: {type: Date},
     description: {type: String, maxlength: 1500, required: true},
 
-    // There should be at least one contact (TODO) - Map (key/value) should be the solution
-    contacts: {type: String, required: true},
+    contacts: {
+        type: Map,
+        of: String,
+        required: true,
+        validate: [
+            (val) => val.length >= 1,
+            "There must be at least one contact"
+        ]
+    },
 
     isPaid: {type: Boolean},
     vacancies: {type: Number},
@@ -49,6 +56,6 @@ function dateValidator(value) {
 const Ad = mongoose.model("Ad", AdSchema);
 
 // Useful for testing correct field implementation
-// console.log("DBG: ", AdSchema.path("jobType"));
+console.log("DBG: ", AdSchema.path("contacts"));
 
 module.exports = Ad;
