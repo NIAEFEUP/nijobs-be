@@ -131,7 +131,7 @@ describe("# Ad Schema tests", () => {
             });
 
             describe(`'technologies' must have between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES} values`, () => {
-                it("Below minimum should throw error", () => {
+                it("Below minimum throws error", () => {
                     const ad = new Ad({});
                     return ad.validate(err => {
                         should.exist(err.errors.technologies);
@@ -140,7 +140,7 @@ describe("# Ad Schema tests", () => {
                     });
                 });
 
-                it("Above maximum should throw error", () => {
+                it("Above maximum throws error", () => {
                     const submitted_technologies = [];
                     for (let i = 0; i < MAX_TECHNOLOGIES + 1; ++i) {
                         // Preventing interference from duplicate error
@@ -157,7 +157,7 @@ describe("# Ad Schema tests", () => {
                     });
                 });
 
-                it("Inside the range should not throw error", () => {
+                it("Inside the range does not throw error", () => {
                     const submitted_technologies = [];
                     for (let i = 0; i < MIN_TECHNOLOGIES + 1; ++i) {
                         // Preventing interference from duplicate error
@@ -174,7 +174,7 @@ describe("# Ad Schema tests", () => {
             });
 
             describe("There must be at least one contact", () => {
-                it("There are no contacts", () => {
+                it("No contacts throws error", () => {
                     const test_contacts = new Map();
 
                     const ad = new Ad({
@@ -185,6 +185,19 @@ describe("# Ad Schema tests", () => {
                         should.exist(err.errors.contacts);
                         err.errors.contacts.should.have.property("kind").equal("user defined");
                         err.errors.contacts.should.have.property("message").equal("There must be at least one contact");
+                    });
+                });
+
+                it("At least 1 contact does not throw error", () => {
+                    const test_contacts = new Map();
+                    test_contacts.set("email", "memes@niaefeup.pt");
+
+                    const ad = new Ad({
+                        contacts: test_contacts,
+                    });
+
+                    return ad.validate(err => {
+                        should.not.exist(err.errors.contacts);
                     });
                 });
                 

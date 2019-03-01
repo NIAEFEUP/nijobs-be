@@ -51,7 +51,7 @@ const AdSchema = new Schema({
         of: String,
         required: true,
         validate: [
-            (val) => val.length >= 1,
+            (val) => val.size >= 1,
             "There must be at least one contact"
         ]
     },
