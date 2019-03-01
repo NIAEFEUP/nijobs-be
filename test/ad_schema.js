@@ -3,16 +3,16 @@ const {
 } = require("./common");
 
 const Ad = require("../src/models/Ad");
-// const {} = require("../src/models/JobTypes");
-const { MIN_FIELDS, MAX_FIELDS } = require("../src/models/FieldTypes");
-const { MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../src/models/TechnologyTypes");
+const JobTypes = require("../src/models/JobTypes");
+const { MIN_FIELDS, MAX_FIELDS, FieldTypes } = require("../src/models/FieldTypes");
+const { MIN_TECHNOLOGIES, MAX_TECHNOLOGIES, TechnologyTypes } = require("../src/models/TechnologyTypes");
 
 describe("# Ad Schema tests", () => {
     before("Clearing Ads", async () => {
         await Ad.deleteMany({});
     });
     
-    describe("Required fields tests", () => {
+    describe("Required and bound (between min and max elements) properties tests", () => {
         describe("required using schema 'required' property (no user defined validators)", () => {
             it("'title' is required", () => {
                 const ad = new Ad({});
@@ -86,32 +86,160 @@ describe("# Ad Schema tests", () => {
         });
 
         describe("required using custom validators (checking for array lengths, etc)", () => {
-            it(`'fields' must have between ${MIN_FIELDS} and ${MAX_FIELDS} values`, () => {
-                const ad = new Ad({});
-                return ad.validate(err => {
-                    should.exist(err.errors.fields);
-                    err.errors.fields.should.have.property("kind").equal("user defined");
-                    err.errors.fields.should.have.property("message").equal(`There must be between ${MIN_FIELDS} and ${MAX_FIELDS} fields`);
+            describe(`'fields' must have between ${MIN_FIELDS} and ${MAX_FIELDS} values`, () => {
+                it("Below minimum should throw error", () => {
+                    const ad = new Ad({});
+                    return ad.validate(err => {
+                        should.exist(err.errors.fields);
+                        err.errors.fields.should.have.property("kind").equal("user defined");
+                        err.errors.fields.should.have.property("message").equal(`There must be between ${MIN_FIELDS} and ${MAX_FIELDS} fields`);
+                    });
+                });
+
+                it("Above maximum should throw error", () => {
+                    const submitted_fields = [];
+                    for (let i = 0; i < MAX_FIELDS + 1; ++i) {
+                        // Preveting interference from duplicate error
+                        submitted_fields.push("RAND0M_5TR1NG!!--0" + i);
+                    }
+                    const ad = new Ad({
+                        fields: submitted_fields,
+                    });
+
+                    return ad.validate(err => {
+                        should.exist(err.errors.fields);
+                        err.errors.fields.should.have.property("kind").equal("user defined");
+                        err.errors.fields.should.have.property("message").equal(`There must be between ${MIN_FIELDS} and ${MAX_FIELDS} fields`);
+                    });
+                });
+
+                it("Inside the range should not throw error", () => {
+                    const submitted_fields = [];
+                    for (let i = 0; i < MIN_FIELDS; ++i) {
+                        // Preveting interference from duplicate error
+                        submitted_fields.push("RAND0M_5TR1NG!!--0" + i);
+                    }
+                    const ad = new Ad({
+                        fields: submitted_fields,
+                    });
+
+                    return ad.validate(err => {
+                        should.not.exist(err.errors.fields);
+                    });
                 });
             });
 
-            it(`'technologies' must have between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES} values`, () => {
-                const ad = new Ad({});
-                return ad.validate(err => {
-                    should.exist(err.errors.technologies);
-                    err.errors.technologies.should.have.property("kind").equal("user defined");
-                    err.errors.technologies.should.have.property("message").equal(`There must be between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES} technologies`);
+            describe(`'technologies' must have between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES} values`, () => {
+                it("Below minimum should throw error", () => {
+                    const ad = new Ad({});
+                    return ad.validate(err => {
+                        should.exist(err.errors.technologies);
+                        err.errors.technologies.should.have.property("kind").equal("user defined");
+                        err.errors.technologies.should.have.property("message").equal(`There must be between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES} technologies`);
+                    });
+                });
+
+                it("Above maximum should throw error", () => {
+                    const submitted_technologies = [];
+                    for (let i = 0; i < MAX_TECHNOLOGIES + 1; ++i) {
+                        // Preveting interference from duplicate error
+                        submitted_technologies.push("RAND0M_5TR1NG!!--0" + i);
+                    }
+                    const ad = new Ad({
+                        technologies: submitted_technologies,
+                    });
+
+                    return ad.validate(err => {
+                        should.exist(err.errors.technologies);
+                        err.errors.technologies.should.have.property("kind").equal("user defined");
+                        err.errors.technologies.should.have.property("message").equal(`There must be between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES} technologies`);
+                    });
+                });
+
+                it("Inside the range should not throw error", () => {
+                    const submitted_technologies = [];
+                    for (let i = 0; i < MIN_TECHNOLOGIES + 1; ++i) {
+                        // Preveting interference from duplicate error
+                        submitted_technologies.push("RAND0M_5TR1NG!!--0" + i);
+                    }
+                    const ad = new Ad({
+                        technologies: submitted_technologies,
+                    });
+
+                    return ad.validate(err => {
+                        should.not.exist(err.errors.technologies);
+                    });
                 });
             });
         });
     });
 
-    describe("Values in enum tests", () => {
-        // TODO: jobTypes, fields and technologies
-        it("TODO");
+    describe("Property values inside enums tests", () => {
+        it("Fields must be in the specified FieldTypes", () => {
+            const inexistant_field_base = FieldTypes[0] + "!!THIS_DOES_NOT_EXIST_FOR_SURE-0";
+            const submitted_fields = [];
+            for (let i = 0; i < MIN_FIELDS; ++i) {
+                submitted_fields.push(inexistant_field_base + i);
+            }
+
+            const ad = new Ad({
+                fields: submitted_fields
+            });
+
+            return ad.validate(err => {
+                for (let i = 0; i < submitted_fields.length; ++i) {
+                    const curr_field_str = `fields.${i}`;
+                    should.exist(err.errors[curr_field_str]);
+                    err.errors[curr_field_str].should.have.property("kind").equal("enum");
+                    err.errors[curr_field_str].should.have.property("message").equal(`\`${submitted_fields[i]}\` is not a valid enum value for path \`fields\`.`);
+                }
+            });
+        });
+
+        it("Technologies must be in the specified TechnologyTypes", () => {
+            const inexistant_technology_base = TechnologyTypes[0] + "!!THIS_DOES_NOT_EXIST_FOR_SURE-0";
+            const submitted_technologies = [];
+            for (let i = 0; i < MIN_TECHNOLOGIES; ++i) {
+                submitted_technologies.push(inexistant_technology_base + i);
+            }
+
+            const ad = new Ad({
+                technologies: submitted_technologies
+            });
+
+            return ad.validate(err => {
+                for (let i = 0; i < submitted_technologies.length; ++i) {
+                    const curr_technology_str = `technologies.${i}`;
+                    should.exist(err.errors[curr_technology_str]);
+                    err.errors[curr_technology_str].should.have.property("kind").equal("enum");
+                    err.errors[curr_technology_str].should.have.property("message").equal(`\`${submitted_technologies[i]}\` is not a valid enum value for path \`technologies\`.`);
+                }
+            });
+        });
+
+        it("JobType must be in the specified JobTypes", () => {
+            const inexistant_jobtype = JobTypes[0] + "!!THIS_DOES_NOT_EXIST_FOR_SURE-421";
+
+            const ad = new Ad({
+                jobType: inexistant_jobtype
+            });
+
+            return ad.validate(err => {
+                should.exist(err.errors.jobType);
+                err.errors.jobType.should.have.property("kind").equal("enum");
+                err.errors.jobType.should.have.property("message").equal(`\`${inexistant_jobtype}\` is not a valid enum value for path \`jobType\`.`);
+            });
+        });
     });
 
-    describe("Custom validator tests", () => {
+    describe("Unique properties tests", () => {
+        it("fields must be unique");
+
+        it("technologies must be unique");
+    });
+
+    describe("Custom property validator tests", () => {
+        
         // All custom validators that do not fit in other categories, such as date validation, etc
         it("TODO");
     });
