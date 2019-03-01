@@ -6,6 +6,7 @@ const Ad = require("../src/models/Ad");
 const JobTypes = require("../src/models/JobTypes");
 const { MIN_FIELDS, MAX_FIELDS, FieldTypes } = require("../src/models/FieldTypes");
 const { MIN_TECHNOLOGIES, MAX_TECHNOLOGIES, TechnologyTypes } = require("../src/models/TechnologyTypes");
+const { AD_MAX_LIFETIME_MONTHS } = require("../src/models/TimeConstants");
 
 describe("# Ad Schema tests", () => {
     before("Clearing Ads", async () => {
@@ -171,6 +172,14 @@ describe("# Ad Schema tests", () => {
                     });
                 });
             });
+
+            it("there must be at least one contact");
+        });
+
+        describe("special cases", () => {
+            describe("TODO: jobMinDuration is required if jobMaxDuration exists, but is not otherwise", () => {
+                it("TODO");
+            });
         });
     });
 
@@ -239,8 +248,10 @@ describe("# Ad Schema tests", () => {
     });
 
     describe("Custom property validator tests", () => {
-        
+        it("TODO: Publish Date must be smaller than the End Date");
+
+        it(`TODO: End Date must not differ from the Publish Date by more than ${AD_MAX_LIFETIME_MONTHS} months`);
         // All custom validators that do not fit in other categories, such as date validation, etc
-        it("TODO");
+        it("TODO: jobMaxDuration must be larger than jobMinDuration");
     });
 });

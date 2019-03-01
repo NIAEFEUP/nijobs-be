@@ -6,8 +6,7 @@ const {FieldTypes, MIN_FIELDS, MAX_FIELDS} = require("./FieldTypes");
 const {TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES} = require("./TechnologyTypes");
 
 // Defining relevant constants
-const MONTH_IN_MS = 1000 * 3600 * 24 * 30.42;
-const AD_MAX_LIFETIME_MONTHS = 6;
+const {MONTH_IN_MS, AD_MAX_LIFETIME_MONTHS} = require("./TimeConstants");
 
 const AdSchema = new Schema({
     title: {type: String, maxlength: 90, required: true},
