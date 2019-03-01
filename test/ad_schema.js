@@ -270,9 +270,9 @@ describe("# Ad Schema tests", () => {
     });
 
     describe("Unique properties tests", () => {
-        it("fields must be unique");
+        it("'fields' must be unique");
 
-        it("technologies must be unique");
+        it("'technologies' must be unique");
     });
 
     describe("Custom property validator tests", () => {
