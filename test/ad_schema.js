@@ -100,7 +100,7 @@ describe("# Ad Schema tests", () => {
                 it("Above maximum should throw error", () => {
                     const submitted_fields = [];
                     for (let i = 0; i < MAX_FIELDS + 1; ++i) {
-                        // Preveting interference from duplicate error
+                        // Preventing interference from duplicate error
                         submitted_fields.push("RAND0M_5TR1NG!!--0" + i);
                     }
                     const ad = new Ad({
@@ -117,7 +117,7 @@ describe("# Ad Schema tests", () => {
                 it("Inside the range should not throw error", () => {
                     const submitted_fields = [];
                     for (let i = 0; i < MIN_FIELDS; ++i) {
-                        // Preveting interference from duplicate error
+                        // Preventing interference from duplicate error
                         submitted_fields.push("RAND0M_5TR1NG!!--0" + i);
                     }
                     const ad = new Ad({
@@ -143,7 +143,7 @@ describe("# Ad Schema tests", () => {
                 it("Above maximum should throw error", () => {
                     const submitted_technologies = [];
                     for (let i = 0; i < MAX_TECHNOLOGIES + 1; ++i) {
-                        // Preveting interference from duplicate error
+                        // Preventing interference from duplicate error
                         submitted_technologies.push("RAND0M_5TR1NG!!--0" + i);
                     }
                     const ad = new Ad({
@@ -160,7 +160,7 @@ describe("# Ad Schema tests", () => {
                 it("Inside the range should not throw error", () => {
                     const submitted_technologies = [];
                     for (let i = 0; i < MIN_TECHNOLOGIES + 1; ++i) {
-                        // Preveting interference from duplicate error
+                        // Preventing interference from duplicate error
                         submitted_technologies.push("RAND0M_5TR1NG!!--0" + i);
                     }
                     const ad = new Ad({
@@ -173,7 +173,22 @@ describe("# Ad Schema tests", () => {
                 });
             });
 
-            it("there must be at least one contact");
+            describe("There must be at least one contact", () => {
+                it("There are no contacts", () => {
+                    const test_contacts = new Map();
+
+                    const ad = new Ad({
+                        contacts: test_contacts,
+                    });
+    
+                    return ad.validate(err => {
+                        should.exist(err.errors.contacts);
+                        err.errors.contacts.should.have.property("kind").equal("user defined");
+                        err.errors.contacts.should.have.property("message").equal("There must be at least one contact");
+                    });
+                });
+                
+            });
         });
 
         describe("special cases", () => {
