@@ -4,9 +4,12 @@ const uniqueArrayPlugin = require("mongoose-unique-array");
 const JobTypes = require("./JobTypes");
 const {FieldTypes, MIN_FIELDS, MAX_FIELDS} = require("./FieldTypes");
 const {TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES} = require("./TechnologyTypes");
+const PointSchema = require("./Point");
 
 // Defining relevant constants
 const {MONTH_IN_MS, AD_MAX_LIFETIME_MONTHS} = require("./TimeConstants");
+
+//TODO: Define indexes? (Location is indexed in Point subdocument supposedly already) Probably should index the search fields (all?)
 
 const AdSchema = new Schema({
     title: {type: String, maxlength: 90, required: true},
@@ -80,6 +83,8 @@ const AdSchema = new Schema({
 
     isHidden: {type: Boolean},
     owner: {type: Types.ObjectId, ref: "Company", required: true},
+
+    location: {type: PointSchema, required: true},
 });
 
 // Checking if the publication date is less than or equal than the end date.
@@ -107,6 +112,6 @@ AdSchema.plugin(uniqueArrayPlugin);
 const Ad = mongoose.model("Ad", AdSchema);
 
 // Useful for testing correct field implementation
-// console.log("DBG: ", AdSchema.path("technologies"));
+// console.log("DBG: ", AdSchema.path("location"));
 
 module.exports = Ad;

@@ -84,6 +84,16 @@ describe("# Ad Schema tests", () => {
                     err.errors.owner.should.have.property("message").equal("Path `owner` is required.");
                 });
             });
+
+            it("'location' is required", () => {
+                const ad = new Ad({});
+                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
+                return ad.validate(err => {
+                    should.exist(err.errors.location);
+                    err.errors.location.should.have.property("kind").equal("required");
+                    err.errors.location.should.have.property("message").equal("Path `location` is required.");
+                });
+            });
         });
 
         describe("required using custom validators (checking for array lengths, etc)", () => {
@@ -281,5 +291,7 @@ describe("# Ad Schema tests", () => {
         it(`TODO: End Date must not differ from the Publish Date by more than ${AD_MAX_LIFETIME_MONTHS} months`);
         // All custom validators that do not fit in other categories, such as date validation, etc
         it("TODO: jobMaxDuration must be larger than jobMinDuration");
+
+        it("TODO: Test Location format insertion");
     });
 });
