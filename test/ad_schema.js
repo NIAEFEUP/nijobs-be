@@ -215,8 +215,26 @@ describe("# Ad Schema tests", () => {
         });
 
         describe("special cases", () => {
-            describe("TODO: jobMinDuration is required if jobMaxDuration exists, but is not otherwise", () => {
-                it("TODO");
+            describe("'jobMinDuration' is required if 'jobMaxDuration' exists, but is not otherwise", () => {
+                it("'jobMaxDuration' exists, should be required", () => {
+                    const ad = new Ad({
+                        jobMaxDuration: 8,
+                    });
+
+                    return ad.validate(err => {
+                        should.exist(err.errors.jobMinDuration);
+                        err.errors.jobMinDuration.should.have.property("kind").equal("required");
+                        err.errors.jobMinDuration.should.have.property("message").equal("Path `jobMinDuration` is required.");
+                    });
+                });
+
+                it("'jobMaxDuration' does not exist, should not be required", () => {
+                    const ad = new Ad({});
+
+                    return ad.validate(err => {
+                        should.not.exist(err.errors.jobMinDuration);
+                    });
+                });
             });
         });
     });
@@ -280,9 +298,41 @@ describe("# Ad Schema tests", () => {
     });
 
     describe("Unique properties tests", () => {
-        it("'fields' must be unique");
+        it("'fields' array must be unique", () => {
+            const field_to_insert = FieldTypes[0];
+            const submitted_fields = [];
+            for (let i = 0; i < MIN_FIELDS; ++i) {
+                // Preventing interference from duplicate error
+                submitted_fields.push(field_to_insert);
+            }
+            const ad = new Ad({
+                fields: submitted_fields,
+            });
 
-        it("'technologies' must be unique");
+            return ad.validate(err => {
+                should.exist(err.errors.fields);
+                err.errors.fields.should.have.property("kind").equal("user defined");
+                err.errors.fields.should.have.property("message").equal("Duplicate values in array `fields`: [" + submitted_fields + "]");
+            });
+        });
+
+        it("'technologies' array must be unique", () => {
+            const technology_to_insert = TechnologyTypes[0];
+            const submitted_technologies = [];
+            // Ensuring that it is inside the range
+            for (let i = 0; i < MIN_TECHNOLOGIES + 1; ++i) {
+                submitted_technologies.push(technology_to_insert);
+            }
+            const ad = new Ad({
+                technologies: submitted_technologies,
+            });
+
+            return ad.validate(err => {
+                should.exist(err.errors.technologies);
+                err.errors.technologies.should.have.property("kind").equal("user defined");
+                err.errors.technologies.should.have.property("message").equal("Duplicate values in array `technologies`: [" + submitted_technologies + "]");
+            });
+        });
     });
 
     describe("Custom property validator tests", () => {
