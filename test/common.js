@@ -1,6 +1,6 @@
 //// Base file for unit test utilities
 
-require("dotenv").config();
+require("dotenv-flow").config();
 
 //During the test the env variable must be set to test
 if (process.env.NODE_ENV !== "test") {
