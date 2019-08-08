@@ -33,9 +33,9 @@ The best approach to install `docker-compose` is to follow the offical guide [he
 ## Usage
 
 ### Development Environment
-To start developing, you must create a file `.env` with environment variables, which are explained in more detail [below](#env-file-specification).
+To start developing, copy `.env.example`, creating the local config file (this can be achieved by running `cp .env.example .env.local`). Then, fill in the variable values, as explained in `.env.example`file.
 
-After creating the `.env` file, you must build a dev server.
+After setting up the env file, you must build a dev server.
 
 ```bash
 docker-compose build web-dev
@@ -78,12 +78,6 @@ docker-compose up web-prod
 > A `prod.sh` file is available in the project's root folder to run these commands on linux environments (simply run `./prod.sh [--build]`)
 
 This environment doesn't have hot reloading or dev extensions and is made to be used in the deployment server running this aplication.
-
-### Env File Specification
-
-- `HOST_PORT`= The port that the server will expose (http://localhost:<HOST_PORT>)
-- `MONGO_URI`= [Optional] Specify a URI for an external mongo database
-- `DB_HOSTNAME`=  The hostname of the DB, in the case of not wanting to specify the full URI (defaults to `localhost`) - Useful for setting up docker containers, for example (the current docker configuration already considers this)
 
 ## Project Details
 
