@@ -7,9 +7,9 @@ services:
     volumes:
       - ./src:/usr/src/nijobs-be/src
     ports:
-      - ${HOST_PORT}:3000
+      - ${PORT}:${PORT}
     environment:
-      - PORT=3000
+      - PORT=${PORT}
       - NODE_ENV=prod
       - DB_HOSTNAME=mongo
     depends_on:
@@ -18,29 +18,29 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - ${PORT}:${PORT}
     environment:
-      - PORT=3001
+      - PORT=${PORT}
       - NODE_ENV=dev
       - DB_HOSTNAME=mongo
     volumes:
       - ./src:/usr/src/nijobs-be/src
-    ports:
-      - "${HOST_PORT}:3001"
     depends_on:
       - mongo
   test:
     build:
       context: .
       dockerfile: Dockerfile-test
+    ports:
+      - ${PORT}:${PORT}
     environment:
-      - PORT=3002
+      - PORT=${PORT}
       - NODE_ENV=test
       - DB_HOSTNAME=mongo
     volumes:
       - ./src:/usr/src/nijobs-be/src
       - ./test:/usr/src/nijobs-be/test
-    ports:
-      - "${HOST_PORT}:3002"
     depends_on:
       - mongo
   mongo:

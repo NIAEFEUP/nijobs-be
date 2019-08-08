@@ -1,10 +1,11 @@
 const mongoose = require("mongoose");
 
-// Default mongo port
-const DB_PORT = 27017;
-const DB_HOST = process.env.DB_HOSTNAME || "localhost";
+if (!process.env.MONGO_URI) {
+    console.error("'MONGO_URI' must be specified in the env file");
+    process.exit(125);
+}
 
-const MONGO_URI = process.env.MONGO_URI || `mongodb://${DB_HOST}:${DB_PORT}`;
+const MONGO_URI = process.env.MONGO_URI;
 
 const DB_NAME = (process.env.NODE_ENV === "test" ? "test-db" : "nijobs-db");
 
