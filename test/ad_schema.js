@@ -331,13 +331,115 @@ describe("# Ad Schema tests", () => {
         });
     });
 
+    // All custom validators that do not fit in other categories, such as date validation, etc
     describe("Custom property validator tests", () => {
-        it("TODO: Publish Date must be smaller than the End Date");
+        describe("'publishDate' must be earlier than 'endDate'", () => {
+            it("check for error", () => {
+                const ad = new Ad({
+                    publishDate: new Date("5 November, 2019"),
+                    endDate: new Date("4 November, 2019"),
+                });
+                
+                return ad.validate(err => {
+                    should.exist(err.errors.publishDate);
+                    err.errors.publishDate.should.have.property("kind").equal("user defined");
+                    err.errors.publishDate.should.have.property("message").equal("`publishDate` must be earlier than `endDate`");
+                });
+            });
+            
+            it("check for success", () => {
+                const ad = new Ad({
+                    publishDate: new Date("4 November, 2019"),
+                    endDate: new Date("5 November, 2019"),
+                });
+                
+                return ad.validate(err => {
+                    should.not.exist(err.errors.publishDate);
+                });
+            });
+        });
 
-        it(`TODO: End Date must not differ from the Publish Date by more than ${AD_MAX_LIFETIME_MONTHS} months`);
-        // All custom validators that do not fit in other categories, such as date validation, etc
-        it("TODO: jobMaxDuration must be larger than jobMinDuration");
+        describe(`'endDate' must not differ from 'publishDate' by more than ${AD_MAX_LIFETIME_MONTHS} months`, () => {
+            it("check for error", () => {
+                // According to Google :)
+                const MONTH_TO_MS = 2.628e+9;
+                const publishDate = new Date("01/01/1994");
+                const ad = new Ad({
+                    publishDate: publishDate,
+                    endDate: new Date(publishDate.getTime() + (AD_MAX_LIFETIME_MONTHS+1)*MONTH_TO_MS),
+                });
 
-        it("TODO: Test Location format insertion");
+                return ad.validate(err => {
+                    should.exist(err.errors.endDate);
+                    err.errors.endDate.should.have.property("kind").equal("user defined");
+                    err.errors.endDate.should.have.property("message").equal(`\`endDate\` must not differ from \`publishDate\` by more than ${AD_MAX_LIFETIME_MONTHS} months`);
+                });
+            });
+
+            it("check for success", () => {
+                const ad = new Ad({
+                    publishDate: new Date("01/01/1994"),
+                    endDate: new Date("02/01/1994"),
+                });
+
+                return ad.validate(err => {
+                    should.not.exist(err.errors.endDate);
+                });
+            });
+        });
+        describe("'jobMaxDuration' must be larger than 'jobMinDuration'", () => {
+            it("check for error", () => { 
+                const ad = new Ad({
+                    jobMinDuration: 5,
+                    jobMaxDuration: 1,
+                });
+
+                return ad.validate(err => {
+                    should.exist(err.errors.jobMaxDuration);
+                    err.errors.jobMaxDuration.should.have.property("kind").equal("user defined");
+                    err.errors.jobMaxDuration.should.have.property("message").equal("`jobMaxDuration` must be larger than `jobMinDuration`");
+                });
+            });
+
+            it("check for success", () => {
+                const ad = new Ad({
+                    jobMinDuration: 1,
+                    jobMaxDuration: 2,
+                });
+
+                return ad.validate(err => {
+                    should.not.exist(err.errors.jobMaxDuration);
+                });
+                
+            });
+        });
+
+        describe("Test Location format insertion", () => {
+            // More tests could be added to test erroring formats, but I think that this should be enough
+            it("no object passed should throw error", () => {
+                const ad = new Ad({
+                    location: "",
+                });
+                
+                return ad.validate(err => {
+                    should.exist(err.errors.location);
+                    err.errors.location.should.have.property("kind").equal("Embedded");
+                    err.errors.location.should.have.property("message").equal("Cast to Embedded failed for value \"\" at path \"location\"");
+                });
+            });
+
+            it("correct format should not throw error", () => {
+                const ad = new Ad({
+                    location: {
+                        type: "Point",
+                        coordinates: [27, 28],
+                    },
+                });
+                
+                return ad.validate(err => {
+                    should.not.exist(err.errors.location);
+                });
+            });
+        });
     });
 });

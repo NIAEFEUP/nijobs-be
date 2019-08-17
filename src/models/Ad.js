@@ -18,7 +18,7 @@ const AdSchema = new Schema({
         required: true,
         validate: [
             validatePublishDate,
-            "Publish Date must be smaller than the End Date"
+            "`publishDate` must be earlier than `endDate`"
         ]
     },
 
@@ -27,7 +27,7 @@ const AdSchema = new Schema({
         required: true,
         validate: [
             validateEndDate,
-            `End Date must not differ from the Publish Date by more than ${AD_MAX_LIFETIME_MONTHS} months`
+            `\`endDate\` must not differ from \`publishDate\` by more than ${AD_MAX_LIFETIME_MONTHS} months`
         ]
     },
 
@@ -42,7 +42,7 @@ const AdSchema = new Schema({
         type: Number,
         validate: [
             validateJobMaxDuration,
-            "jobMaxDuration must be larger than jobMinDuration"
+            "`jobMaxDuration` must be larger than `jobMinDuration`"
         ]
     },
 
