@@ -8,11 +8,7 @@ const { MIN_FIELDS, MAX_FIELDS, FieldTypes } = require("../src/models/FieldTypes
 const { MIN_TECHNOLOGIES, MAX_TECHNOLOGIES, TechnologyTypes } = require("../src/models/TechnologyTypes");
 const { AD_MAX_LIFETIME_MONTHS } = require("../src/models/TimeConstants");
 
-describe("# Ad Schema tests", () => {
-    before("Clearing Ads", async () => {
-        await Ad.deleteMany({});
-    });
-    
+describe("# Ad Schema tests", () => {    
     describe("Required and bound (between min and max elements) properties tests", () => {
         describe("required using schema 'required' property (no user defined validators)", () => {
             it("'title' is required", () => {
