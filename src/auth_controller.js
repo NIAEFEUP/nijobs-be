@@ -6,7 +6,7 @@ const ERROR_TYPES = require("./routes/errors/errorHandler");
 
 // Middleware to require login in an endpoint
 const authRequired = (req, res, next) => {
-    if(req.isAuthenticated()) {
+    if (req.isAuthenticated()) {
         return next();
     }
     return res.status(401).json({
@@ -21,7 +21,7 @@ passport.use(new LocalStrategy(
     (username, password, done) => {
         Account.findOne({ username: username }, (err, user) => {
             if (err) {
-                return done(err); 
+                return done(err);
             }
             if (!user) {
                 return done(null, false, { message: "Incorrect username." });
@@ -37,7 +37,7 @@ passport.use(new LocalStrategy(
 passport.serializeUser(function(user, done) {
     done(null, user.id);
 });
-  
+
 passport.deserializeUser(function(id, done) {
     Account.findById(id, function(err, user) {
         done(err, user);

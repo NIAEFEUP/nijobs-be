@@ -12,8 +12,8 @@ const CompanySchema = new Schema({
         required: true,
         validate: [
             (val) => val.size >= 1,
-            "There must be at least one contact"
-        ]
+            "There must be at least one contact",
+        ],
     },
     bio: {
         type: String,

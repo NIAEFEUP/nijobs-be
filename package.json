@@ -6,15 +6,14 @@
   "scripts": {
     "start": "nodemon src/index.js",
     "prod": "node src/index.js",
-    "lint": "eslint \"**/**/*.js\" --fix",
-    "pre-test": "npm run lint",
-    "do-test": "NODE_ENV=test mocha --exit",
-    "test": "npm run pre-test && npm run do-test"
+    "lint": "eslint src --max-warnings 0",
+    "lint-fix": "npm run lint -- --fix",
+    "test": "NODE_ENV=test mocha --exit"
   },
   "husky": {
     "hooks": {
       "pre-commit": "npm run lint",
-      "pre-push": "npm test"
+      "pre-push": "npm run lint && npm test"
     }
   },
   "repository": {

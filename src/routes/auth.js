@@ -13,17 +13,15 @@ router.get("/login", authRequired, (req, res) => {
         "success": true,
         "data": {
             "_id": userInfo._id,
-            "username": userInfo.username
-        }
+            "username": userInfo.username,
+        },
     });
 });
 
 // Login endpoint
-router.post("/login", passport.authenticate("local"), (req, res) => {
-    return res.status(200).json({
-        "success": true,
-    });
-});
+router.post("/login", passport.authenticate("local"), (req, res) => res.status(200).json({
+    "success": true,
+}));
 
 
 // Logout endpoint
@@ -45,7 +43,7 @@ router.post("/register", async (req, res) => {
         });
     }
 
-    // Password is required 
+    // Password is required
     if (!req.body.password) {
         return res.status(400).json({
             "success": false,
@@ -60,17 +58,17 @@ router.post("/register", async (req, res) => {
         // Future note: the promise returns the inserted model, which can be useful for the response
         await Account.create({
             username: req.body.username,
-            password: req.body.password
+            password: req.body.password,
         });
 
         return res.status(200).json({
             "success": true,
         });
-    } catch(err) {
+    } catch (err) {
         return res.status(500).json({
             "success": false,
             "reason": "Duplicated username",
-            "error_code": ERROR_TYPES.DB_ERROR
+            "error_code": ERROR_TYPES.DB_ERROR,
         });
     }
 });
