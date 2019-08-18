@@ -2,6 +2,9 @@
 # Ignoring the local configuration files. However .env.ENVIRONMENT (and .env) SHOULD be version controlled! See dotenv-flow's docs for details: https://www.npmjs.com/package/dotenv-flow
 .env*.local
 
+# Extras
+.vscode
+
 # Created by https://www.gitignore.io/api/node,macos,linux,windows
 # Edit at https://www.gitignore.io/?templates=node,macos,linux,windows
 
