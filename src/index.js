@@ -1,19 +1,10 @@
-require("dotenv").config();
+require("dotenv-flow").config();
 const express = require("express");
 const app = express();
 const session = require("express-session");
 const bodyParser = require("body-parser");
 
-const PORT = process.env.PORT || 4000;
-
-if (!process.env.MONGO_URI) {
-    if (process.env.NODE_ENV === "production") {
-        console.error("MONGO_URI was not defined in .env file and we are in production environment! Aborting!");
-        process.exit(88);
-    } else {
-        console.warn("MONGO_URI was not defined in .env file, falling back to localhost defaults.");
-    }
-}
+const PORT = process.env.PORT;
 
 const db_connection = require("./db_controller");
 
@@ -27,15 +18,10 @@ db_connection
     });
 
 // Setting session secret
-if (!process.env.SECRET) {
-    if (process.env.NODE_ENV === "production") {
-        console.error("SECRET was not defined in .env file and we are in production environment! Aborting!");
-        process.exit(87);
-    } else {
-        console.warn("SECRET was not defined in .env file, falling back to default.");
-    }
+if (!process.env.SESSION_SECRET) {
+    console.error("'SESSION_SECRET' must be defined in .env file! See README.md for details.");
 }
-const SECRET = process.env.secret || "O Rui foi membro do IEEE.";
+const SESSION_SECRET = process.env.SESSION_SECRET;
 
 // Applying middleware
 // JSON bodyparser (parses JSON request body into req.body)
@@ -46,7 +32,7 @@ app.use(session({
     path: "/", 
     httpOnly: true, 
     maxAge: null, 
-    secret: SECRET,
+    secret: SESSION_SECRET,
     resave: true,
     saveUninitialized: true,
     cookie: {
@@ -87,10 +73,10 @@ app.use("/api/auth", account);
 
 const server = app.listen(PORT);
 if (process.env.NODE_ENV === "test") {
-    console.info(`Server started in testing mode. Listening in internal port ${PORT}`);
+    console.info(`Server started in testing mode. Listening on port ${PORT}`);
     //Necessary for Chai HTTP requests (End-to-End testing)
     module.exports.server = server;
     module.exports.app = app;
 } else {
-    console.info(`Server listening on internal port ${PORT}`);
+    console.info(`Server listening on port ${PORT}`);
 }    

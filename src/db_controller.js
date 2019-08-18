@@ -1,19 +1,32 @@
 const mongoose = require("mongoose");
 
-// Default mongo port
-const DB_PORT = 27017;
-const DB_HOST = process.env.DB_HOSTNAME || "localhost";
+// Getting configs from env variables (.env files)
+const {
+    DB_HOST,
+    DB_PORT,
+    DB_USER,
+    DB_PASS,
+    DB_NAME,
+} = process.env;
 
-const MONGO_URI = process.env.MONGO_URI || `mongodb://${DB_HOST}:${DB_PORT}`;
+if (!DB_HOST || !DB_PORT) {
+    console.error("'DB_HOST' and 'DB_PORT' must be specified in the env file! See README.md for details.");
+    process.exit(125);
+}
 
-const DB_NAME = (process.env.NODE_ENV === "test" ? "test-db" : "nijobs-db");
+if (!DB_NAME) {
+    console.error("'DB_NAME' must be specified in the env file! See README.md for details.");
+    process.exit(126);
+}
 
 const options = {
     useNewUrlParser: true,
-    dbName: process.env.MONGO_URI ? undefined : DB_NAME,
+    dbName: DB_NAME,
+    user: DB_USER,
+    pass: DB_PASS,
     useCreateIndex: true,
 };
 
-const db_connection_promise = mongoose.connect(MONGO_URI, options);
+const db_connection_promise = mongoose.connect(`mongodb://${DB_HOST}:${DB_PORT}`, options);
 
 module.exports = db_connection_promise;
