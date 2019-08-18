@@ -17,9 +17,9 @@ COPY src/ src/
 COPY test/ test/
 
 # Copying linting configuration (for running the linter)
-COPY .eslintrc.json .
+COPY .eslintrc .
 
 # Copying .env files
 COPY .env* ./
 
-CMD ["npm", "test"]
+CMD ["npm", "run", "ci"]
