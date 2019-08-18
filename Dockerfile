@@ -2,24 +2,21 @@
 # Use node 8-LTS
 FROM node:8
 
-RUN mkdir -p /usr/src/nijobs-be
-WORKDIR /usr/src/nijobs-be
+WORKDIR /usr/src/app
 
 # Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-# Install Node Packages (only production if not in dev mode)
+# Install Node Packages
 RUN npm install
 
 # Copying app source
-COPY ./src ./src
-
-# Copying .env file because it is necessary for the app to run
-COPY .env ./
+COPY src/ src/
 
 # Copying test suite
-COPY ./test ./test
+COPY test/ test/
+
+# Copying .env files
+COPY .env* ./
 
 CMD ["npm", "start"]

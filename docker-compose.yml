@@ -4,14 +4,10 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile-prod
-    volumes:
-      - ./src:/usr/src/nijobs-be/src
-    ports:
-      - ${PORT}:${PORT}
     environment:
-      - PORT=${PORT}
-      - NODE_ENV=prod
-      - DB_HOSTNAME=mongo
+      - DB_HOST=mongo
+    ports:
+      - "${PORT}:${PORT}"
     depends_on:
       - mongo
   web-dev:
@@ -19,11 +15,9 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - ${PORT}:${PORT}
+      - "${PORT}:${PORT}"
     environment:
-      - PORT=${PORT}
-      - NODE_ENV=dev
-      - DB_HOSTNAME=mongo
+      - DB_HOST=mongo
     volumes:
       - ./src:/usr/src/nijobs-be/src
     depends_on:
@@ -32,12 +26,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-test
-    ports:
-      - ${PORT}:${PORT}
     environment:
-      - PORT=${PORT}
-      - NODE_ENV=test
-      - DB_HOSTNAME=mongo
+      - DB_HOST=mongo
     volumes:
       - ./src:/usr/src/nijobs-be/src
       - ./test:/usr/src/nijobs-be/test

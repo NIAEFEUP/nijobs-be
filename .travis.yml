@@ -10,7 +10,7 @@ services:
 
 env:
   global:
-    - PORT=3000
+    # The hostname is set to mongo because of the docker configuration (using networks to access the DB)
     - DB_HOSTNAME=mongo
   matrix:
     # Any separate test environment variables go here, one per line each creating a different test environment
