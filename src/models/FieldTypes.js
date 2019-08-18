@@ -1,10 +1,10 @@
 const FieldTypes = Object.freeze([
-    "Back-End",
-    "Front-End",
-    "DevOps",
-    "Blockchain",
-    "Machine Learning",
-    "Other",
+    "BACK_END",
+    "FRONT_END",
+    "DEVOPS",
+    "BLOCKCHAIN",
+    "MACHINE LEARNING",
+    "OTHER",
 ]);
 
 const MIN_FIELDS = 2;

@@ -9,8 +9,6 @@ const PointSchema = require("./Point");
 // Defining relevant constants
 const {MONTH_IN_MS, AD_MAX_LIFETIME_MONTHS} = require("./TimeConstants");
 
-//TODO: Define indexes? (Location is indexed in Point subdocument supposedly already) Probably should index the search fields (all?)
-
 const AdSchema = new Schema({
     title: {type: String, maxlength: 90, required: true},
     publishDate: {
