@@ -26,7 +26,7 @@ router.get("/", async (req, res) => {
             users, // Equivalent to "users": users
         });
 
-    } catch(err) {
+    } catch (err) {
         return res.status(500).json({
             "success": false,
             "reason": "dunno",
@@ -52,17 +52,17 @@ router.post("/", async (req, res) => {
         // Future note: the promise returns the inserted model, which can be useful for the response
         await ExampleUser.create({
             username: req.body.username,
-            age: req.body.age
+            age: req.body.age,
         });
 
         return res.status(200).json({
             "success": true,
         });
-    } catch(err) {
+    } catch (err) {
         return res.status(500).json({
             "success": false,
             "reason": "dunno2",
-            "error_code": ERROR_TYPES.DB_ERROR
+            "error_code": ERROR_TYPES.DB_ERROR,
         });
     }
 });

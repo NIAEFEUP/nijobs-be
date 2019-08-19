@@ -28,16 +28,16 @@ const SESSION_SECRET = process.env.SESSION_SECRET;
 app.use(bodyParser.json());
 
 // Setting session middleware
-app.use(session({ 
-    path: "/", 
-    httpOnly: true, 
-    maxAge: null, 
+app.use(session({
+    path: "/",
+    httpOnly: true,
+    maxAge: null,
     secret: SESSION_SECRET,
     resave: true,
     saveUninitialized: true,
     cookie: {
-        secure: process.env.NODE_ENV === "production"
-    }
+        secure: process.env.NODE_ENV === "production",
+    },
 }));
 
 const passport = require("passport");
@@ -70,13 +70,12 @@ const account = require("./routes/auth");
 app.use("/api/auth", account);
 
 
-
 const server = app.listen(PORT);
 if (process.env.NODE_ENV === "test") {
     console.info(`Server started in testing mode. Listening on port ${PORT}`);
-    //Necessary for Chai HTTP requests (End-to-End testing)
+    // Necessary for Chai HTTP requests (End-to-End testing)
     module.exports.server = server;
     module.exports.app = app;
 } else {
     console.info(`Server listening on port ${PORT}`);
-}    
+}
