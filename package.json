@@ -4,11 +4,11 @@
   "description": "Back-End for NiJobs website",
   "main": "src/index.js",
   "scripts": {
-    "start": "nodemon src/index.js",
-    "prod": "node src/index.js",
+    "start": "cross-env NODE_ENV=development nodemon src/index.js",
+    "prod": "cross-env NODE_ENV=production node src/index.js",
     "lint": "eslint src test --max-warnings 0",
     "lint-fix": "npm run lint -- --fix",
-    "test": "NODE_ENV=test mocha --exit",
+    "test": "cross-env NODE_ENV=test mocha --exit",
     "ci": "npm run lint && npm test"
   },
   "husky": {
@@ -34,6 +34,7 @@
   "dependencies": {
     "bcrypt": "^3.0.6",
     "body-parser": "^1.18.3",
+    "cross-env": "^5.2.0",
     "dotenv-flow": "^3.0.0",
     "express": "^4.16.4",
     "express-session": "^1.15.6",
