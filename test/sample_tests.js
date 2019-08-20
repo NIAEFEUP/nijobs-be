@@ -20,17 +20,18 @@ describe("# Sample boilerplate tests", () => {
         });
 
         it("should return (3 > 5) false", () => {
+            // eslint-disable-next-line no-unused-expressions
             (3 > 5).should.be.false;
         });
-    
+
         it("should have property name with value Figo", () => {
-            const car = {name:"Figo", Maker:"Ford"};
+            const car = { name: "Figo", Maker: "Ford" };
             car.should.have.property("name").equal("Figo");
         });
-    
+
         it("Checking for null", () => {
             const car = null;
-            //car.should.not.exist; (Cannot read property 'should' of null)
+            // car.should.not.exist; (Cannot read property 'should' of null)
             should.not.exist(car);
         });
     });

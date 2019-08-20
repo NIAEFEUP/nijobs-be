@@ -6,7 +6,7 @@
   "scripts": {
     "start": "nodemon src/index.js",
     "prod": "node src/index.js",
-    "lint": "eslint src --max-warnings 0",
+    "lint": "eslint src test --max-warnings 0",
     "lint-fix": "npm run lint -- --fix",
     "test": "NODE_ENV=test mocha --exit",
     "ci": "npm run lint && npm test"

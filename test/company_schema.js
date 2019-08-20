@@ -4,33 +4,33 @@ const {
 
 const Company = require("../src/models/Company");
 
-describe("# Company Schema tests", () => {    
+describe("# Company Schema tests", () => {
     describe("Required and bound (min and max) properties tests", () => {
         describe("required using schema 'required' property (no user defined validators)", () => {
             it("'name' is required", () => {
                 const company = new Company({});
                 // Returning the validation promise to ensure the test doesn't finish before all the assertions do
-                return company.validate(err => {
+                return company.validate((err) => {
                     should.exist(err.errors.name);
                     err.errors.name.should.have.property("kind").equal("required");
                     err.errors.name.should.have.property("message").equal("Path `name` is required.");
                 });
             });
-            
+
             it("'contacts' is required", () => {
                 const company = new Company({});
                 // Returning the validation promise to ensure the test doesn't finish before all the assertions do
-                return company.validate(err => {
+                return company.validate((err) => {
                     should.exist(err.errors.contacts);
                     err.errors.contacts.should.have.property("kind").equal("required");
                     err.errors.contacts.should.have.property("message").equal("Path `contacts` is required.");
                 });
             });
-            
+
             it("'bio' is required", () => {
                 const company = new Company({});
                 // Returning the validation promise to ensure the test doesn't finish before all the assertions do
-                return company.validate(err => {
+                return company.validate((err) => {
                     should.exist(err.errors.bio);
                     err.errors.bio.should.have.property("kind").equal("required");
                     err.errors.bio.should.have.property("message").equal("Path `bio` is required.");
@@ -46,10 +46,11 @@ describe("# Company Schema tests", () => {
                         bio: test_bio,
                     });
 
-                    return company.validate(err => {
+                    return company.validate((err) => {
                         should.exist(err.errors.bio);
                         err.errors.bio.should.have.property("kind").equal("maxlength");
-                        err.errors.bio.should.have.property("message").equal(`Path \`bio\` (\`${test_bio}\`) is longer than the maximum allowed length (1500).`);
+                        err.errors.bio.should.have.property("message")
+                            .equal(`Path \`bio\` (\`${test_bio}\`) is longer than the maximum allowed length (1500).`);
                     });
                 });
 
@@ -58,7 +59,7 @@ describe("# Company Schema tests", () => {
                         bio: "We are a company!",
                     });
 
-                    return company.validate(err => {
+                    return company.validate((err) => {
                         should.not.exist(err.errors.bio);
                     });
                 });
@@ -73,8 +74,8 @@ describe("# Company Schema tests", () => {
                     const company = new Company({
                         contacts: test_contacts,
                     });
-    
-                    return company.validate(err => {
+
+                    return company.validate((err) => {
                         should.exist(err.errors.contacts);
                         err.errors.contacts.should.have.property("kind").equal("user defined");
                         err.errors.contacts.should.have.property("message").equal("There must be at least one contact");
@@ -84,15 +85,15 @@ describe("# Company Schema tests", () => {
                 it("At least 1 contact does not throw error", () => {
                     const company = new Company({
                         contacts: {
-                            email: "legitcontact@company.com"
+                            email: "legitcontact@company.com",
                         },
                     });
 
-                    return company.validate(err => {
+                    return company.validate((err) => {
                         should.not.exist(err.errors.contacts);
                     });
                 });
-                
+
             });
         });
     });
