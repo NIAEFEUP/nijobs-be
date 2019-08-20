@@ -1,31 +1,30 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt-nodejs");
+const bcrypt = require("bcrypt");
 const { Schema } = mongoose;
-
-const hashPassword = (password) => {
-    const salt = bcrypt.genSaltSync();
-    const hash = bcrypt.hashSync(password, salt);
-    return hash;
-};
 
 const AccountSchema = new Schema({
     username: { type: String, unique: true },
     password: { type: String },
 });
 
-AccountSchema.methods.validatePassword = function(password) {
+AccountSchema.methods.validatePassword = async function(password) {
     try {
-        return bcrypt.compareSync(password, this.password);
+        const isMatch = await bcrypt.compare(password, this.password);
+        return isMatch;
     } catch (error) {
         return false;
     }
 };
 
-AccountSchema.pre("save", function(next) {
+AccountSchema.pre("save", async function(next) {
     if (this.password && this.isModified("password")) {
-        this.password = hashPassword(this.password);
+        try {
+            this.password = await bcrypt.hash(this.password, 10);
+        } catch (error) {
+            return next(error);
+        }
     }
-    next();
+    return next();
 });
 
 const Account = mongoose.model("Account", AccountSchema);
