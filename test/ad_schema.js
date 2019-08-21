@@ -257,7 +257,7 @@ describe("# Ad Schema tests", () => {
                     should.exist(err.errors[curr_field_str]);
                     err.errors[curr_field_str].should.have.property("kind").equal("enum");
                     err.errors[curr_field_str].should.have.property("message")
-                        .equal(`\`${submitted_fields[i]}\` is not a valid enum value for path \`fields\`.`);
+                        .equal(`\`${submitted_fields[i]}\` is not a valid enum value for path \`${curr_field_str}\`.`);
                 }
             });
         });
@@ -279,7 +279,7 @@ describe("# Ad Schema tests", () => {
                     should.exist(err.errors[curr_technology_str]);
                     err.errors[curr_technology_str].should.have.property("kind").equal("enum");
                     err.errors[curr_technology_str].should.have.property("message")
-                        .equal(`\`${submitted_technologies[i]}\` is not a valid enum value for path \`technologies\`.`);
+                        .equal(`\`${submitted_technologies[i]}\` is not a valid enum value for path \`${curr_technology_str}\`.`);
                 }
             });
         });
