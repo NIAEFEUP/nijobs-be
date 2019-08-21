@@ -9,9 +9,9 @@ const Account = require("../src/models/Account");
 
 describe("Register endpoint test", () => {
 
-    afterEach("Clearing accounts", async () => {
-        await Account.deleteMany({});
-    });
+    before("Clearing accounts", () => Account.deleteMany({}));
+    after("Clearing accounts", () => Account.deleteMany({}));
+
 
     it("Should return a malformed request (missing username)", async () => {
         const res = await request()
