@@ -2,10 +2,10 @@ const {
     should,
     request,
     agent,
-} = require("./common");
+} = require("../common");
 
-const ERROR_TYPES = require("../src/routes/errors/errorHandler");
-const Account = require("../src/models/Account");
+const ERROR_TYPES = require("../src/api/routes/errors/errorHandler");
+const Account = require("../../src/models/Account");
 
 describe("Register endpoint test", () => {
 
@@ -15,7 +15,7 @@ describe("Register endpoint test", () => {
 
     it("Should return a malformed request (missing username)", async () => {
         const res = await request()
-            .post("/api/auth/register")
+            .post("/auth/register")
             .send({});
 
         res.should.have.status(400);
@@ -27,7 +27,7 @@ describe("Register endpoint test", () => {
 
     it("Should return a malformed request (missing password)", async () => {
         const res = await request()
-            .post("/api/auth/register")
+            .post("/auth/register")
             .send({
                 username: "user",
             });
@@ -46,7 +46,7 @@ describe("Register endpoint test", () => {
         };
 
         const res = await request()
-            .post("/api/auth/register")
+            .post("/auth/register")
             .send(user);
 
         res.should.have.status(200);
@@ -73,7 +73,7 @@ describe("Using already resgistered user", () => {
 
     it("Stop registering of users with duplicate usernames", async () => {
         const res = await request()
-            .post("/api/auth/register")
+            .post("/auth/register")
             .send(this.user);
 
         res.should.have.status(500);
@@ -85,7 +85,7 @@ describe("Using already resgistered user", () => {
 
     it("Should return forbidden when retrieving the information of the logged in user", async () => {
         const res = await request()
-            .get("/api/auth/login")
+            .get("/auth/login")
             .send();
 
         res.should.have.status(401);
@@ -97,7 +97,7 @@ describe("Using already resgistered user", () => {
 
     it("Log in with registered account", async () => {
         const res = await this.agent
-            .post("/api/auth/login")
+            .post("/auth/login")
             .send(this.user);
 
         res.should.have.cookie("connect.sid");
@@ -108,7 +108,7 @@ describe("Using already resgistered user", () => {
 
     it("Get logged in user info", async () => {
         const res = await this.agent
-            .get("/api/auth/login")
+            .get("/auth/login")
             .send();
 
         res.should.have.status(200);
@@ -119,7 +119,7 @@ describe("Using already resgistered user", () => {
 
     it("Log out with registered account", async () => {
         const res = await this.agent
-            .delete("/api/auth/login")
+            .delete("/auth/login")
             .send();
 
         res.should.have.status(200);
@@ -129,7 +129,7 @@ describe("Using already resgistered user", () => {
 
     it("Verify if the log out happen server side", async () => {
         const res = await this.agent
-            .get("/api/auth/login")
+            .get("/auth/login")
             .send();
 
         res.should.have.status(401);

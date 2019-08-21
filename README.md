@@ -114,15 +114,18 @@ Testing is done using [`Mocha`](https://mochajs.org/) and [`Chai`](https://www.c
 
 ### Project Structure
 
-```
-.
-├── test :: Unit tests
-└── src :: Source code
-    ├── routes :: Application Routes
-    ├── models :: Database Models
-    └── controllers :: Application controllers (e.g. middleware)
-
-```
+- `src/`
+    - `api/`
+        - `routes/` - Methods that register endpoints for the app
+        - `middleware/` - Application middleware. For example validators go here
+    - `lib/` - Supporting code
+    - `loaders/` - Modules responsible for the startup process
+    - `models/` - Database entity models (Mongoose models)
+    - `services/` - Business logic for the controllers
+    - `config/` - Application configurations (settings, authentication, etc.)
+        - `env.js` - Environment variables and related configurations
+    - `index.js` - App entry point
+- `test/` - Self explanatory: Unit tests, functional (end-to-end) tests, etc.
 
 ## License
 [GNU General Public License v3.0](https://choosealicense.com/licenses/gpl-3.0/)
