@@ -41,6 +41,12 @@ router.post("/register", async (req, res) => {
             "reason": "No username specified",
             "error_code": ERROR_TYPES.MISSING_FIELD,
         });
+    } else if (req.body.username.length > 20) {
+        return res.status(500).json({
+            "success": false,
+            "reason": "Username is too long",
+            "error_code": ERROR_TYPES.MISSING_FIELD,
+        });
     }
 
     // Password is required
