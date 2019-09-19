@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 // Getting configs from env variables (.env files)
 const {
+    DB_URI,
     DB_HOST,
     DB_PORT,
     DB_USER,
@@ -9,8 +10,8 @@ const {
     DB_NAME,
 } = process.env;
 
-if (!DB_HOST || !DB_PORT) {
-    console.error("'DB_HOST' and 'DB_PORT' must be specified in the env file! See README.md for details.");
+if (!DB_URI && !(DB_HOST && DB_PORT)) {
+    console.error("Either 'DB_URI' or 'DB_HOST' and 'DB_PORT' must be specified in the env file! See README.md for details.");
     process.exit(125);
 }
 
@@ -27,6 +28,9 @@ const options = {
     useCreateIndex: true,
 };
 
-const db_connection_promise = mongoose.connect(`mongodb://${DB_HOST}:${DB_PORT}`, options);
+const connection_uri = DB_URI || `mongodb://${DB_HOST}:${DB_PORT}`;
+
+// eslint-disable-next-line max-len
+const db_connection_promise = mongoose.connect(connection_uri, options);
 
 module.exports = db_connection_promise;
