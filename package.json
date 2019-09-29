@@ -8,7 +8,7 @@
     "prod": "node src/index.js",
     "lint": "eslint src test --max-warnings 0",
     "lint-fix": "npm run lint -- --fix",
-    "test": "NODE_ENV=test mocha --exit",
+    "test": "jest",
     "ci": "npm run lint && npm test"
   },
   "husky": {
@@ -24,12 +24,11 @@
   "author": "NIAEFEUP",
   "license": "GPL-3.0",
   "devDependencies": {
-    "chai": "^4.2.0",
-    "chai-http": "^4.2.1",
     "eslint": "^5.13.0",
     "husky": "^1.3.1",
-    "mocha": "^5.2.0",
-    "nodemon": "^1.18.10"
+    "jest": "^24.9.0",
+    "nodemon": "^1.18.10",
+    "supertest": "^4.0.2"
   },
   "dependencies": {
     "bcrypt": "^3.0.6",
