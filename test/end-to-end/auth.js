@@ -1,51 +1,149 @@
-const ERROR_TYPES = require("../../src/api/routes/errors/errorHandler");
+const { ERROR_TYPES } = require("../../src/api/middleware/errorHandler");
 const Account = require("../../src/models/Account");
 
 describe("Register endpoint test", () => {
+    describe("Input Validation (unsuccessful registration)", () => {
+        describe("username", () => {
+            test("should be required", async () => {
+                const res = await request()
+                    .post("/auth/register")
+                    .send({});
 
-    beforeAll(async () => {
-        await Account.deleteMany({});
-    });
-
-    test("Should return a malformed request (missing username)", async () => {
-        const res = await request()
-            .post("/auth/register")
-            .send({});
-
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty("success", false);
-        expect(res.body).toHaveProperty("error_code", ERROR_TYPES.MISSING_FIELD);
-    });
-
-    test("Should return a malformed request (missing password)", async () => {
-        const res = await request()
-            .post("/auth/register")
-            .send({
-                username: "user",
+                expect(res.status).toBe(422);
+                expect(res.body).toHaveProperty("success", false);
+                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({
+                    "location": "body",
+                    "msg": "Username is required",
+                    "param": "username",
+                });
             });
 
-        expect(res.status).toBe(400);
-        expect(res.body).toHaveProperty("success", false);
-        expect(res.body).toHaveProperty("error_code", ERROR_TYPES.MISSING_FIELD);
+            test("should be a String", async () => {
+                const params = {
+                    username: 123,
+                };
+                const res = await request()
+                    .post("/auth/register")
+                    .send(params);
+
+                expect(res.status).toBe(422);
+                expect(res.body).toHaveProperty("success", false);
+                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({
+                    "location": "body",
+                    "msg": "Username must be a String",
+                    "param": "username",
+                    "value": params.username,
+                });
+            });
+        });
+
+        describe("password", () => {
+            test("should be required", async () => {
+                const res = await request()
+                    .post("/auth/register")
+                    .send({});
+
+                expect(res.status).toBe(422);
+                expect(res.body).toHaveProperty("success", false);
+                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({
+                    "location": "body",
+                    "msg": "Password is required",
+                    "param": "password",
+                });
+            });
+
+            test("should be a String", async () => {
+                const params = {
+                    password: 123,
+                };
+                const res = await request()
+                    .post("/auth/register")
+                    .send(params);
+
+                expect(res.status).toBe(422);
+                expect(res.body).toHaveProperty("success", false);
+                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({
+                    "location": "body",
+                    "msg": "Password must be a String",
+                    "param": "password",
+                    "value": params.password,
+                });
+            });
+
+            test("should have more than 8 characters", async () => {
+                const params = {
+                    password: "12345",
+                };
+                const res = await request()
+                    .post("/auth/register")
+                    .send(params);
+
+                expect(res.status).toBe(422);
+                expect(res.body).toHaveProperty("success", false);
+                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({
+                    "location": "body",
+                    "msg": "Password must have at least 8 characters",
+                    "param": "password",
+                    "value": params.password,
+                });
+            });
+
+            test("should contain a number", async () => {
+                const params = {
+                    password: "password",
+                };
+                const res = await request()
+                    .post("/auth/register")
+                    .send(params);
+
+                expect(res.status).toBe(422);
+                expect(res.body).toHaveProperty("success", false);
+                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({
+                    "location": "body",
+                    "msg": "Password must contain a number",
+                    "param": "password",
+                    "value": params.password,
+                });
+            });
+        });
     });
 
-    test("Sould make a successful registration", async () => {
-        const user = {
-            username: "user",
-            password: "password",
-        };
+    describe("Without pre-existing users", () => {
+        beforeAll(async () => {
+            await Account.deleteMany({});
+        });
 
-        const res = await request()
-            .post("/auth/register")
-            .send(user);
+        test("Should make a successful registration", async () => {
+            const user = {
+                username: "user",
+                password: "password123",
+            };
 
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("success", true);
+            const res = await request()
+                .post("/auth/register")
+                .send(user);
 
-        const registered_user = await Account.findOne({ username: user.username });
-        expect(registered_user).toBeDefined();
-        expect(registered_user).toHaveProperty("username", user.username);
+            expect(res.status).toBe(200);
+            expect(res.body).toHaveProperty("success", true);
+
+            const registered_user = await Account.findOne({ username: user.username });
+            expect(registered_user).toBeDefined();
+            expect(registered_user).toHaveProperty("username", user.username);
+        });
     });
+
 });
 
 describe("Using already resgistered user", () => {
@@ -60,14 +158,21 @@ describe("Using already resgistered user", () => {
         await Account.create([test_user]);
     });
 
-    test("Stop registering of users with duplicate usernames", async () => {
+    test("Cannot register with an already existing username", async () => {
         const res = await request()
             .post("/auth/register")
             .send(test_user);
 
-        expect(res.status).toBe(500);
+        expect(res.status).toBe(422);
         expect(res.body).toHaveProperty("success", false);
-        expect(res.body).toHaveProperty("error_code", ERROR_TYPES.DB_ERROR);
+        expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+        expect(res.body).toHaveProperty("errors");
+        expect(res.body.errors).toContainEqual({
+            "location": "body",
+            "msg": "Username already exists",
+            "param": "username",
+            "value": test_user.username,
+        });
     });
 
     test(
@@ -112,7 +217,7 @@ describe("Using already resgistered user", () => {
         expect(res.body).toHaveProperty("success", true);
     });
 
-    test("Verify if the log out happen server side", async () => {
+    test("Verify if the log out happens server-side", async () => {
         const res = await test_agent
             .get("/auth/me")
             .send();

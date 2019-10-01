@@ -1,24 +1,20 @@
-// TODO: Use typedi or similar
 const Account = require("../models/Account");
 
 class AuthService {
+    // TODO: Use typedi or similar
     constructor() {
 
     }
 
     async register(username, password) {
-        try {
-            const account = await Account.create({
-                username: username,
-                password: password,
-            });
+        const account = await Account.create({
+            username,
+            password,
+        });
 
-            return {
-                username: account.username,
-            };
-        } catch (err) {
-            throw new Error("DB Error");
-        }
+        return {
+            username: account.username,
+        };
     }
 }
 

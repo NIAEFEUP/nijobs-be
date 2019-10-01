@@ -1,6 +1,6 @@
 const { Router } = require("express");
 
-const ERROR_TYPES = require("./errors/errorHandler");
+const { ERROR_TYPES } = require("../middleware/errorHandler");
 const ExampleUser = require("../../models/ExampleUser");
 
 const router = Router();

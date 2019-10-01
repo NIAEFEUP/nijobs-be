@@ -5,6 +5,8 @@ const morgan = require("morgan");
 
 const apiRoutes = require("../api");
 const config = require("../config/env");
+const { dbHandler } = require("../api/middleware/errorHandler");
+
 
 module.exports = (app) => {
     // Checking for session secret
@@ -56,4 +58,8 @@ module.exports = (app) => {
     // Registering the application's routes
     // Using no prefix as the app will be mapped to /api anyway in the production server
     app.use(apiRoutes());
+
+    // - Error handling
+    // Adds custom error handling for db errors
+    app.use(dbHandler());
 };

@@ -1,4 +1,4 @@
-const ERROR_TYPES = require("../routes/errors/errorHandler");
+const { ERROR_TYPES } = require("./errorHandler");
 
 // Middleware to require login in an endpoint
 const authRequired = (req, res, next) => {

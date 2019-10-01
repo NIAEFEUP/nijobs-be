@@ -1,10 +1,10 @@
 const { Router } = require("express");
 const passport = require("passport");
 
-const ERROR_TYPES = require("./errors/errorHandler");
 const { authRequired } = require("../middleware/auth");
-const validators = require("../middleware/validators");
+const validators = require("../middleware/validators/auth");
 const AuthService = require("../../services/auth");
+
 
 const router = Router();
 
@@ -37,7 +37,7 @@ module.exports = (app) => {
     });
 
     // Register endpoint
-    router.post("/register", validators.register, async (req, res) => {
+    router.post("/register", validators.register, async (req, res, next) => {
         const { username, password } = req.body;
 
         // Inserting user into db and replying with success or not
@@ -49,11 +49,7 @@ module.exports = (app) => {
                 data,
             });
         } catch (err) {
-            return res.status(500).json({
-                success: false,
-                reason: "Database error (WIP)!",
-                error_code: ERROR_TYPES.DB_ERROR,
-            });
+            return next(err);
         }
     });
 };
