@@ -1,4 +1,4 @@
-const { ERROR_TYPES } = require("./errorHandler");
+const { ErrorTypes } = require("./errorHandler");
 
 // Middleware to require login in an endpoint
 const authRequired = (req, res, next) => {
@@ -8,7 +8,7 @@ const authRequired = (req, res, next) => {
     return res.status(401).json({
         success: false,
         reason: "Must be logged in",
-        code: ERROR_TYPES.FORBIDDEN,
+        code: ErrorTypes.FORBIDDEN,
     });
 };
 

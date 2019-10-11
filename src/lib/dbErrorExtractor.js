@@ -1,4 +1,4 @@
-const DB_ERROR_TYPES = Object.freeze({
+const DBErrorTypes = Object.freeze({
     UNDETERMINED_ERROR: 1,
     DUPLICATED_KEY: 2,
 });
@@ -9,7 +9,7 @@ const errorExtractor = (err) => {
     }
 
     return {
-        type: DB_ERROR_TYPES.UNDETERMINED_ERROR,
+        type: DBErrorTypes.UNDETERMINED_ERROR,
     };
 };
 
@@ -34,10 +34,10 @@ const handlers = {
         }
 
         return {
-            type: DB_ERROR_TYPES.DUPLICATED_KEY,
+            type: DBErrorTypes.DUPLICATED_KEY,
             field,
             value,
         };
     },
 };
-module.exports = { errorExtractor, DB_ERROR_TYPES };
+module.exports = { errorExtractor, DBErrorTypes };

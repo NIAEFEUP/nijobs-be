@@ -1,6 +1,6 @@
 const { Router } = require("express");
 
-const { ERROR_TYPES } = require("../middleware/errorHandler");
+const { ErrorTypes } = require("../middleware/errorHandler");
 const ExampleUser = require("../../models/ExampleUser");
 
 const router = Router();
@@ -37,7 +37,7 @@ module.exports = (app) => {
             return res.status(500).json({
                 "success": false,
                 "reason": "dunno",
-                "error_code": ERROR_TYPES.DB_ERROR,
+                "error_code": ErrorTypes.DB_ERROR,
             });
         }
     });
@@ -50,7 +50,7 @@ module.exports = (app) => {
             return res.status(400).json({
                 "success": false,
                 "reason": "No username specified",
-                "error_code": ERROR_TYPES.MISSING_FIELD,
+                "error_code": ErrorTypes.MISSING_FIELD,
             });
         }
 
@@ -69,7 +69,7 @@ module.exports = (app) => {
             return res.status(500).json({
                 "success": false,
                 "reason": "dunno2",
-                "error_code": ERROR_TYPES.DB_ERROR,
+                "error_code": ErrorTypes.DB_ERROR,
             });
         }
     });

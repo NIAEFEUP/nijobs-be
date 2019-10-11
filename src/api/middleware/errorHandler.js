@@ -2,7 +2,7 @@ const { validationResult } = require("express-validator");
 
 const { errorExtractor } = require("../../lib/dbErrorExtractor");
 
-const ERROR_TYPES = Object.freeze({
+const ErrorTypes = Object.freeze({
     VALIDATION_ERROR: 1,
     // Possibly nested in the future
     DB_ERROR: 2,
@@ -22,7 +22,7 @@ const useExpressValidators = (validators) => async (req, res, next) => {
         .status(422)
         .json({
             success: false,
-            error_code: ERROR_TYPES.VALIDATION_ERROR,
+            error_code: ErrorTypes.VALIDATION_ERROR,
             errors: errors.array(),
         });
 };
@@ -34,7 +34,7 @@ const dbHandler = () => (err, req, res, next) => {
 
     const result = {
         success: false,
-        error_code: ERROR_TYPES.DB_ERROR,
+        error_code: ErrorTypes.DB_ERROR,
         errors: [errorExtractor(err)],
     };
 
@@ -43,6 +43,6 @@ const dbHandler = () => (err, req, res, next) => {
 
 module.exports = {
     dbHandler,
-    ERROR_TYPES,
+    ErrorTypes,
     useExpressValidators,
 };

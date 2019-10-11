@@ -1,4 +1,4 @@
-const { ERROR_TYPES } = require("../../src/api/middleware/errorHandler");
+const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const Account = require("../../src/models/Account");
 
 describe("Register endpoint test", () => {
@@ -11,7 +11,7 @@ describe("Register endpoint test", () => {
 
                 expect(res.status).toBe(422);
                 expect(res.body).toHaveProperty("success", false);
-                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
                     "location": "body",
@@ -30,7 +30,7 @@ describe("Register endpoint test", () => {
 
                 expect(res.status).toBe(422);
                 expect(res.body).toHaveProperty("success", false);
-                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
                     "location": "body",
@@ -49,7 +49,7 @@ describe("Register endpoint test", () => {
 
                 expect(res.status).toBe(422);
                 expect(res.body).toHaveProperty("success", false);
-                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
                     "location": "body",
@@ -68,7 +68,7 @@ describe("Register endpoint test", () => {
 
                 expect(res.status).toBe(422);
                 expect(res.body).toHaveProperty("success", false);
-                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
                     "location": "body",
@@ -88,7 +88,7 @@ describe("Register endpoint test", () => {
 
                 expect(res.status).toBe(422);
                 expect(res.body).toHaveProperty("success", false);
-                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
                     "location": "body",
@@ -108,7 +108,7 @@ describe("Register endpoint test", () => {
 
                 expect(res.status).toBe(422);
                 expect(res.body).toHaveProperty("success", false);
-                expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
                     "location": "body",
@@ -165,7 +165,7 @@ describe("Using already resgistered user", () => {
 
         expect(res.status).toBe(422);
         expect(res.body).toHaveProperty("success", false);
-        expect(res.body).toHaveProperty("error_code", ERROR_TYPES.VALIDATION_ERROR);
+        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors).toContainEqual({
             "location": "body",

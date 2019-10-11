@@ -9,7 +9,7 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 const mongoose = require("mongoose");
-// Ocurrs before all the tests, only once
+// Occurs before all the tests, only once
 beforeAll(async () => {
     await new Promise((resolve) => {
         mongoose.connection.once("open", () => {
