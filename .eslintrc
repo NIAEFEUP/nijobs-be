@@ -6,7 +6,12 @@
     "env": {
         "node": true,
         "es6": true,
-        "mocha": true,
+        "jest": true
+    },
+
+    "globals": {
+        "request": false,
+        "agent": false
     },
 
     "parserOptions": {
