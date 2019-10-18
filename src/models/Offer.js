@@ -7,9 +7,9 @@ const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./Techn
 const PointSchema = require("./Point");
 
 // Defining relevant constants
-const { MONTH_IN_MS, AD_MAX_LIFETIME_MONTHS } = require("./TimeConstants");
+const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./TimeConstants");
 
-const AdSchema = new Schema({
+const OfferSchema = new Schema({
     title: { type: String, maxlength: 90, required: true },
     publishDate: {
         type: Date,
@@ -25,7 +25,7 @@ const AdSchema = new Schema({
         required: true,
         validate: [
             validateEndDate,
-            `\`endDate\` must not differ from \`publishDate\` by more than ${AD_MAX_LIFETIME_MONTHS} months`,
+            `\`endDate\` must not differ from \`publishDate\` by more than ${OFFER_MAX_LIFETIME_MONTHS} months`,
         ],
     },
 
@@ -91,11 +91,11 @@ function validatePublishDate(value) {
 }
 
 function validateEndDate(value) {
-    // Milisseconds from publish date to end date (Ad is no longer valid)
+    // Milisseconds from publish date to end date (Offer is no longer valid)
     const timeDiff = value.getTime() - this.publishDate.getTime();
     const diffInMonths = timeDiff / MONTH_IN_MS;
 
-    return diffInMonths <= AD_MAX_LIFETIME_MONTHS;
+    return diffInMonths <= OFFER_MAX_LIFETIME_MONTHS;
 }
 
 // jobMaxDuration must be larger than jobMinDuration
@@ -105,11 +105,11 @@ function validateJobMaxDuration(value) {
 
 // Adding unique array mongo plugin - to ensure that the elements inside the arrays are in fact unique
 // See: https://thecodebarbarian.com/whats-new-in-mongoose-4.10-unique-in-arrays and https://www.npmjs.com/package/mongoose-unique-array
-AdSchema.plugin(uniqueArrayPlugin);
+OfferSchema.plugin(uniqueArrayPlugin);
 
-const Ad = mongoose.model("Ad", AdSchema);
+const Offer = mongoose.model("Offer", OfferSchema);
 
 // Useful for testing correct field implementation
-// console.log("DBG: ", AdSchema.path("location"));
+// console.log("DBG: ", OfferSchema.path("location"));
 
-module.exports = Ad;
+module.exports = Offer;
