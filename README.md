@@ -20,7 +20,7 @@ Made with ❤️ by NIAEFEUP.
 
 ### Installing Docker
 
-The best approach to install `docker` is to follow the offical guide [here](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-using-the-repository). 
+The best approach to install `docker` is to follow the official guide [here](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-using-the-repository). 
 
 Please follow the steps in `Install using the repository` section.
 
@@ -28,7 +28,7 @@ Next, follow [these](https://docs.docker.com/install/linux/linux-postinstall/) s
 
 ### Installing Docker Compose
 
-The best approach to install `docker-compose` is to follow the offical guide [here](https://docs.docker.com/compose/install/#install-compose).
+The best approach to install `docker-compose` is to follow the official guide [here](https://docs.docker.com/compose/install/#install-compose).
 
 ### Env files setup
 
@@ -68,7 +68,7 @@ To run the test suite (mostly for CI/CD use), the workflow is similar to the dev
 ```bash
 docker-compose build test
 ```
-After building the images/containers, the tests can be ran with:
+After building the images/containers, the tests can be run with:
 
 ```bash
 docker-compose up --exit-code-from test test
@@ -89,7 +89,7 @@ docker-compose up web-prod
 ```
 > A `prod.sh` file is available in the project's root folder to run these commands on linux environments (simply run `./prod.sh [--build]`)
 
-This environment doesn't have hot reloading or dev extensions and is made to be used in the deployment server running this aplication.
+This environment doesn't have hot reloading or dev extensions and is made to be used in the deployment server running this application.
 
 ### Manual Configuration (Recommended for flexibility)
 
