@@ -1,5 +1,6 @@
-const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const Offer = require("../../src/models/Offer");
+const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
+const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 
 // ------- Test helper functions for generating test code --------
 // TODO: Generalize these even more for usage in other tests
@@ -18,7 +19,7 @@ const fieldIsRequired = (field_name) => {
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
                 "location": "body",
-                "msg": `${field_name} is required`,
+                "msg": ValidationReasons.REQUIRED,
                 "param": field_name,
             });
         });
@@ -40,7 +41,30 @@ const fieldMustBeString = (field_name) => {
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors).toContainEqual({
             "location": "body",
-            "msg": `${field_name} must be a String`,
+            "msg": ValidationReasons.STRING,
+            "param": field_name,
+            "value": params[field_name],
+        });
+    });
+};
+
+const fieldHasMaxLength = (field_name, max_length) => {
+    test(`should not be longer than ${max_length} characters`, async () => {
+        const params = {
+            [field_name]: "a".repeat(max_length + 1),
+        };
+
+        const res = await request()
+            .post("/offer")
+            .send(withAdminToken(params));
+
+        expect(res.status).toBe(422);
+        expect(res.body).toHaveProperty("success", false);
+        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+        expect(res.body).toHaveProperty("errors");
+        expect(res.body.errors).toContainEqual({
+            "location": "body",
+            "msg": ValidationReasons.TOO_LONG(max_length),
             "param": field_name,
             "value": params[field_name],
         });
@@ -92,27 +116,7 @@ describe("Offer endpoint tests", () => {
         describe("title", () => {
             fieldIsRequired("title");
             fieldMustBeString("title");
-
-            test("should not be longer than 90 characters", async () => {
-                const params = {
-                    title: "a".repeat(100),
-                };
-
-                const res = await request()
-                    .post("/offer")
-                    .send(withAdminToken(params));
-
-                expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("success", false);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual({
-                    "location": "body",
-                    "msg": "title must not be longer than 90 characters",
-                    "param": "title",
-                    "value": params.title,
-                });
-            });
+            fieldHasMaxLength("title", 90);
         });
 
         describe("publishDate", () => {
@@ -125,6 +129,8 @@ describe("Offer endpoint tests", () => {
 
         describe("description", () => {
             fieldIsRequired("description");
+            fieldMustBeString("description");
+            fieldHasMaxLength("description", 1500);
         });
 
         describe("contacts", () => {
