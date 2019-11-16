@@ -1,6 +1,8 @@
 const { body } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
+const ValidationReasons = require("./validationReasons");
+
 // const Offer = require("../../../models/Offer");
 
 // const checkDuplicateUsername = async (username) => {
@@ -11,38 +13,38 @@ const { useExpressValidators } = require("../errorHandler");
 // };
 
 const create = useExpressValidators([
-    body("title", "Invalid title")
-        .exists().withMessage("title is required").bail()
-        .isString().withMessage("title must be a String")
-        .isLength({ max: 90 }).withMessage("title must not be longer than 90 characters")
+    body("title", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING)
+        .isLength({ max: 90 }).withMessage(ValidationReasons.TOO_LONG(90))
         .trim(),
 
-    body("publishDate", "Invalid publishDate")
-        .exists().withMessage("publishDate is required").bail(),
+    body("publishDate", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 
-    body("endDate", "Invalid endDate")
-        .exists().withMessage("endDate is required").bail(),
+    body("endDate", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 
-    body("description", "Invalid description")
-        .exists().withMessage("description is required").bail()
-        .isString()
-        .isLength({ max: 1500 })
+    body("description", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING)
+        .isLength({ max: 1500 }).withMessage(ValidationReasons.TOO_LONG(1500))
         .trim(),
 
-    body("contacts", "Invalid contacts")
-        .exists().withMessage("contacts is required").bail(),
+    body("contacts", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 
-    body("jobType", "Invalid jobType")
-        .exists().withMessage("jobType is required").bail(),
+    body("jobType", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 
-    body("technologies", "Invalid technologies")
-        .exists().withMessage("technologies is required").bail(),
+    body("technologies", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 
-    body("owner", "Invalid owner")
-        .exists().withMessage("owner is required").bail(),
+    body("owner", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 
-    body("location", "Invalid location")
-        .exists().withMessage("location is required").bail(),
+    body("location", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 ]);
 
 module.exports = { create };
