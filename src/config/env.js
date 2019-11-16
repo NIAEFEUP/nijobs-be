@@ -12,4 +12,7 @@ module.exports = Object.freeze({
     session_secret: process.env.SESSION_SECRET,
 
     port: process.env.PORT,
+
+    // Admin token
+    admin_token: process.env.ADMIN_TOKEN,
 });
