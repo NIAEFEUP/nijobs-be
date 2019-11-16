@@ -29,13 +29,11 @@ module.exports = (app) => {
             const users = await ExampleUser.find();
 
             return res.status(200).json({
-                "success": true,
                 users, // Equivalent to "users": users
             });
 
         } catch (err) {
             return res.status(500).json({
-                "success": false,
                 "reason": "dunno",
                 "error_code": ErrorTypes.DB_ERROR,
             });
@@ -48,7 +46,6 @@ module.exports = (app) => {
     router.post("/", async (req, res) => {
         if (!req.body.username) {
             return res.status(400).json({
-                "success": false,
                 "reason": "No username specified",
                 "error_code": ErrorTypes.MISSING_FIELD,
             });
@@ -62,12 +59,9 @@ module.exports = (app) => {
                 age: req.body.age,
             });
 
-            return res.status(200).json({
-                "success": true,
-            });
+            return res.status(200).json({});
         } catch (err) {
             return res.status(500).json({
-                "success": false,
                 "reason": "dunno2",
                 "error_code": ErrorTypes.DB_ERROR,
             });

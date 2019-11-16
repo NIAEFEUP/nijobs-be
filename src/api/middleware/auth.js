@@ -7,7 +7,6 @@ const authRequired = (req, res, next) => {
         return next();
     }
     return res.status(401).json({
-        success: false,
         reason: "Must be logged in",
         error_code: ErrorTypes.FORBIDDEN,
     });
@@ -17,7 +16,6 @@ const authRequired = (req, res, next) => {
 const isAdmin = (req, res, next) => {
     if (req.body.admin_token !== config.admin_token) {
         return res.status(401).json({
-            success: false,
             reason: "Invalid admin token",
             error_code: ErrorTypes.FORBIDDEN,
         });

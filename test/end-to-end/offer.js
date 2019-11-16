@@ -14,7 +14,6 @@ const fieldIsRequired = (field_name) => {
                 .send(withAdminToken(params));
 
             expect(res.status).toBe(422);
-            expect(res.body).toHaveProperty("success", false);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -36,7 +35,6 @@ const fieldMustBeString = (field_name) => {
             .send(withAdminToken(params));
 
         expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("success", false);
         expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors).toContainEqual({
@@ -59,7 +57,6 @@ const fieldHasMaxLength = (field_name, max_length) => {
             .send(withAdminToken(params));
 
         expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("success", false);
         expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors).toContainEqual({
@@ -83,7 +80,6 @@ describe("Offer endpoint tests", () => {
                     .send({});
 
                 expect(res.status).toBe(401);
-                expect(res.body).toHaveProperty("success", false);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                 expect(res.body).toHaveProperty("reason", "Invalid admin token");
             });
@@ -96,7 +92,6 @@ describe("Offer endpoint tests", () => {
                     });
 
                 expect(res.status).toBe(401);
-                expect(res.body).toHaveProperty("success", false);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                 expect(res.body).toHaveProperty("reason", "Invalid admin token");
             });
@@ -170,7 +165,6 @@ describe("Offer endpoint tests", () => {
                 .send(offer);
 
             expect(res.status).toBe(200);
-            expect(res.body).toHaveProperty("success", true);
 
             const created_offer = await Offer.findOne({ title: offer.title });
             expect(created_offer).toBeDefined();
@@ -194,7 +188,6 @@ describe("Offer endpoint tests", () => {
                 .send();
 
             expect(res.status).toBe(200);
-            expect(res.body).toHaveProperty("success", true);
             expect(res.body).toHaveProperty("data");
             expect(res.body.data).toHaveLength(1);
             expect(res.body.data).toContainEqual(test_offer);

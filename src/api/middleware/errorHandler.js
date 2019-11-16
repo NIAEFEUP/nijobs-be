@@ -21,7 +21,6 @@ const useExpressValidators = (validators) => async (req, res, next) => {
     return res
         .status(422)
         .json({
-            success: false,
             error_code: ErrorTypes.VALIDATION_ERROR,
             errors: errors.array(),
         });
@@ -33,7 +32,6 @@ const dbHandler = () => (err, req, res, next) => {
     }
 
     const result = {
-        success: false,
         error_code: ErrorTypes.DB_ERROR,
         errors: [errorExtractor(err)],
     };
