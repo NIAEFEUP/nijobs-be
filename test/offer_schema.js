@@ -424,30 +424,30 @@ describe("# Offer Schema tests", () => {
             });
         });
 
-        describe("Test Location format insertion", () => {
+        describe("Test Coordinates format insertion", () => {
             // More tests could be offerded to test erroring formats, but I think that this should be enough
             test("no object passed should throw error", () => {
                 const offer = new Offer({
-                    location: "",
+                    coordinates: "",
                 });
 
                 return offer.validate((err) => {
-                    expect(err.errors.location).toBeDefined();
-                    expect(err.errors.location).toHaveProperty("kind", "Embedded");
-                    expect(err.errors.location).toHaveProperty("message", "Cast to Embedded failed for value \"\" at path \"location\"");
+                    expect(err.errors.coordinates).toBeDefined();
+                    expect(err.errors.coordinates).toHaveProperty("kind", "Embedded");
+                    expect(err.errors.coordinates).toHaveProperty("message", "Cast to Embedded failed for value \"\" at path \"coordinates\"");
                 });
             });
 
             test("correct format should not throw error", () => {
                 const offer = new Offer({
-                    location: {
+                    coordinates: {
                         type: "Point",
                         coordinates: [27, 28],
                     },
                 });
 
                 return offer.validate((err) => {
-                    expect(err.errors.location).toBeFalsy();
+                    expect(err.errors.coordinates).toBeFalsy();
                 });
             });
         });

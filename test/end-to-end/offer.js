@@ -284,6 +284,7 @@ describe("Offer endpoint tests", () => {
 
         describe("location", () => {
             fieldIsRequired("location");
+            fieldMustBeString("location");
         });
     });
 

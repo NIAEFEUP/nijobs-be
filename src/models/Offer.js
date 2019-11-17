@@ -82,7 +82,8 @@ const OfferSchema = new Schema({
     isHidden: { type: Boolean },
     owner: { type: Types.ObjectId, ref: "Company", required: true },
 
-    location: { type: PointSchema, required: true },
+    location: { type: String, required: true },
+    coordinates: { type: PointSchema, required: false },
 });
 
 // Checking if the publication date is less than or equal than the end date.

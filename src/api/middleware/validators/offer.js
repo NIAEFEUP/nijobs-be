@@ -77,7 +77,14 @@ const create = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 
     body("location", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING)
+        .trim(),
+
+    // TODO: Figure out how to handle this field
+    // We should probably only receive the array part and inject the type that PointSchema requires in a custom sanitizer
+    body("coordinates", ValidationReasons.DEFAULT)
+        .isArray(),
 ]);
 
 module.exports = { create };
