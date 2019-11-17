@@ -20,10 +20,12 @@ const create = useExpressValidators([
         .trim(),
 
     body("publishDate", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE),
 
     body("endDate", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE),
 
     body("description", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()

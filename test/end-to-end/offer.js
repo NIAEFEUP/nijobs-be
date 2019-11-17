@@ -46,6 +46,27 @@ const fieldMustBeString = (field_name) => {
     });
 };
 
+const fieldMustBeDate = (field_name) => {
+    test("should be a Date", async () => {
+        const params = {
+            [field_name]: 123,
+        };
+        const res = await request()
+            .post("/offer")
+            .send(withAdminToken(params));
+
+        expect(res.status).toBe(422);
+        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+        expect(res.body).toHaveProperty("errors");
+        expect(res.body.errors).toContainEqual({
+            "location": "body",
+            "msg": ValidationReasons.DATE,
+            "param": field_name,
+            "value": params[field_name],
+        });
+    });
+};
+
 const fieldHasMaxLength = (field_name, max_length) => {
     test(`should not be longer than ${max_length} characters`, async () => {
         const params = {
@@ -116,10 +137,12 @@ describe("Offer endpoint tests", () => {
 
         describe("publishDate", () => {
             fieldIsRequired("publishDate");
+            fieldMustBeDate("publishDate");
         });
 
         describe("endDate", () => {
             fieldIsRequired("endDate");
+            fieldMustBeDate("endDate");
         });
 
         describe("description", () => {
