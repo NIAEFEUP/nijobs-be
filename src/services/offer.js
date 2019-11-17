@@ -47,6 +47,12 @@ class OfferService {
 
         return offer;
     }
+
+    async get() {
+        // TODO: Add mandatory expiry date filters
+        const offers = await Offer.find({});
+        return offers;
+    }
 }
 
 module.exports = OfferService;

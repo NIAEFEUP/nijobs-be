@@ -328,7 +328,16 @@ describe("Offer endpoint tests", () => {
 
     describe("Using already created offer", () => {
         const test_offer = {
-            title: "Stuff",
+            title: "Test Offer",
+            publishDate: "2019-11-17T02:24:15.716Z",
+            endDate: "2019-11-18T02:24:15.716Z",
+            description: "For Testing Purposes",
+            contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+            jobType: "SUMMER INTERNSHIP",
+            fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+            technologies: ["React", "CSS"],
+            owner: "aaa712371273",
+            location: "Testing Street, Test City, 123",
         };
 
         beforeAll(async () => {
@@ -342,9 +351,14 @@ describe("Offer endpoint tests", () => {
                 .send();
 
             expect(res.status).toBe(200);
-            expect(res.body).toHaveProperty("data");
-            expect(res.body.data).toHaveLength(1);
-            expect(res.body.data).toContainEqual(test_offer);
+            expect(res.body).toHaveLength(1);
+            // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+            const extracted_data = res.body.map((elem) => {
+                delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
+            });
+            const test_offer_without_owner = test_offer;
+            delete test_offer_without_owner["owner"];
+            expect(extracted_data).toContainEqual(test_offer);
         });
     });
 });
