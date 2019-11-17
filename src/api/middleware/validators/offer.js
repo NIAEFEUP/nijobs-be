@@ -31,12 +31,15 @@ const create = useExpressValidators([
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE),
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
+        .optional()
         .isInt().withMessage(ValidationReasons.INT),
 
     body("jobMaxDuration", ValidationReasons.DEFAULT)
+        .optional()
         .isInt().withMessage(ValidationReasons.INT),
 
     body("jobStartDate", ValidationReasons.DEFAULT)
+        .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE),
 
     body("description", ValidationReasons.DEFAULT)
@@ -49,9 +52,11 @@ const create = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 
     body("isPaid", ValidationReasons.DEFAULT)
+        .optional()
         .isBoolean().withMessage(ValidationReasons.BOOLEAN),
 
     body("vacancies", ValidationReasons.DEFAULT)
+        .optional()
         .isInt().withMessage(ValidationReasons.INT),
 
     body("jobType", ValidationReasons.DEFAULT)
@@ -70,6 +75,7 @@ const create = useExpressValidators([
         .withMessage(ValidationReasons.ARRAY_SIZE(TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES)),
 
     body("isHidden", ValidationReasons.DEFAULT)
+        .optional()
         .isBoolean().withMessage(ValidationReasons.BOOLEAN),
 
     // TODO: Add validation for the owner being a Mongo ObjectId that is correctly referencing an existing Company
@@ -84,6 +90,7 @@ const create = useExpressValidators([
     // TODO: Figure out how to handle this field
     // We should probably only receive the array part and inject the type that PointSchema requires in a custom sanitizer
     body("coordinates", ValidationReasons.DEFAULT)
+        .optional()
         .isArray(),
 ]);
 
