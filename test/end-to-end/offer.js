@@ -320,8 +320,11 @@ describe("Offer endpoint tests", () => {
             expect(created_offer).toBe(
                 expect.objectContaining({
                     ...offer,
-                    // "__v": expect.anything(),
-                    // "_id": expect.anything(),
+                    "__v": expect.anything(),
+                    "_id": expect.anything(),
+                    owner: expect.anything(),
+                    publishDate: new Date(offer.publishDate),
+                    endDate: new Date(offer.endDate),
                 })
             );
             expect(created_offer).toHaveProperty("title", offer.title);

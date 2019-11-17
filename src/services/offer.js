@@ -1,19 +1,52 @@
 const Offer = require("../models/Offer");
 
-class AuthService {
+class OfferService {
     // TODO: Use typedi or similar
     constructor() {
 
     }
 
-    async create({ title }) {
+    async create({
+        title,
+        publishDate,
+        endDate,
+        jobMinDuration,
+        jobMaxDuration,
+        jobStartDate,
+        description,
+        contacts,
+        isPaid,
+        vacancies,
+        jobType,
+        fields,
+        technologies,
+        isHidden,
+        owner,
+        location,
+        coordinates,
+    }) {
         const offer = await Offer.create({
             title,
+            publishDate,
+            endDate,
+            jobMinDuration,
+            jobMaxDuration,
+            jobStartDate,
+            description,
+            contacts,
+            isPaid,
+            vacancies,
+            jobType,
+            fields,
+            technologies,
+            isHidden,
+            owner,
+            location,
+            coordinates,
         });
 
-        // Probably should not return everything. We should check what fields are relevant and return those
         return offer;
     }
 }
 
-module.exports = AuthService;
+module.exports = OfferService;
