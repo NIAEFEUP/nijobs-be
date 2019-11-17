@@ -1,4 +1,7 @@
 const Offer = require("../../src/models/Offer");
+const JobTypes = require("../../src/models/JobTypes");
+const FieldTypes = require("../../src/models/FieldTypes");
+const TechnologyTypes = require("../../src/models/TechnologyTypes");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 
@@ -61,6 +64,90 @@ const fieldMustBeDate = (field_name) => {
         expect(res.body.errors).toContainEqual({
             "location": "body",
             "msg": ValidationReasons.DATE,
+            "param": field_name,
+            "value": params[field_name],
+        });
+    });
+};
+
+const fieldMustBeNumber = (field_name) => {
+    test("should be a Number", async () => {
+        const params = {
+            [field_name]: "string_content",
+        };
+        const res = await request()
+            .post("/offer")
+            .send(withAdminToken(params));
+
+        expect(res.status).toBe(422);
+        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+        expect(res.body).toHaveProperty("errors");
+        expect(res.body.errors).toContainEqual({
+            "location": "body",
+            "msg": ValidationReasons.INT,
+            "param": field_name,
+            "value": params[field_name],
+        });
+    });
+};
+
+const fieldMustBeBoolean = (field_name) => {
+    test("should be a Boolean", async () => {
+        const params = {
+            [field_name]: 123,
+        };
+        const res = await request()
+            .post("/offer")
+            .send(withAdminToken(params));
+
+        expect(res.status).toBe(422);
+        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+        expect(res.body).toHaveProperty("errors");
+        expect(res.body.errors).toContainEqual({
+            "location": "body",
+            "msg": ValidationReasons.BOOLEAN,
+            "param": field_name,
+            "value": params[field_name],
+        });
+    });
+};
+
+const fieldMustBeInArray = (field_name, array) => {
+    test(`should be one of: [${array}]`, async () => {
+        const params = {
+            [field_name]: "not_in_array",
+        };
+        const res = await request()
+            .post("/offer")
+            .send(withAdminToken(params));
+
+        expect(res.status).toBe(422);
+        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+        expect(res.body).toHaveProperty("errors");
+        expect(res.body.errors).toContainEqual({
+            "location": "body",
+            "msg": ValidationReasons.IN_ARRAY(array),
+            "param": field_name,
+            "value": params[field_name],
+        });
+    });
+};
+
+const fieldMustBeArrayBetween = (field_name, arr_min, arr_max) => {
+    test(`should be Array with size between ${arr_min} and ${arr_max}`, async () => {
+        const params = {
+            [field_name]: Array.from("a".repeat(arr_max + 1)),
+        };
+        const res = await request()
+            .post("/offer")
+            .send(withAdminToken(params));
+
+        expect(res.status).toBe(422);
+        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+        expect(res.body).toHaveProperty("errors");
+        expect(res.body.errors).toContainEqual({
+            "location": "body",
+            "msg": ValidationReasons.ARRAY_SIZE(arr_min, arr_max),
             "param": field_name,
             "value": params[field_name],
         });
@@ -145,6 +232,18 @@ describe("Offer endpoint tests", () => {
             fieldMustBeDate("endDate");
         });
 
+        describe("jobMinDuration", () => {
+            fieldMustBeNumber("jobMinDuration");
+        });
+
+        describe("jobMaxDuration", () => {
+            fieldMustBeNumber("jobMaxDuration");
+        });
+
+        describe("jobStartDate", () => {
+            fieldMustBeDate("jobStartDate");
+        });
+
         describe("description", () => {
             fieldIsRequired("description");
             fieldMustBeString("description");
@@ -155,12 +254,28 @@ describe("Offer endpoint tests", () => {
             fieldIsRequired("contacts");
         });
 
+        describe("isPaid", () => {
+            fieldMustBeBoolean("isPaid");
+        });
+
+        describe("vacancies", () => {
+            fieldMustBeNumber("vacancies");
+        });
+
         describe("jobType", () => {
             fieldIsRequired("jobType");
+            fieldMustBeString("jobType");
+            fieldMustBeInArray("jobType", JobTypes);
+        });
+
+        describe("fields", () => {
+            fieldIsRequired("fields");
+            fieldMustBeArrayBetween("fields", FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS);
         });
 
         describe("technologies", () => {
             fieldIsRequired("technologies");
+            fieldMustBeArrayBetween("technologies", TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES);
         });
 
         describe("owner", () => {
@@ -177,20 +292,37 @@ describe("Offer endpoint tests", () => {
             await Offer.deleteMany({});
         });
 
+        // TODO: This test should be 'with minimum requirements' and there should be another with all of the optional fields being sent, at least
         test("Should successfully create an Offer", async () => {
             const offer = {
-                title: "My First Offer",
-
+                title: "Test Offer",
+                publishDate: "2019-11-17T02:24:15.716Z",
+                endDate: "2019-11-18T02:24:15.716Z",
+                description: "For Testing Purposes",
+                contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                jobType: "SUMMER INTERNSHIP",
+                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                technologies: ["React", "CSS"],
+                owner: "aaa712371273",
+                location: "Testing Street, Test City, 123",
             };
 
             const res = await request()
                 .post("/offer")
-                .send(offer);
+                .send(withAdminToken(offer));
 
             expect(res.status).toBe(200);
+            const created_offer_id = res.body._id;
 
-            const created_offer = await Offer.findOne({ title: offer.title });
+            const created_offer = await Offer.findById(created_offer_id);
             expect(created_offer).toBeDefined();
+            expect(created_offer).toBe(
+                expect.objectContaining({
+                    ...offer,
+                    // "__v": expect.anything(),
+                    // "_id": expect.anything(),
+                })
+            );
             expect(created_offer).toHaveProperty("title", offer.title);
         });
     });

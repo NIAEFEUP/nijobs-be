@@ -5,6 +5,10 @@ const ValidationReasons = Object.freeze({
     TOO_SHORT: (len) => `below-min-length:${len}`,
     STRING: "must-be-string",
     DATE: "must-be-ISO8601-date",
+    INT: "must-be-int",
+    BOOLEAN: "must-be-boolean",
+    IN_ARRAY: (vals) => `must-be-in:[${vals}]`,
+    ARRAY_SIZE: (min, max) => `size-must-be-between:[${min},${max}]`,
 });
 
 module.exports = ValidationReasons;

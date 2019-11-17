@@ -2,6 +2,9 @@ const { body } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
+const JobTypes = require("../../../models/JobTypes");
+const FieldTypes = require("../../../models/FieldTypes");
+const TechnologyTypes = require("../../../models/TechnologyTypes");
 
 // const Offer = require("../../../models/Offer");
 
@@ -27,6 +30,15 @@ const create = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE),
 
+    body("jobMinDuration", ValidationReasons.DEFAULT)
+        .isInt().withMessage(ValidationReasons.INT),
+
+    body("jobMaxDuration", ValidationReasons.DEFAULT)
+        .isInt().withMessage(ValidationReasons.INT),
+
+    body("jobStartDate", ValidationReasons.DEFAULT)
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE),
+
     body("description", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
@@ -36,12 +48,31 @@ const create = useExpressValidators([
     body("contacts", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 
+    body("isPaid", ValidationReasons.DEFAULT)
+        .isBoolean().withMessage(ValidationReasons.BOOLEAN),
+
+    body("vacancies", ValidationReasons.DEFAULT)
+        .isInt().withMessage(ValidationReasons.INT),
+
     body("jobType", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .isIn(JobTypes).withMessage(ValidationReasons.IN_ARRAY(JobTypes)),
+
+    body("fields", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isArray({ min: FieldTypes.MIN_FIELDS, max: FieldTypes.MAX_FIELDS })
+        .withMessage(ValidationReasons.ARRAY_SIZE(FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS)),
 
     body("technologies", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isArray({ min: TechnologyTypes.MIN_TECHNOLOGIES, max: TechnologyTypes.MAX_TECHNOLOGIES })
+        .withMessage(ValidationReasons.ARRAY_SIZE(TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES)),
 
+    body("isHidden", ValidationReasons.DEFAULT)
+        .isBoolean().withMessage(ValidationReasons.BOOLEAN),
+
+    // TODO: Add validation for the owner being a Mongo ObjectId that is correctly referencing an existing Company
     body("owner", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail(),
 
