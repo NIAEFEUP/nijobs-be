@@ -24,11 +24,13 @@ const create = useExpressValidators([
 
     body("publishDate", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE),
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .toDate(),
 
     body("endDate", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE),
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .toDate(),
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
         .optional()
@@ -40,7 +42,8 @@ const create = useExpressValidators([
 
     body("jobStartDate", ValidationReasons.DEFAULT)
         .optional()
-        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE),
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .toDate(),
 
     body("description", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
