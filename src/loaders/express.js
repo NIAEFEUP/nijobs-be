@@ -8,6 +8,8 @@ const apiRoutes = require("../api");
 const config = require("../config/env");
 const { defaultErrorHandler } = require("../api/middleware/errorHandler");
 
+const helmet = require("helmet");
+
 const RateLimit = require("express-rate-limit");
 const MongoStore = require("rate-limit-mongo");
 
@@ -55,6 +57,9 @@ module.exports = (app) => {
 
     // Adds route rate limit
     app.use(api_rate_limiter);
+
+    // Adds protection to common attacks
+    app.use(helmet());
 
     // Adds route logging
     if (process.env.NODE_ENV !== "test" || config.test_log_requests) {
