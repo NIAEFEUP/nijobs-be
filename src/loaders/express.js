@@ -8,6 +8,11 @@ const apiRoutes = require("../api");
 const config = require("../config/env");
 const { defaultErrorHandler } = require("../api/middleware/errorHandler");
 
+const RateLimit = require("express-rate-limit");
+const MongoStore = require("rate-limit-mongo");
+
+const API_REQUEST_TIME_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const API_MAX_REQUESTS_PER_WINDOW = 100;
 
 module.exports = (app) => {
     // Checking for session secret
@@ -34,6 +39,22 @@ module.exports = (app) => {
     // Initializing passport authentication settings
     app.use(passport.initialize());
     app.use(passport.session());
+
+    const mongo_uri = config.db_uri || `mongodb://${config.db_host}:${config.db_port}/${config.db_name}`;
+
+    const api_rate_limiter = new RateLimit({
+        store: new MongoStore({
+            uri: mongo_uri,
+        }),
+        windowMs: API_REQUEST_TIME_WINDOW_MS,
+        max: API_MAX_REQUESTS_PER_WINDOW,
+        message: {
+            error: "Too many requests issued from this IP, please try again after a while",
+        },
+    });
+
+    // Adds route rate limit
+    app.use(api_rate_limiter);
 
     // Adds route logging
     if (process.env.NODE_ENV !== "test" || config.test_log_requests) {
