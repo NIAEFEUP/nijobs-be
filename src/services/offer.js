@@ -49,8 +49,15 @@ class OfferService {
     }
 
     async get() {
-        // TODO: Add mandatory expiry date filters
-        const offers = await Offer.find({});
+        const offers = await Offer.find({
+            publishDate: {
+                $lte: new Date(Date.now()),
+            },
+            endDate: {
+                $gt: new Date(Date.now()),
+            },
+        });
+
         return offers;
     }
 }

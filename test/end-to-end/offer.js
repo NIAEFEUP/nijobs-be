@@ -1,3 +1,4 @@
+// const { mockCurrentDate } = require("../testUtils");
 const Offer = require("../../src/models/Offer");
 const JobTypes = require("../../src/models/JobTypes");
 const FieldTypes = require("../../src/models/FieldTypes");
@@ -318,7 +319,8 @@ describe("Offer endpoint tests", () => {
             await Offer.deleteMany({});
         });
 
-        // TODO: This test should be 'with minimum requirements' and there should be another with all of the optional fields being sent, at least
+        // TODO: This test should be 'with minimum requirements'
+        // Thus, there should be another with all of the optional fields being sent, at least
         test("Should successfully create an Offer", async () => {
             const offer = {
                 title: "Test Offer",
@@ -354,8 +356,8 @@ describe("Offer endpoint tests", () => {
     describe("Using already created offer", () => {
         const test_offer = {
             title: "Test Offer",
-            publishDate: "2019-11-17T02:24:15.716Z",
-            endDate: "2019-11-18T02:24:15.716Z",
+            publishDate: "2019-11-22T00:00:00.000Z",
+            endDate: "2019-11-28T00:00:00.000Z",
             description: "For Testing Purposes",
             contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
             jobType: "SUMMER INTERNSHIP",
@@ -365,12 +367,50 @@ describe("Offer endpoint tests", () => {
             location: "Testing Street, Test City, 123",
         };
 
+        const expired_test_offer = {
+            title: "Expired Test Offer",
+            publishDate: "2019-11-17",
+            endDate: "2019-11-18",
+            description: "For Testing Purposes",
+            contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+            jobType: "SUMMER INTERNSHIP",
+            fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+            technologies: ["React", "CSS"],
+            owner: "aaa712371273",
+            location: "Testing Street, Test City, 123",
+        };
+
+        const future_test_offer = {
+            title: "Future Test Offer",
+            publishDate: "2019-12-12",
+            endDate: "2019-12-22",
+            description: "For Testing Purposes",
+            contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+            jobType: "SUMMER INTERNSHIP",
+            fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+            technologies: ["React", "CSS"],
+            owner: "aaa712371273",
+            location: "Testing Street, Test City, 123",
+        };
+
+        // TODO: Create a mock owner Company for this test
         beforeAll(async () => {
             await Offer.deleteMany({});
-            await Offer.create([test_offer]);
+            await Offer.create([test_offer, expired_test_offer, future_test_offer]);
         });
 
-        test("should provide created offer info", async () => {
+        const RealDateNow = Date.now;
+        const mockCurrentDate = new Date(2019, 10, 23);
+
+        beforeEach(() => {
+            Date.now = () => mockCurrentDate.getTime();
+        });
+
+        afterEach(() => {
+            Date.now = RealDateNow;
+        });
+
+        test("should provide only current offer info (no expired or future offers)", async () => {
             const res = await request()
                 .get("/offer")
                 .send();
@@ -381,9 +421,10 @@ describe("Offer endpoint tests", () => {
             const extracted_data = res.body.map((elem) => {
                 delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
             });
-            const test_offer_without_owner = test_offer;
-            delete test_offer_without_owner["owner"];
-            expect(extracted_data).toContainEqual(test_offer);
+            const prepared_test_offer = { ...test_offer };
+            delete prepared_test_offer["owner"];
+
+            expect(extracted_data).toContainEqual(prepared_test_offer);
         });
     });
 });
