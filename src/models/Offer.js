@@ -1,13 +1,12 @@
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
-const uniqueArrayPlugin = require("mongoose-unique-array");
+
 const JobTypes = require("./JobTypes");
 const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./FieldTypes");
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./TechnologyTypes");
 const PointSchema = require("./Point");
-
-// Defining relevant constants
 const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./TimeConstants");
+const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
 
 const OfferSchema = new Schema({
     title: { type: String, maxlength: 90, required: true },
@@ -61,22 +60,14 @@ const OfferSchema = new Schema({
     vacancies: { type: Number },
     jobType: { type: String, required: true, enum: JobTypes },
     fields: {
-        // unique ensures that there are no repeated fields using mongoose-unique-array (see below)
-        type: [{ type: String, enum: FieldTypes, unique: true }],
+        type: [{ type: String, enum: FieldTypes }],
         required: true,
-        validate: [
-            (val) => val.length >= MIN_FIELDS && val.length <= MAX_FIELDS,
-            `There must be between ${MIN_FIELDS} and ${MAX_FIELDS} fields`,
-        ],
+        validate: (val) => lengthBetweenValidator(val, MIN_FIELDS, MAX_FIELDS) && noDuplicatesValidator(val),
     },
     technologies: {
-        // unique ensures that there are no repeated technologies using mongoose-unique-array (see below)
-        type: [{ type: String, enum: TechnologyTypes, unique: true }],
+        type: [{ type: String, enum: TechnologyTypes }],
         required: true,
-        validate: [
-            (val) => val.length >= MIN_TECHNOLOGIES && val.length <= MAX_TECHNOLOGIES,
-            `There must be between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES} technologies`,
-        ],
+        validate: (val) => lengthBetweenValidator(val, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES) && noDuplicatesValidator(val),
     },
 
     isHidden: { type: Boolean },
@@ -103,10 +94,6 @@ function validateEndDate(value) {
 function validateJobMaxDuration(value) {
     return value >= this.jobMinDuration;
 }
-
-// Adding unique array mongo plugin - to ensure that the elements inside the arrays are in fact unique
-// See: https://thecodebarbarian.com/whats-new-in-mongoose-4.10-unique-in-arrays and https://www.npmjs.com/package/mongoose-unique-array
-OfferSchema.plugin(uniqueArrayPlugin);
 
 const Offer = mongoose.model("Offer", OfferSchema);
 

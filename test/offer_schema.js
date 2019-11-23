@@ -95,7 +95,9 @@ describe("# Offer Schema tests", () => {
                     return offer.validate((err) => {
                         expect(err.errors.fields).toBeDefined();
                         expect(err.errors.fields).toHaveProperty("kind", "user defined");
-                        expect(err.errors.fields).toHaveProperty("message", `There must be between ${MIN_FIELDS} and ${MAX_FIELDS} fields`);
+                        expect(err.errors.fields).toHaveProperty("message",
+                            `\`fields\` must have length between ${MIN_FIELDS} and ${MAX_FIELDS}`
+                        );
                     });
                 });
 
@@ -112,7 +114,9 @@ describe("# Offer Schema tests", () => {
                     return offer.validate((err) => {
                         expect(err.errors.fields).toBeDefined();
                         expect(err.errors.fields).toHaveProperty("kind", "user defined");
-                        expect(err.errors.fields).toHaveProperty("message", `There must be between ${MIN_FIELDS} and ${MAX_FIELDS} fields`);
+                        expect(err.errors.fields).toHaveProperty("message",
+                            `\`fields\` must have length between ${MIN_FIELDS} and ${MAX_FIELDS}`
+                        );
                     });
                 });
 
@@ -139,7 +143,7 @@ describe("# Offer Schema tests", () => {
                         expect(err.errors.technologies).toBeDefined();
                         expect(err.errors.technologies).toHaveProperty("kind", "user defined");
                         expect(err.errors.technologies).toHaveProperty("message",
-                            `There must be between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES} technologies`
+                            `\`technologies\` must have length between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES}`
                         );
                     });
                 });
@@ -158,7 +162,7 @@ describe("# Offer Schema tests", () => {
                         expect(err.errors.technologies).toBeDefined();
                         expect(err.errors.technologies).toHaveProperty("kind", "user defined");
                         expect(err.errors.technologies).toHaveProperty("message",
-                            `There must be between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES} technologies`
+                            `\`technologies\` must have length between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES}`
                         );
                     });
                 });
@@ -434,7 +438,9 @@ describe("# Offer Schema tests", () => {
                 return offer.validate((err) => {
                     expect(err.errors.coordinates).toBeDefined();
                     expect(err.errors.coordinates).toHaveProperty("kind", "Embedded");
-                    expect(err.errors.coordinates).toHaveProperty("message", "Cast to Embedded failed for value \"\" at path \"coordinates\"");
+                    expect(err.errors.coordinates).toHaveProperty("message",
+                        "Cast to Embedded failed for value \"\" at path \"coordinates\""
+                    );
                 });
             });
 
