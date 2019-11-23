@@ -2,18 +2,10 @@ const { body } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
+const { valuesInSet } = require("./validatorUtils");
 const JobTypes = require("../../../models/JobTypes");
 const FieldTypes = require("../../../models/FieldTypes");
 const TechnologyTypes = require("../../../models/TechnologyTypes");
-
-// const Offer = require("../../../models/Offer");
-
-// const checkDuplicateUsername = async (username) => {
-//     const acc = await Account.findOne({ username }).exec();
-//     if (acc) {
-//         throw new Error("Username already exists");
-//     }
-// };
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
@@ -70,12 +62,16 @@ const create = useExpressValidators([
     body("fields", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isArray({ min: FieldTypes.MIN_FIELDS, max: FieldTypes.MAX_FIELDS })
-        .withMessage(ValidationReasons.ARRAY_SIZE(FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS)),
+        .withMessage(ValidationReasons.ARRAY_SIZE(FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS))
+        .bail()
+        .custom(valuesInSet(FieldTypes.FieldTypes)),
 
     body("technologies", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isArray({ min: TechnologyTypes.MIN_TECHNOLOGIES, max: TechnologyTypes.MAX_TECHNOLOGIES })
-        .withMessage(ValidationReasons.ARRAY_SIZE(TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES)),
+        .withMessage(ValidationReasons.ARRAY_SIZE(TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES))
+        .bail()
+        .custom(valuesInSet(TechnologyTypes.TechnologyTypes)),
 
     body("isHidden", ValidationReasons.DEFAULT)
         .optional()

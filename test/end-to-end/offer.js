@@ -9,21 +9,19 @@ const ValidationReasons = require("../../src/api/middleware/validators/validatio
 // TODO: Generalize these even more for usage in other tests
 // (pass endpoint as argument, maybe as function returning function for usage in the whole test suite for an endpoint)
 const fieldIsRequired = (field_name) => {
-    describe(field_name, () => {
-        test("should be required", async () => {
-            const params = {};
-            const res = await request()
-                .post("/offer")
-                .send(withAdminToken(params));
+    test("should be required", async () => {
+        const params = {};
+        const res = await request()
+            .post("/offer")
+            .send(withAdminToken(params));
 
-            expect(res.status).toBe(422);
-            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-            expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual({
-                "location": "body",
-                "msg": ValidationReasons.REQUIRED,
-                "param": field_name,
-            });
+        expect(res.status).toBe(422);
+        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+        expect(res.body).toHaveProperty("errors");
+        expect(res.body.errors).toContainEqual({
+            "location": "body",
+            "msg": ValidationReasons.REQUIRED,
+            "param": field_name,
         });
     });
 };
@@ -116,6 +114,31 @@ const fieldMustBeInArray = (field_name, array) => {
     test(`should be one of: [${array}]`, async () => {
         const params = {
             [field_name]: "not_in_array",
+        };
+        const res = await request()
+            .post("/offer")
+            .send(withAdminToken(params));
+
+        expect(res.status).toBe(422);
+        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+        expect(res.body).toHaveProperty("errors");
+        expect(res.body.errors).toContainEqual({
+            "location": "body",
+            "msg": ValidationReasons.IN_ARRAY(array),
+            "param": field_name,
+            "value": params[field_name],
+        });
+    });
+};
+
+const fieldMustHaveValuesInRange = (field_name, array, n_elems) => {
+    test(`should be one of: [${array}]`, async () => {
+        const param_values = [];
+        for (let i = 0; i < n_elems; ++i) {
+            param_values.push(`${array[0]}-not_in_range`);
+        }
+        const params = {
+            [field_name]: param_values,
         };
         const res = await request()
             .post("/offer")
@@ -271,11 +294,13 @@ describe("Offer endpoint tests", () => {
         describe("fields", () => {
             fieldIsRequired("fields");
             fieldMustBeArrayBetween("fields", FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS);
+            fieldMustHaveValuesInRange("fields", FieldTypes.FieldTypes, FieldTypes.MIN_FIELDS + 1);
         });
 
         describe("technologies", () => {
             fieldIsRequired("technologies");
             fieldMustBeArrayBetween("technologies", TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES);
+            fieldMustHaveValuesInRange("technologies", TechnologyTypes.TechnologyTypes, TechnologyTypes.MIN_TECHNOLOGIES + 1);
         });
 
         describe("owner", () => {
