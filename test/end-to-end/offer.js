@@ -4,328 +4,192 @@ const JobTypes = require("../../src/models/JobTypes");
 const FieldTypes = require("../../src/models/FieldTypes");
 const TechnologyTypes = require("../../src/models/TechnologyTypes");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
-const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
+const ValidatorTester = require("../utils/ValidatorTester");
 
 // ------- Test helper functions for generating test code --------
 // TODO: Generalize these even more for usage in other tests
 // (pass endpoint as argument, maybe as function returning function for usage in the whole test suite for an endpoint)
-const fieldIsRequired = (field_name) => {
-    test("should be required", async () => {
-        const params = {};
-        const res = await request()
-            .post("/offer")
-            .send(withAdminToken(params));
-
-        expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-        expect(res.body).toHaveProperty("errors");
-        expect(res.body.errors).toContainEqual({
-            "location": "body",
-            "msg": ValidationReasons.REQUIRED,
-            "param": field_name,
-        });
-    });
-};
-
-const fieldMustBeString = (field_name) => {
-    test("should be a String", async () => {
-        const params = {
-            [field_name]: 123,
-        };
-        const res = await request()
-            .post("/offer")
-            .send(withAdminToken(params));
-
-        expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-        expect(res.body).toHaveProperty("errors");
-        expect(res.body.errors).toContainEqual({
-            "location": "body",
-            "msg": ValidationReasons.STRING,
-            "param": field_name,
-            "value": params[field_name],
-        });
-    });
-};
-
-const fieldMustBeDate = (field_name) => {
-    test("should be a Date", async () => {
-        const params = {
-            [field_name]: 123,
-        };
-        const res = await request()
-            .post("/offer")
-            .send(withAdminToken(params));
-
-        expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-        expect(res.body).toHaveProperty("errors");
-        expect(res.body.errors).toContainEqual({
-            "location": "body",
-            "msg": ValidationReasons.DATE,
-            "param": field_name,
-            "value": params[field_name],
-        });
-    });
-};
-
-const fieldMustBeNumber = (field_name) => {
-    test("should be a Number", async () => {
-        const params = {
-            [field_name]: "string_content",
-        };
-        const res = await request()
-            .post("/offer")
-            .send(withAdminToken(params));
-
-        expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-        expect(res.body).toHaveProperty("errors");
-        expect(res.body.errors).toContainEqual({
-            "location": "body",
-            "msg": ValidationReasons.INT,
-            "param": field_name,
-            "value": params[field_name],
-        });
-    });
-};
-
-const fieldMustBeBoolean = (field_name) => {
-    test("should be a Boolean", async () => {
-        const params = {
-            [field_name]: 123,
-        };
-        const res = await request()
-            .post("/offer")
-            .send(withAdminToken(params));
-
-        expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-        expect(res.body).toHaveProperty("errors");
-        expect(res.body.errors).toContainEqual({
-            "location": "body",
-            "msg": ValidationReasons.BOOLEAN,
-            "param": field_name,
-            "value": params[field_name],
-        });
-    });
-};
-
-const fieldMustBeInArray = (field_name, array) => {
-    test(`should be one of: [${array}]`, async () => {
-        const params = {
-            [field_name]: "not_in_array",
-        };
-        const res = await request()
-            .post("/offer")
-            .send(withAdminToken(params));
-
-        expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-        expect(res.body).toHaveProperty("errors");
-        expect(res.body.errors).toContainEqual({
-            "location": "body",
-            "msg": ValidationReasons.IN_ARRAY(array),
-            "param": field_name,
-            "value": params[field_name],
-        });
-    });
-};
-
-const fieldMustHaveValuesInRange = (field_name, array, n_elems) => {
-    test(`should be one of: [${array}]`, async () => {
-        const param_values = [];
-        for (let i = 0; i < n_elems; ++i) {
-            param_values.push(`${array[0]}-not_in_range`);
-        }
-        const params = {
-            [field_name]: param_values,
-        };
-        const res = await request()
-            .post("/offer")
-            .send(withAdminToken(params));
-
-        expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-        expect(res.body).toHaveProperty("errors");
-        expect(res.body.errors).toContainEqual({
-            "location": "body",
-            "msg": ValidationReasons.IN_ARRAY(array),
-            "param": field_name,
-            "value": params[field_name],
-        });
-    });
-};
-
-const fieldMustBeArrayBetween = (field_name, arr_min, arr_max) => {
-    test(`should be Array with size between ${arr_min} and ${arr_max}`, async () => {
-        const params = {
-            [field_name]: Array.from("a".repeat(arr_max + 1)),
-        };
-        const res = await request()
-            .post("/offer")
-            .send(withAdminToken(params));
-
-        expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-        expect(res.body).toHaveProperty("errors");
-        expect(res.body.errors).toContainEqual({
-            "location": "body",
-            "msg": ValidationReasons.ARRAY_SIZE(arr_min, arr_max),
-            "param": field_name,
-            "value": params[field_name],
-        });
-    });
-};
-
-const fieldHasMaxLength = (field_name, max_length) => {
-    test(`should not be longer than ${max_length} characters`, async () => {
-        const params = {
-            [field_name]: "a".repeat(max_length + 1),
-        };
-
-        const res = await request()
-            .post("/offer")
-            .send(withAdminToken(params));
-
-        expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-        expect(res.body).toHaveProperty("errors");
-        expect(res.body.errors).toContainEqual({
-            "location": "body",
-            "msg": ValidationReasons.TOO_LONG(max_length),
-            "param": field_name,
-            "value": params[field_name],
-        });
-    });
-};
 
 const withAdminToken = (params) => ({ ...params, admin_token: "testing_is_cool73" });
 //----------------------------------------------------------------
 
 describe("Offer endpoint tests", () => {
-    describe("Authentication", () => {
-        describe("creating offers requires admin permissions", () => {
-            test("should fail when admin token not provided", async () => {
-                const res = await request()
-                    .post("/offer")
-                    .send({});
+    describe("POST /offer", () => {
 
-                expect(res.status).toBe(401);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                expect(res.body).toHaveProperty("reason", "Invalid admin token");
-            });
+        describe("Authentication", () => {
+            describe("creating offers requires admin permissions", () => {
+                test("should fail when admin token not provided", async () => {
+                    const res = await request()
+                        .post("/offer")
+                        .send({});
 
-            test("should fail when admin token is incorrect", async () => {
-                const res = await request()
-                    .post("/offer")
-                    .send({
-                        admin_token: "NotAValidAdminToken!!12345",
-                    });
+                    expect(res.status).toBe(401);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                    expect(res.body).toHaveProperty("reason", "Invalid admin token");
+                });
 
-                expect(res.status).toBe(401);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                expect(res.body).toHaveProperty("reason", "Invalid admin token");
-            });
+                test("should fail when admin token is incorrect", async () => {
+                    const res = await request()
+                        .post("/offer")
+                        .send({
+                            admin_token: "NotAValidAdminToken!!12345",
+                        });
 
-            test("should succeed when admin token is correct", async () => {
-                const params = {};
-                const res = await request()
-                    .post("/offer")
-                    .send(withAdminToken(params));
+                    expect(res.status).toBe(401);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                    expect(res.body).toHaveProperty("reason", "Invalid admin token");
+                });
 
-                expect(res.status).not.toBe(401);
+                test("should succeed when admin token is correct", async () => {
+                    const params = {};
+                    const res = await request()
+                        .post("/offer")
+                        .send(withAdminToken(params));
+
+                    expect(res.status).not.toBe(401);
+                });
             });
         });
+
+        const EndpointValidatorTester = ValidatorTester((params) => request().post("/offer").send(withAdminToken(params)));
+
+        describe("Input Validation", () => {
+            describe("title", () => {
+                const FieldValidatorTester = EndpointValidatorTester("title");
+                FieldValidatorTester.isRequired();
+                FieldValidatorTester.mustBeString();
+                FieldValidatorTester.hasMaxLength(90);
+            });
+
+            describe("publishDate", () => {
+                const FieldValidatorTester = EndpointValidatorTester("publishDate");
+                FieldValidatorTester.isRequired();
+                FieldValidatorTester.mustBeDate();
+            });
+
+            describe("endDate", () => {
+                const FieldValidatorTester = EndpointValidatorTester("endDate");
+                FieldValidatorTester.isRequired();
+                FieldValidatorTester.mustBeDate();
+            });
+
+            describe("jobMinDuration", () => {
+                const FieldValidatorTester = EndpointValidatorTester("jobMinDuration");
+                FieldValidatorTester.mustBeNumber();
+            });
+
+            describe("jobMaxDuration", () => {
+                const FieldValidatorTester = EndpointValidatorTester("jobMaxDuration");
+                FieldValidatorTester.mustBeNumber();
+            });
+
+            describe("jobStartDate", () => {
+                const FieldValidatorTester = EndpointValidatorTester("jobStartDate");
+                FieldValidatorTester.mustBeDate();
+            });
+
+            describe("description", () => {
+                const FieldValidatorTester = EndpointValidatorTester("description");
+                FieldValidatorTester.isRequired();
+                FieldValidatorTester.mustBeString();
+                FieldValidatorTester.hasMaxLength(1500);
+            });
+
+            describe("contacts", () => {
+                const FieldValidatorTester = EndpointValidatorTester("contacts");
+                FieldValidatorTester.isRequired();
+            });
+
+            describe("isPaid", () => {
+                const FieldValidatorTester = EndpointValidatorTester("isPaid");
+                FieldValidatorTester.mustBeBoolean();
+            });
+
+            describe("vacancies", () => {
+                const FieldValidatorTester = EndpointValidatorTester("vacancies");
+                FieldValidatorTester.mustBeNumber();
+            });
+
+            describe("jobType", () => {
+                const FieldValidatorTester = EndpointValidatorTester("jobType");
+                FieldValidatorTester.isRequired();
+                FieldValidatorTester.mustBeString();
+                FieldValidatorTester.mustBeInArray(JobTypes);
+            });
+
+            describe("fields", () => {
+                const FieldValidatorTester = EndpointValidatorTester("fields");
+                FieldValidatorTester.isRequired();
+                FieldValidatorTester.mustBeArrayBetween(FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS);
+                FieldValidatorTester.mustHaveValuesInRange(FieldTypes.FieldTypes, FieldTypes.MIN_FIELDS + 1);
+            });
+
+            describe("technologies", () => {
+                const FieldValidatorTester = EndpointValidatorTester("technologies");
+                FieldValidatorTester.isRequired();
+                FieldValidatorTester.mustBeArrayBetween(TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES);
+                FieldValidatorTester.mustHaveValuesInRange(TechnologyTypes.TechnologyTypes, TechnologyTypes.MIN_TECHNOLOGIES + 1);
+            });
+
+            describe("owner", () => {
+                const FieldValidatorTester = EndpointValidatorTester("owner");
+                FieldValidatorTester.isRequired();
+            });
+
+            describe("location", () => {
+                const FieldValidatorTester = EndpointValidatorTester("location");
+                FieldValidatorTester.isRequired();
+                FieldValidatorTester.mustBeString();
+            });
+        });
+
+        describe("Without pre-existing offers", () => {
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+            });
+
+            // TODO: This test should be 'with minimum requirements'
+            // Thus, there should be another with all of the optional fields being sent, at least
+            test("Should successfully create an Offer", async () => {
+                const offer = {
+                    title: "Test Offer",
+                    publishDate: "2019-11-17T02:24:15.716Z",
+                    endDate: "2019-11-18T02:24:15.716Z",
+                    description: "For Testing Purposes",
+                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    jobType: "SUMMER INTERNSHIP",
+                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    technologies: ["React", "CSS"],
+                    owner: "aaa712371273",
+                    location: "Testing Street, Test City, 123",
+                };
+
+                const res = await request()
+                    .post("/offer")
+                    .send(withAdminToken(offer));
+
+                expect(res.status).toBe(200);
+                const created_offer_id = res.body._id;
+
+                const created_offer = await Offer.findById(created_offer_id);
+
+                expect(created_offer).toBeDefined();
+                // Ideally matchers alongside .toMatchObject should be used in order to check created_offer against offer
+                // However, no matter what I tried, I couldn't get it to work :upside_down_face:
+                expect(created_offer).toHaveProperty("title", offer.title);
+                expect(created_offer).toHaveProperty("description", offer.description);
+                expect(created_offer).toHaveProperty("location", offer.location);
+            });
+        });
+
     });
 
-    describe("Input Validation", () => {
-        describe("title", () => {
-            fieldIsRequired("title");
-            fieldMustBeString("title");
-            fieldHasMaxLength("title", 90);
-        });
-
-        describe("publishDate", () => {
-            fieldIsRequired("publishDate");
-            fieldMustBeDate("publishDate");
-        });
-
-        describe("endDate", () => {
-            fieldIsRequired("endDate");
-            fieldMustBeDate("endDate");
-        });
-
-        describe("jobMinDuration", () => {
-            fieldMustBeNumber("jobMinDuration");
-        });
-
-        describe("jobMaxDuration", () => {
-            fieldMustBeNumber("jobMaxDuration");
-        });
-
-        describe("jobStartDate", () => {
-            fieldMustBeDate("jobStartDate");
-        });
-
-        describe("description", () => {
-            fieldIsRequired("description");
-            fieldMustBeString("description");
-            fieldHasMaxLength("description", 1500);
-        });
-
-        describe("contacts", () => {
-            fieldIsRequired("contacts");
-        });
-
-        describe("isPaid", () => {
-            fieldMustBeBoolean("isPaid");
-        });
-
-        describe("vacancies", () => {
-            fieldMustBeNumber("vacancies");
-        });
-
-        describe("jobType", () => {
-            fieldIsRequired("jobType");
-            fieldMustBeString("jobType");
-            fieldMustBeInArray("jobType", JobTypes);
-        });
-
-        describe("fields", () => {
-            fieldIsRequired("fields");
-            fieldMustBeArrayBetween("fields", FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS);
-            fieldMustHaveValuesInRange("fields", FieldTypes.FieldTypes, FieldTypes.MIN_FIELDS + 1);
-        });
-
-        describe("technologies", () => {
-            fieldIsRequired("technologies");
-            fieldMustBeArrayBetween("technologies", TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES);
-            fieldMustHaveValuesInRange("technologies", TechnologyTypes.TechnologyTypes, TechnologyTypes.MIN_TECHNOLOGIES + 1);
-        });
-
-        describe("owner", () => {
-            fieldIsRequired("owner");
-        });
-
-        describe("location", () => {
-            fieldIsRequired("location");
-            fieldMustBeString("location");
-        });
-    });
-
-    describe("Without pre-existing offers", () => {
-        beforeAll(async () => {
-            await Offer.deleteMany({});
-        });
-
-        // TODO: This test should be 'with minimum requirements'
-        // Thus, there should be another with all of the optional fields being sent, at least
-        test("Should successfully create an Offer", async () => {
-            const offer = {
+    describe("GET /offer", () => {
+        describe("Using already created offer", () => {
+            const test_offer = {
                 title: "Test Offer",
-                publishDate: "2019-11-17T02:24:15.716Z",
-                endDate: "2019-11-18T02:24:15.716Z",
+                publishDate: "2019-11-22T00:00:00.000Z",
+                endDate: "2019-11-28T00:00:00.000Z",
                 description: "For Testing Purposes",
                 contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                 jobType: "SUMMER INTERNSHIP",
@@ -335,96 +199,65 @@ describe("Offer endpoint tests", () => {
                 location: "Testing Street, Test City, 123",
             };
 
-            const res = await request()
-                .post("/offer")
-                .send(withAdminToken(offer));
+            const expired_test_offer = {
+                title: "Expired Test Offer",
+                publishDate: "2019-11-17",
+                endDate: "2019-11-18",
+                description: "For Testing Purposes",
+                contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                jobType: "SUMMER INTERNSHIP",
+                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                technologies: ["React", "CSS"],
+                owner: "aaa712371273",
+                location: "Testing Street, Test City, 123",
+            };
 
-            expect(res.status).toBe(200);
-            const created_offer_id = res.body._id;
+            const future_test_offer = {
+                title: "Future Test Offer",
+                publishDate: "2019-12-12",
+                endDate: "2019-12-22",
+                description: "For Testing Purposes",
+                contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                jobType: "SUMMER INTERNSHIP",
+                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                technologies: ["React", "CSS"],
+                owner: "aaa712371273",
+                location: "Testing Street, Test City, 123",
+            };
 
-            const created_offer = await Offer.findById(created_offer_id);
-
-            expect(created_offer).toBeDefined();
-            // Ideally matchers alongside .toMatchObject should be used in order to check created_offer against offer
-            // However, no matter what I tried, I couldn't get it to work :upside_down_face:
-            expect(created_offer).toHaveProperty("title", offer.title);
-            expect(created_offer).toHaveProperty("description", offer.description);
-            expect(created_offer).toHaveProperty("location", offer.location);
-        });
-    });
-
-    describe("Using already created offer", () => {
-        const test_offer = {
-            title: "Test Offer",
-            publishDate: "2019-11-22T00:00:00.000Z",
-            endDate: "2019-11-28T00:00:00.000Z",
-            description: "For Testing Purposes",
-            contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
-            jobType: "SUMMER INTERNSHIP",
-            fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-            technologies: ["React", "CSS"],
-            owner: "aaa712371273",
-            location: "Testing Street, Test City, 123",
-        };
-
-        const expired_test_offer = {
-            title: "Expired Test Offer",
-            publishDate: "2019-11-17",
-            endDate: "2019-11-18",
-            description: "For Testing Purposes",
-            contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
-            jobType: "SUMMER INTERNSHIP",
-            fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-            technologies: ["React", "CSS"],
-            owner: "aaa712371273",
-            location: "Testing Street, Test City, 123",
-        };
-
-        const future_test_offer = {
-            title: "Future Test Offer",
-            publishDate: "2019-12-12",
-            endDate: "2019-12-22",
-            description: "For Testing Purposes",
-            contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
-            jobType: "SUMMER INTERNSHIP",
-            fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-            technologies: ["React", "CSS"],
-            owner: "aaa712371273",
-            location: "Testing Street, Test City, 123",
-        };
-
-        // TODO: Create a mock owner Company for this test
-        beforeAll(async () => {
-            await Offer.deleteMany({});
-            await Offer.create([test_offer, expired_test_offer, future_test_offer]);
-        });
-
-        const RealDateNow = Date.now;
-        const mockCurrentDate = new Date(2019, 10, 23);
-
-        beforeEach(() => {
-            Date.now = () => mockCurrentDate.getTime();
-        });
-
-        afterEach(() => {
-            Date.now = RealDateNow;
-        });
-
-        test("should provide only current offer info (no expired or future offers)", async () => {
-            const res = await request()
-                .get("/offer")
-                .send();
-
-            expect(res.status).toBe(200);
-            expect(res.body).toHaveLength(1);
-            // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-            const extracted_data = res.body.map((elem) => {
-                delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
+            // TODO: Create a mock owner Company for this test
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+                await Offer.create([test_offer, expired_test_offer, future_test_offer]);
             });
-            const prepared_test_offer = { ...test_offer };
-            delete prepared_test_offer["owner"];
 
-            expect(extracted_data).toContainEqual(prepared_test_offer);
+            const RealDateNow = Date.now;
+            const mockCurrentDate = new Date(2019, 10, 23);
+
+            beforeEach(() => {
+                Date.now = () => mockCurrentDate.getTime();
+            });
+
+            afterEach(() => {
+                Date.now = RealDateNow;
+            });
+
+            test("should provide only current offer info (no expired or future offers)", async () => {
+                const res = await request()
+                    .get("/offer")
+                    .send();
+
+                expect(res.status).toBe(200);
+                expect(res.body).toHaveLength(1);
+                // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                const extracted_data = res.body.map((elem) => {
+                    delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
+                });
+                const prepared_test_offer = { ...test_offer };
+                delete prepared_test_offer["owner"];
+
+                expect(extracted_data).toContainEqual(prepared_test_offer);
+            });
         });
     });
 });
