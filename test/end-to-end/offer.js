@@ -184,7 +184,7 @@ describe("Offer endpoint tests", () => {
 
         describe("Default values", () => {
             const RealDateNow = Date.now;
-            const mockCurrentDate = new Date(2019, 10, 23);
+            const mockCurrentDate = new Date("2019-11-23");
 
             beforeEach(() => {
                 Date.now = () => mockCurrentDate.getTime();
@@ -293,7 +293,7 @@ describe("Offer endpoint tests", () => {
                 });
 
                 const RealDateNow = Date.now;
-                const mockCurrentDate = new Date(2019, 10, 23);
+                const mockCurrentDate = new Date("2019-11-23");
 
                 beforeEach(() => {
                     Date.now = () => mockCurrentDate.getTime();
@@ -351,7 +351,7 @@ describe("Offer endpoint tests", () => {
                 });
 
                 const RealDateNow = Date.now;
-                const mockCurrentDate = new Date(2019, 10, 23);
+                const mockCurrentDate = new Date("2019-11-23");
 
                 beforeEach(() => {
                     Date.now = () => mockCurrentDate.getTime();
