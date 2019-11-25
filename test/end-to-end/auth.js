@@ -10,7 +10,6 @@ describe("Register endpoint test", () => {
                     .send({});
 
                 expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("success", false);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
@@ -29,7 +28,6 @@ describe("Register endpoint test", () => {
                     .send(params);
 
                 expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("success", false);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
@@ -48,7 +46,6 @@ describe("Register endpoint test", () => {
                     .send({});
 
                 expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("success", false);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
@@ -67,7 +64,6 @@ describe("Register endpoint test", () => {
                     .send(params);
 
                 expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("success", false);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
@@ -87,7 +83,6 @@ describe("Register endpoint test", () => {
                     .send(params);
 
                 expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("success", false);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
@@ -107,7 +102,6 @@ describe("Register endpoint test", () => {
                     .send(params);
 
                 expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("success", false);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
@@ -136,7 +130,6 @@ describe("Register endpoint test", () => {
                 .send(user);
 
             expect(res.status).toBe(200);
-            expect(res.body).toHaveProperty("success", true);
 
             const registered_user = await Account.findOne({ username: user.username });
             expect(registered_user).toBeDefined();
@@ -164,7 +157,6 @@ describe("Using already resgistered user", () => {
             .send(test_user);
 
         expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("success", false);
         expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors).toContainEqual({
@@ -183,7 +175,6 @@ describe("Using already resgistered user", () => {
                 .send();
 
             expect(res.status).toBe(401);
-            expect(res.body).toHaveProperty("success", false);
         }
     );
 
@@ -195,7 +186,6 @@ describe("Using already resgistered user", () => {
 
         // TODO: Reimplement res.should.have.cookie("connect.sid");
         expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("success", true);
     });
 
     test("Get logged in user info", async () => {
@@ -204,7 +194,6 @@ describe("Using already resgistered user", () => {
             .send();
 
         expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("success", true);
         expect(res.body).toHaveProperty("data.username", test_user.username);
     });
 
@@ -214,7 +203,6 @@ describe("Using already resgistered user", () => {
             .send();
 
         expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("success", true);
     });
 
     test("Verify if the log out happens server-side", async () => {
@@ -223,6 +211,5 @@ describe("Using already resgistered user", () => {
             .send();
 
         expect(res.status).toBe(401);
-        expect(res.body).toHaveProperty("success", false);
     });
 });

@@ -15,7 +15,6 @@ module.exports = (app) => {
     router.get("/me", authRequired, (req, res) => {
         const userInfo = req.user;
         return res.status(200).json({
-            success: true,
             data: {
                 _id: userInfo._id,
                 username: userInfo.username,
@@ -24,16 +23,12 @@ module.exports = (app) => {
     });
 
     // Login endpoint
-    router.post("/login", passport.authenticate("local"), (req, res) => res.status(200).json({
-        success: true,
-    }));
+    router.post("/login", passport.authenticate("local"), (req, res) => res.status(200).json({}));
 
     // Logout endpoint
     router.delete("/login", authRequired, (req, res) => {
         req.logout();
-        return res.status(200).json({
-            success: true,
-        });
+        return res.status(200).json({});
     });
 
     // Register endpoint
@@ -45,7 +40,6 @@ module.exports = (app) => {
             const data = await (new AuthService()).register(username, password);
 
             return res.status(200).json({
-                success: true,
                 data,
             });
         } catch (err) {

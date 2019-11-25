@@ -1,15 +1,14 @@
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
-const uniqueArrayPlugin = require("mongoose-unique-array");
+
 const JobTypes = require("./JobTypes");
 const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./FieldTypes");
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./TechnologyTypes");
 const PointSchema = require("./Point");
+const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./TimeConstants");
+const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
 
-// Defining relevant constants
-const { MONTH_IN_MS, AD_MAX_LIFETIME_MONTHS } = require("./TimeConstants");
-
-const AdSchema = new Schema({
+const OfferSchema = new Schema({
     title: { type: String, maxlength: 90, required: true },
     publishDate: {
         type: Date,
@@ -25,7 +24,7 @@ const AdSchema = new Schema({
         required: true,
         validate: [
             validateEndDate,
-            `\`endDate\` must not differ from \`publishDate\` by more than ${AD_MAX_LIFETIME_MONTHS} months`,
+            `\`endDate\` must not differ from \`publishDate\` by more than ${OFFER_MAX_LIFETIME_MONTHS} months`,
         ],
     },
 
@@ -61,28 +60,21 @@ const AdSchema = new Schema({
     vacancies: { type: Number },
     jobType: { type: String, required: true, enum: JobTypes },
     fields: {
-        // unique ensures that there are no repeated fields using mongoose-unique-array (see below)
-        type: [{ type: String, enum: FieldTypes, unique: true }],
+        type: [{ type: String, enum: FieldTypes }],
         required: true,
-        validate: [
-            (val) => val.length >= MIN_FIELDS && val.length <= MAX_FIELDS,
-            `There must be between ${MIN_FIELDS} and ${MAX_FIELDS} fields`,
-        ],
+        validate: (val) => lengthBetweenValidator(val, MIN_FIELDS, MAX_FIELDS) && noDuplicatesValidator(val),
     },
     technologies: {
-        // unique ensures that there are no repeated technologies using mongoose-unique-array (see below)
-        type: [{ type: String, enum: TechnologyTypes, unique: true }],
+        type: [{ type: String, enum: TechnologyTypes }],
         required: true,
-        validate: [
-            (val) => val.length >= MIN_TECHNOLOGIES && val.length <= MAX_TECHNOLOGIES,
-            `There must be between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES} technologies`,
-        ],
+        validate: (val) => lengthBetweenValidator(val, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES) && noDuplicatesValidator(val),
     },
 
     isHidden: { type: Boolean },
     owner: { type: Types.ObjectId, ref: "Company", required: true },
 
-    location: { type: PointSchema, required: true },
+    location: { type: String, required: true },
+    coordinates: { type: PointSchema, required: false },
 });
 
 // Checking if the publication date is less than or equal than the end date.
@@ -91,11 +83,11 @@ function validatePublishDate(value) {
 }
 
 function validateEndDate(value) {
-    // Milisseconds from publish date to end date (Ad is no longer valid)
+    // Milisseconds from publish date to end date (Offer is no longer valid)
     const timeDiff = value.getTime() - this.publishDate.getTime();
     const diffInMonths = timeDiff / MONTH_IN_MS;
 
-    return diffInMonths <= AD_MAX_LIFETIME_MONTHS;
+    return diffInMonths <= OFFER_MAX_LIFETIME_MONTHS;
 }
 
 // jobMaxDuration must be larger than jobMinDuration
@@ -103,13 +95,23 @@ function validateJobMaxDuration(value) {
     return value >= this.jobMinDuration;
 }
 
-// Adding unique array mongo plugin - to ensure that the elements inside the arrays are in fact unique
-// See: https://thecodebarbarian.com/whats-new-in-mongoose-4.10-unique-in-arrays and https://www.npmjs.com/package/mongoose-unique-array
-AdSchema.plugin(uniqueArrayPlugin);
+/**
+ * Currently active Offers (publish date was before Date.now and end date is after Date.now)
+ */
+OfferSchema.query.current = function() {
+    return this.where({
+        publishDate: {
+            $lte: new Date(Date.now()),
+        },
+        endDate: {
+            $gt: new Date(Date.now()),
+        },
+    });
+};
 
-const Ad = mongoose.model("Ad", AdSchema);
+const Offer = mongoose.model("Offer", OfferSchema);
 
 // Useful for testing correct field implementation
-// console.log("DBG: ", AdSchema.path("location"));
+// console.log("DBG: ", OfferSchema.path("location"));
 
-module.exports = Ad;
+module.exports = Offer;
