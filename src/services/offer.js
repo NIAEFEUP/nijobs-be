@@ -12,7 +12,7 @@ class OfferService {
 
     async create({
         title,
-        publishDate,
+        publishDate = new Date(Date.now()),
         endDate,
         jobMinDuration,
         jobMaxDuration,

@@ -64,7 +64,6 @@ describe("Offer endpoint tests", () => {
 
             describe("publishDate", () => {
                 const FieldValidatorTester = BodyValidatorTester("publishDate");
-                FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeDate();
             });
 
@@ -154,8 +153,8 @@ describe("Offer endpoint tests", () => {
             test("Should successfully create an Offer", async () => {
                 const offer = {
                     title: "Test Offer",
-                    publishDate: "2019-11-17T02:24:15.716Z",
-                    endDate: "2019-11-18T02:24:15.716Z",
+                    publishDate: "2019-11-17T00:00:00.000Z",
+                    endDate: "2019-11-18T00:00:00.000Z",
                     description: "For Testing Purposes",
                     contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                     jobType: "SUMMER INTERNSHIP",
@@ -183,6 +182,47 @@ describe("Offer endpoint tests", () => {
             });
         });
 
+        describe("Default values", () => {
+            const RealDateNow = Date.now;
+            const mockCurrentDate = new Date(2019, 10, 23);
+
+            beforeEach(() => {
+                Date.now = () => mockCurrentDate.getTime();
+            });
+
+            afterEach(() => {
+                Date.now = RealDateNow;
+            });
+
+            const offer = {
+                title: "Test Offer",
+                endDate: "2019-11-25T00:00:00.000Z",
+                description: "For Testing Purposes",
+                contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                jobType: "SUMMER INTERNSHIP",
+                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                technologies: ["React", "CSS"],
+                owner: "aaa712371273",
+                location: "Testing Street, Test City, 123",
+            };
+
+            test("publishDate defaults to the current time if not provided", async () => {
+                const res = await request()
+                    .post("/offer")
+                    .send(withAdminToken(offer));
+
+                expect(res.status).toBe(200);
+                const created_offer_id = res.body._id;
+
+                const created_offer = await Offer.findById(created_offer_id);
+
+                expect(created_offer).toBeDefined();
+                expect(created_offer).toHaveProperty("title", offer.title);
+                expect(created_offer).toHaveProperty("description", offer.description);
+                expect(created_offer).toHaveProperty("location", offer.location);
+                expect(created_offer).toHaveProperty("publishDate", new Date(Date.now()));
+            });
+        });
     });
 
     describe("GET /offer", () => {

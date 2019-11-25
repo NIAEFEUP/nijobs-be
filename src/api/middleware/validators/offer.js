@@ -16,7 +16,7 @@ const create = useExpressValidators([
         .trim(),
 
     body("publishDate", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
         .toDate(),
 
