@@ -49,14 +49,7 @@ class OfferService {
     }
 
     async get() {
-        const offers = await Offer.find({
-            publishDate: {
-                $lte: new Date(Date.now()),
-            },
-            endDate: {
-                $gt: new Date(Date.now()),
-            },
-        });
+        const offers = await Offer.find().current();
 
         return offers;
     }

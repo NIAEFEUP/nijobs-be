@@ -95,6 +95,20 @@ function validateJobMaxDuration(value) {
     return value >= this.jobMinDuration;
 }
 
+/**
+ * Currently active Offers (publish date was before Date.now and end date is after Date.now)
+ */
+OfferSchema.query.current = function() {
+    return this.where({
+        publishDate: {
+            $lte: new Date(Date.now()),
+        },
+        endDate: {
+            $gt: new Date(Date.now()),
+        },
+    });
+};
+
 const Offer = mongoose.model("Offer", OfferSchema);
 
 // Useful for testing correct field implementation
