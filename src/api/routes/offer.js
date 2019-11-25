@@ -12,9 +12,9 @@ module.exports = (app) => {
     /**
      * Gets all currently active offers (without filtering, for now)
      */
-    router.get("/", async (req, res) => {
+    router.get("/", validators.get, async (req, res) => {
         try {
-            const offers = await (new OfferService()).get();
+            const offers = await (new OfferService()).get(req.query);
 
             return res.json(offers);
         } catch (err) {

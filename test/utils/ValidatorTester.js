@@ -8,7 +8,7 @@ const ValidationReasons = require("../../src/api/middleware/validators/validatio
  * `field_name` is the name of the field to validate input for
  * @param {Function} requestEndpoint
  */
-const ValidatorTester = (requestEndpoint) => (field_name) => ({
+const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
     isRequired: () => {
         test("should be required", async () => {
             const params = {};
@@ -18,7 +18,7 @@ const ValidatorTester = (requestEndpoint) => (field_name) => ({
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
-                "location": "body",
+                "location": location,
                 "msg": ValidationReasons.REQUIRED,
                 "param": field_name,
             });
@@ -36,7 +36,7 @@ const ValidatorTester = (requestEndpoint) => (field_name) => ({
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
-                "location": "body",
+                "location": location,
                 "msg": ValidationReasons.STRING,
                 "param": field_name,
                 "value": params[field_name],
@@ -55,7 +55,7 @@ const ValidatorTester = (requestEndpoint) => (field_name) => ({
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
-                "location": "body",
+                "location": location,
                 "msg": ValidationReasons.DATE,
                 "param": field_name,
                 "value": params[field_name],
@@ -74,7 +74,7 @@ const ValidatorTester = (requestEndpoint) => (field_name) => ({
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
-                "location": "body",
+                "location": location,
                 "msg": ValidationReasons.INT,
                 "param": field_name,
                 "value": params[field_name],
@@ -93,7 +93,7 @@ const ValidatorTester = (requestEndpoint) => (field_name) => ({
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
-                "location": "body",
+                "location": location,
                 "msg": ValidationReasons.BOOLEAN,
                 "param": field_name,
                 "value": params[field_name],
@@ -112,7 +112,7 @@ const ValidatorTester = (requestEndpoint) => (field_name) => ({
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
-                "location": "body",
+                "location": location,
                 "msg": ValidationReasons.IN_ARRAY(array),
                 "param": field_name,
                 "value": params[field_name],
@@ -135,7 +135,7 @@ const ValidatorTester = (requestEndpoint) => (field_name) => ({
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
-                "location": "body",
+                "location": location,
                 "msg": ValidationReasons.IN_ARRAY(array),
                 "param": field_name,
                 "value": params[field_name],
@@ -154,7 +154,7 @@ const ValidatorTester = (requestEndpoint) => (field_name) => ({
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
-                "location": "body",
+                "location": location,
                 "msg": ValidationReasons.ARRAY_SIZE(arr_min, arr_max),
                 "param": field_name,
                 "value": params[field_name],
@@ -174,7 +174,7 @@ const ValidatorTester = (requestEndpoint) => (field_name) => ({
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
-                "location": "body",
+                "location": location,
                 "msg": ValidationReasons.TOO_LONG(max_length),
                 "param": field_name,
                 "value": params[field_name],

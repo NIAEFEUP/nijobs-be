@@ -52,92 +52,93 @@ describe("Offer endpoint tests", () => {
         });
 
         const EndpointValidatorTester = ValidatorTester((params) => request().post("/offer").send(withAdminToken(params)));
+        const BodyValidatorTester = EndpointValidatorTester("body");
 
         describe("Input Validation", () => {
             describe("title", () => {
-                const FieldValidatorTester = EndpointValidatorTester("title");
+                const FieldValidatorTester = BodyValidatorTester("title");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
                 FieldValidatorTester.hasMaxLength(90);
             });
 
             describe("publishDate", () => {
-                const FieldValidatorTester = EndpointValidatorTester("publishDate");
+                const FieldValidatorTester = BodyValidatorTester("publishDate");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeDate();
             });
 
             describe("endDate", () => {
-                const FieldValidatorTester = EndpointValidatorTester("endDate");
+                const FieldValidatorTester = BodyValidatorTester("endDate");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeDate();
             });
 
             describe("jobMinDuration", () => {
-                const FieldValidatorTester = EndpointValidatorTester("jobMinDuration");
+                const FieldValidatorTester = BodyValidatorTester("jobMinDuration");
                 FieldValidatorTester.mustBeNumber();
             });
 
             describe("jobMaxDuration", () => {
-                const FieldValidatorTester = EndpointValidatorTester("jobMaxDuration");
+                const FieldValidatorTester = BodyValidatorTester("jobMaxDuration");
                 FieldValidatorTester.mustBeNumber();
             });
 
             describe("jobStartDate", () => {
-                const FieldValidatorTester = EndpointValidatorTester("jobStartDate");
+                const FieldValidatorTester = BodyValidatorTester("jobStartDate");
                 FieldValidatorTester.mustBeDate();
             });
 
             describe("description", () => {
-                const FieldValidatorTester = EndpointValidatorTester("description");
+                const FieldValidatorTester = BodyValidatorTester("description");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
                 FieldValidatorTester.hasMaxLength(1500);
             });
 
             describe("contacts", () => {
-                const FieldValidatorTester = EndpointValidatorTester("contacts");
+                const FieldValidatorTester = BodyValidatorTester("contacts");
                 FieldValidatorTester.isRequired();
             });
 
             describe("isPaid", () => {
-                const FieldValidatorTester = EndpointValidatorTester("isPaid");
+                const FieldValidatorTester = BodyValidatorTester("isPaid");
                 FieldValidatorTester.mustBeBoolean();
             });
 
             describe("vacancies", () => {
-                const FieldValidatorTester = EndpointValidatorTester("vacancies");
+                const FieldValidatorTester = BodyValidatorTester("vacancies");
                 FieldValidatorTester.mustBeNumber();
             });
 
             describe("jobType", () => {
-                const FieldValidatorTester = EndpointValidatorTester("jobType");
+                const FieldValidatorTester = BodyValidatorTester("jobType");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
                 FieldValidatorTester.mustBeInArray(JobTypes);
             });
 
             describe("fields", () => {
-                const FieldValidatorTester = EndpointValidatorTester("fields");
+                const FieldValidatorTester = BodyValidatorTester("fields");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeArrayBetween(FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS);
                 FieldValidatorTester.mustHaveValuesInRange(FieldTypes.FieldTypes, FieldTypes.MIN_FIELDS + 1);
             });
 
             describe("technologies", () => {
-                const FieldValidatorTester = EndpointValidatorTester("technologies");
+                const FieldValidatorTester = BodyValidatorTester("technologies");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeArrayBetween(TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES);
                 FieldValidatorTester.mustHaveValuesInRange(TechnologyTypes.TechnologyTypes, TechnologyTypes.MIN_TECHNOLOGIES + 1);
             });
 
             describe("owner", () => {
-                const FieldValidatorTester = EndpointValidatorTester("owner");
+                const FieldValidatorTester = BodyValidatorTester("owner");
                 FieldValidatorTester.isRequired();
             });
 
             describe("location", () => {
-                const FieldValidatorTester = EndpointValidatorTester("location");
+                const FieldValidatorTester = BodyValidatorTester("location");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
             });
@@ -185,78 +186,160 @@ describe("Offer endpoint tests", () => {
     });
 
     describe("GET /offer", () => {
-        describe("Using already created offer", () => {
-            const test_offer = {
-                title: "Test Offer",
-                publishDate: "2019-11-22T00:00:00.000Z",
-                endDate: "2019-11-28T00:00:00.000Z",
-                description: "For Testing Purposes",
-                contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
-                jobType: "SUMMER INTERNSHIP",
-                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                technologies: ["React", "CSS"],
-                owner: "aaa712371273",
-                location: "Testing Street, Test City, 123",
-            };
+        describe("Input Validation", () => {
+            const EndpointValidatorTester = ValidatorTester((params) => request().get("/offer").query(params));
+            const QueryValidatorTester = EndpointValidatorTester("query");
 
-            const expired_test_offer = {
-                title: "Expired Test Offer",
-                publishDate: "2019-11-17",
-                endDate: "2019-11-18",
-                description: "For Testing Purposes",
-                contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
-                jobType: "SUMMER INTERNSHIP",
-                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                technologies: ["React", "CSS"],
-                owner: "aaa712371273",
-                location: "Testing Street, Test City, 123",
-            };
-
-            const future_test_offer = {
-                title: "Future Test Offer",
-                publishDate: "2019-12-12",
-                endDate: "2019-12-22",
-                description: "For Testing Purposes",
-                contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
-                jobType: "SUMMER INTERNSHIP",
-                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                technologies: ["React", "CSS"],
-                owner: "aaa712371273",
-                location: "Testing Street, Test City, 123",
-            };
-
-            // TODO: Create a mock owner Company for this test
-            beforeAll(async () => {
-                await Offer.deleteMany({});
-                await Offer.create([test_offer, expired_test_offer, future_test_offer]);
+            describe("offset", () => {
+                const FieldValidatorTester = QueryValidatorTester("offset");
+                FieldValidatorTester.mustBeNumber();
             });
 
-            const RealDateNow = Date.now;
-            const mockCurrentDate = new Date(2019, 10, 23);
-
-            beforeEach(() => {
-                Date.now = () => mockCurrentDate.getTime();
+            describe("limit", () => {
+                const FieldValidatorTester = QueryValidatorTester("limit");
+                FieldValidatorTester.mustBeNumber();
             });
+        });
 
-            afterEach(() => {
-                Date.now = RealDateNow;
-            });
+        describe("Using already created offer(s)", () => {
+            describe("Only current offers are returned", () => {
+                const test_offer = {
+                    title: "Test Offer",
+                    publishDate: "2019-11-22T00:00:00.000Z",
+                    endDate: "2019-11-28T00:00:00.000Z",
+                    description: "For Testing Purposes",
+                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    jobType: "SUMMER INTERNSHIP",
+                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    technologies: ["React", "CSS"],
+                    owner: "aaa712371273",
+                    location: "Testing Street, Test City, 123",
+                };
 
-            test("should provide only current offer info (no expired or future offers)", async () => {
-                const res = await request()
-                    .get("/offer")
-                    .send();
+                const expired_test_offer = {
+                    title: "Expired Test Offer",
+                    publishDate: "2019-11-17",
+                    endDate: "2019-11-18",
+                    description: "For Testing Purposes",
+                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    jobType: "SUMMER INTERNSHIP",
+                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    technologies: ["React", "CSS"],
+                    owner: "aaa712371273",
+                    location: "Testing Street, Test City, 123",
+                };
 
-                expect(res.status).toBe(200);
-                expect(res.body).toHaveLength(1);
-                // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                const extracted_data = res.body.map((elem) => {
-                    delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
+                const future_test_offer = {
+                    title: "Future Test Offer",
+                    publishDate: "2019-12-12",
+                    endDate: "2019-12-22",
+                    description: "For Testing Purposes",
+                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    jobType: "SUMMER INTERNSHIP",
+                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    technologies: ["React", "CSS"],
+                    owner: "aaa712371273",
+                    location: "Testing Street, Test City, 123",
+                };
+
+                // TODO: Create a mock owner Company for this test
+                beforeAll(async () => {
+                    await Offer.deleteMany({});
+                    await Offer.create([test_offer, expired_test_offer, future_test_offer]);
                 });
-                const prepared_test_offer = { ...test_offer };
-                delete prepared_test_offer["owner"];
 
-                expect(extracted_data).toContainEqual(prepared_test_offer);
+                afterAll(async () => {
+                    await Offer.deleteMany({});
+                });
+
+                const RealDateNow = Date.now;
+                const mockCurrentDate = new Date(2019, 10, 23);
+
+                beforeEach(() => {
+                    Date.now = () => mockCurrentDate.getTime();
+                });
+
+                afterEach(() => {
+                    Date.now = RealDateNow;
+                });
+
+                test("should provide only current offer info (no expired or future offers)", async () => {
+                    const res = await request()
+                        .get("/offer");
+
+                    expect(res.status).toBe(200);
+                    expect(res.body).toHaveLength(1);
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
+                    });
+                    const prepared_test_offer = { ...test_offer };
+                    delete prepared_test_offer["owner"];
+
+                    expect(extracted_data).toContainEqual(prepared_test_offer);
+                });
+            });
+
+            describe("When a `limit` is given", () => {
+                const test_offer = {
+                    title: "Test Offer",
+                    publishDate: "2019-11-22T00:00:00.000Z",
+                    endDate: "2019-11-28T00:00:00.000Z",
+                    description: "For Testing Purposes",
+                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    jobType: "SUMMER INTERNSHIP",
+                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    technologies: ["React", "CSS"],
+                    owner: "aaa712371273",
+                    location: "Testing Street, Test City, 123",
+                };
+
+                const N_OFFERS = 5;
+
+                // TODO: Create a mock owner Company for this test
+                beforeAll(async () => {
+                    await Offer.deleteMany({});
+                    const offers = [];
+                    for (let i = 0; i < N_OFFERS; ++i) {
+                        offers.push(test_offer);
+                    }
+                    await Offer.create(offers);
+                });
+
+                afterAll(async () => {
+                    await Offer.deleteMany({});
+                });
+
+                const RealDateNow = Date.now;
+                const mockCurrentDate = new Date(2019, 10, 23);
+
+                beforeEach(() => {
+                    Date.now = () => mockCurrentDate.getTime();
+                });
+
+                afterEach(() => {
+                    Date.now = RealDateNow;
+                });
+
+                test("Only `limit` number of offers are returned", async () => {
+                    const res = await request()
+                        .get("/offer")
+                        .query({
+                            limit: 3,
+                        });
+
+                    expect(res.status).toBe(200);
+                    expect(res.body).toHaveLength(3);
+
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
+                    });
+                    const prepared_test_offer = { ...test_offer };
+                    delete prepared_test_offer["owner"];
+
+                    expect(extracted_data).toContainEqual(prepared_test_offer);
+                });
             });
         });
     });

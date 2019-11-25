@@ -1,4 +1,4 @@
-const { body } = require("express-validator");
+const { body, query } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
@@ -6,6 +6,7 @@ const { valuesInSet } = require("./validatorUtils");
 const JobTypes = require("../../../models/JobTypes");
 const FieldTypes = require("../../../models/FieldTypes");
 const TechnologyTypes = require("../../../models/TechnologyTypes");
+const OfferService = require("../../../services/offer");
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
@@ -93,4 +94,16 @@ const create = useExpressValidators([
         .isArray(),
 ]);
 
-module.exports = { create };
+const get = useExpressValidators([
+    query("offset", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt({ min: 0 }).withMessage(ValidationReasons.INT)
+        .toInt(),
+
+    query("limit")
+        .optional()
+        .isInt({ min: 0, max: OfferService.MAX_OFFERS_PER_QUERY }).withMessage(ValidationReasons.INT)
+        .toInt(),
+]);
+
+module.exports = { create, get };

@@ -6,6 +6,10 @@ class OfferService {
 
     }
 
+    static get MAX_OFFERS_PER_QUERY() {
+        return 20;
+    }
+
     async create({
         title,
         publishDate,
@@ -48,8 +52,9 @@ class OfferService {
         return offer;
     }
 
-    async get() {
-        const offers = await Offer.find().current();
+    async get({ offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY }) {
+        const offers = await Offer.find().current()
+            .skip(offset).limit(limit);
 
         return offers;
     }
