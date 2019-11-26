@@ -44,19 +44,22 @@ module.exports = (app) => {
 
     const mongo_uri = config.db_uri || `mongodb://${config.db_host}:${config.db_port}/${config.db_name}`;
 
-    const api_rate_limiter = new RateLimit({
-        store: new MongoStore({
-            uri: mongo_uri,
-        }),
-        windowMs: API_REQUEST_TIME_WINDOW_MS,
-        max: API_MAX_REQUESTS_PER_WINDOW,
-        message: {
-            error: "Too many requests issued from this IP, please try again after a while",
-        },
-    });
+    // Set the API call rate limit only on production
+    if (process.env.NODE_ENV === "production") {
+        const api_rate_limiter = new RateLimit({
+            store: new MongoStore({
+                uri: mongo_uri,
+            }),
+            windowMs: API_REQUEST_TIME_WINDOW_MS,
+            max: API_MAX_REQUESTS_PER_WINDOW,
+            message: {
+                error: "Too many requests issued from this IP, please try again after a while",
+            },
+        });
 
-    // Adds route rate limit
-    app.use(api_rate_limiter);
+        // Adds rate limit to all routes
+        app.use(api_rate_limiter);
+    }
 
     // Adds protection to common attacks
     app.use(helmet());
