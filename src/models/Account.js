@@ -3,8 +3,8 @@ const bcrypt = require("bcrypt");
 const { Schema } = mongoose;
 
 const AccountSchema = new Schema({
-    username: { type: String, unique: true },
-    password: { type: String },
+    username: { type: String, unique: true, maxlength: 20, minlength: 3, required: true },
+    password: { type: String, required: true },
 });
 
 AccountSchema.methods.validatePassword = async function(password) {
