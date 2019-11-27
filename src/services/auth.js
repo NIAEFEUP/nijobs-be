@@ -6,14 +6,14 @@ class AuthService {
 
     }
 
-    async register(username, password) {
+    async register(email, password) {
         const account = await Account.create({
-            username,
+            email,
             password,
         });
 
         return {
-            username: account.username,
+            email: account.email,
         };
     }
 }

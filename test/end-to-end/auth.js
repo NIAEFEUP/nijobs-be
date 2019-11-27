@@ -3,7 +3,7 @@ const Account = require("../../src/models/Account");
 
 describe("Register endpoint test", () => {
     describe("Input Validation (unsuccessful registration)", () => {
-        describe("username", () => {
+        describe("email", () => {
             test("should be required", async () => {
                 const res = await request()
                     .post("/auth/register")
@@ -14,14 +14,14 @@ describe("Register endpoint test", () => {
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
                     "location": "body",
-                    "msg": "Username is required",
-                    "param": "username",
+                    "msg": "Email is required",
+                    "param": "email",
                 });
             });
 
             test("should be a String", async () => {
                 const params = {
-                    username: 123,
+                    email: 123,
                 };
                 const res = await request()
                     .post("/auth/register")
@@ -32,9 +32,9 @@ describe("Register endpoint test", () => {
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
                     "location": "body",
-                    "msg": "Username must be a String",
-                    "param": "username",
-                    "value": params.username,
+                    "msg": "Email must be a String",
+                    "param": "email",
+                    "value": params.email,
                 });
             });
         });
@@ -121,7 +121,7 @@ describe("Register endpoint test", () => {
 
         test("Should make a successful registration", async () => {
             const user = {
-                username: "user",
+                email: "user@email.com",
                 password: "password123",
             };
 
@@ -131,9 +131,9 @@ describe("Register endpoint test", () => {
 
             expect(res.status).toBe(200);
 
-            const registered_user = await Account.findOne({ username: user.username });
+            const registered_user = await Account.findOne({ email: user.email });
             expect(registered_user).toBeDefined();
-            expect(registered_user).toHaveProperty("username", user.username);
+            expect(registered_user).toHaveProperty("email", user.email);
         });
     });
 
@@ -142,16 +142,16 @@ describe("Register endpoint test", () => {
 describe("Using already resgistered user", () => {
     const test_agent = agent();
     const test_user = {
-        username: "user",
-        password: "password",
+        email: "user@email.com",
+        password: "password123",
     };
 
     beforeAll(async () => {
         await Account.deleteMany({});
-        await Account.create([test_user]);
+        await Account.create({ email: test_user.email, password: test_user.password });
     });
 
-    test("Cannot register with an already existing username", async () => {
+    test("Cannot register with an already existing email", async () => {
         const res = await request()
             .post("/auth/register")
             .send(test_user);
@@ -161,9 +161,9 @@ describe("Using already resgistered user", () => {
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors).toContainEqual({
             "location": "body",
-            "msg": "Username already exists",
-            "param": "username",
-            "value": test_user.username,
+            "msg": "Email already exists",
+            "param": "email",
+            "value": test_user.email,
         });
     });
 
@@ -194,7 +194,7 @@ describe("Using already resgistered user", () => {
             .send();
 
         expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("data.username", test_user.username);
+        expect(res.body).toHaveProperty("data.email", test_user.email);
     });
 
     test("Log out with registered account", async () => {

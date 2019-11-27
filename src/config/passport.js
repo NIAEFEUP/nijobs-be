@@ -4,21 +4,24 @@ const LocalStrategy = require("passport-local").Strategy;
 const Account = require("../models/Account");
 
 // Passport configuration
-passport.use(new LocalStrategy(
-    (username, password, done) => {
-        Account.findOne({ username: username }, (err, user) => {
-            if (err) {
-                return done(err);
-            }
-            if (!user) {
-                return done(null, false, { message: "Incorrect username." });
-            }
-            if (!user.validatePassword(password)) {
-                return done(null, false, { message: "Incorrect password." });
-            }
-            return done(null, user);
-        });
-    }
+passport.use(new LocalStrategy({
+    usernameField: "email",
+    passwordField: "password",
+},
+(email, password, done) => {
+    Account.findOne({ email: email }, (err, user) => {
+        if (err) {
+            return done(err);
+        }
+        if (!user) {
+            return done(null, false, { message: "Incorrect email." });
+        }
+        if (!user.validatePassword(password)) {
+            return done(null, false, { message: "Incorrect password." });
+        }
+        return done(null, user);
+    });
+}
 ));
 
 passport.serializeUser(function(user, done) {

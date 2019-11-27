@@ -17,7 +17,7 @@ module.exports = (app) => {
         return res.status(200).json({
             data: {
                 _id: userInfo._id,
-                username: userInfo.username,
+                email: userInfo.email,
             },
         });
     });
@@ -33,11 +33,11 @@ module.exports = (app) => {
 
     // Register endpoint
     router.post("/register", validators.register, async (req, res, next) => {
-        const { username, password } = req.body;
+        const { email, password } = req.body;
 
         // Inserting user into db and replying with success or not
         try {
-            const data = await (new AuthService()).register(username, password);
+            const data = await (new AuthService()).register(email, password);
 
             return res.status(200).json({
                 data,
