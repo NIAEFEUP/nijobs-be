@@ -11,6 +11,25 @@ const AccountSchema = new Schema({
         required: "Email address is required",
     },
     password: { type: String, required: true },
+    isAdmin: {
+        type: Boolean,
+        validate: {
+            validator: function(isAdmin) {
+                return isAdmin && !this.company;
+            },
+            message: "A user can not be an admin and a company representative",
+        },
+    },
+    company: {
+        type: Schema.Types.ObjectId, ref: "Company",
+        validate: {
+            validator: function(companyRef) {
+                return !!companyRef && !this.isAdmin;
+            },
+            message: "A user can not be an admin and a company representative",
+
+        },
+    },
 });
 
 AccountSchema.methods.validatePassword = async function(password) {
