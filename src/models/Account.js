@@ -13,21 +13,23 @@ const AccountSchema = new Schema({
     password: { type: String, required: true },
     isAdmin: {
         type: Boolean,
+        required: function() {
+            return !this.companyRef;
+        },
         validate: {
             validator: function(isAdmin) {
-                return !isAdmin && !!this.company;
+                return isAdmin && !this.company;
             },
             message: "A user can not be an admin and a company representative",
         },
     },
     company: {
         type: Schema.Types.ObjectId, ref: "Company",
+        required: function() {
+            return !this.isAdmin;
+        },
         validate: {
             validator: function(companyRef) {
-                console.log(companyRef);
-                console.log(this.isAdmin);
-
-
                 return !!companyRef && !this.isAdmin;
             },
             message: "A user can not be an admin and a company representative",

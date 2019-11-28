@@ -10,6 +10,7 @@ class AuthService {
         const account = await Account.create({
             email,
             password,
+            isAdmin: true,
         });
 
         return {

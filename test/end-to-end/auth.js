@@ -173,7 +173,7 @@ describe("Using already resgistered user", () => {
 
     beforeAll(async () => {
         await Account.deleteMany({});
-        await Account.create({ email: test_user.email, password: test_user.password });
+        await Account.create({ email: test_user.email, password: test_user.password, isAdmin: true });
     });
 
     test("Cannot register with an already existing email", async () => {
