@@ -24,7 +24,19 @@ const isGod = (req, res, next) => {
     return next();
 };
 
+const isAdmin = (req, res, next) => {
+    if (!req.user.isAdmin) {
+        return res.status(401).json({
+            reason: "The user is not an admin",
+            error_code: ErrorTypes.FORBIDDEN,
+        });
+    }
+
+    return next();
+};
+
 module.exports = {
     authRequired,
     isGod,
+    isAdmin,
 };
