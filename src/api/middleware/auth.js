@@ -12,11 +12,11 @@ const authRequired = (req, res, next) => {
     });
 };
 
-// Eventually should be done via a session in an admin account, but at least this will work for now, before a permission system is added
-const isAdmin = (req, res, next) => {
-    if (req.body.admin_token !== config.admin_token) {
+// Eventually should be done via a session in an god account, but at least this will work for now, before a permission system is added
+const isGod = (req, res, next) => {
+    if (req.body.god_token !== config.god_token) {
         return res.status(401).json({
-            reason: "Invalid admin token",
+            reason: "Invalid god token",
             error_code: ErrorTypes.FORBIDDEN,
         });
     }
@@ -26,5 +26,5 @@ const isAdmin = (req, res, next) => {
 
 module.exports = {
     authRequired,
-    isAdmin,
+    isGod,
 };

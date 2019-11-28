@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const passport = require("passport");
 
-const { authRequired } = require("../middleware/auth");
+const { authRequired, isGod } = require("../middleware/auth");
 const validators = require("../middleware/validators/auth");
 const AuthService = require("../../services/auth");
 
@@ -32,7 +32,7 @@ module.exports = (app) => {
     });
 
     // Register endpoint
-    router.post("/register", validators.register, async (req, res, next) => {
+    router.post("/register", isGod, validators.register, async (req, res, next) => {
         const { email, password } = req.body;
 
         // Inserting user into db and replying with success or not

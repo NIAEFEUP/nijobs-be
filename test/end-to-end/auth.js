@@ -1,13 +1,16 @@
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const Account = require("../../src/models/Account");
 
+const test_god_token  = "testing_is_cool73";
 describe("Register endpoint test", () => {
     describe("Input Validation (unsuccessful registration)", () => {
         describe("email", () => {
             test("should be required", async () => {
                 const res = await request()
                     .post("/auth/register")
-                    .send({});
+                    .send({
+                        god_token: test_god_token,
+                    });
 
                 expect(res.status).toBe(422);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
@@ -22,6 +25,8 @@ describe("Register endpoint test", () => {
             test("should be a String", async () => {
                 const params = {
                     email: 123,
+                    god_token: test_god_token,
+
                 };
                 const res = await request()
                     .post("/auth/register")
@@ -43,7 +48,9 @@ describe("Register endpoint test", () => {
             test("should be required", async () => {
                 const res = await request()
                     .post("/auth/register")
-                    .send({});
+                    .send({
+                        god_token: test_god_token,
+                    });
 
                 expect(res.status).toBe(422);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
@@ -58,6 +65,7 @@ describe("Register endpoint test", () => {
             test("should be a String", async () => {
                 const params = {
                     password: 123,
+                    god_token: test_god_token,
                 };
                 const res = await request()
                     .post("/auth/register")
@@ -77,6 +85,7 @@ describe("Register endpoint test", () => {
             test("should have more than 8 characters", async () => {
                 const params = {
                     password: "12345",
+                    god_token: test_god_token,
                 };
                 const res = await request()
                     .post("/auth/register")
@@ -96,6 +105,7 @@ describe("Register endpoint test", () => {
             test("should contain a number", async () => {
                 const params = {
                     password: "password",
+                    god_token: test_god_token,
                 };
                 const res = await request()
                     .post("/auth/register")
@@ -119,10 +129,24 @@ describe("Register endpoint test", () => {
             await Account.deleteMany({});
         });
 
+        test("Should return forbidden", async () => {
+            const user = {
+                email: "user@email.com",
+                password: "password123",
+            };
+
+            const res = await request()
+                .post("/auth/register")
+                .send(user);
+
+            expect(res.status).toBe(401);
+        });
+
         test("Should make a successful registration", async () => {
             const user = {
                 email: "user@email.com",
                 password: "password123",
+                god_token: test_god_token,
             };
 
             const res = await request()
@@ -144,6 +168,7 @@ describe("Using already resgistered user", () => {
     const test_user = {
         email: "user@email.com",
         password: "password123",
+        god_token: test_god_token,
     };
 
     beforeAll(async () => {

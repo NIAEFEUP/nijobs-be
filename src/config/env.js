@@ -13,6 +13,6 @@ module.exports = Object.freeze({
 
     port: process.env.PORT,
 
-    // Admin token
-    admin_token: process.env.ADMIN_TOKEN,
+    // God token
+    god_token: process.env.GOD_TOKEN,
 });

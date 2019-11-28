@@ -26,7 +26,7 @@ module.exports = (app) => {
     /**
      * Creates a new Offer
      */
-    router.post("/", authMiddleware.isAdmin, validators.create, async (req, res) => {
+    router.post("/", authMiddleware.isGod, validators.create, async (req, res) => {
         try {
             // This is safe since the service is destructuring the passed object and the fields have been validated
             const offer = await (new OfferService()).create(req.body);

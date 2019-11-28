@@ -10,48 +10,48 @@ const ValidatorTester = require("../utils/ValidatorTester");
 // TODO: Generalize these even more for usage in other tests
 // (pass endpoint as argument, maybe as function returning function for usage in the whole test suite for an endpoint)
 
-const withAdminToken = (params) => ({ ...params, admin_token: "testing_is_cool73" });
+const withGodToken = (params) => ({ ...params, god_token: "testing_is_cool73" });
 //----------------------------------------------------------------
 
 describe("Offer endpoint tests", () => {
     describe("POST /offer", () => {
 
         describe("Authentication", () => {
-            describe("creating offers requires admin permissions", () => {
-                test("should fail when admin token not provided", async () => {
+            describe("creating offers requires god permissions", () => {
+                test("should fail when god token not provided", async () => {
                     const res = await request()
                         .post("/offer")
                         .send({});
 
                     expect(res.status).toBe(401);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Invalid admin token");
+                    expect(res.body).toHaveProperty("reason", "Invalid god token");
                 });
 
-                test("should fail when admin token is incorrect", async () => {
+                test("should fail when god token is incorrect", async () => {
                     const res = await request()
                         .post("/offer")
                         .send({
-                            admin_token: "NotAValidAdminToken!!12345",
+                            god_token: "NotAValidGodToken!!12345",
                         });
 
                     expect(res.status).toBe(401);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Invalid admin token");
+                    expect(res.body).toHaveProperty("reason", "Invalid god token");
                 });
 
-                test("should succeed when admin token is correct", async () => {
+                test("should succeed when god token is correct", async () => {
                     const params = {};
                     const res = await request()
                         .post("/offer")
-                        .send(withAdminToken(params));
+                        .send(withGodToken(params));
 
                     expect(res.status).not.toBe(401);
                 });
             });
         });
 
-        const EndpointValidatorTester = ValidatorTester((params) => request().post("/offer").send(withAdminToken(params)));
+        const EndpointValidatorTester = ValidatorTester((params) => request().post("/offer").send(withGodToken(params)));
         const BodyValidatorTester = EndpointValidatorTester("body");
 
         describe("Input Validation", () => {
@@ -166,7 +166,7 @@ describe("Offer endpoint tests", () => {
 
                 const res = await request()
                     .post("/offer")
-                    .send(withAdminToken(offer));
+                    .send(withGodToken(offer));
 
                 expect(res.status).toBe(200);
                 const created_offer_id = res.body._id;
@@ -209,7 +209,7 @@ describe("Offer endpoint tests", () => {
             test("publishDate defaults to the current time if not provided", async () => {
                 const res = await request()
                     .post("/offer")
-                    .send(withAdminToken(offer));
+                    .send(withGodToken(offer));
 
                 expect(res.status).toBe(200);
                 const created_offer_id = res.body._id;

@@ -15,7 +15,7 @@ const AccountSchema = new Schema({
         type: Boolean,
         validate: {
             validator: function(isAdmin) {
-                return isAdmin && !this.company;
+                return !isAdmin && !!this.company;
             },
             message: "A user can not be an admin and a company representative",
         },
@@ -24,6 +24,10 @@ const AccountSchema = new Schema({
         type: Schema.Types.ObjectId, ref: "Company",
         validate: {
             validator: function(companyRef) {
+                console.log(companyRef);
+                console.log(this.isAdmin);
+
+
                 return !!companyRef && !this.isAdmin;
             },
             message: "A user can not be an admin and a company representative",
