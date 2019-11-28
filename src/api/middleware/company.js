@@ -1,9 +1,9 @@
 const { ErrorTypes } = require("./errorHandler");
 
-const belongsToCompany = (company_id) =>  (req, res, next) => {
-    if (!req.user.company ===  company_id) {
+const isCompanyRep = (req, res, next) => {
+    if (!req.user.company) {
         return res.status(401).json({
-            reason: "The user does not have access to the company",
+            reason: "The user is not a company representative",
             error_code: ErrorTypes.FORBIDDEN,
         });
     }
@@ -12,4 +12,4 @@ const belongsToCompany = (company_id) =>  (req, res, next) => {
 };
 
 
-module.exports = { belongsToCompany };
+module.exports = { isCompanyRep };
