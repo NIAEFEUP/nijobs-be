@@ -3,7 +3,7 @@ const { body } = require("express-validator");
 const { useExpressValidators } = require("../errorHandler");
 const Account = require("../../../models/Account");
 
-const checkDuplicateEmail = async (email) => {
+const checkDuplicatedEmail = async (email) => {
     const acc = await Account.findOne({ email }).exec();
     if (acc) {
         throw new Error("Email already exists");
@@ -16,7 +16,7 @@ const register = useExpressValidators([
         .isString().withMessage("Email must be a String")
         .isEmail().withMessage("Email must be valid")
         .bail()
-        .custom(checkDuplicateEmail)
+        .custom(checkDuplicatedEmail)
         .trim(),
 
     body("password", "Invalid password")
