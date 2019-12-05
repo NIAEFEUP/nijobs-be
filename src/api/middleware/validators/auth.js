@@ -13,8 +13,7 @@ const checkDuplicatedEmail = async (email) => {
 const register = useExpressValidators([
     body("email", "Invalid email")
         .exists().withMessage("Email is required").bail()
-        .isString().withMessage("Email must be a String")
-        .isEmail().withMessage("Email must be valid")
+        .normalizeEmail().isEmail().withMessage("Email must be valid")
         .bail()
         .custom(checkDuplicatedEmail)
         .trim(),
@@ -26,4 +25,15 @@ const register = useExpressValidators([
         .matches(/\d/).withMessage("Password must contain a number"),
 ]);
 
-module.exports = { register };
+const login =  useExpressValidators([
+    body("email", "Invalid email")
+        .exists().withMessage("Email is required").bail()
+        .normalizeEmail().isEmail().withMessage("Email must be valid")
+        .trim(),
+
+    body("password", "Invalid password")
+        .exists().withMessage("Password is required").bail()
+        .isString().withMessage("Password must be a String"),
+]);
+
+module.exports = { register, login };

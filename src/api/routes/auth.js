@@ -23,7 +23,7 @@ module.exports = (app) => {
     });
 
     // Login endpoint
-    router.post("/login", passport.authenticate("local"), (req, res) => res.status(200).json({}));
+    router.post("/login", validators.login, passport.authenticate("local"), (req, res) => res.status(200).json({}));
 
     // Logout endpoint
     router.delete("/login", authRequired, (req, res) => {

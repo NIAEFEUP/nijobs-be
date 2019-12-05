@@ -22,9 +22,10 @@ describe("Register endpoint test", () => {
                 });
             });
 
-            test("should be a String", async () => {
+            test("should be a valid email", async () => {
                 const params = {
-                    email: 123,
+                    email: "@123",
+                    password: "123456789",
                     god_token: test_god_token,
 
                 };
@@ -37,7 +38,7 @@ describe("Register endpoint test", () => {
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({
                     "location": "body",
-                    "msg": "Email must be a String",
+                    "msg": "Email must be valid",
                     "param": "email",
                     "value": params.email,
                 });
