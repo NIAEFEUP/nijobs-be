@@ -1,127 +1,25 @@
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const Account = require("../../src/models/Account");
+const ValidatorTester = require("../utils/ValidatorTester");
+const withGodToken = require("../utils/GodToken");
 
-const test_god_token  = "testing_is_cool73";
+
 describe("Register endpoint test", () => {
     describe("Input Validation (unsuccessful registration)", () => {
+        const EndpointValidatorTester = ValidatorTester((params) => request().post("/auth/register").send(withGodToken(params)));
+        const BodyValidatorTester = EndpointValidatorTester("body");
         describe("email", () => {
-            test("should be required", async () => {
-                const res = await request()
-                    .post("/auth/register")
-                    .send({
-                        god_token: test_god_token,
-                    });
-
-                expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual({
-                    "location": "body",
-                    "msg": "Email is required",
-                    "param": "email",
-                });
-            });
-
-            test("should be a valid email", async () => {
-                const params = {
-                    email: "@123",
-                    password: "123456789",
-                    god_token: test_god_token,
-
-                };
-                const res = await request()
-                    .post("/auth/register")
-                    .send(params);
-
-                expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual({
-                    "location": "body",
-                    "msg": "Email must be valid",
-                    "param": "email",
-                    "value": params.email,
-                });
-            });
+            const FieldValidatorTester = BodyValidatorTester("email");
+            FieldValidatorTester.isRequired();
+            FieldValidatorTester.mustBeEmail();
         });
 
         describe("password", () => {
-            test("should be required", async () => {
-                const res = await request()
-                    .post("/auth/register")
-                    .send({
-                        god_token: test_god_token,
-                    });
-
-                expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual({
-                    "location": "body",
-                    "msg": "Password is required",
-                    "param": "password",
-                });
-            });
-
-            test("should be a String", async () => {
-                const params = {
-                    password: 123,
-                    god_token: test_god_token,
-                };
-                const res = await request()
-                    .post("/auth/register")
-                    .send(params);
-
-                expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual({
-                    "location": "body",
-                    "msg": "Password must be a String",
-                    "param": "password",
-                    "value": params.password,
-                });
-            });
-
-            test("should have more than 8 characters", async () => {
-                const params = {
-                    password: "12345",
-                    god_token: test_god_token,
-                };
-                const res = await request()
-                    .post("/auth/register")
-                    .send(params);
-
-                expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual({
-                    "location": "body",
-                    "msg": "Password must have at least 8 characters",
-                    "param": "password",
-                    "value": params.password,
-                });
-            });
-
-            test("should contain a number", async () => {
-                const params = {
-                    password: "password",
-                    god_token: test_god_token,
-                };
-                const res = await request()
-                    .post("/auth/register")
-                    .send(params);
-
-                expect(res.status).toBe(422);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual({
-                    "location": "body",
-                    "msg": "Password must contain a number",
-                    "param": "password",
-                    "value": params.password,
-                });
-            });
+            const FieldValidatorTester = BodyValidatorTester("password");
+            FieldValidatorTester.isRequired();
+            FieldValidatorTester.mustBeString();
+            FieldValidatorTester.hasMinLength(8);
+            FieldValidatorTester.hasNumber();
         });
     });
 
@@ -147,12 +45,11 @@ describe("Register endpoint test", () => {
             const user = {
                 email: "user@email.com",
                 password: "password123",
-                god_token: test_god_token,
             };
 
             const res = await request()
                 .post("/auth/register")
-                .send(user);
+                .send(withGodToken(user));
 
             expect(res.status).toBe(200);
 
@@ -164,78 +61,94 @@ describe("Register endpoint test", () => {
 
 });
 
-describe("Using already resgistered user", () => {
-    const test_agent = agent();
-    const test_user = {
-        email: "user@email.com",
-        password: "password123",
-        god_token: test_god_token,
-    };
+describe("Login endpoint test", () => {
+    describe("Input Validation", () => {
+        const EndpointValidatorTester = ValidatorTester((params) => request().post("/auth/login").send(withGodToken(params)));
+        const BodyValidatorTester = EndpointValidatorTester("body");
+        describe("email", () => {
+            const FieldValidatorTester = BodyValidatorTester("email");
+            FieldValidatorTester.isRequired();
+            FieldValidatorTester.mustBeEmail();
+        });
 
-    beforeAll(async () => {
-        await Account.deleteMany({});
-        await Account.create({ email: test_user.email, password: test_user.password, isAdmin: true });
-    });
-
-    test("Cannot register with an already existing email", async () => {
-        const res = await request()
-            .post("/auth/register")
-            .send(test_user);
-
-        expect(res.status).toBe(422);
-        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-        expect(res.body).toHaveProperty("errors");
-        expect(res.body.errors).toContainEqual({
-            "location": "body",
-            "msg": "Email already exists",
-            "param": "email",
-            "value": test_user.email,
+        describe("password", () => {
+            const FieldValidatorTester = BodyValidatorTester("password");
+            FieldValidatorTester.isRequired();
+            FieldValidatorTester.mustBeString();
         });
     });
 
-    test(
-        "Should return forbidden when retrieving the information of the logged in user",
-        async () => {
+    describe("Using already resgistered user", () => {
+        const test_agent = agent();
+        const test_user = {
+            email: "user@email.com",
+            password: "password123",
+        };
+
+        beforeAll(async () => {
+            await Account.deleteMany({});
+            await Account.create({ email: test_user.email, password: test_user.password, isAdmin: true });
+        });
+
+        test("should return an error when registering with an already existing email", async () => {
             const res = await request()
+                .post("/auth/register")
+                .send(withGodToken(test_user));
+
+            expect(res.status).toBe(422);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({
+                "location": "body",
+                "msg": "Email already exists",
+                "param": "email",
+                "value": test_user.email,
+            });
+        });
+
+        test("should return forbidden when retrieving the information of the logged in user",
+            async () => {
+                const res = await request()
+                    .get("/auth/me")
+                    .send();
+
+                expect(res.status).toBe(401);
+            }
+        );
+
+
+        test("should successfully login with registered account", async () => {
+            const res = await test_agent
+                .post("/auth/login")
+                .send(test_user);
+
+            // TODO: Reimplement res.should.have.cookie("connect.sid");
+            expect(res.status).toBe(200);
+        });
+
+        test("should return the informations of the logged in user", async () => {
+            const res = await test_agent
+                .get("/auth/me")
+                .send();
+
+            expect(res.status).toBe(200);
+            expect(res.body).toHaveProperty("data.email", test_user.email);
+        });
+
+        test("should be successful when loging out the current user", async () => {
+            const res = await test_agent
+                .delete("/auth/login")
+                .send();
+
+            expect(res.status).toBe(200);
+        });
+
+        test("should return an error since no user is logged in", async () => {
+            const res = await test_agent
                 .get("/auth/me")
                 .send();
 
             expect(res.status).toBe(401);
-        }
-    );
-
-
-    test("Log in with registered account", async () => {
-        const res = await test_agent
-            .post("/auth/login")
-            .send(test_user);
-
-        // TODO: Reimplement res.should.have.cookie("connect.sid");
-        expect(res.status).toBe(200);
-    });
-
-    test("Get logged in user info", async () => {
-        const res = await test_agent
-            .get("/auth/me")
-            .send();
-
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("data.email", test_user.email);
-    });
-
-    test("Log out with registered account", async () => {
-        const res = await test_agent
-            .delete("/auth/login")
-            .send();
-
-        expect(res.status).toBe(200);
-    });
-
-    test("Verify if the log out happens server-side", async () => {
-        const res = await test_agent
-            .get("/auth/me")
-            .send();
-
-        expect(res.status).toBe(401);
+        });
     });
 });

@@ -181,6 +181,67 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             });
         });
     },
+
+    hasMinLength: (min_length) => {
+        test(`should not be smaller than ${min_length} characters`, async () => {
+            const params = {
+                [field_name]: "a".repeat(min_length - 1),
+            };
+
+            const res = await requestEndpoint(params);
+
+            expect(res.status).toBe(422);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({
+                "location": location,
+                "msg": ValidationReasons.TOO_SHORT(min_length),
+                "param": field_name,
+                "value": params[field_name],
+            });
+        });
+    },
+
+
+    mustBeEmail: () => {
+        test("should be a valid email", async () => {
+            const params = {
+                [field_name]: "@aaa",
+            };
+
+            const res = await requestEndpoint(params);
+
+            expect(res.status).toBe(422);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({
+                "location": location,
+                "msg": ValidationReasons.EMAIL,
+                "param": field_name,
+                "value": params[field_name],
+            });
+        });
+    },
+
+    hasNumber: () => {
+        test("should have a number", async () => {
+            const params = {
+                [field_name]: "aaa",
+            };
+
+            const res = await requestEndpoint(params);
+
+            expect(res.status).toBe(422);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({
+                "location": location,
+                "msg": ValidationReasons.HAVE_NUMBER,
+                "param": field_name,
+                "value": params[field_name],
+            });
+        });
+    },
 });
 
 module.exports = ValidatorTester;

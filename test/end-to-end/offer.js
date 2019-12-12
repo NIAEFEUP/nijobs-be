@@ -5,12 +5,8 @@ const FieldTypes = require("../../src/models/FieldTypes");
 const TechnologyTypes = require("../../src/models/TechnologyTypes");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ValidatorTester = require("../utils/ValidatorTester");
+const withGodToken = require("../utils/GodToken");
 
-// ------- Test helper functions for generating test code --------
-// TODO: Generalize these even more for usage in other tests
-// (pass endpoint as argument, maybe as function returning function for usage in the whole test suite for an endpoint)
-
-const withGodToken = (params) => ({ ...params, god_token: "testing_is_cool73" });
 //----------------------------------------------------------------
 
 describe("Offer endpoint tests", () => {
