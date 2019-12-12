@@ -9,7 +9,7 @@ passport.use(new LocalStrategy({
     passwordField: "password",
 },
 (email, password, done) => {
-    Account.findOne({ email: email }, (err, user) => {
+    Account.findOne({ email }, (err, user) => {
         if (err) {
             return done(err);
         }

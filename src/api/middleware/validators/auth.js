@@ -1,6 +1,7 @@
 const { body } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
+const ValidationReasons = require("./validationReasons");
 const Account = require("../../../models/Account");
 
 const checkDuplicatedEmail = async (email) => {
@@ -11,29 +12,29 @@ const checkDuplicatedEmail = async (email) => {
 };
 
 const register = useExpressValidators([
-    body("email", "Invalid email")
-        .exists().withMessage("Email is required").bail()
-        .normalizeEmail().isEmail().withMessage("Email must be valid")
+    body("email", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .normalizeEmail().isEmail().withMessage(ValidationReasons.EMAIL)
         .bail()
         .custom(checkDuplicatedEmail)
         .trim(),
 
-    body("password", "Invalid password")
-        .exists().withMessage("Password is required").bail()
-        .isString().withMessage("Password must be a String")
-        .isLength({ min: 8 }).withMessage("Password must have at least 8 characters")
-        .matches(/\d/).withMessage("Password must contain a number"),
+    body("password", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING)
+        .isLength({ min: 8 }).withMessage(ValidationReasons.TOO_SHORT(8))
+        .matches(/\d/).withMessage(ValidationReasons.HAVE_NUMBER),
 ]);
 
 const login =  useExpressValidators([
-    body("email", "Invalid email")
-        .exists().withMessage("Email is required").bail()
-        .normalizeEmail().isEmail().withMessage("Email must be valid")
+    body("email", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .normalizeEmail().isEmail().withMessage(ValidationReasons.EMAIL)
         .trim(),
 
-    body("password", "Invalid password")
-        .exists().withMessage("Password is required").bail()
-        .isString().withMessage("Password must be a String"),
+    body("password", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING),
 ]);
 
 module.exports = { register, login };

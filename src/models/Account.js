@@ -20,7 +20,7 @@ const AccountSchema = new Schema({
             validator: function(isAdmin) {
                 return isAdmin && !this.company;
             },
-            message: "A user can not be an admin and a company representative",
+            message: "A user cannot be an admin and a company representative",
         },
     },
     company: {
@@ -32,7 +32,7 @@ const AccountSchema = new Schema({
             validator: function(companyRef) {
                 return !!companyRef && !this.isAdmin;
             },
-            message: "A user can not be an admin and a company representative",
+            message: "A user cannot be an admin and a company representative",
 
         },
     },
