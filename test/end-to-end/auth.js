@@ -2,6 +2,7 @@ const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const Account = require("../../src/models/Account");
 const ValidatorTester = require("../utils/ValidatorTester");
 const withGodToken = require("../utils/GodToken");
+const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 
 
 describe("Register endpoint test", () => {
@@ -100,7 +101,7 @@ describe("Login endpoint test", () => {
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
                 "location": "body",
-                "msg": "Email already exists",
+                "msg": ValidationReasons.ALREADY_EXISTS("email"),
                 "param": "email",
                 "value": test_user.email,
             });

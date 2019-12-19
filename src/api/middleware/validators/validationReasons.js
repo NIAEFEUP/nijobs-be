@@ -11,6 +11,7 @@ const ValidationReasons = Object.freeze({
     ARRAY_SIZE: (min, max) => `size-must-be-between:[${min},${max}]`,
     EMAIL: "must-be-a-valid-email",
     HAVE_NUMBER: "must-contain-number",
+    ALREADY_EXISTS: (variable) => `${variable}-already-exists`,
 });
 
 module.exports = ValidationReasons;

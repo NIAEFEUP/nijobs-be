@@ -7,7 +7,7 @@ const Account = require("../../../models/Account");
 const checkDuplicatedEmail = async (email) => {
     const acc = await Account.findOne({ email }).exec();
     if (acc) {
-        throw new Error("Email already exists");
+        throw new Error(ValidationReasons.ALREADY_EXISTS("email"));
     }
 };
 
