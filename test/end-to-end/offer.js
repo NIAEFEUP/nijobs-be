@@ -68,6 +68,7 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = BodyValidatorTester("endDate");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeDate();
+                FieldValidatorTester.mustBeFuture();
             });
 
             describe("jobMinDuration", () => {
@@ -151,7 +152,7 @@ describe("Offer endpoint tests", () => {
                 const offer = {
                     title: "Test Offer",
                     publishDate: "2019-11-17T00:00:00.000Z",
-                    endDate: "2019-11-18T00:00:00.000Z",
+                    endDate: new Date(Date.now() + (24 * 3600 * 1000)),
                     description: "For Testing Purposes",
                     contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                     jobType: "SUMMER INTERNSHIP",
@@ -193,7 +194,7 @@ describe("Offer endpoint tests", () => {
 
             const offer = {
                 title: "Test Offer",
-                endDate: "2019-11-25T00:00:00.000Z",
+                endDate: new Date(Date.now() + (24 * 3600 * 1000)),
                 description: "For Testing Purposes",
                 contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                 jobType: "SUMMER INTERNSHIP",

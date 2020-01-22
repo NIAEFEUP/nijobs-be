@@ -22,7 +22,8 @@ const create = useExpressValidators([
 
     body("endDate", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
+        .isAfter().withMessage(ValidationReasons.DATE_EXPIRED)
         .toDate(),
 
     body("jobMinDuration", ValidationReasons.DEFAULT)

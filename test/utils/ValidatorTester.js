@@ -64,6 +64,25 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
         });
     },
 
+    mustBeFuture: () => {
+        test("should be a future Date", async () => {
+            const params = {
+                [field_name]: "1998-12-25",
+            };
+            const res = await requestEndpoint(params);
+
+            expect(res.status).toBe(422);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({
+                "location": location,
+                "msg": ValidationReasons.DATE_EXPIRED,
+                "param": field_name,
+                "value": params[field_name],
+            });
+        });
+    },
+
     mustBeNumber: () => {
         test("should be a Number", async () => {
             const params = {
