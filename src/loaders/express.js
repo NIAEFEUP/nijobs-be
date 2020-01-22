@@ -42,7 +42,7 @@ module.exports = (app) => {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    const mongo_uri = config.db_uri || `mongodb://${config.db_host}:${config.db_port}/${config.db_name}`;
+    const mongo_uri = config.db_uri;
 
     // Set the API call rate limit only on production
     if (process.env.NODE_ENV === "production") {

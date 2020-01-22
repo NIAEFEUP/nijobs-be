@@ -14,14 +14,13 @@ const setupDbConnection = async () => {
     }
 
     const options = {
-        dbName: config.db_name,
         user: config.db_user,
         pass: config.db_pass,
         useNewUrlParser: true,
         useCreateIndex: true,
     };
 
-    const connection_uri = config.db_uri || `mongodb://${config.db_host}:${config.db_port}`;
+    const connection_uri = config.db_uri;
 
     try {
         await mongoose.connect(connection_uri, options);
