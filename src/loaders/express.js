@@ -62,6 +62,7 @@ module.exports = (app) => {
     }
 
     // Adds protection to common attacks
+    // Check https://helmetjs.github.io/#how-it-works to see a list of features
     app.use(helmet());
 
     // Adds route logging
