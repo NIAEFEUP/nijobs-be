@@ -13,6 +13,7 @@ module.exports = Object.freeze({
 
     port: process.env.PORT,
 
-    // God token
     god_token: process.env.GOD_TOKEN,
+
+    test_log_requests: JSON.parse(process.env.TEST_LOG_REQUESTS),
 });
