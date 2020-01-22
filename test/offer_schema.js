@@ -31,15 +31,15 @@ describe("# Offer Schema tests", () => {
                 }
             });
 
-            test("'endDate' is required", async () => {
+            test("'publishEndDate' is required", async () => {
                 const offer = new Offer({});
                 // Returning the validation promise to ensure the test doesn't finish before all the assertions do
                 try {
                     await offer.validate();
                 } catch (err) {
-                    expect(err.errors.endDate).toBeDefined();
-                    expect(err.errors.endDate).toHaveProperty("kind", "required");
-                    expect(err.errors.endDate).toHaveProperty("message", "Path `endDate` is required.");
+                    expect(err.errors.publishEndDate).toBeDefined();
+                    expect(err.errors.publishEndDate).toHaveProperty("kind", "required");
+                    expect(err.errors.publishEndDate).toHaveProperty("message", "Path `publishEndDate` is required.");
                 }
             });
 
@@ -392,11 +392,11 @@ describe("# Offer Schema tests", () => {
 
     // All custom validators that do not fit in other categories, such as date validation, etc
     describe("Custom property validator tests", () => {
-        describe("'publishDate' must be earlier than 'endDate'", () => {
+        describe("'publishDate' must be earlier than 'publishEndDate'", () => {
             test("check for error", async () => {
                 const offer = new Offer({
                     publishDate: new Date("5 November, 2019"),
-                    endDate: new Date("4 November, 2019"),
+                    publishEndDate: new Date("4 November, 2019"),
                 });
 
                 try {
@@ -404,14 +404,14 @@ describe("# Offer Schema tests", () => {
                 } catch (err) {
                     expect(err.errors.publishDate).toBeDefined();
                     expect(err.errors.publishDate).toHaveProperty("kind", "user defined");
-                    expect(err.errors.publishDate).toHaveProperty("message", "`publishDate` must be earlier than `endDate`");
+                    expect(err.errors.publishDate).toHaveProperty("message", "`publishDate` must be earlier than `publishEndDate`");
                 }
             });
 
             test("check for success", async () => {
                 const offer = new Offer({
                     publishDate: new Date("4 November, 2019"),
-                    endDate: new Date("5 November, 2019"),
+                    publishEndDate: new Date("5 November, 2019"),
                 });
 
                 try {
@@ -422,23 +422,23 @@ describe("# Offer Schema tests", () => {
             });
         });
 
-        describe(`'endDate' must not differ from 'publishDate' by more than ${OFFER_MAX_LIFETIME_MONTHS} months`, () => {
+        describe(`'publishEndDate' must not differ from 'publishDate' by more than ${OFFER_MAX_LIFETIME_MONTHS} months`, () => {
             test("check for error", async () => {
                 // According to Google :)
                 const MONTH_TO_MS = 2.628e+9;
                 const publishDate = new Date("01/01/1994");
                 const offer = new Offer({
                     publishDate: publishDate,
-                    endDate: new Date(publishDate.getTime() + ((OFFER_MAX_LIFETIME_MONTHS + 1) * MONTH_TO_MS)),
+                    publishEndDate: new Date(publishDate.getTime() + ((OFFER_MAX_LIFETIME_MONTHS + 1) * MONTH_TO_MS)),
                 });
 
                 try {
                     await offer.validate();
                 } catch (err) {
-                    expect(err.errors.endDate).toBeDefined();
-                    expect(err.errors.endDate).toHaveProperty("kind", "user defined");
-                    expect(err.errors.endDate).toHaveProperty("message",
-                        `\`endDate\` must not differ from \`publishDate\` by more than ${OFFER_MAX_LIFETIME_MONTHS} months`
+                    expect(err.errors.publishEndDate).toBeDefined();
+                    expect(err.errors.publishEndDate).toHaveProperty("kind", "user defined");
+                    expect(err.errors.publishEndDate).toHaveProperty("message",
+                        `\`publishEndDate\` must not differ from \`publishDate\` by more than ${OFFER_MAX_LIFETIME_MONTHS} months`
                     );
                 }
             });
@@ -446,13 +446,13 @@ describe("# Offer Schema tests", () => {
             test("check for success", async () => {
                 const offer = new Offer({
                     publishDate: new Date("01/01/1994"),
-                    endDate: new Date("02/01/1994"),
+                    publishEndDate: new Date("02/01/1994"),
                 });
 
                 try {
                     await offer.validate();
                 } catch (err) {
-                    expect(err.errors.endDate).toBeFalsy();
+                    expect(err.errors.publishEndDate).toBeFalsy();
                 }
             });
         });

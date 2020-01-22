@@ -20,7 +20,7 @@ const create = useExpressValidators([
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
         .toDate(),
 
-    body("endDate", ValidationReasons.DEFAULT)
+    body("publishEndDate", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED)
