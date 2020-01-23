@@ -151,7 +151,7 @@ describe("Offer endpoint tests", () => {
             test("Should successfully create an Offer", async () => {
                 const offer = {
                     title: "Test Offer",
-                    publishDate: "2019-11-17T00:00:00.000Z",
+                    publishDate: new Date(Date.now() - (24 * 3600 * 1000)),
                     publishEndDate: new Date(Date.now() + (24 * 3600 * 1000)),
                     description: "For Testing Purposes",
                     contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
