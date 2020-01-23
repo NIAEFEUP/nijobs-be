@@ -1,3 +1,4 @@
+const HTTPStatus = require("http-status-codes");
 const { Router } = require("express");
 
 const authMiddleware = require("../middleware/auth");
@@ -19,7 +20,7 @@ module.exports = (app) => {
             return res.json(offers);
         } catch (err) {
             console.error(err);
-            return res.status(500).send();
+            return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).send();
         }
     });
 
@@ -34,7 +35,7 @@ module.exports = (app) => {
             return res.json(offer);
         } catch (err) {
             console.error(err);
-            return res.status(500).send();
+            return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).send();
         }
     });
 };

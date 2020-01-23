@@ -1,4 +1,5 @@
 // const { mockCurrentDate } = require("../testUtils");
+const HTTPStatus = require("http-status-codes");
 const Offer = require("../../src/models/Offer");
 const JobTypes = require("../../src/models/JobTypes");
 const FieldTypes = require("../../src/models/FieldTypes");
@@ -19,7 +20,7 @@ describe("Offer endpoint tests", () => {
                         .post("/offer")
                         .send({});
 
-                    expect(res.status).toBe(401);
+                    expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                     expect(res.body).toHaveProperty("reason", "Invalid god token");
                 });
@@ -31,7 +32,7 @@ describe("Offer endpoint tests", () => {
                             god_token: "NotAValidGodToken!!12345",
                         });
 
-                    expect(res.status).toBe(401);
+                    expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                     expect(res.body).toHaveProperty("reason", "Invalid god token");
                 });
@@ -42,7 +43,7 @@ describe("Offer endpoint tests", () => {
                         .post("/offer")
                         .send(withGodToken(params));
 
-                    expect(res.status).not.toBe(401);
+                    expect(res.status).not.toBe(HTTPStatus.UNAUTHORIZED);
                 });
             });
         });
@@ -164,7 +165,7 @@ describe("Offer endpoint tests", () => {
                     .post("/offer")
                     .send(withGodToken(offer));
 
-                expect(res.status).toBe(200);
+                expect(res.status).toBe(HTTPStatus.OK);
                 const created_offer_id = res.body._id;
 
                 const created_offer = await Offer.findById(created_offer_id);
@@ -207,7 +208,7 @@ describe("Offer endpoint tests", () => {
                     .post("/offer")
                     .send(withGodToken(offer));
 
-                expect(res.status).toBe(200);
+                expect(res.status).toBe(HTTPStatus.OK);
                 const created_offer_id = res.body._id;
 
                 const created_offer = await Offer.findById(created_offer_id);
@@ -303,7 +304,7 @@ describe("Offer endpoint tests", () => {
                     const res = await request()
                         .get("/offer");
 
-                    expect(res.status).toBe(200);
+                    expect(res.status).toBe(HTTPStatus.OK);
                     expect(res.body).toHaveLength(1);
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
@@ -364,7 +365,7 @@ describe("Offer endpoint tests", () => {
                             limit: 3,
                         });
 
-                    expect(res.status).toBe(200);
+                    expect(res.status).toBe(HTTPStatus.OK);
                     expect(res.body).toHaveLength(3);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)

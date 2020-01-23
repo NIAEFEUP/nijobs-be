@@ -1,3 +1,4 @@
+const HTTPStatus = require("http-status-codes");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const Account = require("../../src/models/Account");
 const ValidatorTester = require("../utils/ValidatorTester");
@@ -39,7 +40,7 @@ describe("Register endpoint test", () => {
                 .post("/auth/register")
                 .send(user);
 
-            expect(res.status).toBe(401);
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
         });
 
         test("Should make a successful registration", async () => {
@@ -52,7 +53,7 @@ describe("Register endpoint test", () => {
                 .post("/auth/register")
                 .send(withGodToken(user));
 
-            expect(res.status).toBe(200);
+            expect(res.status).toBe(HTTPStatus.OK);
 
             const registered_user = await Account.findOne({ email: user.email });
             expect(registered_user).toBeDefined();
@@ -96,7 +97,7 @@ describe("Login endpoint test", () => {
                 .post("/auth/register")
                 .send(withGodToken(test_user));
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -113,7 +114,7 @@ describe("Login endpoint test", () => {
                     .get("/auth/me")
                     .send();
 
-                expect(res.status).toBe(401);
+                expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             }
         );
 
@@ -124,7 +125,7 @@ describe("Login endpoint test", () => {
                 .send(test_user);
 
             // TODO: Reimplement res.should.have.cookie("connect.sid");
-            expect(res.status).toBe(200);
+            expect(res.status).toBe(HTTPStatus.OK);
         });
 
         test("should return the informations of the logged in user", async () => {
@@ -132,7 +133,7 @@ describe("Login endpoint test", () => {
                 .get("/auth/me")
                 .send();
 
-            expect(res.status).toBe(200);
+            expect(res.status).toBe(HTTPStatus.OK);
             expect(res.body).toHaveProperty("data.email", test_user.email);
         });
 
@@ -141,7 +142,7 @@ describe("Login endpoint test", () => {
                 .delete("/auth/login")
                 .send();
 
-            expect(res.status).toBe(200);
+            expect(res.status).toBe(HTTPStatus.OK);
         });
 
         test("should return an error since no user is logged in", async () => {
@@ -149,7 +150,7 @@ describe("Login endpoint test", () => {
                 .get("/auth/me")
                 .send();
 
-            expect(res.status).toBe(401);
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
         });
     });
 });

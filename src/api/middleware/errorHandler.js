@@ -1,3 +1,4 @@
+const HTTPStatus = require("http-status-codes");
 const { validationResult } = require("express-validator");
 
 const { errorExtractor } = require("../../lib/dbErrorExtractor");
@@ -19,7 +20,7 @@ const useExpressValidators = (validators) => async (req, res, next) => {
     }
 
     return res
-        .status(422)
+        .status(HTTPStatus.UNPROCESSABLE_ENTITY)
         .json({
             error_code: ErrorTypes.VALIDATION_ERROR,
             errors: errors.array(),
@@ -36,7 +37,7 @@ const dbHandler = () => (err, req, res, next) => {
         errors: [errorExtractor(err)],
     };
 
-    return res.status(500).send(result);
+    return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).send(result);
 };
 
 module.exports = {
