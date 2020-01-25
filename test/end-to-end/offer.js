@@ -69,6 +69,7 @@ describe("Offer endpoint tests", () => {
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeDate();
                 FieldValidatorTester.mustBeFuture();
+                FieldValidatorTester.mustBeAfter("publishDate");
             });
 
             describe("jobMinDuration", () => {

@@ -83,6 +83,27 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
         });
     },
 
+    mustBeAfter: (field_name2) => {
+        test(`should be after ${field_name2}`, async () => {
+            const params = {
+                [field_name]: new Date(Date.now()).toISOString(),
+                [field_name2]: new Date(Date.now() + (24 * 3600 * 1000)).toISOString(),
+            };
+
+            const res = await requestEndpoint(params);
+
+            expect(res.status).toBe(422);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({
+                "location": location,
+                "msg": ValidationReasons.MUST_BE_AFTER(field_name2),
+                "param": field_name,
+                "value": params[field_name],
+            });
+        });
+    },
+
     mustBeNumber: () => {
         test("should be a Number", async () => {
             const params = {

@@ -13,6 +13,7 @@ const ValidationReasons = Object.freeze({
     HAVE_NUMBER: "must-contain-number",
     ALREADY_EXISTS: (variable) => `${variable}-already-exists`,
     DATE_EXPIRED: "date-already-past",
+    MUST_BE_AFTER: (variable) => `must-be-after:${variable}`,
 });
 
 module.exports = ValidationReasons;
