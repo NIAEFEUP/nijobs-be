@@ -1,3 +1,4 @@
+const HTTPStatus = require("http-status-codes");
 const { Router } = require("express");
 
 const { ErrorTypes } = require("../middleware/errorHandler");
@@ -15,7 +16,7 @@ module.exports = (app) => {
      * Hello Worlds the given user name
      */
     router.get("/:name", (req, res) => {
-        res.status(200).json({
+        res.status(HTTPStatus.OK).json({
             "hi": req.params.name,
             "wow": true,
         });
@@ -28,12 +29,12 @@ module.exports = (app) => {
         try {
             const users = await ExampleUser.find();
 
-            return res.status(200).json({
+            return res.status(HTTPStatus.OK).json({
                 users, // Equivalent to "users": users
             });
 
         } catch (err) {
-            return res.status(500).json({
+            return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({
                 "reason": "dunno",
                 "error_code": ErrorTypes.DB_ERROR,
             });
@@ -45,7 +46,7 @@ module.exports = (app) => {
      */
     router.post("/", async (req, res) => {
         if (!req.body.username) {
-            return res.status(400).json({
+            return res.status(HTTPStatus.BAD_REQUEST).json({
                 "reason": "No username specified",
                 "error_code": ErrorTypes.MISSING_FIELD,
             });
@@ -59,9 +60,9 @@ module.exports = (app) => {
                 age: req.body.age,
             });
 
-            return res.status(200).json({});
+            return res.status(HTTPStatus.OK).json({});
         } catch (err) {
-            return res.status(500).json({
+            return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({
                 "reason": "dunno2",
                 "error_code": ErrorTypes.DB_ERROR,
             });

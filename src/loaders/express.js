@@ -2,6 +2,7 @@ const passport = require("passport");
 const bodyParser = require("body-parser");
 const session = require("express-session");
 const morgan = require("morgan");
+const HTTPStatus = require("http-status-codes");
 
 const apiRoutes = require("../api");
 const config = require("../config/env");
@@ -53,7 +54,7 @@ module.exports = (app) => {
     });
 
     // Health check endpoint
-    app.get("/", (_, res) => res.status(200).json({ "online": true }));
+    app.get("/", (_, res) => res.status(HTTPStatus.OK).json({ "online": true }));
 
     // Registering the application's routes
     // Using no prefix as the app will be mapped to /api anyway in the production server

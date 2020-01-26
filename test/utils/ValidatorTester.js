@@ -1,3 +1,4 @@
+const HTTPStatus = require("http-status-codes");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 
@@ -14,7 +15,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             const params = {};
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -32,7 +33,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -51,7 +52,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -70,7 +71,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -89,7 +90,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -108,7 +109,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -131,7 +132,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -150,7 +151,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -170,7 +171,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -190,7 +191,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -211,7 +212,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({
@@ -231,7 +232,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            expect(res.status).toBe(422);
+            expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({

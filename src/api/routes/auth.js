@@ -1,3 +1,4 @@
+const HTTPStatus = require("http-status-codes");
 const { Router } = require("express");
 const passport = require("passport");
 
@@ -14,7 +15,7 @@ module.exports = (app) => {
     // Get logged in user info
     router.get("/me", authRequired, (req, res) => {
         const userInfo = req.user;
-        return res.status(200).json({
+        return res.status(HTTPStatus.OK).json({
             data: {
                 _id: userInfo._id,
                 email: userInfo.email,
@@ -23,12 +24,12 @@ module.exports = (app) => {
     });
 
     // Login endpoint
-    router.post("/login", validators.login, passport.authenticate("local"), (req, res) => res.status(200).json({}));
+    router.post("/login", validators.login, passport.authenticate("local"), (req, res) => res.status(HTTPStatus.OK).json({}));
 
     // Logout endpoint
     router.delete("/login", authRequired, (req, res) => {
         req.logout();
-        return res.status(200).json({});
+        return res.status(HTTPStatus.OK).json({});
     });
 
     // Register endpoint
@@ -39,7 +40,7 @@ module.exports = (app) => {
         try {
             const data = await (new AuthService()).register(email, password);
 
-            return res.status(200).json({
+            return res.status(HTTPStatus.OK).json({
                 data,
             });
         } catch (err) {
