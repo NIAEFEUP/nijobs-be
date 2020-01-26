@@ -1,6 +1,7 @@
 const HTTPStatus = require("http-status-codes");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
+const { DAY_TO_MS } = require("../utils/TimeConstants");
 
 /**
  * `requestEndpoint` is a method that receives params and calls the appropriate endpoint with the params if they exist/are appropriate.
@@ -87,7 +88,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
         test(`should be after ${field_name2}`, async () => {
             const params = {
                 [field_name]: new Date(Date.now()).toISOString(),
-                [field_name2]: new Date(Date.now() + (24 * 3600 * 1000)).toISOString(),
+                [field_name2]: new Date(Date.now() + (DAY_TO_MS)).toISOString(),
             };
 
             const res = await requestEndpoint(params);

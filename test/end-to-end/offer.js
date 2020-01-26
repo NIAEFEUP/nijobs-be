@@ -7,6 +7,7 @@ const TechnologyTypes = require("../../src/models/TechnologyTypes");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ValidatorTester = require("../utils/ValidatorTester");
 const withGodToken = require("../utils/GodToken");
+const { DAY_TO_MS } = require("../utils/TimeConstants");
 
 //----------------------------------------------------------------
 
@@ -152,8 +153,8 @@ describe("Offer endpoint tests", () => {
             test("Should successfully create an Offer", async () => {
                 const offer = {
                     title: "Test Offer",
-                    publishDate: new Date(Date.now() - (24 * 3600 * 1000)),
-                    publishEndDate: new Date(Date.now() + (24 * 3600 * 1000)),
+                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
+                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
                     description: "For Testing Purposes",
                     contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                     jobType: "SUMMER INTERNSHIP",
@@ -195,7 +196,7 @@ describe("Offer endpoint tests", () => {
 
             const offer = {
                 title: "Test Offer",
-                publishEndDate: new Date(Date.now() + (24 * 3600 * 1000)),
+                publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
                 description: "For Testing Purposes",
                 contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                 jobType: "SUMMER INTERNSHIP",
