@@ -42,13 +42,13 @@ module.exports = (app) => {
     app.use(passport.initialize());
     app.use(passport.session());
 
-    const mongo_uri = config.db_uri;
-
     // Set the API call rate limit only on production
     if (process.env.NODE_ENV === "production") {
         const api_rate_limiter = new RateLimit({
             store: new MongoStore({
-                uri: mongo_uri,
+                uri: config.db_uri,
+                user: config.db_user,
+                password: config.db_pass,
             }),
             windowMs: API_REQUEST_TIME_WINDOW_MS,
             max: API_MAX_REQUESTS_PER_WINDOW,
