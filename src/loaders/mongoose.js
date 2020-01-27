@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const config = require("../config/env");
+const Account = require("../models/Account");
 
 const setupDbConnection = async () => {
     if (!(config.db_uri || (config.db_host && config.db_port))) {
@@ -24,6 +25,7 @@ const setupDbConnection = async () => {
 
     try {
         await mongoose.connect(connection_uri, options);
+        await createDefaultAdmin();
     } catch (err) {
         console.error("Mongoose: failure in initial connection to the DB (aborting, will not retry)", err);
         process.exit(44);
@@ -32,6 +34,26 @@ const setupDbConnection = async () => {
     mongoose.connection.on("error", (err) => {
         console.error("Mongoose connection error:", err);
     });
+};
+
+const createDefaultAdmin = async () => {
+    if (process.env.NODE_ENV === "test") {
+        return;
+    }
+
+    const acc = await Account.findOne({ email: config.admin_email });
+    if (acc) {
+        // User with admin email already exists
+        return;
+    }
+
+    await Account.create({
+        email: config.admin_email,
+        password: config.admin_password,
+        isAdmin: true,
+    });
+
+    console.info("Created default admin!");
 };
 
 module.exports = setupDbConnection;

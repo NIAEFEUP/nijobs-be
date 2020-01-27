@@ -16,4 +16,7 @@ module.exports = Object.freeze({
     god_token: process.env.GOD_TOKEN,
 
     test_log_requests: JSON.parse(process.env.TEST_LOG_REQUESTS),
+
+    admin_email: process.env.ADMIN_EMAIL,
+    admin_password: process.env.ADMIN_PASSWORD,
 });

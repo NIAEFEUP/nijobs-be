@@ -8,17 +8,15 @@ const AccountSchema = new Schema({
         trim: true,
         lowercase: true,
         unique: true,
-        required: "Email address is required",
+        required: true,
     },
     password: { type: String, required: true },
     isAdmin: {
         type: Boolean,
-        required: function() {
-            return !this.companyRef;
-        },
+        default: false,
         validate: {
             validator: function(isAdmin) {
-                return isAdmin && !this.company;
+                return isAdmin !== !!this.company;
             },
             message: "A user cannot be an admin and a company representative",
         },
@@ -29,10 +27,10 @@ const AccountSchema = new Schema({
             return !this.isAdmin;
         },
         validate: {
-            validator: function(companyRef) {
-                return !!companyRef && !this.isAdmin;
+            validator: function(company) {
+                return !!company !== this.isAdmin;
             },
-            message: "A user cannot be an admin and a company representative",
+            message: "A user cannot be a company representative and an admin",
 
         },
     },
