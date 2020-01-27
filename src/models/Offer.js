@@ -15,16 +15,16 @@ const OfferSchema = new Schema({
         required: true,
         validate: [
             validatePublishDate,
-            "`publishDate` must be earlier than `endDate`",
+            "`publishDate` must be earlier than `publishEndDate`",
         ],
     },
 
-    endDate: {
+    publishEndDate: {
         type: Date,
         required: true,
         validate: [
             validateEndDate,
-            `\`endDate\` must not differ from \`publishDate\` by more than ${OFFER_MAX_LIFETIME_MONTHS} months`,
+            `\`publishEndDate\` must not differ from \`publishDate\` by more than ${OFFER_MAX_LIFETIME_MONTHS} months`,
         ],
     },
 
@@ -79,7 +79,7 @@ const OfferSchema = new Schema({
 
 // Checking if the publication date is less than or equal than the end date.
 function validatePublishDate(value) {
-    return value <= this.endDate;
+    return value <= this.publishEndDate;
 }
 
 function validateEndDate(value) {
@@ -103,7 +103,7 @@ OfferSchema.query.current = function() {
         publishDate: {
             $lte: new Date(Date.now()),
         },
-        endDate: {
+        publishEndDate: {
             $gt: new Date(Date.now()),
         },
     });

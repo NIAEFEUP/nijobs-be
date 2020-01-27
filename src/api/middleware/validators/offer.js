@@ -17,12 +17,28 @@ const create = useExpressValidators([
 
     body("publishDate", ValidationReasons.DEFAULT)
         .optional()
-        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .toDate(),
 
-    body("endDate", ValidationReasons.DEFAULT)
+    body("publishEndDate", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
+        .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
+        .custom((publishEndDateCandidate, { req }) => {
+            const { publishDate: publishDateRaw } = req.body;
+            // Default values and also handling if it is string or date object
+            const publishDate =
+                (publishDateRaw instanceof Date ? publishDateRaw.toISOString() : publishDateRaw)
+                || (new Date(Date.now())).toISOString();
+
+            if (publishEndDateCandidate <= publishDate) {
+                // end date is earlier than publish date, error!
+                throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
+            }
+
+            // Returning truthy value to indicate no error ocurred
+            return true;
+        })
         .toDate(),
 
     body("jobMinDuration", ValidationReasons.DEFAULT)

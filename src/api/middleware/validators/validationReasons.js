@@ -12,6 +12,8 @@ const ValidationReasons = Object.freeze({
     EMAIL: "must-be-a-valid-email",
     HAVE_NUMBER: "must-contain-number",
     ALREADY_EXISTS: (variable) => `${variable}-already-exists`,
+    DATE_EXPIRED: "date-already-past",
+    MUST_BE_AFTER: (variable) => `must-be-after:${variable}`,
 });
 
 module.exports = ValidationReasons;

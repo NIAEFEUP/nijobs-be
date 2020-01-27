@@ -7,6 +7,7 @@ const TechnologyTypes = require("../../src/models/TechnologyTypes");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ValidatorTester = require("../utils/ValidatorTester");
 const withGodToken = require("../utils/GodToken");
+const { DAY_TO_MS } = require("../utils/TimeConstants");
 
 //----------------------------------------------------------------
 
@@ -64,10 +65,12 @@ describe("Offer endpoint tests", () => {
                 FieldValidatorTester.mustBeDate();
             });
 
-            describe("endDate", () => {
-                const FieldValidatorTester = BodyValidatorTester("endDate");
+            describe("publishEndDate", () => {
+                const FieldValidatorTester = BodyValidatorTester("publishEndDate");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeDate();
+                FieldValidatorTester.mustBeFuture();
+                FieldValidatorTester.mustBeAfter("publishDate");
             });
 
             describe("jobMinDuration", () => {
@@ -150,8 +153,8 @@ describe("Offer endpoint tests", () => {
             test("Should successfully create an Offer", async () => {
                 const offer = {
                     title: "Test Offer",
-                    publishDate: "2019-11-17T00:00:00.000Z",
-                    endDate: "2019-11-18T00:00:00.000Z",
+                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
+                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
                     description: "For Testing Purposes",
                     contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                     jobType: "SUMMER INTERNSHIP",
@@ -193,7 +196,7 @@ describe("Offer endpoint tests", () => {
 
             const offer = {
                 title: "Test Offer",
-                endDate: "2019-11-25T00:00:00.000Z",
+                publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
                 description: "For Testing Purposes",
                 contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                 jobType: "SUMMER INTERNSHIP",
@@ -243,7 +246,7 @@ describe("Offer endpoint tests", () => {
                 const test_offer = {
                     title: "Test Offer",
                     publishDate: "2019-11-22T00:00:00.000Z",
-                    endDate: "2019-11-28T00:00:00.000Z",
+                    publishEndDate: "2019-11-28T00:00:00.000Z",
                     description: "For Testing Purposes",
                     contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                     jobType: "SUMMER INTERNSHIP",
@@ -256,7 +259,7 @@ describe("Offer endpoint tests", () => {
                 const expired_test_offer = {
                     title: "Expired Test Offer",
                     publishDate: "2019-11-17",
-                    endDate: "2019-11-18",
+                    publishEndDate: "2019-11-18",
                     description: "For Testing Purposes",
                     contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                     jobType: "SUMMER INTERNSHIP",
@@ -269,7 +272,7 @@ describe("Offer endpoint tests", () => {
                 const future_test_offer = {
                     title: "Future Test Offer",
                     publishDate: "2019-12-12",
-                    endDate: "2019-12-22",
+                    publishEndDate: "2019-12-22",
                     description: "For Testing Purposes",
                     contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                     jobType: "SUMMER INTERNSHIP",
@@ -321,7 +324,7 @@ describe("Offer endpoint tests", () => {
                 const test_offer = {
                     title: "Test Offer",
                     publishDate: "2019-11-22T00:00:00.000Z",
-                    endDate: "2019-11-28T00:00:00.000Z",
+                    publishEndDate: "2019-11-28T00:00:00.000Z",
                     description: "For Testing Purposes",
                     contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
                     jobType: "SUMMER INTERNSHIP",

@@ -36,7 +36,9 @@ module.exports = (app) => {
     app.use(passport.session());
 
     // Adds route logging
-    app.use(morgan("common"));
+    if (process.env.NODE_ENV !== "test" || config.test_log_requests) {
+        app.use(morgan("common"));
+    }
 
     // Adding headers (CORS)
     app.use((_, res, next) => {

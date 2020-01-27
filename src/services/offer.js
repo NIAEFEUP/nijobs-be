@@ -13,7 +13,7 @@ class OfferService {
     async create({
         title,
         publishDate = new Date(Date.now()),
-        endDate,
+        publishEndDate,
         jobMinDuration,
         jobMaxDuration,
         jobStartDate,
@@ -32,7 +32,7 @@ class OfferService {
         const offer = await Offer.create({
             title,
             publishDate,
-            endDate,
+            publishEndDate,
             jobMinDuration,
             jobMaxDuration,
             jobStartDate,
