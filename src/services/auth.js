@@ -1,5 +1,5 @@
 const Account = require("../models/Account");
-
+const hash = require("../lib/passwordHashing");
 class AuthService {
     // TODO: Use typedi or similar
     constructor() {
@@ -9,7 +9,7 @@ class AuthService {
     async register(email, password) {
         const account = await Account.create({
             email,
-            password,
+            password: await hash(password),
             isAdmin: true,
         });
 

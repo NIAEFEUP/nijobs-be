@@ -45,16 +45,5 @@ AccountSchema.methods.validatePassword = async function(password) {
     }
 };
 
-AccountSchema.pre("save", async function(next) {
-    if (this.password && this.isModified("password")) {
-        try {
-            this.password = await bcrypt.hash(this.password, 10);
-        } catch (error) {
-            return next(error);
-        }
-    }
-    return next();
-});
-
 const Account = mongoose.model("Account", AccountSchema);
 module.exports = Account;
