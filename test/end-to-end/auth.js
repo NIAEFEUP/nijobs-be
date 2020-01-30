@@ -118,6 +118,17 @@ describe("Login endpoint test", () => {
             }
         );
 
+        test("should unsuccessfully login with registered account (wrong password)", async () => {
+            const res = await test_agent
+                .post("/auth/login")
+                .send({
+                    email: "user@gmail.com",
+                    password: "password",
+                });
+
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+        });
+
 
         test("should successfully login with registered account", async () => {
             const res = await test_agent
