@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 
-const CompanyApplicaionSchema = new Schema({
+const CompanyApplicationSchema = new Schema({
     email: {
         type: String,
         trim: true,
@@ -16,7 +16,7 @@ const CompanyApplicaionSchema = new Schema({
         minlength: 10,
         required: true,
     },
-    submitedAt: {
+    submittedAt: {
         type: Date,
         required: true,
     },
@@ -24,19 +24,20 @@ const CompanyApplicaionSchema = new Schema({
         type: Date,
         validate: [
             validateDecisionDate,
-            "`approvalDate` must be after `submitDate`",
+            "`approvedAt` must be after `submittedAt`",
         ],
     },
     rejectedAt: {
         type: Date,
         validate: [
             validateDecisionDate,
-            "`rejectedDate` must be after `submitDate`",
+            "`rejectedAt` must be after `submittedAt`",
         ],
     },
     rejectReason: {
         type: String,
         maxlength: 1500,
+        minlength: 10,
         required: function() {
             return !!this.rejectedAt;
         },
@@ -44,8 +45,8 @@ const CompanyApplicaionSchema = new Schema({
 });
 
 function validateDecisionDate(value) {
-    return !value || (value > this.submitDate);
+    return !value || (value > this.submittedAt);
 }
 
-const CompanyApplicaion = mongoose.model("CompanyApplicaion", CompanyApplicaionSchema);
-module.exports = CompanyApplicaion;
+const CompanyApplication = mongoose.model("CompanyApplication", CompanyApplicationSchema);
+module.exports = CompanyApplication;
