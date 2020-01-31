@@ -104,6 +104,47 @@ const SchemaTester = (Model) => ({
             });
         });
     },
+
+    mutuallyExclusive: (firstField, secondField, customObject) => {
+        describe(`${firstField} and ${secondField} must be mutually exclusive`, () => {
+            test(`if ${firstField} and ${secondField} are defined an error should be thrown`, async () => {
+                const model = new Model(customObject);
+
+                try {
+                    await model.validate();
+                } catch (err) {
+                    expect(err.errors[firstField]).toBeDefined();
+                    expect(err.errors[firstField]).toHaveProperty("kind", "user defined");
+                    expect(err.errors[firstField]).toHaveProperty("message",
+                        `\`${firstField}\` and \`${secondField}\` are mutually exclusive`);
+                }
+            });
+
+            test(`if only ${firstField} is defined it should not throw error`, async () => {
+                const onlyFirst =  { ...customObject };
+                delete onlyFirst[secondField];
+                const model = new Model(onlyFirst);
+
+                try {
+                    await model.validate();
+                } catch (err) {
+                    expect(err.errors[firstField]).not.toBeDefined();
+                }
+            });
+
+            test(`if only ${secondField} is defined it should not throw error`, async () => {
+                const onlySecond =  { ...customObject };
+                delete onlySecond[firstField];
+                const model = new Model(onlySecond);
+
+                try {
+                    await model.validate();
+                } catch (err) {
+                    expect(err.errors[firstField]).not.toBeDefined();
+                }
+            });
+        });
+    },
 });
 
 module.exports = SchemaTester;

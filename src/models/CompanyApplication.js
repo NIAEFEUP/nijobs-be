@@ -23,15 +23,27 @@ const CompanyApplicationSchema = new Schema({
     approvedAt: {
         type: Date,
         validate: [
-            validateDecisionDate,
-            "`approvedAt` must be after `submittedAt`",
+            {
+                validator: validateDecisionDate,
+                msg: "`approvedAt` must be after `submittedAt`",
+            },
+            {
+                validator: validateApprovedDate,
+                msg: "`approvedAt` and `rejectedAt` are mutually exclusive",
+            },
         ],
     },
     rejectedAt: {
         type: Date,
         validate: [
-            validateDecisionDate,
-            "`rejectedAt` must be after `submittedAt`",
+            {
+                validator: validateDecisionDate,
+                msg: "`rejectedAt` must be after `submittedAt`",
+            },
+            {
+                validator: validateRejectedDate,
+                msg: "`approvedAt` and `rejectedAt` are mutually exclusive",
+            },
         ],
     },
     rejectReason: {
@@ -46,6 +58,15 @@ const CompanyApplicationSchema = new Schema({
 
 function validateDecisionDate(value) {
     return !value || (value > this.submittedAt);
+}
+
+function validateApprovedDate(value) {
+
+    return !value || !this.rejectedAt;
+}
+
+function validateRejectedDate(value) {
+    return !value || !this.approvedAt;
 }
 
 const CompanyApplication = mongoose.model("CompanyApplication", CompanyApplicationSchema);
