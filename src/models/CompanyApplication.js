@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const ApplicationStatus = require("./ApplicationStatus");
 
 const CompanyApplicationSchema = new Schema({
     email: {
@@ -54,6 +55,12 @@ const CompanyApplicationSchema = new Schema({
             return !!this.rejectedAt;
         },
     },
+});
+
+CompanyApplicationSchema.virtual("state").get(function() {
+    if (!this.approvedAt && !this.rejectedAt) return ApplicationStatus.PENDING;
+    else if (this.approvedAt) return ApplicationStatus.APPROVED;
+    else return ApplicationStatus.REJECTED;
 });
 
 function validateDecisionDate(value) {

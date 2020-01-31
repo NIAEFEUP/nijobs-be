@@ -1,5 +1,6 @@
 const CompanyApplication = require("../src/models/CompanyApplication");
 const SchemaTester = require("./utils/SchemaTester");
+const ApplicationStatus = require("../src/models/ApplicationStatus");
 
 const companyApplicationTester = SchemaTester(CompanyApplication);
 describe("# CompanyApplication schema tests", () => {
@@ -26,6 +27,36 @@ describe("# CompanyApplication schema tests", () => {
         companyApplicationTester.maxLength("motivation", 1500);
         companyApplicationTester.minLength("rejectReason", 10);
         companyApplicationTester.maxLength("rejectReason", 1500);
+    });
+
+    describe("Virtual field tests", () => {
+        describe("Test `status` virtual field", () => {
+            test("should return PENDING", () => {
+                const application = new CompanyApplication({
+                    submittedAt: new Date("01/01/2020"),
+                });
+
+                expect(application.state).toBe(ApplicationStatus.PENDING);
+            });
+
+            test("should return REJECTED", () => {
+                const application = new CompanyApplication({
+                    submittedAt: new Date("01/01/2020"),
+                    rejectedAt: new Date("02/01/2020"),
+                });
+                expect(application.state).toBe(ApplicationStatus.REJECTED);
+            });
+
+            test("should return APPROVED", () => {
+                const application = new CompanyApplication({
+                    submittedAt: new Date("01/01/2020"),
+                    approvedAt: new Date("02/01/2020"),
+                });
+                expect(application.state).toBe(ApplicationStatus.APPROVED);
+            });
+
+
+        });
     });
 
 });
