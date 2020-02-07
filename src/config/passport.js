@@ -9,11 +9,11 @@ passport.use(new LocalStrategy({
     passwordField: "password",
 },
 (email, password, done) => {
-    Account.findOne({ email }, (err, user) => {
+    Account.findOne({ email }, async (err, user) => {
         if (err) {
             return done(err);
         }
-        if (!user || !user.validatePassword(password)) {
+        if (!user || !(await user.validatePassword(password))) {
             return done(null, false, { message: "Incorrect email or password." });
         }
         return done(null, user);

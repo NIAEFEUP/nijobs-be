@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const config = require("../config/env");
 const Account = require("../models/Account");
-
+const hash  = require("../lib/passwordHashing");
 const setupDbConnection = async () => {
     if (!(config.db_uri || (config.db_host && config.db_port))) {
         console.error("Either 'DB_URI' or 'DB_HOST' and 'DB_PORT' must be specified in the env file! See README.md for details.");
@@ -49,7 +49,7 @@ const createDefaultAdmin = async () => {
 
     await Account.create({
         email: config.admin_email,
-        password: config.admin_password,
+        password: await hash(config.admin_password),
         isAdmin: true,
     });
 

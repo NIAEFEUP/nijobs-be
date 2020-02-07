@@ -4,7 +4,7 @@ const Account = require("../../src/models/Account");
 const ValidatorTester = require("../utils/ValidatorTester");
 const withGodToken = require("../utils/GodToken");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
-
+const hash = require("../../src/lib/passwordHashing");
 
 describe("Register endpoint test", () => {
     describe("Input Validation (unsuccessful registration)", () => {
@@ -89,7 +89,7 @@ describe("Login endpoint test", () => {
 
         beforeAll(async () => {
             await Account.deleteMany({});
-            await Account.create({ email: test_user.email, password: test_user.password, isAdmin: true });
+            await Account.create({ email: test_user.email, password: await hash(test_user.password), isAdmin: true });
         });
 
         test("should return an error when registering with an already existing email", async () => {
@@ -117,6 +117,17 @@ describe("Login endpoint test", () => {
                 expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             }
         );
+
+        test("should unsuccessfully login with registered account (wrong password)", async () => {
+            const res = await test_agent
+                .post("/auth/login")
+                .send({
+                    email: "user@gmail.com",
+                    password: "password",
+                });
+
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+        });
 
 
         test("should successfully login with registered account", async () => {
