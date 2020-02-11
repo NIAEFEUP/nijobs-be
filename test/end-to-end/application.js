@@ -48,12 +48,23 @@ describe("Company application endpoint test", () => {
                 await Account.deleteMany({});
             });
 
+            const RealDateNow = Date.now;
+            const mockCurrentDate = new Date("2019-11-23");
+
+            beforeEach(() => {
+                Date.now = () => mockCurrentDate.getTime();
+            });
+
+            afterEach(() => {
+                Date.now = RealDateNow;
+            });
+
             test("Valid creation", async () => {
                 const application = {
                     email: "test@test.com",
                     password: "password123",
                     companyName: "Testing company",
-                    motivation: "This comapny has a very valid motivation, because otherwise the tests would not exist.",
+                    motivation: "This company has a very valid motivation because otherwise, the tests would not exist.",
                 };
                 const res = await request()
                     .post("/application/company")
@@ -68,6 +79,7 @@ describe("Company application endpoint test", () => {
                 expect(created_application).toHaveProperty("email", application.email);
                 expect(created_application).toHaveProperty("companyName", application.companyName);
                 expect(created_application).toHaveProperty("motivation", application.motivation);
+                expect(created_application).toHaveProperty("submittedAt", mockCurrentDate);
             });
 
             describe("Invalid input", () => {
@@ -77,7 +89,6 @@ describe("Company application endpoint test", () => {
                         password: "password123",
                         companyName: "Testing company",
                         motivation: "This comapny has a very valid motivation, because otherwise the tests would not exist.",
-                        submittedAt: Date.now(),
                     };
 
                     await Account.create({
