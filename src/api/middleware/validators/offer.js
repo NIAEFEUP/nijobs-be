@@ -7,12 +7,13 @@ const JobTypes = require("../../../models/JobTypes");
 const FieldTypes = require("../../../models/FieldTypes");
 const TechnologyTypes = require("../../../models/TechnologyTypes");
 const OfferService = require("../../../services/offer");
+const offerConstants = require("../../../models/constants/Offer");
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
-        .isLength({ max: 90 }).withMessage(ValidationReasons.TOO_LONG(90))
+        .isLength({ max: offerConstants.title.max_length }).withMessage(ValidationReasons.TOO_LONG(90))
         .trim(),
 
     body("publishDate", ValidationReasons.DEFAULT)
@@ -57,7 +58,7 @@ const create = useExpressValidators([
     body("description", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
-        .isLength({ max: 1500 }).withMessage(ValidationReasons.TOO_LONG(1500))
+        .isLength({ max: offerConstants.description.max_length }).withMessage(ValidationReasons.TOO_LONG(1500))
         .trim(),
 
     body("contacts", ValidationReasons.DEFAULT)

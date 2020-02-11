@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const companyConstants = require("./constants/Company");
 
 const CompanySchema = new Schema({
     name: {
@@ -17,7 +18,7 @@ const CompanySchema = new Schema({
     },
     bio: {
         type: String,
-        maxlength: 1500,
+        maxlength: companyConstants.bio.max_length,
         required: true,
     },
 });

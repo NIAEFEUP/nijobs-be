@@ -8,6 +8,7 @@ const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ValidatorTester = require("../utils/ValidatorTester");
 const withGodToken = require("../utils/GodToken");
 const { DAY_TO_MS } = require("../utils/TimeConstants");
+const offerConstants = require("../../src/models/constants/Offer");
 
 //----------------------------------------------------------------
 
@@ -57,7 +58,7 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = BodyValidatorTester("title");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
-                FieldValidatorTester.hasMaxLength(90);
+                FieldValidatorTester.hasMaxLength(offerConstants.title.max_length);
             });
 
             describe("publishDate", () => {
@@ -92,7 +93,7 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = BodyValidatorTester("description");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
-                FieldValidatorTester.hasMaxLength(1500);
+                FieldValidatorTester.hasMaxLength(offerConstants.description.max_length);
             });
 
             describe("contacts", () => {

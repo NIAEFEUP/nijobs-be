@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const ApplicationStatus = require("./ApplicationStatus");
+const companyApplicationConstants = require("./constants/CompanyApplication");
 
 const CompanyApplicationSchema = new Schema({
     email: {
@@ -13,8 +14,8 @@ const CompanyApplicationSchema = new Schema({
     companyName: { type: String, required: true },
     motivation: {
         type: String,
-        maxlength: 1500,
-        minlength: 10,
+        maxlength: companyApplicationConstants.motivation.max_length,
+        minlength: companyApplicationConstants.motivation.min_length,
         required: true,
     },
     submittedAt: {
@@ -49,8 +50,8 @@ const CompanyApplicationSchema = new Schema({
     },
     rejectReason: {
         type: String,
-        maxlength: 1500,
-        minlength: 10,
+        maxlength: companyApplicationConstants.rejectReason.max_length,
+        minlength: companyApplicationConstants.rejectReason.min_length,
         required: function() {
             return !!this.rejectedAt;
         },
