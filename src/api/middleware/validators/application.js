@@ -9,7 +9,7 @@ const accountConstants = require("../../../models/constants/Account");
 const create = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .normalizeEmail().isEmail().withMessage(ValidationReasons.EMAIL)
+        .isEmail().normalizeEmail().withMessage(ValidationReasons.EMAIL)
         .bail()
         .custom(checkDuplicatedEmail)
         .trim(),

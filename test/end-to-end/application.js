@@ -9,7 +9,7 @@ const accountConstants = require("../../src/models/constants/Account");
 describe("Company application endpoint test", () => {
     describe("POST /application", () => {
         describe("Input Validation (unsuccessful application)", () => {
-            const EndpointValidatorTester = ValidatorTester((params) => request().post("/application/company").send(params));
+            const EndpointValidatorTester = ValidatorTester((params) => request().post("/apply/company").send(params));
             const BodyValidatorTester = EndpointValidatorTester("body");
             describe("email", () => {
                 const FieldValidatorTester = BodyValidatorTester("email");
@@ -67,7 +67,7 @@ describe("Company application endpoint test", () => {
                     motivation: "This company has a very valid motivation because otherwise, the tests would not exist.",
                 };
                 const res = await request()
-                    .post("/application/company")
+                    .post("/apply/company")
                     .send(application);
 
                 expect(res.status).toBe(HTTPStatus.OK);
@@ -97,7 +97,7 @@ describe("Company application endpoint test", () => {
                         isAdmin: true,
                     });
                     const res = await request()
-                        .post("/application/company")
+                        .post("/apply/company")
                         .send(application);
 
                     expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);

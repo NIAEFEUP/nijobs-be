@@ -7,7 +7,7 @@ const ApplicationService = require("../../services/application");
 const router = Router();
 
 module.exports = (app) => {
-    app.use("/application/company", router);
+    app.use("/apply/company", router);
 
     /**
      * Creates a new Company Application
