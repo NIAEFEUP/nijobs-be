@@ -14,8 +14,9 @@ class CompanyApplicationService {
             submittedAt: Date.now(),
         });
 
-        delete application[password];
-        return application;
+        const retVal = { ...application.toObject() };
+        delete retVal.password;
+        return retVal;
     }
 }
 
