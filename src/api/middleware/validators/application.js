@@ -2,14 +2,7 @@ const { body } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
-const Account = require("../../../models/Account");
-
-const checkDuplicatedEmail = async (email) => {
-    const acc = await Account.findOne({ email }).exec();
-    if (acc) {
-        throw new Error(ValidationReasons.ALREADY_EXISTS("email"));
-    }
-};
+const { checkDuplicatedEmail } = require("./validatorUtils");
 
 const create = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
