@@ -4,6 +4,7 @@ const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
 const { checkDuplicatedEmail } = require("./validatorUtils");
 const companyApplicationConstants = require("../../../models/constants/CompanyApplication");
+const companyConstants = require("../../../models/constants/Company");
 const accountConstants = require("../../../models/constants/Account");
 
 const create = useExpressValidators([
@@ -33,10 +34,10 @@ const create = useExpressValidators([
     body("companyName", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
-        .isLength({ max: companyApplicationConstants.companyName.max_length })
-        .withMessage(ValidationReasons.TOO_LONG(companyApplicationConstants.companyName.max_length))
-        .isLength({ min: companyApplicationConstants.companyName.min_length })
-        .withMessage(ValidationReasons.TOO_SHORT(companyApplicationConstants.companyName.min_length))
+        .isLength({ max: companyConstants.companyName.max_length })
+        .withMessage(ValidationReasons.TOO_LONG(companyConstants.companyName.max_length))
+        .isLength({ min: companyConstants.companyName.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(companyConstants.companyName.min_length))
         .trim(),
 ]);
 

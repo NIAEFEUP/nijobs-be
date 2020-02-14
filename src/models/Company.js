@@ -6,6 +6,8 @@ const CompanySchema = new Schema({
     name: {
         type: String,
         required: true,
+        maxlength: companyConstants.companyName.max_length,
+        minlength: companyConstants.companyName.min_length,
     },
     contacts: {
         type: Map,

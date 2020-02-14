@@ -5,6 +5,7 @@ const ValidatorTester = require("../utils/ValidatorTester");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 const companyApplicationConstants = require("../../src/models/constants/CompanyApplication");
 const accountConstants = require("../../src/models/constants/Account");
+const companyConstants = require("../../src/models/constants/Company");
 
 describe("Company application endpoint test", () => {
     describe("POST /application", () => {
@@ -37,8 +38,8 @@ describe("Company application endpoint test", () => {
                 const FieldValidatorTester = BodyValidatorTester("companyName");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
-                FieldValidatorTester.hasMinLength(companyApplicationConstants.companyName.min_length);
-                FieldValidatorTester.hasMaxLength(companyApplicationConstants.companyName.max_length);
+                FieldValidatorTester.hasMinLength(companyConstants.companyName.min_length);
+                FieldValidatorTester.hasMaxLength(companyConstants.companyName.max_length);
             });
         });
 
