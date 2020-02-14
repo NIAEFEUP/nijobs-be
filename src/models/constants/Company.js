@@ -1,4 +1,4 @@
-const companyConstants = {
+module.exports = Object.freeze({
     companyName: {
         min_length: 2,
         max_length: 50,
@@ -6,6 +6,4 @@ const companyConstants = {
     bio: {
         max_length: 1500,
     },
-};
-
-module.exports = companyConstants;
+});
