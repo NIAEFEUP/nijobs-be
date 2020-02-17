@@ -7,10 +7,10 @@ const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./Techn
 const PointSchema = require("./Point");
 const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./TimeConstants");
 const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
-const offerConstants = require("./constants/Offer");
+const OfferConstants = require("./constants/Offer");
 
 const OfferSchema = new Schema({
-    title: { type: String, maxlength: offerConstants.title.max_length, required: true },
+    title: { type: String, maxlength: OfferConstants.title.max_length, required: true },
     publishDate: {
         type: Date,
         required: true,
@@ -45,7 +45,7 @@ const OfferSchema = new Schema({
     },
 
     jobStartDate: { type: Date },
-    description: { type: String, maxlength: offerConstants.description.max_length, required: true },
+    description: { type: String, maxlength: OfferConstants.description.max_length, required: true },
 
     contacts: {
         type: Map,

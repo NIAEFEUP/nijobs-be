@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
-const companyConstants = require("./constants/Company");
+const CompanyConstants = require("./constants/Company");
 
 const CompanySchema = new Schema({
     name: {
         type: String,
         required: true,
-        maxlength: companyConstants.companyName.max_length,
-        minlength: companyConstants.companyName.min_length,
+        maxlength: CompanyConstants.companyName.max_length,
+        minlength: CompanyConstants.companyName.min_length,
     },
     contacts: {
         type: Map,
@@ -20,7 +20,7 @@ const CompanySchema = new Schema({
     },
     bio: {
         type: String,
-        maxlength: companyConstants.bio.max_length,
+        maxlength: CompanyConstants.bio.max_length,
         required: true,
     },
 });

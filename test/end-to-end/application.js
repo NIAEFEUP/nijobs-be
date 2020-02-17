@@ -3,9 +3,9 @@ const CompanyApplication  = require("../../src/models/CompanyApplication");
 const Account  = require("../../src/models/Account");
 const ValidatorTester = require("../utils/ValidatorTester");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
-const companyApplicationConstants = require("../../src/models/constants/CompanyApplication");
-const accountConstants = require("../../src/models/constants/Account");
-const companyConstants = require("../../src/models/constants/Company");
+const CompanyApplicationConstants = require("../../src/models/constants/CompanyApplication");
+const AccountConstants = require("../../src/models/constants/Account");
+const CompanyConstants = require("../../src/models/constants/Company");
 
 describe("Company application endpoint test", () => {
     describe("POST /application", () => {
@@ -22,7 +22,7 @@ describe("Company application endpoint test", () => {
                 const FieldValidatorTester = BodyValidatorTester("password");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
-                FieldValidatorTester.hasMinLength(accountConstants.password.min_length);
+                FieldValidatorTester.hasMinLength(AccountConstants.password.min_length);
                 FieldValidatorTester.hasNumber();
             });
 
@@ -30,16 +30,16 @@ describe("Company application endpoint test", () => {
                 const FieldValidatorTester = BodyValidatorTester("motivation");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
-                FieldValidatorTester.hasMinLength(companyApplicationConstants.motivation.min_length);
-                FieldValidatorTester.hasMaxLength(companyApplicationConstants.motivation.max_length);
+                FieldValidatorTester.hasMinLength(CompanyApplicationConstants.motivation.min_length);
+                FieldValidatorTester.hasMaxLength(CompanyApplicationConstants.motivation.max_length);
             });
 
             describe("companyName", () => {
                 const FieldValidatorTester = BodyValidatorTester("companyName");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
-                FieldValidatorTester.hasMinLength(companyConstants.companyName.min_length);
-                FieldValidatorTester.hasMaxLength(companyConstants.companyName.max_length);
+                FieldValidatorTester.hasMinLength(CompanyConstants.companyName.min_length);
+                FieldValidatorTester.hasMaxLength(CompanyConstants.companyName.max_length);
             });
         });
 
