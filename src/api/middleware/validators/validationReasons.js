@@ -10,7 +10,7 @@ const ValidationReasons = Object.freeze({
     IN_ARRAY: (vals) => `must-be-in:[${vals}]`,
     ARRAY_SIZE: (min, max) => `size-must-be-between:[${min},${max}]`,
     EMAIL: "must-be-a-valid-email",
-    HAVE_NUMBER: "must-contain-number",
+    HAS_NUMBER: "must-contain-number",
     ALREADY_EXISTS: (variable) => `${variable}-already-exists`,
     DATE_EXPIRED: "date-already-past",
     MUST_BE_AFTER: (variable) => `must-be-after:${variable}`,

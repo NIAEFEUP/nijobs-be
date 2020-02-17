@@ -261,7 +261,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             checkCommonErrorResponse(res);
             expect(res.body.errors).toContainEqual({
                 "location": location,
-                "msg": ValidationReasons.HAVE_NUMBER,
+                "msg": ValidationReasons.HAS_NUMBER,
                 "param": field_name,
                 "value": params[field_name],
             });

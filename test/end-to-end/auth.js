@@ -5,6 +5,7 @@ const ValidatorTester = require("../utils/ValidatorTester");
 const withGodToken = require("../utils/GodToken");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 const hash = require("../../src/lib/passwordHashing");
+const AccountConstants = require("../../src/models/constants/Account");
 
 describe("Register endpoint test", () => {
     describe("Input Validation (unsuccessful registration)", () => {
@@ -20,7 +21,7 @@ describe("Register endpoint test", () => {
             const FieldValidatorTester = BodyValidatorTester("password");
             FieldValidatorTester.isRequired();
             FieldValidatorTester.mustBeString();
-            FieldValidatorTester.hasMinLength(8);
+            FieldValidatorTester.hasMinLength(AccountConstants.password.min_length);
             FieldValidatorTester.hasNumber();
         });
     });

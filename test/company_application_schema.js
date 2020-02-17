@@ -1,6 +1,7 @@
 const CompanyApplication = require("../src/models/CompanyApplication");
 const SchemaTester = require("./utils/SchemaTester");
 const ApplicationStatus = require("../src/models/ApplicationStatus");
+const CompanyApplicationConstants = require("../src/models/constants/CompanyApplication");
 
 const companyApplicationTester = SchemaTester(CompanyApplication);
 describe("# CompanyApplication schema tests", () => {
@@ -23,10 +24,10 @@ describe("# CompanyApplication schema tests", () => {
             rejectedAt: new Date("02/01/2020"),
             approvedAt: new Date("02/01/2020"),
         });
-        companyApplicationTester.minLength("motivation", 10);
-        companyApplicationTester.maxLength("motivation", 1500);
-        companyApplicationTester.minLength("rejectReason", 10);
-        companyApplicationTester.maxLength("rejectReason", 1500);
+        companyApplicationTester.minLength("motivation", CompanyApplicationConstants.motivation.min_length);
+        companyApplicationTester.maxLength("motivation", CompanyApplicationConstants.motivation.max_length);
+        companyApplicationTester.minLength("rejectReason", CompanyApplicationConstants.rejectReason.min_length);
+        companyApplicationTester.maxLength("rejectReason", CompanyApplicationConstants.rejectReason.max_length);
     });
 
     describe("Virtual field tests", () => {
