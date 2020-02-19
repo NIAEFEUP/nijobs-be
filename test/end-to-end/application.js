@@ -89,7 +89,7 @@ describe("Company application endpoint test", () => {
                         email: "test2@test.com",
                         password: "password123",
                         companyName: "Testing company",
-                        motivation: "This comapny has a very valid motivation, because otherwise the tests would not exist.",
+                        motivation: "This company has a very valid motivation, because otherwise the tests would not exist.",
                     };
 
                     await Account.create({

@@ -6,6 +6,7 @@ const { checkDuplicatedEmail } = require("./validatorUtils");
 const CompanyApplicationConstants = require("../../../models/constants/CompanyApplication");
 const CompanyConstants = require("../../../models/constants/Company");
 const AccountConstants = require("../../../models/constants/Account");
+const { applicationUniqueness } = require("../../../models/CompanyApplication");
 
 const create = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
@@ -13,6 +14,7 @@ const create = useExpressValidators([
         .isEmail().normalizeEmail().withMessage(ValidationReasons.EMAIL)
         .bail()
         .custom(checkDuplicatedEmail)
+        .custom(applicationUniqueness)
         .trim(),
 
     body("password", ValidationReasons.DEFAULT)
@@ -42,4 +44,18 @@ const create = useExpressValidators([
 ]);
 
 
-module.exports = { create };
+const businessRules = [
+    // Email already linked to a non-rejected company application
+    async (req, _res, next) => {
+        try {
+            await applicationUniqueness(req.body.email);
+            return next();
+
+        } catch (e) {
+            return next(e);
+        }
+    },
+];
+
+
+module.exports = { create, businessRules };

@@ -1,6 +1,6 @@
 const CompanyApplication = require("../src/models/CompanyApplication");
 const SchemaTester = require("./utils/SchemaTester");
-const ApplicationStatus = require("../src/models/ApplicationStatus");
+const ApplicationStatus = require("../src/models/constants/ApplicationStatus");
 const CompanyApplicationConstants = require("../src/models/constants/CompanyApplication");
 
 const companyApplicationTester = SchemaTester(CompanyApplication);
