@@ -6,7 +6,7 @@ const HTTPStatus = require("http-status-codes");
 
 const apiRoutes = require("../api");
 const config = require("../config/env");
-const { dbHandler, defaultErrorHandler } = require("../api/middleware/errorHandler");
+const { defaultErrorHandler } = require("../api/middleware/errorHandler");
 
 
 module.exports = (app) => {
@@ -63,8 +63,6 @@ module.exports = (app) => {
     app.use(apiRoutes());
 
     // - Error handling
-    // Adds custom error handling for db errors
-    app.use(dbHandler);
     // Adds default error catcher as last resort
     app.use(defaultErrorHandler);
 };

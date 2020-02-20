@@ -1,9 +1,6 @@
 const HTTPStatus = require("http-status-codes");
 const { validationResult } = require("express-validator");
 
-const { errorExtractor } = require("../../lib/dbErrorExtractor");
-// const NijobsBusinessRulesError = require("../../lib/NijobsBusinessRulesError");
-
 const ErrorTypes = Object.freeze({
     VALIDATION_ERROR: 1,
     // Possibly nested in the future
@@ -29,30 +26,6 @@ const useExpressValidators = (validators) => async (req, res, next) => {
         });
 };
 
-const dbHandler = (err, req, res, next) => {
-    if (!err.hasOwnProperty("name") || err.name !== "MongoError") {
-        return next(err);
-    }
-
-    const result = {
-        error_code: ErrorTypes.DB_ERROR,
-        errors: [errorExtractor(err)],
-    };
-
-    return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).send(result);
-};
-
-// const businessRulesHandler = (err, req, res, next) => {
-//     if (!(err instanceof NijobsBusinessRulesError)) return next(err);
-
-//     const result = {
-//         error_code: ErrorTypes.BUSINESS_RULES_ERROR,
-//         errors: [err.message],
-//     };
-
-//     return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).send(result);
-// };
-
 const defaultErrorHandler = (err, req, res, _) => {
     console.error("UNEXPECTED ERROR:", err);
 
@@ -64,7 +37,6 @@ const defaultErrorHandler = (err, req, res, _) => {
 };
 
 module.exports = {
-    dbHandler,
     defaultErrorHandler,
     ErrorTypes,
     useExpressValidators,
