@@ -124,3 +124,4 @@ async function validateSingleActiveApplication(value) {
 const CompanyApplication = mongoose.model("CompanyApplication", CompanyApplicationSchema);
 module.exports = CompanyApplication;
 module.exports.applicationUniqueness = applicationUniqueness;
+module.exports.CompanyApplicationRules = CompanyApplicationRules;
