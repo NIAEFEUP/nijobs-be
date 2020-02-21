@@ -13,7 +13,7 @@ const create = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isEmail().normalizeEmail().withMessage(ValidationReasons.EMAIL)
         .bail()
-        .custom(checkDuplicatedEmail)
+        .custom(checkDuplicatedEmail).bail()
         .custom(applicationUniqueness)
         .trim(),
 
@@ -44,18 +44,4 @@ const create = useExpressValidators([
 ]);
 
 
-const businessRules = [
-    // Email already linked to a non-rejected company application
-    async (req, _res, next) => {
-        try {
-            await applicationUniqueness(req.body.email);
-            return next();
-
-        } catch (e) {
-            return next(e);
-        }
-    },
-];
-
-
-module.exports = { create, businessRules };
+module.exports = { create };

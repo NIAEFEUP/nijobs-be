@@ -4,7 +4,6 @@ const { validationResult } = require("express-validator");
 const ErrorTypes = Object.freeze({
     VALIDATION_ERROR: 1,
     // Possibly nested in the future
-    DB_ERROR: 2,
     FORBIDDEN: 3,
     UNEXPECTED_ERROR: 99,
 });

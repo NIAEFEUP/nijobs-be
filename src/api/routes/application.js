@@ -11,7 +11,7 @@ module.exports = (app) => {
     /**
      * Creates a new Company Application
      */
-    router.post("/", validators.create, ...validators.businessRules, async (req, res, next) => {
+    router.post("/", validators.create, async (req, res, next) => {
 
         try {
             // This is safe since the service is destructuring the passed object and the fields have been validated
