@@ -1,17 +1,18 @@
 require("dotenv-flow").config();
 
-const config = Object.freeze({
+const generateDBUriFromEnv = () => {
+    if (!process.env.DB_HOST || !process.env.DB_PORT || !process.env.DB_NAME)
+        throw new Error("Missing DB Params to generate URI. Either pass a DB_URI or (DB_HOST, DB_PORT and DB_NAME) in .env");
+
+    return `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+};
+
+module.exports = Object.freeze({
     // Database
     db_host: process.env.DB_HOST,
     db_port: process.env.DB_PORT,
     db_name: process.env.DB_NAME,
-    db_uri: process.env.DB_URI ||
-    (
-        process.env.DB_HOST
-            && process.env.DB_PORT
-            && process.env.DB_NAME
-            && `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`
-    ),
+    db_uri: process.env.DB_URI || generateDBUriFromEnv(),
     db_user: process.env.DB_USER,
     db_pass: process.env.DB_PASS,
 
@@ -24,5 +25,3 @@ const config = Object.freeze({
     admin_password: process.env.ADMIN_PASSWORD,
     access_control_allow_origin: process.env.ACCESS_CONTROL_ALLOW_ORIGIN || "*",
 });
-
-module.exports = config;

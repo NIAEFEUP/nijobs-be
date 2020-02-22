@@ -12,6 +12,7 @@ const setupDbConnection = async () => {
     const options = {
         user: config.db_user,
         pass: config.db_pass,
+        dbName: config.db_name,
         useNewUrlParser: true,
         useCreateIndex: true,
     };
