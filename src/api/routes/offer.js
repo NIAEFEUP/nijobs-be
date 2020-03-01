@@ -32,7 +32,7 @@ module.exports = (app) => {
     router.post("/", authMiddleware.isGod, validators.create, async (req, res) => {
         try {
             // This is safe since the service is destructuring the passed object and the fields have been validated
-            if (await Offer.find().activeOffersCount(req.body).length < OFFER_LIMIT_REACHED) {
+            if (await Offer.find().activeOffersCount(req.body).length < MAX_ACTIVE_OFFERS_ALLOWED) {
                 const offer = await (new OfferService()).create(req.body);
 
                 return res.json(offer);
