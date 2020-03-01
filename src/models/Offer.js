@@ -119,8 +119,8 @@ OfferSchema.query.activeOffersCount = function(canditateCompany) {
             $gt: new Date(Date.now()),
         },
         owner: {
-            $eq: canditateCompany.owner
-        }
+            $eq: canditateCompany.owner,
+        },
     });
 };
 
@@ -133,5 +133,5 @@ const MAX_ACTIVE_OFFERS_ALLOWED = 10;
 
 module.exports = {
     Offer,
-    MAX_ACTIVE_OFFERS_ALLOWED
+    MAX_ACTIVE_OFFERS_ALLOWED,
 };
