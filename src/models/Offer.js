@@ -110,9 +110,28 @@ OfferSchema.query.current = function() {
     });
 };
 
+OfferSchema.query.activeOffersCount = function(canditateCompany) {
+    return this.where({
+        publishDate: {
+            $lte: new Date(Date.now()),
+        },
+        publishEndDate: {
+            $gt: new Date(Date.now()),
+        },
+        owner: {
+            $eq: canditateCompany.owner
+        }
+    });
+};
+
 const Offer = mongoose.model("Offer", OfferSchema);
+const MAX_ACTIVE_OFFERS_ALLOWED = 10;
+
 
 // Useful for testing correct field implementation
 // console.log("DBG: ", OfferSchema.path("location"));
 
-module.exports = Offer;
+module.exports = {
+    Offer,
+    MAX_ACTIVE_OFFERS_ALLOWED
+};

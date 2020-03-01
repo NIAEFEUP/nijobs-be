@@ -14,6 +14,7 @@ const ValidationReasons = Object.freeze({
     ALREADY_EXISTS: (variable) => `${variable}-already-exists`,
     DATE_EXPIRED: "date-already-past",
     MUST_BE_AFTER: (variable) => `must-be-after:${variable}`,
+    OFFER_LIMIT_REACHED: (variable) => `The company ${variable} has already reached the allowed amount of active offers.`,
 });
 
 module.exports = ValidationReasons;
