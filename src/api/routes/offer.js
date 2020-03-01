@@ -1,8 +1,10 @@
 const HTTPStatus = require("http-status-codes");
 const { Router } = require("express");
+const Offer = require("../../models/Offer");
 
 const authMiddleware = require("../middleware/auth");
 const validators = require("../middleware/validators/offer");
+const ValidationReasons = require("../middleware/validators/validationReasons");
 const OfferService = require("../../services/offer");
 
 const router = Router();
@@ -32,7 +34,7 @@ module.exports = (app) => {
             // This is safe since the service is destructuring the passed object and the fields have been validated
             if (await Offer.find().activeOffersCount(req.body).length < MAX_ACTIVE_OFFERS_ALLOWED) {
                 const offer = await (new OfferService()).create(req.body);
-                
+
                 return res.json(offer);
             } else throw new Error(ValidationReasons.OFFER_LIMIT_REACHED(req.body.owner));
 
