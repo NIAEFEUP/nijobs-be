@@ -110,18 +110,12 @@ OfferSchema.query.current = function() {
     });
 };
 
-OfferSchema.query.activeOffersCount = function(canditateCompany) {
-    return this.countDocuments({
-        publishDate: {
-            $lte: new Date(Date.now()),
-        },
-        publishEndDate: {
-            $gt: new Date(Date.now()),
-        },
+OfferSchema.query.activeOffers = function(canditateCompany) {
+    return this.countDocuments(this.current().where({
         owner: {
             $eq: canditateCompany,
         },
-    });
+    }));
 };
 
 const Offer = mongoose.model("Offer", OfferSchema);

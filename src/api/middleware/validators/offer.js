@@ -8,6 +8,7 @@ const FieldTypes = require("../../../models/FieldTypes");
 const TechnologyTypes = require("../../../models/TechnologyTypes");
 const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
+const OfferModel = require("../../../models/Offer");
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
@@ -97,7 +98,14 @@ const create = useExpressValidators([
 
     // TODO: Add validation for the owner being a Mongo ObjectId that is correctly referencing an existing Company
     body("owner", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .custom(async function(owner) {
+            const active_offers = await OfferModel.find().activeOffers(owner);
+            const max_allowed = OfferConstants.active_offers.max;
+
+            if (active_offers < max_allowed) return true;
+            else throw new Error(ValidationReasons.OFFER_LIMIT_REACHED(owner));
+        }),
 
     body("location", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
