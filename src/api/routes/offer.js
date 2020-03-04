@@ -1,12 +1,9 @@
 const HTTPStatus = require("http-status-codes");
 const { Router } = require("express");
-const Offer = require("../../models/Offer");
 
 const authMiddleware = require("../middleware/auth");
 const validators = require("../middleware/validators/offer");
-const ValidationReasons = require("../middleware/validators/validationReasons");
 const OfferService = require("../../services/offer");
-const OfferConstants = require("../../models/constants/Offer");
 
 const router = Router();
 
