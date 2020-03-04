@@ -5,4 +5,7 @@ module.exports = Object.freeze({
     description: {
         max_length: 1500,
     },
+    active_offers: {
+        max: 10,
+    },
 });

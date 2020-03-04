@@ -6,6 +6,7 @@ const authMiddleware = require("../middleware/auth");
 const validators = require("../middleware/validators/offer");
 const ValidationReasons = require("../middleware/validators/validationReasons");
 const OfferService = require("../../services/offer");
+const OfferConstants = require("../../models/constants/Offer");
 
 const router = Router();
 
@@ -31,8 +32,12 @@ module.exports = (app) => {
      */
     router.post("/", authMiddleware.isGod, validators.create, async (req, res) => {
         try {
+
+            const active_offers = await Offer.find().activeOffersCount(req.body.owner);
+            const max_allowed = OfferConstants.active_offers.max;
+
             // This is safe since the service is destructuring the passed object and the fields have been validated
-            if (await Offer.find().activeOffersCount(req.body).length < Offer.MAX_ACTIVE_OFFERS_ALLOWED) {
+            if (active_offers < max_allowed) {
                 const offer = await (new OfferService()).create(req.body);
 
                 return res.json(offer);
