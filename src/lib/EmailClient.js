@@ -12,7 +12,7 @@ class EmailClient {
         this.transporter = nodemailer.createTransport({
             host: this.host,
             port: this.port,
-            secure: false, // true for 465, false for other ports
+            secure: false,
             auth: {
                 user,
                 pass,

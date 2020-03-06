@@ -17,6 +17,18 @@ class AuthService {
             email: account.email,
         };
     }
+
+    async registerCompany(email, password, company_id) {
+        const account = await Account.create({
+            email,
+            password,
+            company: company_id,
+        });
+
+        return {
+            email: account.email,
+        };
+    }
 }
 
 module.exports = AuthService;

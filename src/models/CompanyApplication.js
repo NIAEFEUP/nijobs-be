@@ -77,5 +77,16 @@ function validateRejectedDate(value) {
     return !value || !this.approvedAt;
 }
 
+CompanyApplicationSchema.query.pending = function() {
+    return this.where({
+        approvedAt: {
+            $exists: false,
+        },
+        rejectedAt: {
+            $exists: false,
+        },
+    });
+};
+
 const CompanyApplication = mongoose.model("CompanyApplication", CompanyApplicationSchema);
 module.exports = CompanyApplication;
