@@ -19,5 +19,11 @@ module.exports = Object.freeze({
 
     admin_email: process.env.ADMIN_EMAIL,
     admin_password: process.env.ADMIN_PASSWORD,
+    
     access_control_allow_origin: process.env.ACCESS_CONTROL_ALLOW_ORIGIN || "*",
+
+    email_host: process.env.EMAIL_HOST,
+    email_port: process.env.EMAIL_PORT,
+    email_user: process.env.EMAIL_USER,
+    email_password: process.env.EMAIL_PASSWORD,
 });
