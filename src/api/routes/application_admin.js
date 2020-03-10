@@ -13,7 +13,7 @@ module.exports = (app) => {
     /**
      * Returns active company applicaitions
      */
-    router.get("/", authMiddleware.isAdmin, validators.get, async (req, res) => {
+    router.get("/", authMiddleware.authRequired, authMiddleware.isAdmin, validators.get, async (req, res) => {
         try {
 
             const applications = await (new ApplicationService()).get(req.query);
@@ -27,7 +27,7 @@ module.exports = (app) => {
     /**
      * Accepts the application of a company
      */
-    router.put("/:id/accept", authMiddleware.isAdmin, async (req, res) => {
+    router.put("/:id/accept", authMiddleware.authRequired, authMiddleware.isAdmin, async (req, res) => {
         try {
 
             // This is safe since the service is destructuring the passed object and the fields have been validated

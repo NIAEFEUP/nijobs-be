@@ -26,7 +26,7 @@ const isGod = (req, res, next) => {
 };
 
 const isAdmin = (req, res, next) => {
-    if (!req.user.isAdmin) {
+    if (!req.isAuthenticated() || !req.user.isAdmin) {
         return res.status(HTTPStatus.UNAUTHORIZED).json({
             reason: "The user is not an admin",
             error_code: ErrorTypes.FORBIDDEN,
