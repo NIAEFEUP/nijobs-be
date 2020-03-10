@@ -116,7 +116,7 @@ describe("Login endpoint test", () => {
                     .send();
 
                 expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-            }
+            },
         );
 
         test("should unsuccessfully login with registered account (wrong password)", async () => {

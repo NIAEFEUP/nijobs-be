@@ -5,6 +5,7 @@ class EmailClient {
     constructor(host, port, user, pass) {
         this.host = host;
         this.port = port;
+        this.email = user;
         this.initTransport(user, pass);
     }
 
@@ -20,17 +21,20 @@ class EmailClient {
         });
     }
 
-    sendMail(to, subject, template, info) {
+    sendMail(to, subject, html) {
         return this.transporter.sendMail({
-            from: `"NiJobs Team" ${this.email}`,
+            from: `"NiJobs Team" <${this.email}>`,
             to,
             subject,
-            html: this.generateEmail(template, info),
+            html,
         });
     }
 
-    generateEmail(template, info) {
-        return "Hello world";
+
+    sendAcceptance({ email, companyName }) {
+        const message = `<h2>Welcome to NiJobs, ${companyName}</h2>
+        <p>You can start posting <a href="#">here</a>.</p>`;
+        return this.sendMail(email, "Welcome to NiJobs!", message);
     }
 }
 

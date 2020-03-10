@@ -1,9 +1,10 @@
+const mongoose = require("mongoose");
+const EmailClient = require("../lib/EmailClient");
 const CompanyApplication = require("../models/CompanyApplication");
 const ApplicationStatus = require("../models/ApplicationStatus");
 const AuthService = require("./auth");
 const CompanyService = require("./company");
 const hash = require("../lib/passwordHashing");
-const mongoose = require("mongoose");
 
 class CompanyApplicationService {
     static get MAX_OFFERS_PER_QUERY() {
@@ -49,7 +50,7 @@ class CompanyApplicationService {
             then((company) => new AuthService().registerCompany(
                 application.email,
                 application.password,
-                company._id
+                company._id,
             )).
             then((_) => {
                 application.approvedAt = Date.now();
@@ -59,6 +60,11 @@ class CompanyApplicationService {
                 if (session) session.abortTransaction();
                 console.error(err);
                 throw new Error("Error in acceptance transaction");
+            }).
+            then((application) => EmailClient.sendAcceptance(application)).
+            catch((err) => {
+                console.error(err);
+                return true;
             });
 
         return true;

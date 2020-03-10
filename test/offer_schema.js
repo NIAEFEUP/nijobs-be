@@ -114,7 +114,7 @@ describe("# Offer Schema tests", () => {
                         expect(err.errors.fields).toBeDefined();
                         expect(err.errors.fields).toHaveProperty("kind", "user defined");
                         expect(err.errors.fields).toHaveProperty("message",
-                            `\`fields\` must have length between ${MIN_FIELDS} and ${MAX_FIELDS}`
+                            `\`fields\` must have length between ${MIN_FIELDS} and ${MAX_FIELDS}`,
                         );
                     }
                 });
@@ -135,7 +135,7 @@ describe("# Offer Schema tests", () => {
                         expect(err.errors.fields).toBeDefined();
                         expect(err.errors.fields).toHaveProperty("kind", "user defined");
                         expect(err.errors.fields).toHaveProperty("message",
-                            `\`fields\` must have length between ${MIN_FIELDS} and ${MAX_FIELDS}`
+                            `\`fields\` must have length between ${MIN_FIELDS} and ${MAX_FIELDS}`,
                         );
                     }
                 });
@@ -167,7 +167,7 @@ describe("# Offer Schema tests", () => {
                         expect(err.errors.technologies).toBeDefined();
                         expect(err.errors.technologies).toHaveProperty("kind", "user defined");
                         expect(err.errors.technologies).toHaveProperty("message",
-                            `\`technologies\` must have length between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES}`
+                            `\`technologies\` must have length between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES}`,
                         );
                     }
                 });
@@ -188,7 +188,7 @@ describe("# Offer Schema tests", () => {
                         expect(err.errors.technologies).toBeDefined();
                         expect(err.errors.technologies).toHaveProperty("kind", "user defined");
                         expect(err.errors.technologies).toHaveProperty("message",
-                            `\`technologies\` must have length between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES}`
+                            `\`technologies\` must have length between ${MIN_TECHNOLOGIES} and ${MAX_TECHNOLOGIES}`,
                         );
                     }
                 });
@@ -296,7 +296,7 @@ describe("# Offer Schema tests", () => {
                     expect(err.errors[curr_field_str]).toBeDefined();
                     expect(err.errors[curr_field_str]).toHaveProperty("kind", "enum");
                     expect(err.errors[curr_field_str]).toHaveProperty("message",
-                        `\`${submitted_fields[i]}\` is not a valid enum value for path \`${curr_field_str}\`.`
+                        `\`${submitted_fields[i]}\` is not a valid enum value for path \`${curr_field_str}\`.`,
                     );
                 }
             }
@@ -321,7 +321,7 @@ describe("# Offer Schema tests", () => {
                     expect(err.errors[curr_technology_str]).toBeDefined();
                     expect(err.errors[curr_technology_str]).toHaveProperty("kind", "enum");
                     expect(err.errors[curr_technology_str]).toHaveProperty("message",
-                        `\`${submitted_technologies[i]}\` is not a valid enum value for path \`${curr_technology_str}\`.`
+                        `\`${submitted_technologies[i]}\` is not a valid enum value for path \`${curr_technology_str}\`.`,
                     );
                 }
             }
@@ -340,7 +340,7 @@ describe("# Offer Schema tests", () => {
                 expect(err.errors.jobType).toBeDefined();
                 expect(err.errors.jobType).toHaveProperty("kind", "enum");
                 expect(err.errors.jobType).toHaveProperty("message",
-                    `\`${inexistant_jobtype}\` is not a valid enum value for path \`jobType\`.`
+                    `\`${inexistant_jobtype}\` is not a valid enum value for path \`jobType\`.`,
                 );
             }
         });
@@ -384,7 +384,7 @@ describe("# Offer Schema tests", () => {
                 expect(err.errors.technologies).toBeDefined();
                 expect(err.errors.technologies).toHaveProperty("kind", "user defined");
                 expect(err.errors.technologies).toHaveProperty("message",
-                    `Duplicate values in array \`technologies\`: [${submitted_technologies}]`
+                    `Duplicate values in array \`technologies\`: [${submitted_technologies}]`,
                 );
             }
         });
@@ -438,7 +438,7 @@ describe("# Offer Schema tests", () => {
                     expect(err.errors.publishEndDate).toBeDefined();
                     expect(err.errors.publishEndDate).toHaveProperty("kind", "user defined");
                     expect(err.errors.publishEndDate).toHaveProperty("message",
-                        `\`publishEndDate\` must not differ from \`publishDate\` by more than ${OFFER_MAX_LIFETIME_MONTHS} months`
+                        `\`publishEndDate\` must not differ from \`publishDate\` by more than ${OFFER_MAX_LIFETIME_MONTHS} months`,
                     );
                 }
             });
@@ -500,7 +500,7 @@ describe("# Offer Schema tests", () => {
                     expect(err.errors.coordinates).toBeDefined();
                     expect(err.errors.coordinates).toHaveProperty("kind", "Embedded");
                     expect(err.errors.coordinates).toHaveProperty("message",
-                        "Cast to Embedded failed for value \"\" at path \"coordinates\""
+                        "Cast to Embedded failed for value \"\" at path \"coordinates\"",
                     );
                 }
             });

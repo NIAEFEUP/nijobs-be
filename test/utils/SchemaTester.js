@@ -24,7 +24,7 @@ const SchemaTester = (Model) => ({
                     expect(err.errors[fieldName]).toBeDefined();
                     expect(err.errors[fieldName]).toHaveProperty("kind", "minlength");
                     expect(err.errors[fieldName]).toHaveProperty("message",
-                        `Path \`${fieldName}\` (\`${"a".repeat(minimum - 1)}\`) is shorter than the minimum allowed length (${minimum}).`
+                        `Path \`${fieldName}\` (\`${"a".repeat(minimum - 1)}\`) is shorter than the minimum allowed length (${minimum}).`,
                     );
                 }
             });
@@ -55,7 +55,7 @@ const SchemaTester = (Model) => ({
                     expect(err.errors[fieldName]).toBeDefined();
                     expect(err.errors[fieldName]).toHaveProperty("kind", "maxlength");
                     expect(err.errors[fieldName]).toHaveProperty("message",
-                        `Path \`${fieldName}\` (\`${"a".repeat(maximum + 1)}\`) is longer than the maximum allowed length (${maximum}).`
+                        `Path \`${fieldName}\` (\`${"a".repeat(maximum + 1)}\`) is longer than the maximum allowed length (${maximum}).`,
                     );
                 }
             });
