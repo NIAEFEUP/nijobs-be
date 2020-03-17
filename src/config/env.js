@@ -9,6 +9,12 @@ module.exports = Object.freeze({
     db_pass: process.env.DB_PASS,
     db_name: process.env.DB_NAME,
 
+    es_host: process.env.ES_HOST,
+    es_port: process.env.ES_PORT,
+    es_uri: process.env.ES_URI,
+    es_user: process.env.ES_USER,
+    es_pass: process.env.ES_PASS,
+
     session_secret: process.env.SESSION_SECRET,
 
     port: process.env.PORT,

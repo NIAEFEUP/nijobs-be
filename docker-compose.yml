@@ -1,7 +1,7 @@
 version: "3"
 services:
   web-prod:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile-prod
     environment:
@@ -10,6 +10,7 @@ services:
       - "${PORT}:${PORT}"
     depends_on:
       - mongo
+      - elasticsearch
   web-dev:
     build:
       context: .
@@ -22,6 +23,7 @@ services:
       - ./src:/usr/src/nijobs-be/src
     depends_on:
       - mongo
+      - elasticsearch
   test:
     build:
       context: .
@@ -37,3 +39,9 @@ services:
     image: mongo
     ports:
       - "27017:27017"
+  elasticsearch:
+    image: elasticsearch:7.6.1
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
