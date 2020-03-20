@@ -15,12 +15,18 @@ const makeConfig = () => {
     return {
         host: uri,
         httpAuth: auth,
-        log: "trace", // development only
+        log: "warning", // development only
         apiVersion: "7.6",
         name: "nijobs-es",
     };
 };
 
-const setupClient = () => elasticsearch.Client(makeConfig());
+let client;
+
+const setupClient = () => {
+    if (!client)
+        client = elasticsearch.Client(makeConfig());
+    return client;
+};
 
 module.exports = setupClient;

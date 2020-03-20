@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
+const mexp = require("mongoose-elasticsearch-xp").v7;
+
+const esClient = require("../loaders/elasticsearch");
 
 const JobTypes = require("./JobTypes");
 const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./FieldTypes");
@@ -10,7 +13,12 @@ const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils"
 const OfferConstants = require("./constants/Offer");
 
 const OfferSchema = new Schema({
-    title: { type: String, maxlength: OfferConstants.title.max_length, required: true },
+    title: {
+        type: String,
+        required: true,
+        maxlength: OfferConstants.title.max_length,
+        es_indexed: true,
+    },
     publishDate: {
         type: Date,
         required: true,
@@ -19,7 +27,6 @@ const OfferSchema = new Schema({
             "`publishDate` must be earlier than `publishEndDate`",
         ],
     },
-
     publishEndDate: {
         type: Date,
         required: true,
@@ -28,13 +35,13 @@ const OfferSchema = new Schema({
             `\`publishEndDate\` must not differ from \`publishDate\` by more than ${OFFER_MAX_LIFETIME_MONTHS} months`,
         ],
     },
-
     jobMinDuration: {
         type: Number,
         required: function() {
             // jobMinDuration is required if jobMaxDuration was specified
             return !!this.jobMaxDuration;
         },
+        es_indexed: true,
     },
     jobMaxDuration: {
         type: Number,
@@ -42,11 +49,18 @@ const OfferSchema = new Schema({
             validateJobMaxDuration,
             "`jobMaxDuration` must be larger than `jobMinDuration`",
         ],
+        es_indexed: true,
     },
-
-    jobStartDate: { type: Date },
-    description: { type: String, maxlength: OfferConstants.description.max_length, required: true },
-
+    jobStartDate: {
+        type: Date,
+        es_indexed: true,
+    },
+    description: {
+        type: String,
+        required: true,
+        maxlength: OfferConstants.description.max_length,
+        es_indexed: true,
+    },
     contacts: {
         type: Map,
         of: String,
@@ -56,26 +70,46 @@ const OfferSchema = new Schema({
             "There must be at least one contact",
         ],
     },
-
-    isPaid: { type: Boolean },
+    isPaid: {
+        type: Boolean,
+        es_indexed: true,
+    },
     vacancies: { type: Number },
-    jobType: { type: String, required: true, enum: JobTypes },
+    jobType: {
+        type: String,
+        required: true,
+        enum: JobTypes,
+        es_indexed: true,
+    },
     fields: {
         type: [{ type: String, enum: FieldTypes }],
         required: true,
         validate: (val) => lengthBetweenValidator(val, MIN_FIELDS, MAX_FIELDS) && noDuplicatesValidator(val),
+        es_indexed: true,
     },
     technologies: {
         type: [{ type: String, enum: TechnologyTypes }],
         required: true,
         validate: (val) => lengthBetweenValidator(val, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES) && noDuplicatesValidator(val),
+        es_indexed: true,
     },
-
     isHidden: { type: Boolean },
-    owner: { type: Types.ObjectId, ref: "Company", required: true },
-
-    location: { type: String, required: true },
-    coordinates: { type: PointSchema, required: false },
+    owner: {
+        type: Types.ObjectId,
+        ref: "Company",
+        required: true,
+        es_indexed: true,
+    },
+    location: {
+        type: String,
+        required: true,
+        es_indexed: true,
+    },
+    coordinates: {
+        type: PointSchema,
+        required: false,
+        es_indexed: true,
+    },
 });
 
 // Checking if the publication date is less than or equal than the end date.
@@ -109,6 +143,13 @@ OfferSchema.query.current = function() {
         },
     });
 };
+
+// Index offers in the elasticsearch service
+OfferSchema.plugin(mexp, {
+    index: "offers",
+    client: esClient(),
+    type: "offer",
+});
 
 const Offer = mongoose.model("Offer", OfferSchema);
 
