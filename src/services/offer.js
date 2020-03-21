@@ -52,11 +52,30 @@ class OfferService {
         return offer;
     }
 
-    async get({ offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY }) {
+    async getActive({ offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY }) {
         const offers = await Offer.find().current()
             .skip(offset).limit(limit);
 
         return offers;
+    }
+
+    async getAll({ offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY }) {
+        const offers = await Offer.find()
+            .skip(offset).limit(limit);
+
+        return offers;
+    }
+
+    async getId(id) {
+        const offer = await Offer.findById(id);
+
+        return offer;
+    }
+
+    async deleteId(id) {
+        const result = await Offer.findByIdAndDelete(id);
+
+        return result;
     }
 }
 

@@ -1,4 +1,4 @@
-const { body, query } = require("express-validator");
+const { body, query, param } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
@@ -123,4 +123,45 @@ const get = useExpressValidators([
         .toInt(),
 ]);
 
-module.exports = { create, get };
+const search = useExpressValidators([
+    query("q", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING),
+
+    query("jobType", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING)
+        .isIn(JobTypes),
+
+    query("jobMinDuration", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt({ min: 0 }).withMessage(ValidationReasons.INT),
+
+    query("jobMaxDuration", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt({ min: 0 }).withMessage(ValidationReasons.INT),
+
+    query("fields", ValidationReasons.DEFAULT)
+        .optional()
+        .toArray(),
+
+    query("fields.*", ValidationReasons.DEFAULT)
+        .isIn(TechnologyTypes.TechnologyTypes)
+        .withMessage(ValidationReasons.IN_ARRAY(TechnologyTypes.TechnologyTypes)),
+
+    query("technologies", ValidationReasons.DEFAULT)
+        .optional()
+        .toArray(),
+
+    query("technologies.*", ValidationReasons.DEFAULT)
+        .isIn(TechnologyTypes.TechnologyTypes)
+        .withMessage(ValidationReasons.IN_ARRAY(TechnologyTypes.TechnologyTypes)),
+]);
+
+const id = useExpressValidators([
+    param("id", ValidationReasons.DEFAULT)
+        .isString().withMessage(ValidationReasons.STRING)
+        .trim(),
+]);
+
+module.exports = { create, get, search, id };
