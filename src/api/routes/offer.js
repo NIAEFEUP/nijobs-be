@@ -40,11 +40,29 @@ module.exports = (app) => {
     });
 
     /**
-     * Search offers
+     * Search offers with only a query string
+     */
+    router.get("/simple", validators.q, async (req, res) => {
+        const { q } = req.query;
+
+        try {
+            const offers = await (new SearchService()).simple(q);
+
+            return res.json(offers);
+        } catch (err) {
+            console.error(err);
+            return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).send();
+        }
+    });
+
+    /**
+     * Search offers, using all query parameters
      */
     router.get("/search", validators.search, async (req, res) => {
+        const query = req.query;
+
         try {
-            const offers = await (new SearchService()).advanced(req.query);
+            const offers = await (new SearchService()).advanced(query);
 
             return res.json(offers);
         } catch (err) {
@@ -75,7 +93,7 @@ module.exports = (app) => {
         const { id } = req.params;
 
         try {
-            const result = await (new OfferService()).deleteById(id);
+            const result = await (new OfferService()).deleteId(id);
 
             return res.json(result);
         } catch (err) {

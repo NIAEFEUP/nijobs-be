@@ -123,6 +123,12 @@ const get = useExpressValidators([
         .toInt(),
 ]);
 
+const q = useExpressValidators([
+    query("q", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING),
+]);
+
 const search = useExpressValidators([
     query("q", ValidationReasons.DEFAULT)
         .optional()
@@ -164,4 +170,4 @@ const id = useExpressValidators([
         .trim(),
 ]);
 
-module.exports = { create, get, search, id };
+module.exports = { create, get, q, search, id };

@@ -12,12 +12,14 @@ const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./TimeConstants");
 const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
 const OfferConstants = require("./constants/Offer");
 
+/** @type Schema<any> */
 const OfferSchema = new Schema({
     title: {
         type: String,
         required: true,
         maxlength: OfferConstants.title.max_length,
         es_indexed: true,
+        es_type: "text",
     },
     publishDate: {
         type: Date,
@@ -26,6 +28,8 @@ const OfferSchema = new Schema({
             validatePublishDate,
             "`publishDate` must be earlier than `publishEndDate`",
         ],
+        es_indexed: true,
+        es_type: "date",
     },
     publishEndDate: {
         type: Date,
@@ -34,6 +38,8 @@ const OfferSchema = new Schema({
             validateEndDate,
             `\`publishEndDate\` must not differ from \`publishDate\` by more than ${OFFER_MAX_LIFETIME_MONTHS} months`,
         ],
+        es_indexed: true,
+        es_type: "date",
     },
     jobMinDuration: {
         type: Number,
@@ -42,6 +48,7 @@ const OfferSchema = new Schema({
             return !!this.jobMaxDuration;
         },
         es_indexed: true,
+        es_type: "integer",
     },
     jobMaxDuration: {
         type: Number,
@@ -50,16 +57,19 @@ const OfferSchema = new Schema({
             "`jobMaxDuration` must be larger than `jobMinDuration`",
         ],
         es_indexed: true,
+        es_type: "integer",
     },
     jobStartDate: {
         type: Date,
         es_indexed: true,
+        es_type: "date",
     },
     description: {
         type: String,
         required: true,
         maxlength: OfferConstants.description.max_length,
         es_indexed: true,
+        es_type: "text",
     },
     contacts: {
         type: Map,
@@ -72,26 +82,30 @@ const OfferSchema = new Schema({
     },
     isPaid: {
         type: Boolean,
-        es_indexed: true,
     },
-    vacancies: { type: Number },
+    vacancies: {
+        type: Number,
+    },
     jobType: {
         type: String,
         required: true,
         enum: JobTypes,
         es_indexed: true,
+        es_type: "keyword",
     },
     fields: {
         type: [{ type: String, enum: FieldTypes }],
         required: true,
         validate: (val) => lengthBetweenValidator(val, MIN_FIELDS, MAX_FIELDS) && noDuplicatesValidator(val),
         es_indexed: true,
+        es_type: "keyword",
     },
     technologies: {
         type: [{ type: String, enum: TechnologyTypes }],
         required: true,
         validate: (val) => lengthBetweenValidator(val, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES) && noDuplicatesValidator(val),
         es_indexed: true,
+        es_type: "keyword",
     },
     isHidden: { type: Boolean },
     owner: {
@@ -99,16 +113,17 @@ const OfferSchema = new Schema({
         ref: "Company",
         required: true,
         es_indexed: true,
+        es_type: "keyword",
     },
     location: {
         type: String,
         required: true,
-        es_indexed: true,
+        es_indexed: false,
     },
     coordinates: {
         type: PointSchema,
         required: false,
-        es_indexed: true,
+        es_indexed: false,
     },
 });
 
@@ -146,12 +161,27 @@ OfferSchema.query.current = function() {
 
 // Index offers in the elasticsearch service
 OfferSchema.plugin(mexp, {
-    index: "offers",
+    index: "offer",
     client: esClient(),
-    type: "offer",
+    type: "_doc", // the library still uses elasticsearch v5 semantics
+    hydrate: true,
 });
 
 const Offer = mongoose.model("Offer", OfferSchema);
+
+Offer.on("es-indexed", (err, res) => {
+    if (err)
+        console.error("ES indexing error: %o", err);
+    else if (process.env.NODE_ENV === "development")
+        console.info("ES indexed: %o", res);
+});
+
+Offer.on("es-removed", (err, res) => {
+    if (err)
+        console.error("ES removal error: %o", err);
+    else if (process.env.NODE_ENV === "development")
+        console.info("ES removed: %o", res);
+});
 
 // Useful for testing correct field implementation
 // console.log("DBG: ", OfferSchema.path("location"));

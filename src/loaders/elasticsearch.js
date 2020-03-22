@@ -15,7 +15,7 @@ const makeConfig = () => {
     return {
         host: uri,
         httpAuth: auth,
-        log: "warning", // development only
+        log: "warning",
         apiVersion: "7.6",
         name: "nijobs-es",
     };
