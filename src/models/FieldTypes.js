@@ -1,9 +1,18 @@
 const FieldTypes = Object.freeze([
-    "BACK_END",
-    "FRONT_END",
+    "BACKEND",
+    "DATABASE ADMIN",
+    "DESIGNER",
+    "DESKTOP",
     "DEVOPS",
-    "BLOCKCHAIN",
+    "EMBEDDED",
+    "FRONTEND",
+    "FULL STACK",
+    "GAMING",
     "MACHINE LEARNING",
+    "MANAGEMENT",
+    "MOBILE",
+    "QUALITY ASSURANCE",
+    "SYSADMIN",
     "OTHER",
 ]);
 
