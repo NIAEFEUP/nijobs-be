@@ -3,9 +3,9 @@ const { body, query } = require("express-validator");
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
 const { valuesInSet } = require("./validatorUtils");
-const JobTypes = require("../../../models/JobTypes");
-const FieldTypes = require("../../../models/FieldTypes");
-const TechnologyTypes = require("../../../models/TechnologyTypes");
+const JobTypes = require("../../../models/constants/JobTypes");
+const FieldTypes = require("../../../models/constants/FieldTypes");
+const TechnologyTypes = require("../../../models/constants/TechnologyTypes");
 const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
 

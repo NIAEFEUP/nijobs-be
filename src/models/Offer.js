@@ -1,11 +1,11 @@
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
 
-const JobTypes = require("./JobTypes");
-const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./FieldTypes");
-const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./TechnologyTypes");
+const JobTypes = require("./constants/JobTypes");
+const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./constants/FieldTypes");
+const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./constants/TechnologyTypes");
 const PointSchema = require("./Point");
-const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./TimeConstants");
+const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./constants/TimeConstants");
 const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
 const OfferConstants = require("./constants/Offer");
 

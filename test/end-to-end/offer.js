@@ -1,9 +1,9 @@
 // const { mockCurrentDate } = require("../testUtils");
 const HTTPStatus = require("http-status-codes");
 const Offer = require("../../src/models/Offer");
-const JobTypes = require("../../src/models/JobTypes");
-const FieldTypes = require("../../src/models/FieldTypes");
-const TechnologyTypes = require("../../src/models/TechnologyTypes");
+const JobTypes = require("../../src/models/constants/JobTypes");
+const FieldTypes = require("../../src/models/constants/FieldTypes");
+const TechnologyTypes = require("../../src/models/constants/TechnologyTypes");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ValidatorTester = require("../utils/ValidatorTester");
 const withGodToken = require("../utils/GodToken");

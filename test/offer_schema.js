@@ -1,8 +1,8 @@
 const Offer = require("../src/models/Offer");
-const JobTypes = require("../src/models/JobTypes");
-const { MIN_FIELDS, MAX_FIELDS, FieldTypes } = require("../src/models/FieldTypes");
-const { MIN_TECHNOLOGIES, MAX_TECHNOLOGIES, TechnologyTypes } = require("../src/models/TechnologyTypes");
-const { OFFER_MAX_LIFETIME_MONTHS } = require("../src/models/TimeConstants");
+const JobTypes = require("../src/models/constants/JobTypes");
+const { MIN_FIELDS, MAX_FIELDS, FieldTypes } = require("../src/models/constants/FieldTypes");
+const { MIN_TECHNOLOGIES, MAX_TECHNOLOGIES, TechnologyTypes } = require("../src/models/constants/TechnologyTypes");
+const { OFFER_MAX_LIFETIME_MONTHS } = require("../src/models/constants/TimeConstants");
 
 describe("# Offer Schema tests", () => {
     describe("Required and bound (between min and max elements) properties tests", () => {

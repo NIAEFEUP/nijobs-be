@@ -1,13 +1,11 @@
 const HTTPStatus = require("http-status-codes");
 const { validationResult } = require("express-validator");
 
-const { errorExtractor } = require("../../lib/dbErrorExtractor");
-
 const ErrorTypes = Object.freeze({
     VALIDATION_ERROR: 1,
     // Possibly nested in the future
-    DB_ERROR: 2,
     FORBIDDEN: 3,
+    UNEXPECTED_ERROR: 99,
 });
 
 // Automatically run validators in order to have a standardized error response
@@ -27,21 +25,18 @@ const useExpressValidators = (validators) => async (req, res, next) => {
         });
 };
 
-const dbHandler = () => (err, req, res, next) => {
-    if (!err.hasOwnProperty("name") || err.name !== "MongoError") {
-        return next(err);
-    }
+const defaultErrorHandler = (err, req, res, _) => {
+    console.error("UNEXPECTED ERROR:", err);
 
     const result = {
-        error_code: ErrorTypes.DB_ERROR,
-        errors: [errorExtractor(err)],
+        error_code: ErrorTypes.UNEXPECTED_ERROR,
+        errors: ["An unexpected error occured"],
     };
-
     return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).send(result);
 };
 
 module.exports = {
-    dbHandler,
+    defaultErrorHandler,
     ErrorTypes,
     useExpressValidators,
 };

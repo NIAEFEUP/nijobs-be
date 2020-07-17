@@ -1,5 +1,6 @@
 const HTTPStatus = require("http-status-codes");
-const CompanyApplication  = require("../../src/models/CompanyApplication");
+const CompanyApplication = require("../../src/models/CompanyApplication");
+const { CompanyApplicationRules }  = require("../../src/models/CompanyApplication");
 const Account  = require("../../src/models/Account");
 const ValidatorTester = require("../utils/ValidatorTester");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
@@ -89,7 +90,7 @@ describe("Company application endpoint test", () => {
                         email: "test2@test.com",
                         password: "password123",
                         companyName: "Testing company",
-                        motivation: "This comapny has a very valid motivation, because otherwise the tests would not exist.",
+                        motivation: "This company has a very valid motivation, because otherwise the tests would not exist.",
                     };
 
                     await Account.create({
@@ -105,6 +106,39 @@ describe("Company application endpoint test", () => {
                     expect(res.body.errors).toContainEqual({
                         "location": "body",
                         "msg": ValidationReasons.ALREADY_EXISTS("email"),
+                        "param": "email",
+                        "value": application.email,
+                    });
+                });
+
+                test("Should fail while using an email with an associated application that was not rejected", async () => {
+
+                    const application = {
+                        email: "test2@test.com",
+                        password: "password123",
+                        companyName: "Testing company",
+                        motivation: "This company has a very valid motivation, because otherwise the tests would not exist.",
+                    };
+
+                    await CompanyApplication.deleteMany({});
+                    // Guarantees that the company application will succeed regarding account rules
+                    await Account.deleteOne({ email: application.email });
+
+
+                    // Existing Application - Deafult `Pending` state
+                    await CompanyApplication.create({
+                        ...application,
+                        submittedAt: Date.now(),
+                    });
+
+                    const res = await request()
+                        .post("/apply/company")
+                        .send(application);
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors).toContainEqual({
+                        "location": "body",
+                        "msg": CompanyApplicationRules.ONLY_ONE_APPLICATION_ACTIVE_PER_EMAIL.msg,
                         "param": "email",
                         "value": application.email,
                     });

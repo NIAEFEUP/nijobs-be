@@ -6,13 +6,15 @@ const { checkDuplicatedEmail } = require("./validatorUtils");
 const CompanyApplicationConstants = require("../../../models/constants/CompanyApplication");
 const CompanyConstants = require("../../../models/constants/Company");
 const AccountConstants = require("../../../models/constants/Account");
+const { applicationUniqueness } = require("../../../models/CompanyApplication");
 
 const create = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isEmail().normalizeEmail().withMessage(ValidationReasons.EMAIL)
         .bail()
-        .custom(checkDuplicatedEmail)
+        .custom(checkDuplicatedEmail).bail()
+        .custom(applicationUniqueness)
         .trim(),
 
     body("password", ValidationReasons.DEFAULT)
