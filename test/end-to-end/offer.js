@@ -184,30 +184,19 @@ describe("Offer endpoint tests", () => {
         });
 
         describe("Default values", () => {
-            const RealDateNow = Date.now;
-            const mockCurrentDate = new Date("2019-11-23");
-
-            beforeEach(() => {
-                Date.now = () => mockCurrentDate.getTime();
-            });
-
-            afterEach(() => {
-                Date.now = RealDateNow;
-            });
-
-            const offer = {
-                title: "Test Offer",
-                publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
-                description: "For Testing Purposes",
-                contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
-                jobType: "SUMMER INTERNSHIP",
-                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                technologies: ["React", "CSS"],
-                owner: "aaa712371273",
-                location: "Testing Street, Test City, 123",
-            };
-
             test("publishDate defaults to the current time if not provided", async () => {
+                const offer = {
+                    title: "Test Offer",
+                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
+                    description: "For Testing Purposes",
+                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    jobType: "SUMMER INTERNSHIP",
+                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    technologies: ["React", "CSS"],
+                    owner: "aaa712371273",
+                    location: "Testing Street, Test City, 123",
+                };
+
                 const res = await request()
                     .post("/offer")
                     .send(withGodToken(offer));
@@ -221,7 +210,7 @@ describe("Offer endpoint tests", () => {
                 expect(created_offer).toHaveProperty("title", offer.title);
                 expect(created_offer).toHaveProperty("description", offer.description);
                 expect(created_offer).toHaveProperty("location", offer.location);
-                expect(created_offer).toHaveProperty("publishDate", new Date(Date.now()));
+                expect(created_offer).toHaveProperty("publishDate");
             });
         });
     });
