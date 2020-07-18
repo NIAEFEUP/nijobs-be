@@ -22,7 +22,8 @@ const AccountSchema = new Schema({
         },
     },
     company: {
-        type: Schema.Types.ObjectId, ref: "Company",
+        type: Schema.Types.ObjectId,
+        ref: "Company",
         required: function() {
             return !this.isAdmin;
         },
@@ -46,4 +47,5 @@ AccountSchema.methods.validatePassword = async function(password) {
 };
 
 const Account = mongoose.model("Account", AccountSchema);
+
 module.exports = Account;

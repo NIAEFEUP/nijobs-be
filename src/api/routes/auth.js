@@ -38,7 +38,7 @@ module.exports = (app) => {
 
         // Inserting user into db and replying with success or not
         try {
-            const data = await (new AuthService()).register(email, password);
+            const data = await (new AuthService()).registerAdmin(email, password);
 
             return res.status(HTTPStatus.OK).json({
                 data,

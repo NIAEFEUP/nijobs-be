@@ -8,8 +8,6 @@ describe("# Company Schema tests", () => {
     describe("Required and bound (min and max) properties tests", () => {
         describe("required using schema 'required' property (no user defined validators)", () => {
             CompanySchemaTester.fieldRequired("name");
-            CompanySchemaTester.fieldRequired("contacts");
-            CompanySchemaTester.fieldRequired("bio");
         });
 
         describe("Required to respect a certain length", () => {

@@ -31,13 +31,13 @@ class CompanyApplicationService {
             })));
     }
 
-    async approve(id) {
-        const application = await CompanyApplication.findById(id);
+    async approve(id, options) {
+        const application = await CompanyApplication.findById(id, {}, options);
         return application.approve();
     }
 
-    async reject(id) {
-        const application = await CompanyApplication.findById(id);
+    async reject(id, options) {
+        const application = await CompanyApplication.findById(id, {}, options);
         return application.reject();
     }
 }
