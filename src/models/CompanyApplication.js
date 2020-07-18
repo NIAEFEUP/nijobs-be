@@ -23,6 +23,15 @@ const CompanyApplicationRules = Object.freeze({
         validator: validateMutuallyExclusiveEvents(otherField),
         msg: `\`${thisField}\` and \`${otherField}\` are mutually exclusive`,
     }),
+    MUST_EXIST_TO_APPROVE: {
+        msg: "company-application-does-not-exist",
+    },
+    MUST_EXIST_TO_REJECT: {
+        msg: "company-application-does-not-exist",
+    },
+    CANNOT_REVIEW_TWICE: {
+        msg: "company-application-already-reviewed",
+    },
 });
 
 const CompanyApplicationSchema = new Schema({
@@ -51,7 +60,6 @@ const CompanyApplicationSchema = new Schema({
     approvedAt: {
         type: Date,
         validate: [
-
             CompanyApplicationRules.DECISION_AFTER_SUBMISSION("approvedAt"),
             CompanyApplicationRules.MUTUALLY_EXCLUSIVE("rejectedAt", "approvedAt"),
         ],
@@ -121,7 +129,43 @@ async function validateSingleActiveApplication(value) {
     return true;
 }
 
+const isApprovable = async (id) => {
+    const application = await CompanyApplication.findById(id).exec();
+    if (!application) throw new Error(CompanyApplicationRules.MUST_EXIST_TO_APPROVE.msg);
+
+    if (application.state !== ApplicationStatus.PENDING)
+        throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+
+    return true;
+};
+
+const isRejectable = async (id) => {
+    const application = await CompanyApplication.findById(id).exec();
+    if (!application) throw new Error(CompanyApplicationRules.MUST_EXIST_TO_REJECT.msg);
+
+    if (application.state !== ApplicationStatus.PENDING)
+        throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+
+    return true;
+};
+
+CompanyApplicationSchema.methods.approve = function() {
+    this.approvedAt = Date.now();
+    // Need to prevent validation, otherwise it will fail the email uniqueness,
+    // Since there is already an application with same email: itself :)
+    return this.save({ validateBeforeSave: false });
+};
+
+CompanyApplicationSchema.methods.reject = function() {
+    this.rejectedAt = Date.now();
+    // Need to prevent validation, otherwise it will fail the email uniqueness,
+    // Since there is already an application with same email: itself :)
+    return this.save({ validateBeforeSave: false });
+};
+
 const CompanyApplication = mongoose.model("CompanyApplication", CompanyApplicationSchema);
 module.exports = CompanyApplication;
 module.exports.applicationUniqueness = applicationUniqueness;
+module.exports.isApprovable = isApprovable;
+module.exports.isRejectable = isRejectable;
 module.exports.CompanyApplicationRules = CompanyApplicationRules;

@@ -19,7 +19,7 @@ services:
     environment:
       - DB_HOST=mongo
     volumes:
-      - ./src:/usr/src/nijobs-be/src
+      - ./src:/usr/src/app/src
     depends_on:
       - mongo
   test:

@@ -1,4 +1,4 @@
-const { body } = require("express-validator");
+const { body, param } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
@@ -6,7 +6,8 @@ const { checkDuplicatedEmail } = require("./validatorUtils");
 const CompanyApplicationConstants = require("../../../models/constants/CompanyApplication");
 const CompanyConstants = require("../../../models/constants/Company");
 const AccountConstants = require("../../../models/constants/Account");
-const { applicationUniqueness } = require("../../../models/CompanyApplication");
+const { applicationUniqueness, isApprovable, isRejectable } = require("../../../models/CompanyApplication");
+const mongoose = require("mongoose");
 
 const create = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
@@ -43,5 +44,19 @@ const create = useExpressValidators([
         .trim(),
 ]);
 
+const approve = useExpressValidators([
+    param("id", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .custom((value) => mongoose.Types.ObjectId.isValid(value))
+        .withMessage(ValidationReasons.OBJECT_ID).bail()
+        .custom(isApprovable),
+]);
 
-module.exports = { create };
+const reject = useExpressValidators([
+    param("id", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .custom(isRejectable),
+]);
+
+
+module.exports = { create, approve, reject };
