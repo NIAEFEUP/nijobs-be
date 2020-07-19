@@ -1,7 +1,7 @@
 const Account = require("../models/Account");
 const hash = require("../lib/passwordHashing");
 const Company = require("../models/Company");
-class AuthService {
+class AccountService {
     // TODO: Use typedi or similar
     constructor() {
 
@@ -36,4 +36,4 @@ class AuthService {
     }
 }
 
-module.exports = AuthService;
+module.exports = AccountService;

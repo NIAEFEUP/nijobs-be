@@ -153,14 +153,23 @@ CompanyApplicationSchema.methods.approve = function() {
     this.approvedAt = Date.now();
     // Need to prevent validation, otherwise it will fail the email uniqueness,
     // Since there is already an application with same email: itself :)
-    return this.save({ validateBeforeSave: false });
+    return this.save({ validateModifiedOnly: true });
 };
 
-CompanyApplicationSchema.methods.reject = function() {
+CompanyApplicationSchema.methods.reject = function(reason) {
     this.rejectedAt = Date.now();
+    this.rejectReason = reason;
     // Need to prevent validation, otherwise it will fail the email uniqueness,
     // Since there is already an application with same email: itself :)
-    return this.save({ validateBeforeSave: false });
+    return this.save({ validateModifiedOnly: true });
+};
+
+CompanyApplicationSchema.methods.undoApproval = function() {
+    if (!this.approvedAt) throw new Error("Cannot undo approval of yet-to-be approved Company Application");
+    this.approvedAt = undefined;
+    // Need to prevent validation, otherwise it will fail the email uniqueness,
+    // Since there is already an application with same email: itself :)
+    return this.save({ validateModifiedOnly: true });
 };
 
 const CompanyApplication = mongoose.model("CompanyApplication", CompanyApplicationSchema);

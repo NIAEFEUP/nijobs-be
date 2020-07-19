@@ -56,6 +56,13 @@ const reject = useExpressValidators([
     param("id", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isRejectable),
+    body("rejectReason", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING)
+        .isLength({ max: CompanyApplicationConstants.rejectReason.max_length })
+        .withMessage(ValidationReasons.TOO_LONG(CompanyApplicationConstants.rejectReason.max_length))
+        .isLength({ min: CompanyApplicationConstants.rejectReason.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(CompanyApplicationConstants.rejectReason.min_length)),
 ]);
 
 

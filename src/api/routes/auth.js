@@ -4,7 +4,7 @@ const passport = require("passport");
 
 const { authRequired, isGod } = require("../middleware/auth");
 const validators = require("../middleware/validators/auth");
-const AuthService = require("../../services/auth");
+const AccountService = require("../../services/account");
 
 
 const router = Router();
@@ -38,7 +38,7 @@ module.exports = (app) => {
 
         // Inserting user into db and replying with success or not
         try {
-            const data = await (new AuthService()).registerAdmin(email, password);
+            const data = await (new AccountService()).registerAdmin(email, password);
 
             return res.status(HTTPStatus.OK).json({
                 data,
