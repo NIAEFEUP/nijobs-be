@@ -65,5 +65,15 @@ const reject = useExpressValidators([
         .withMessage(ValidationReasons.TOO_SHORT(CompanyApplicationConstants.rejectReason.min_length)),
 ]);
 
+const search = useExpressValidators([
+    body("filters", ValidationReasons.DEFAULT)
+        .optional(),
+    // TODO
+]);
 
-module.exports = { create, approve, reject };
+module.exports = {
+    create,
+    approve,
+    reject,
+    search,
+};

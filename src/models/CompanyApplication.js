@@ -81,6 +81,8 @@ const CompanyApplicationSchema = new Schema({
     },
 });
 
+CompanyApplicationSchema.index({ companyName: "text" });
+
 CompanyApplicationSchema.virtual("state").get(function() {
     if (!this.approvedAt && !this.rejectedAt) return ApplicationStatus.PENDING;
     else if (this.approvedAt) return ApplicationStatus.APPROVED;

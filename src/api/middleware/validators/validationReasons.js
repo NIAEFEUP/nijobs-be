@@ -4,6 +4,7 @@ const ValidationReasons = Object.freeze({
     TOO_LONG: (len) => `max-length-exceeded:${len}`,
     TOO_SHORT: (len) => `below-min-length:${len}`,
     STRING: "must-be-string",
+    ARRAY: "must-be-array",
     DATE: "must-be-ISO8601-date",
     INT: "must-be-int",
     BOOLEAN: "must-be-boolean",

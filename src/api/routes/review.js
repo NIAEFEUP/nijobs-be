@@ -26,6 +26,21 @@ module.exports = (app) => {
             }
         });
 
+
+    /**
+     * Searches for a Company Application, with provided filters
+     */
+    router.get("/search", companyApplicationValidators.search, async (req, res, next) => {
+
+        try {
+            // This is safe since the service is destructuring the passed object and the fields have been validated
+            const applications = await (new ApplicationService()).find(req.body.filters);
+            return res.json(applications);
+        } catch (err) {
+            return next(err);
+        }
+    });
+
     /**
      * Approves a Pending Company Application
      */

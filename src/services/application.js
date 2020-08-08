@@ -32,6 +32,56 @@ class CompanyApplicationService {
             })));
     }
 
+    async find(filters) {
+
+        if (!filters || filters.length === 0) return this.findAll();
+
+        const buildFiltersQuery = ({
+            companyName,
+            submissionDate,
+        }) => {
+            const filterQueries = [];
+
+            if (companyName) {
+                filterQueries.push({
+                    // This allows for partial text matching.
+                    // If only full-text is needed, use $text query instead, which uses
+                    // a text index and is more performant
+                    companyName: new RegExp(companyName, "gi"),
+                });
+            }
+
+            if (submissionDate) {
+
+                const filter = { $and: [] };
+
+                if (submissionDate.to) {
+                    filter["$and"].push({ submittedAt: { "$lte": submissionDate.to } });
+                }
+                if (submissionDate.from) {
+                    filter["$and"].push({ submittedAt: { "$gte": submissionDate.from } });
+                }
+                filterQueries.push(filter);
+            }
+
+            return filterQueries;
+        };
+
+        return Promise.all([...(await CompanyApplication.find({
+            $and: buildFiltersQuery(filters),
+        }).exec())]
+            .map(async (application) => ({
+                ...application.toObject(),
+                state: (await CompanyApplication.findById(application._id).exec()).state,
+            }))
+            .filter((application) => filters.state ?
+                application.state === filters.state ||
+                filters.state.includes(application.state)
+                : true
+            )
+        );
+    }
+
     async approve(id, options) {
 
         const application = (await CompanyApplication.findById(id, {}, options));
