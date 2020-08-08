@@ -8,6 +8,7 @@ const CompanyConstants = require("../../../models/constants/Company");
 const AccountConstants = require("../../../models/constants/Account");
 const { applicationUniqueness, isApprovable, isRejectable } = require("../../../models/CompanyApplication");
 const mongoose = require("mongoose");
+const ApplicationStatus = require("../../../models/constants/ApplicationStatus");
 
 const create = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
@@ -66,9 +67,20 @@ const reject = useExpressValidators([
 ]);
 
 const search = useExpressValidators([
-    body("filters", ValidationReasons.DEFAULT)
-        .optional(),
-    // TODO
+    body("filters.companyName", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING),
+    body("filters.state", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING)
+        .isIn(ApplicationStatus)
+        .withMessage(ValidationReasons.IN_ARRAY(Object.keys(ApplicationStatus))),
+    body("filters.submissionDate.from", ValidationReasons.DEFAULT)
+        .optional()
+        .isISO8601().withMessage(ValidationReasons.DATE),
+    body("filters.submissionDate.to", ValidationReasons.DEFAULT)
+        .optional()
+        .isISO8601().withMessage(ValidationReasons.DATE),
 ]);
 
 module.exports = {
