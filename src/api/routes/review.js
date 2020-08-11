@@ -11,23 +11,6 @@ module.exports = (app) => {
     app.use("/applications/company", router);
 
     /**
-     * Approves a Pending Company Application
-     */
-    router.get("/",
-        authMiddleware.authRequired,
-        authMiddleware.isAdmin,
-        async (req, res, next) => {
-
-            try {
-                const applications = await (new ApplicationService()).findAll();
-                return res.json(applications);
-            } catch (err) {
-                return next(err);
-            }
-        });
-
-
-    /**
      * Searches for a Company Application, with provided filters
      */
     router.get("/search", companyApplicationValidators.search, async (req, res, next) => {

@@ -65,7 +65,7 @@ class CompanyApplicationService {
 
     async find(filters) {
 
-        const { state: stateFilter, ...queryFilters } = filters;
+        const { state: stateFilter, ...queryFilters } = { ...filters };
         if (!filters || Object.keys(filters).length === 0) return this.findAll();
 
         return (await Promise.all(
