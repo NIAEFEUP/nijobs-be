@@ -63,6 +63,18 @@ class CompanyApplicationService {
         return filterQueries;
     }
 
+    /**
+     *
+     * @param {*} filters - object with optional properties: state, submissionDate, companyName
+     * {
+     *      companyName: String
+     *      submissionDate: { - only one of the properties is necessary, but you can use both to define interval
+     *          from: Date
+     *          to: Date
+     *      }
+     *      state: String | Array - String for exact match, Array to provide set of options
+     * }
+     */
     async find(filters) {
 
         const { state: stateFilter, ...queryFilters } = { ...filters };
@@ -70,9 +82,10 @@ class CompanyApplicationService {
 
         return (await Promise.all(
             (await CompanyApplication.find(
-                queryFilters.length ? {
+                Object.keys(queryFilters).length ? {
                     $and: this.buildFiltersQuery(queryFilters),
                 } : {})
+                .sort({ submittedAt: "desc" })
                 .exec()
             )
                 .map(async (application) => ({

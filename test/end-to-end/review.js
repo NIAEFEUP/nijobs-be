@@ -45,17 +45,19 @@ describe("Company application review endpoint test", () => {
                 password: "password123",
                 companyName: "Testing company",
                 motivation: "This company has a very valid motivation, because otherwise the tests would not exist.",
-                submittedAt: Date.now(),
+                submittedAt: new Date("2019-11-25"),
             };
 
             const approvedApplication = {
                 ...pendingApplication,
-                approvedAt: Date.now() + 1,
+                submittedAt: new Date("2019-11-24"),
+                approvedAt: pendingApplication.submittedAt.getTime() + 1,
                 companyName: "approved Testing company",
                 email: `approved${pendingApplication.email}`,
             };
             const rejectedApplication = { ...pendingApplication,
-                rejectedAt: Date.now() + 1,
+                submittedAt: new Date("2019-11-23"),
+                rejectedAt: pendingApplication.submittedAt.getTime() + 1,
                 companyName: "rejected Testing company",
                 email: `rejected${pendingApplication.email}`,
                 rejectReason: "2bad4nij0bs",
@@ -69,6 +71,26 @@ describe("Company application review endpoint test", () => {
 
             afterEach(async () => {
                 await CompanyApplication.deleteMany({});
+            });
+
+            test("Should filter by company name", async () => {
+                const fullNameQuery = await request()
+                    .get("/applications/company/search")
+                    .send({ filters: { companyName: "approved Testing company" } });
+
+                expect(fullNameQuery.status).toBe(HTTPStatus.OK);
+                expect(fullNameQuery.body.length).toBe(1);
+                expect(fullNameQuery.body[0]).toHaveProperty("companyName", approvedApplication.companyName);
+
+                const partialNameQuery = await request()
+                    .get("/applications/company/search")
+                    .send({ filters: { companyName: "Testing company" } });
+
+                expect(partialNameQuery.status).toBe(HTTPStatus.OK);
+                expect(partialNameQuery.body.length).toBe(3);
+                expect(partialNameQuery.body[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(partialNameQuery.body[1]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(partialNameQuery.body[2]).toHaveProperty("companyName", rejectedApplication.companyName);
             });
 
             test("Should filter by state", async () => {
@@ -91,6 +113,39 @@ describe("Company application review endpoint test", () => {
             });
 
             test("Should filter by date", async () => {
+
+                const afterQuery = await request()
+                    .get("/applications/company/search")
+                    .send({ filters: { submissionDate: { from: approvedApplication.submittedAt } } });
+
+                expect(afterQuery.status).toBe(HTTPStatus.OK);
+                expect(afterQuery.body.length).toBe(2);
+                expect(afterQuery.body[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(afterQuery.body[1]).toHaveProperty("companyName", approvedApplication.companyName);
+
+                const untilQuery = await request()
+                    .get("/applications/company/search")
+                    .send({ filters: { submissionDate: { to: approvedApplication.submittedAt } } });
+
+                expect(untilQuery.status).toBe(HTTPStatus.OK);
+                expect(untilQuery.body.length).toBe(2);
+                expect(untilQuery.body[0]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(untilQuery.body[1]).toHaveProperty("companyName", rejectedApplication.companyName);
+
+                const intervalQuery = await request()
+                    .get("/applications/company/search")
+                    .send({
+                        filters: {
+                            submissionDate: {
+                                from: approvedApplication.submittedAt,
+                                to: approvedApplication.submittedAt,
+                            },
+                        },
+                    });
+
+                expect(intervalQuery.status).toBe(HTTPStatus.OK);
+                expect(intervalQuery.body.length).toBe(1);
+                expect(intervalQuery.body[0]).toHaveProperty("companyName", approvedApplication.companyName);
 
             });
 
