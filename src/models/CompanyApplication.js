@@ -131,9 +131,7 @@ async function validateSingleActiveApplication(value) {
     return true;
 }
 
-const isApprovable = async (id) => {
-    const application = await CompanyApplication.findById(id).exec();
-    if (!application) throw new Error(CompanyApplicationRules.MUST_EXIST_TO_APPROVE.msg);
+const isApprovable = (application) => {
 
     if (application.state !== ApplicationStatus.PENDING)
         throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
@@ -141,9 +139,7 @@ const isApprovable = async (id) => {
     return true;
 };
 
-const isRejectable = async (id) => {
-    const application = await CompanyApplication.findById(id).exec();
-    if (!application) throw new Error(CompanyApplicationRules.MUST_EXIST_TO_REJECT.msg);
+const isRejectable = (application) => {
 
     if (application.state !== ApplicationStatus.PENDING)
         throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
@@ -152,6 +148,7 @@ const isRejectable = async (id) => {
 };
 
 CompanyApplicationSchema.methods.approve = function() {
+    isApprovable(this);
     this.approvedAt = Date.now();
     // Need to prevent validation, otherwise it will fail the email uniqueness,
     // Since there is already an application with same email: itself :)
@@ -159,6 +156,7 @@ CompanyApplicationSchema.methods.approve = function() {
 };
 
 CompanyApplicationSchema.methods.reject = function(reason) {
+    isRejectable(this);
     this.rejectedAt = Date.now();
     this.rejectReason = reason;
     // Need to prevent validation, otherwise it will fail the email uniqueness,

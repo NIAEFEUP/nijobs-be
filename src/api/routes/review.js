@@ -5,6 +5,10 @@ const companyApplicationValidators = require("../middleware/validators/applicati
 const ApplicationService = require("../../services/application");
 const mongoose = require("mongoose");
 
+const HTTPStatus = require("http-status-codes");
+const { buildErrorResponse, ErrorTypes } = require("../middleware/errorHandler");
+
+
 const router = Router();
 
 module.exports = (app) => {
@@ -37,7 +41,18 @@ module.exports = (app) => {
                 const { account } = await (new ApplicationService()).approve(mongoose.Types.ObjectId(req.params.id));
                 return res.json(account);
             } catch (err) {
-                return next(err);
+                if (err instanceof ApplicationService.CompanyApplicationNotFound) {
+                    return res
+                        .status(HTTPStatus.NOT_FOUND)
+                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
+                } else if (err instanceof ApplicationService.CompanyApplicationAlreadyReiewed) {
+                    return res
+                        .status(HTTPStatus.CONFLICT)
+                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
+
+                } else {
+                    return next(err);
+                }
             }
         });
 
@@ -54,7 +69,18 @@ module.exports = (app) => {
                 const application = await (new ApplicationService()).reject(mongoose.Types.ObjectId(req.params.id), req.body.rejectReason);
                 return res.json(application);
             } catch (err) {
-                return next(err);
+                if (err instanceof ApplicationService.CompanyApplicationNotFound) {
+                    return res
+                        .status(HTTPStatus.NOT_FOUND)
+                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
+                } else if (err instanceof ApplicationService.CompanyApplicationAlreadyReiewed) {
+                    return res
+                        .status(HTTPStatus.CONFLICT)
+                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
+
+                } else {
+                    return next(err);
+                }
             }
         });
 };

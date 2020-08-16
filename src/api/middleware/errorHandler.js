@@ -8,6 +8,11 @@ const ErrorTypes = Object.freeze({
     UNEXPECTED_ERROR: 99,
 });
 
+const buildErrorResponse = (error_code, errors) => ({
+    error_code,
+    errors,
+});
+
 // Automatically run validators in order to have a standardized error response
 const useExpressValidators = (validators) => async (req, res, next) => {
     await Promise.all(validators.map((validator) => validator.run(req)));
@@ -19,10 +24,7 @@ const useExpressValidators = (validators) => async (req, res, next) => {
 
     return res
         .status(HTTPStatus.UNPROCESSABLE_ENTITY)
-        .json({
-            error_code: ErrorTypes.VALIDATION_ERROR,
-            errors: errors.array(),
-        });
+        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, errors.array()));
 };
 
 const defaultErrorHandler = (err, req, res, _) => {
@@ -39,4 +41,5 @@ module.exports = {
     defaultErrorHandler,
     ErrorTypes,
     useExpressValidators,
+    buildErrorResponse,
 };

@@ -1,6 +1,19 @@
 const CompanyApplication = require("../models/CompanyApplication");
+const CompanyApplicationRules = require("../models/CompanyApplication").CompanyApplicationRules;
 const hash = require("../lib/passwordHashing");
 const AccountService = require("./account");
+
+class CompanyApplicationNotFound extends Error {
+    constructor(msg) {
+        super(msg);
+    }
+}
+
+class CompanyApplicationAlreadyReiewed extends Error {
+    constructor(msg) {
+        super(msg);
+    }
+}
 
 class CompanyApplicationService {
 
@@ -102,8 +115,16 @@ class CompanyApplicationService {
 
     async approve(id, options) {
 
-        const application = (await CompanyApplication.findById(id, {}, options));
-        application.approve();
+        let application;
+
+        try {
+            application = await CompanyApplication.findById(id, {}, options);
+            if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_APPROVE.msg);
+            application.approve();
+        } catch (e) {
+            throw new CompanyApplicationAlreadyReiewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+        }
+
         try {
             const account = await (new AccountService()).registerCompany(application.email, application.password, application.companyName);
             return { application, account };
@@ -116,9 +137,19 @@ class CompanyApplicationService {
     }
 
     async reject(id, reason, options) {
-        const application = await CompanyApplication.findById(id, {}, options);
-        return application.reject(reason);
+        try {
+            const application = (await CompanyApplication.findById(id, {}, options));
+            if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_REJECT.msg);
+            application.reject(reason);
+            // eslint-disable-next-line no-unused-vars
+            const { password, ...trimmedApplication } = application.toObject();
+            return trimmedApplication;
+        } catch (e) {
+            throw new CompanyApplicationAlreadyReiewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+        }
     }
 }
 
 module.exports = CompanyApplicationService;
+module.exports.CompanyApplicationAlreadyReiewed = CompanyApplicationAlreadyReiewed;
+module.exports.CompanyApplicationNotFound = CompanyApplicationNotFound;
