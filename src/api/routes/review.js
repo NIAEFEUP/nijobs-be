@@ -1,13 +1,12 @@
 const { Router } = require("express");
 
 const authMiddleware = require("../middleware/auth");
-const companyApplicationValidators = require("../middleware/validators/application");
+const { MAX_LIMIT_RESULTS, ...companyApplicationValidators } = require("../middleware/validators/application");
 const ApplicationService = require("../../services/application");
 const mongoose = require("mongoose");
 
 const HTTPStatus = require("http-status-codes");
 const { buildErrorResponse, ErrorTypes } = require("../middleware/errorHandler");
-
 
 const router = Router();
 
@@ -19,10 +18,15 @@ module.exports = (app) => {
      */
     router.get("/search", companyApplicationValidators.search, async (req, res, next) => {
 
+        console.info(req.query.limit, req.query.offset);
+
+        const limit = parseInt(req.query.limit || MAX_LIMIT_RESULTS, 10);
+        const offset = parseInt(req.query.offset || 0, 10);
+
         try {
             // This is safe since the service is destructuring the passed object and the fields have been validated
-            const applications = await (new ApplicationService()).find(req.body.filters);
-            return res.json(applications);
+            const { applications, docCount } = await (new ApplicationService()).find(req.body.filters, limit, offset);
+            return res.json({ applications, docCount });
         } catch (err) {
             return next(err);
         }
@@ -84,3 +88,5 @@ module.exports = (app) => {
             }
         });
 };
+
+module.exports.MAX_LIMIT_RESULTS = MAX_LIMIT_RESULTS;

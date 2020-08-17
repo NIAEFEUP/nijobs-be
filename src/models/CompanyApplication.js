@@ -172,6 +172,9 @@ CompanyApplicationSchema.methods.undoApproval = function() {
     return this.save({ validateModifiedOnly: true });
 };
 
+// Creating an index to make fetching faster
+CompanyApplicationSchema.index({ submittedAt: 1 });
+
 const CompanyApplication = mongoose.model("CompanyApplication", CompanyApplicationSchema);
 module.exports = CompanyApplication;
 module.exports.applicationUniqueness = applicationUniqueness;

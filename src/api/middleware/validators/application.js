@@ -10,6 +10,8 @@ const { applicationUniqueness } = require("../../../models/CompanyApplication");
 const mongoose = require("mongoose");
 const ApplicationStatus = require("../../../models/constants/ApplicationStatus");
 
+const MAX_LIMIT_RESULTS = 100;
+
 const create = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
@@ -65,6 +67,14 @@ const reject = useExpressValidators([
 ]);
 
 const search = useExpressValidators([
+    param("limit", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt({ min: 1, max: MAX_LIMIT_RESULTS })
+        .withMessage(ValidationReasons.MAX(MAX_LIMIT_RESULTS)),
+    param("offset", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt({ min: 0 })
+        .withMessage(ValidationReasons.MIN(0)),
     body("filters.companyName", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING),
@@ -84,4 +94,5 @@ module.exports = {
     approve,
     reject,
     search,
+    MAX_LIMIT_RESULTS,
 };

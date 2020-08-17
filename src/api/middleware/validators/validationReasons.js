@@ -1,6 +1,8 @@
 const ValidationReasons = Object.freeze({
     DEFAULT: "invalid",
     REQUIRED: "required",
+    MIN: (val) => `must-be-greater-than-${val}`,
+    MAX: (val) => `must-be-lower-than-${val}`,
     TOO_LONG: (len) => `max-length-exceeded:${len}`,
     TOO_SHORT: (len) => `below-min-length:${len}`,
     STRING: "must-be-string",

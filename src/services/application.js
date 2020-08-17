@@ -37,12 +37,29 @@ class CompanyApplicationService {
         return CompanyApplication.findById(id).exec();
     }
 
-    async findAll() {
-        return Promise.all([...(await CompanyApplication.find({}).exec())]
-            .map(async (application) => ({
-                ...application.toObject(),
-                state: (await CompanyApplication.findById(application._id).exec()).state,
-            })));
+    /**
+     *
+     * @param {*} limit - Number of documents to return
+     * @param {*} offset - where to start the query (pagination - how many documents to skip, NOT how many pages to skip)
+     *
+     * @returns {applications, docCount}
+     */
+    async findAll(limit, offset) {
+
+        const docCount = await CompanyApplication.estimatedDocumentCount();
+
+        return {
+            docCount,
+            applications: await Promise.all([...(await CompanyApplication.find({})
+                .sort({ submittedAt: "desc" })
+                .skip(offset)
+                .limit(limit).exec()
+            )]
+                .map(async (application) => ({
+                    ...application.toObject(),
+                    state: (await CompanyApplication.findById(application._id).exec()).state,
+                }))),
+        };
     }
 
     buildFiltersQuery({
@@ -77,7 +94,8 @@ class CompanyApplicationService {
     }
 
     /**
-     *
+     * @param {*} limit - Number of documents to return
+     * @param {*} offset - where to start the query (pagination - how many documents to skip, NOT how many pages to skip)
      * @param {*} filters - object with optional properties: state, submissionDate, companyName
      * {
      *      companyName: String
@@ -87,30 +105,42 @@ class CompanyApplicationService {
      *      }
      *      state: String | Array - String for exact match, Array to provide set of options
      * }
+     * @returns {applications, docCount}
      */
-    async find(filters) {
+    async find(filters, limit, offset) {
 
         const { state: stateFilter, ...queryFilters } = { ...filters };
-        if (!filters || Object.keys(filters).length === 0) return this.findAll();
 
-        return (await Promise.all(
-            (await CompanyApplication.find(
-                Object.keys(queryFilters).length ? {
-                    $and: this.buildFiltersQuery(queryFilters),
-                } : {})
-                .sort({ submittedAt: "desc" })
-                .exec()
-            )
-                .map(async (application) => ({
-                    ...application.toObject(),
-                    state: (await CompanyApplication.findById(application._id).exec()).state,
-                }))
-        ))
-            .filter((application) => (stateFilter) ?
-                application.state === stateFilter ||
+        if (!filters || Object.keys(filters).length === 0) return this.findAll(limit, offset);
+
+        const docCount = await CompanyApplication.estimatedDocumentCount();
+
+        // Using .skip().limit() can be problematic if we get big data,
+        // Once problems appear, consider using .cursor API
+
+        return {
+            docCount,
+            applications: (await Promise.all(
+                (await CompanyApplication.find(
+                    Object.keys(queryFilters).length ? {
+                        $and: this.buildFiltersQuery(queryFilters),
+                    } : {})
+                    .sort({ submittedAt: "desc" })
+                    .skip(offset)
+                    .limit(limit)
+                    .exec()
+                )
+                    .map(async (application) => ({
+                        ...application.toObject(),
+                        state: (await CompanyApplication.findById(application._id).exec()).state,
+                    }))
+            ))
+                .filter((application) => (stateFilter) ?
+                    application.state === stateFilter ||
                         stateFilter.includes(application.state)
-                : true
-            );
+                    : true
+                ),
+        };
     }
 
     async approve(id, options) {
