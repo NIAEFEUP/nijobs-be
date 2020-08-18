@@ -34,7 +34,7 @@ const CompanyApplicationRules = Object.freeze({
     },
 });
 
-const CompanyApplicationSchema = new Schema({
+const CompanyApplicationProps = {
     email: {
         type: String,
         trim: true,
@@ -79,7 +79,9 @@ const CompanyApplicationSchema = new Schema({
             return !!this.rejectedAt;
         },
     },
-});
+};
+
+const CompanyApplicationSchema = new Schema(CompanyApplicationProps);
 
 CompanyApplicationSchema.index({ companyName: "text" });
 
@@ -181,3 +183,4 @@ module.exports.applicationUniqueness = applicationUniqueness;
 module.exports.isApprovable = isApprovable;
 module.exports.isRejectable = isRejectable;
 module.exports.CompanyApplicationRules = CompanyApplicationRules;
+module.exports.CompanyApplicationProps = CompanyApplicationProps;

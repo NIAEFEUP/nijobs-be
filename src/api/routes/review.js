@@ -15,17 +15,25 @@ module.exports = (app) => {
 
     /**
      * Searches for a Company Application, with provided filters
+     * // TODO: Document inputs (limit, offset, filters and sorting options)
      */
     router.get("/search", companyApplicationValidators.search, async (req, res, next) => {
 
-        console.info(req.query.limit, req.query.offset);
-
         const limit = parseInt(req.query.limit || MAX_LIMIT_RESULTS, 10);
         const offset = parseInt(req.query.offset || 0, 10);
+        let sortingOptions;
+
+        if (!req.body.sortBy) {
+            sortingOptions = undefined;
+        } else if (typeof sortBy === "string") {
+            sortingOptions = { [req.body.sortBy]: "desc" };
+        } else {
+            sortingOptions = req.body.sortBy;
+        }
 
         try {
             // This is safe since the service is destructuring the passed object and the fields have been validated
-            const { applications, docCount } = await (new ApplicationService()).find(req.body.filters, limit, offset);
+            const { applications, docCount } = await (new ApplicationService()).find(req.body.filters, limit, offset, sortingOptions);
             return res.json({ applications, docCount });
         } catch (err) {
             return next(err);
@@ -54,6 +62,10 @@ module.exports = (app) => {
                         .status(HTTPStatus.CONFLICT)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
 
+                } else if (err instanceof ApplicationService.CompanyApplicationEmailAlreadyInUse) {
+                    return res
+                        .status(HTTPStatus.CONFLICT)
+                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
                 } else {
                     return next(err);
                 }
@@ -81,7 +93,6 @@ module.exports = (app) => {
                     return res
                         .status(HTTPStatus.CONFLICT)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
-
                 } else {
                     return next(err);
                 }

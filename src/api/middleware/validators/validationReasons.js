@@ -10,7 +10,7 @@ const ValidationReasons = Object.freeze({
     DATE: "must-be-ISO8601-date",
     INT: "must-be-int",
     BOOLEAN: "must-be-boolean",
-    IN_ARRAY: (vals) => `must-be-in:[${vals}]`,
+    IN_ARRAY: (vals, field) => `${field ? `${field}:` : ""}must-be-in:[${vals}]`,
     ARRAY_SIZE: (min, max) => `size-must-be-between:[${min},${max}]`,
     OBJECT_ID: "must-be-a-valid-id",
     EMAIL: "must-be-a-valid-email",

@@ -6,7 +6,7 @@ const { checkDuplicatedEmail, stringOrValuesInSet } = require("./validatorUtils"
 const CompanyApplicationConstants = require("../../../models/constants/CompanyApplication");
 const CompanyConstants = require("../../../models/constants/Company");
 const AccountConstants = require("../../../models/constants/Account");
-const { applicationUniqueness } = require("../../../models/CompanyApplication");
+const { applicationUniqueness, CompanyApplicationProps } = require("../../../models/CompanyApplication");
 const mongoose = require("mongoose");
 const ApplicationStatus = require("../../../models/constants/ApplicationStatus");
 
@@ -66,6 +66,25 @@ const reject = useExpressValidators([
         .withMessage(ValidationReasons.TOO_SHORT(CompanyApplicationConstants.rejectReason.min_length)),
 ]);
 
+const sortByParamValidator = (val) => {
+
+    if (typeof val === "string") return true;
+
+    if (typeof val === "object") {
+
+        for (const field in val) {
+            if (!CompanyApplicationProps.hasOwnProperty(field)) {
+                throw new Error(ValidationReasons.IN_ARRAY(Object.keys(CompanyApplicationProps), field));
+            }
+            if (val[field] !== "desc" && val[field] !== "asc") {
+                throw new Error(ValidationReasons.IN_ARRAY(Object.keys(CompanyApplicationProps), val[field]));
+            }
+        }
+    }
+    return true;
+};
+
+
 const search = useExpressValidators([
     param("limit", ValidationReasons.DEFAULT)
         .optional()
@@ -87,6 +106,9 @@ const search = useExpressValidators([
     body("filters.submissionDate.to", ValidationReasons.DEFAULT)
         .optional()
         .isISO8601().withMessage(ValidationReasons.DATE),
+    body("sortBy", ValidationReasons.DEFAULT)
+        .optional()
+        .custom(sortByParamValidator),
 ]);
 
 module.exports = {

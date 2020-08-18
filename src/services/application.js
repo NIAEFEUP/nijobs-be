@@ -15,6 +15,12 @@ class CompanyApplicationAlreadyReiewed extends Error {
     }
 }
 
+class CompanyApplicationEmailAlreadyInUse extends Error {
+    constructor(msg) {
+        super(msg);
+    }
+}
+
 class CompanyApplicationService {
 
     async create({
@@ -44,16 +50,17 @@ class CompanyApplicationService {
      *
      * @returns {applications, docCount}
      */
-    async findAll(limit, offset) {
+    async findAll(limit, offset, sortingOptions) {
 
         const docCount = await CompanyApplication.estimatedDocumentCount();
 
         return {
             docCount,
             applications: await Promise.all([...(await CompanyApplication.find({})
-                .sort({ submittedAt: "desc" })
+                .sort(sortingOptions || { submittedAt: "desc" })
                 .skip(offset)
-                .limit(limit).exec()
+                .limit(limit)
+                .exec()
             )]
                 .map(async (application) => ({
                     ...application.toObject(),
@@ -107,11 +114,11 @@ class CompanyApplicationService {
      * }
      * @returns {applications, docCount}
      */
-    async find(filters, limit, offset) {
+    async find(filters, limit, offset, sortingOptions) {
 
         const { state: stateFilter, ...queryFilters } = { ...filters };
 
-        if (!filters || Object.keys(filters).length === 0) return this.findAll(limit, offset);
+        if (!filters || Object.keys(filters).length === 0) return this.findAll(limit, offset, sortingOptions);
 
         const docCount = await CompanyApplication.estimatedDocumentCount();
 
@@ -125,7 +132,7 @@ class CompanyApplicationService {
                     Object.keys(queryFilters).length ? {
                         $and: this.buildFiltersQuery(queryFilters),
                     } : {})
-                    .sort({ submittedAt: "desc" })
+                    .sort(sortingOptions || { submittedAt: "desc" })
                     .skip(offset)
                     .limit(limit)
                     .exec()
@@ -162,7 +169,11 @@ class CompanyApplicationService {
         } catch (err) {
             console.error(`Error creating account for approved Company Application, rolling back approval of ${application._id}`);
             application.undoApproval();
-            throw err;
+            if (err.name === "MongoError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.errmsg)) {
+                throw new CompanyApplicationEmailAlreadyInUse(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
+            } else {
+                throw err;
+            }
         }
     }
 
@@ -183,3 +194,4 @@ class CompanyApplicationService {
 module.exports = CompanyApplicationService;
 module.exports.CompanyApplicationAlreadyReiewed = CompanyApplicationAlreadyReiewed;
 module.exports.CompanyApplicationNotFound = CompanyApplicationNotFound;
+module.exports.CompanyApplicationEmailAlreadyInUse = CompanyApplicationEmailAlreadyInUse;
