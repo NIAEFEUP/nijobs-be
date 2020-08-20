@@ -34,9 +34,7 @@ class CompanyApplicationService {
             submittedAt: Date.now(),
         });
 
-        const retVal = { ...application.toObject() };
-        delete retVal.password;
-        return retVal;
+        return application.toObject();
     }
 
     findById(id) {
@@ -56,17 +54,38 @@ class CompanyApplicationService {
 
         return {
             docCount,
-            applications: await Promise.all([...(await CompanyApplication.find({})
-                .sort(sortingOptions || { submittedAt: "desc" })
-                .skip(offset)
-                .limit(limit)
-                .exec()
-            )]
-                .map(async (application) => ({
-                    ...application.toObject(),
-                    state: (await CompanyApplication.findById(application._id).exec()).state,
-                }))),
+            applications:
+                [...(await CompanyApplication.find({})
+                    .sort(sortingOptions || { submittedAt: "desc" })
+                    .skip(offset)
+                    .limit(limit)
+                    .exec()
+                )]
+                    .map((application) => application.toObject()),
+
         };
+    }
+
+    buildCompnayNameFilter(companyNameFilter) {
+        return {
+            // This allows for partial text matching.
+            // If only full-text is needed, use $text query instead, which uses
+            // a text index and is more performant
+            companyName: new RegExp(companyNameFilter, "gi"),
+        };
+    }
+
+    buildSubmissionDateFilter(submissionDateFilter) {
+        const filter = { $and: [] };
+
+        if (submissionDateFilter.to) {
+            filter["$and"].push({ submittedAt: { "$lte": submissionDateFilter.to } });
+        }
+        if (submissionDateFilter.from) {
+            filter["$and"].push({ submittedAt: { "$gte": submissionDateFilter.from } });
+        }
+
+        return filter;
     }
 
     buildFiltersQuery({
@@ -75,27 +94,9 @@ class CompanyApplicationService {
     }) {
         const filterQueries = [];
 
-        if (companyName) {
-            filterQueries.push({
-                // This allows for partial text matching.
-                // If only full-text is needed, use $text query instead, which uses
-                // a text index and is more performant
-                companyName: new RegExp(companyName, "gi"),
-            });
-        }
+        if (companyName) filterQueries.push(this.buildCompnayNameFilter(companyName));
 
-        if (submissionDate) {
-
-            const filter = { $and: [] };
-
-            if (submissionDate.to) {
-                filter["$and"].push({ submittedAt: { "$lte": submissionDate.to } });
-            }
-            if (submissionDate.from) {
-                filter["$and"].push({ submittedAt: { "$gte": submissionDate.from } });
-            }
-            filterQueries.push(filter);
-        }
+        if (submissionDate) filterQueries.push(this.buildSubmissionDateFilter(submissionDate));
 
         return filterQueries;
     }
@@ -127,7 +128,7 @@ class CompanyApplicationService {
 
         return {
             docCount,
-            applications: (await Promise.all(
+            applications:
                 (await CompanyApplication.find(
                     Object.keys(queryFilters).length ? {
                         $and: this.buildFiltersQuery(queryFilters),
@@ -137,16 +138,12 @@ class CompanyApplicationService {
                     .limit(limit)
                     .exec()
                 )
-                    .map(async (application) => ({
-                        ...application.toObject(),
-                        state: (await CompanyApplication.findById(application._id).exec()).state,
-                    }))
-            ))
-                .filter((application) => (stateFilter) ?
-                    application.state === stateFilter ||
+                    .map((application) => application.toObject())
+                    .filter((application) => (stateFilter) ?
+                        application.state === stateFilter ||
                         stateFilter.includes(application.state)
-                    : true
-                ),
+                        : true
+                    ),
         };
     }
 
@@ -181,10 +178,10 @@ class CompanyApplicationService {
         try {
             const application = (await CompanyApplication.findById(id, {}, options));
             if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_REJECT.msg);
+
             application.reject(reason);
-            // eslint-disable-next-line no-unused-vars
-            const { password, ...trimmedApplication } = application.toObject();
-            return trimmedApplication;
+
+            return application.toObject();
         } catch (e) {
             throw new CompanyApplicationAlreadyReiewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
         }

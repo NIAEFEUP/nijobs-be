@@ -57,12 +57,10 @@ module.exports = (app) => {
                     return res
                         .status(HTTPStatus.NOT_FOUND)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
-                } else if (err instanceof ApplicationService.CompanyApplicationAlreadyReiewed) {
-                    return res
-                        .status(HTTPStatus.CONFLICT)
-                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
-
-                } else if (err instanceof ApplicationService.CompanyApplicationEmailAlreadyInUse) {
+                } else if (
+                    err instanceof ApplicationService.CompanyApplicationAlreadyReiewed ||
+                    err instanceof ApplicationService.CompanyApplicationEmailAlreadyInUse
+                ) {
                     return res
                         .status(HTTPStatus.CONFLICT)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));

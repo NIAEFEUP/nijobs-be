@@ -177,6 +177,14 @@ CompanyApplicationSchema.methods.undoApproval = function() {
 // Creating an index to make fetching faster
 CompanyApplicationSchema.index({ submittedAt: 1 });
 
+// Include virtuals and remove password field in toObject calls
+CompanyApplicationSchema.set("toJSON", { getters: true });
+CompanyApplicationSchema.set("toObject", { transform: (obj) => {
+    // eslint-disable-next-line no-unused-vars
+    const { password, ...trimmedDoc } = obj.toJSON();
+    return { ...trimmedDoc };
+} });
+
 const CompanyApplication = mongoose.model("CompanyApplication", CompanyApplicationSchema);
 module.exports = CompanyApplication;
 module.exports.applicationUniqueness = applicationUniqueness;
