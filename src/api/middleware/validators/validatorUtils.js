@@ -21,17 +21,17 @@ const valuesInSet = (set) => (arr) => {
  */
 const stringOrValuesInSet = (set) => (val) => {
 
-    const checkValid = (value) => (arr) => {
+    const checkValid = (value, arr) => {
         if (!arr.includes(value)) {
             throw new Error(ValidationReasons.IN_ARRAY(set));
         }
     };
 
     if (typeof val === "string") {
-        checkValid(val)(set);
+        checkValid(val, set);
     } else {
         for (const item of val) {
-            checkValid(item)(set);
+            checkValid(item, set);
         }
     }
 

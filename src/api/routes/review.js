@@ -15,30 +15,44 @@ module.exports = (app) => {
 
     /**
      * Searches for a Company Application, with provided filters
-     * // TODO: Document inputs (limit, offset, filters and sorting options)
+     * @param {*} limit - Number of documents to return
+     * @param {*} offset - where to start the query (pagination - how many documents to skip, NOT how many pages to skip)
+     * @param {*} filters - object with optional properties: state, submissionDate, companyName
+     * {
+     *      companyName: String
+     *      submissionDate: { - only one of the properties is necessary, but you can use both to define interval
+     *          from: Date
+     *          to: Date
+     *      }
+     *      state: String | Array - String for exact match, Array to provide set of options
+     * }
      */
-    router.get("/search", companyApplicationValidators.search, async (req, res, next) => {
+    router.get("/search",
+        authMiddleware.authRequired,
+        authMiddleware.isAdmin,
+        companyApplicationValidators.search,
+        async (req, res, next) => {
 
-        const limit = parseInt(req.query.limit || MAX_LIMIT_RESULTS, 10);
-        const offset = parseInt(req.query.offset || 0, 10);
-        let sortingOptions;
+            const limit = parseInt(req.query.limit || MAX_LIMIT_RESULTS, 10);
+            const offset = parseInt(req.query.offset || 0, 10);
+            let sortingOptions;
 
-        if (!req.body.sortBy) {
-            sortingOptions = undefined;
-        } else if (typeof sortBy === "string") {
-            sortingOptions = { [req.body.sortBy]: "desc" };
-        } else {
-            sortingOptions = req.body.sortBy;
-        }
+            if (!req.body.sortBy) {
+                sortingOptions = undefined;
+            } else if (typeof sortBy === "string") {
+                sortingOptions = { [req.body.sortBy]: "desc" };
+            } else {
+                sortingOptions = req.body.sortBy;
+            }
 
-        try {
+            try {
             // This is safe since the service is destructuring the passed object and the fields have been validated
-            const { applications, docCount } = await (new ApplicationService()).find(req.body.filters, limit, offset, sortingOptions);
-            return res.json({ applications, docCount });
-        } catch (err) {
-            return next(err);
-        }
-    });
+                const { applications, docCount } = await (new ApplicationService()).find(req.body.filters, limit, offset, sortingOptions);
+                return res.json({ applications, docCount });
+            } catch (err) {
+                return next(err);
+            }
+        });
 
     /**
      * Approves a Pending Company Application
