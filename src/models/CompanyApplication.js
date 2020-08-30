@@ -23,9 +23,18 @@ const CompanyApplicationRules = Object.freeze({
         validator: validateMutuallyExclusiveEvents(otherField),
         msg: `\`${thisField}\` and \`${otherField}\` are mutually exclusive`,
     }),
+    MUST_EXIST_TO_APPROVE: {
+        msg: "company-application-does-not-exist",
+    },
+    MUST_EXIST_TO_REJECT: {
+        msg: "company-application-does-not-exist",
+    },
+    CANNOT_REVIEW_TWICE: {
+        msg: "company-application-already-reviewed",
+    },
 });
 
-const CompanyApplicationSchema = new Schema({
+const CompanyApplicationProps = {
     email: {
         type: String,
         trim: true,
@@ -51,7 +60,6 @@ const CompanyApplicationSchema = new Schema({
     approvedAt: {
         type: Date,
         validate: [
-
             CompanyApplicationRules.DECISION_AFTER_SUBMISSION("approvedAt"),
             CompanyApplicationRules.MUTUALLY_EXCLUSIVE("rejectedAt", "approvedAt"),
         ],
@@ -71,7 +79,11 @@ const CompanyApplicationSchema = new Schema({
             return !!this.rejectedAt;
         },
     },
-});
+};
+
+const CompanyApplicationSchema = new Schema(CompanyApplicationProps);
+
+CompanyApplicationSchema.index({ companyName: "text" });
 
 CompanyApplicationSchema.virtual("state").get(function() {
     if (!this.approvedAt && !this.rejectedAt) return ApplicationStatus.PENDING;
@@ -121,7 +133,62 @@ async function validateSingleActiveApplication(value) {
     return true;
 }
 
+const isApprovable = (application) => {
+
+    if (application.state !== ApplicationStatus.PENDING)
+        throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+
+    return true;
+};
+
+const isRejectable = (application) => {
+
+    if (application.state !== ApplicationStatus.PENDING)
+        throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+
+    return true;
+};
+
+CompanyApplicationSchema.methods.approve = function() {
+    isApprovable(this);
+    this.approvedAt = Date.now();
+    // Need to prevent validation, otherwise it will fail the email uniqueness,
+    // Since there is already an application with same email: itself :)
+    return this.save({ validateModifiedOnly: true });
+};
+
+CompanyApplicationSchema.methods.reject = function(reason) {
+    isRejectable(this);
+    this.rejectedAt = Date.now();
+    this.rejectReason = reason;
+    // Need to prevent validation, otherwise it will fail the email uniqueness,
+    // Since there is already an application with same email: itself :)
+    return this.save({ validateModifiedOnly: true });
+};
+
+CompanyApplicationSchema.methods.undoApproval = function() {
+    if (!this.approvedAt) throw new Error("Cannot undo approval of yet-to-be approved Company Application");
+    this.approvedAt = undefined;
+    // Need to prevent validation, otherwise it will fail the email uniqueness,
+    // Since there is already an application with same email: itself :)
+    return this.save({ validateModifiedOnly: true });
+};
+
+// Creating an index to make fetching faster
+CompanyApplicationSchema.index({ submittedAt: 1 });
+
+// Include virtuals and remove password field in toObject calls
+CompanyApplicationSchema.set("toJSON", { getters: true });
+CompanyApplicationSchema.set("toObject", { transform: (obj) => {
+    // eslint-disable-next-line no-unused-vars
+    const { password, ...trimmedDoc } = obj.toJSON();
+    return { ...trimmedDoc };
+} });
+
 const CompanyApplication = mongoose.model("CompanyApplication", CompanyApplicationSchema);
 module.exports = CompanyApplication;
 module.exports.applicationUniqueness = applicationUniqueness;
+module.exports.isApprovable = isApprovable;
+module.exports.isRejectable = isRejectable;
 module.exports.CompanyApplicationRules = CompanyApplicationRules;
+module.exports.CompanyApplicationProps = CompanyApplicationProps;

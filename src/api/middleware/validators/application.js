@@ -1,12 +1,16 @@
-const { body } = require("express-validator");
+const { body, param } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
-const { checkDuplicatedEmail } = require("./validatorUtils");
+const { checkDuplicatedEmail, stringOrValuesInSet } = require("./validatorUtils");
 const CompanyApplicationConstants = require("../../../models/constants/CompanyApplication");
 const CompanyConstants = require("../../../models/constants/Company");
 const AccountConstants = require("../../../models/constants/Account");
-const { applicationUniqueness } = require("../../../models/CompanyApplication");
+const { applicationUniqueness, CompanyApplicationProps } = require("../../../models/CompanyApplication");
+const mongoose = require("mongoose");
+const ApplicationStatus = require("../../../models/constants/ApplicationStatus");
+
+const MAX_LIMIT_RESULTS = 100;
 
 const create = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
@@ -43,5 +47,74 @@ const create = useExpressValidators([
         .trim(),
 ]);
 
+const approve = useExpressValidators([
+    param("id", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .custom((value) => mongoose.Types.ObjectId.isValid(value))
+        .withMessage(ValidationReasons.OBJECT_ID).bail(),
+]);
 
-module.exports = { create };
+const reject = useExpressValidators([
+    param("id", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
+    body("rejectReason", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING)
+        .isLength({ max: CompanyApplicationConstants.rejectReason.max_length })
+        .withMessage(ValidationReasons.TOO_LONG(CompanyApplicationConstants.rejectReason.max_length))
+        .isLength({ min: CompanyApplicationConstants.rejectReason.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(CompanyApplicationConstants.rejectReason.min_length)),
+]);
+
+const sortByParamValidator = (val) => {
+
+    if (typeof val === "string") return true;
+
+    if (typeof val === "object") {
+
+        for (const field in val) {
+            if (!CompanyApplicationProps.hasOwnProperty(field)) {
+                throw new Error(ValidationReasons.IN_ARRAY(Object.keys(CompanyApplicationProps), field));
+            }
+            if (val[field] !== "desc" && val[field] !== "asc") {
+                throw new Error(ValidationReasons.IN_ARRAY(Object.keys(CompanyApplicationProps), val[field]));
+            }
+        }
+    }
+    return true;
+};
+
+
+const search = useExpressValidators([
+    param("limit", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt({ min: 1, max: MAX_LIMIT_RESULTS })
+        .withMessage(ValidationReasons.MAX(MAX_LIMIT_RESULTS)),
+    param("offset", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt({ min: 0 })
+        .withMessage(ValidationReasons.MIN(0)),
+    body("filters.companyName", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING),
+    body("filters.state", ValidationReasons.DEFAULT)
+        .optional()
+        .custom(stringOrValuesInSet(Object.keys(ApplicationStatus))),
+    body("filters.submissionDate.from", ValidationReasons.DEFAULT)
+        .optional()
+        .isISO8601().withMessage(ValidationReasons.DATE),
+    body("filters.submissionDate.to", ValidationReasons.DEFAULT)
+        .optional()
+        .isISO8601().withMessage(ValidationReasons.DATE),
+    body("sortBy", ValidationReasons.DEFAULT)
+        .optional()
+        .custom(sortByParamValidator),
+]);
+
+module.exports = {
+    create,
+    approve,
+    reject,
+    search,
+    MAX_LIMIT_RESULTS,
+};

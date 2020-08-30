@@ -12,7 +12,6 @@ const CompanySchema = new Schema({
     contacts: {
         type: Map,
         of: String,
-        required: true,
         validate: [
             (val) => val.size >= 1,
             "There must be at least one contact",
@@ -21,7 +20,6 @@ const CompanySchema = new Schema({
     bio: {
         type: String,
         maxlength: CompanyConstants.bio.max_length,
-        required: true,
     },
 });
 
