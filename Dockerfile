@@ -1,6 +1,5 @@
 # Development dockerfile
-# Use node 8-LTS
-FROM node:8
+FROM node:12.18.4
 
 WORKDIR /usr/src/app
 
