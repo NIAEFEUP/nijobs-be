@@ -112,6 +112,11 @@ This project uses [`Node.js`](https://nodejs.org/en/) with [`Express.js`](https:
 
 Testing is done using [`Mocha`](https://mochajs.org/) and [`Chai`](https://www.chaijs.com/).
 
+### Project Concepts Map
+
+![Project Concepts Map](https://imgur.com/HVXk1Jg.png)
+> [Source](https://app.creately.com/diagram/Kfsc8WeFzKe/edit)
+
 ### Project Structure
 
 - `src/`
