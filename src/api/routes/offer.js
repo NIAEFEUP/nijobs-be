@@ -1,5 +1,6 @@
 const { Router } = require("express");
 
+const companyMiddleware = require("../middleware/company");
 const authMiddleware = require("../middleware/auth");
 const validators = require("../middleware/validators/offer");
 const OfferService = require("../../services/offer");
@@ -25,7 +26,7 @@ module.exports = (app) => {
     /**
      * Creates a new Offer
      */
-    router.post("/", authMiddleware.isGod, validators.create, async (req, res, next) => {
+    router.post("/", authMiddleware.isGod, validators.create, companyMiddleware.canCreateOffer, async (req, res, next) => {
         try {
             // This is safe since the service is destructuring the passed object and the fields have been validated
             const offer = await (new OfferService()).create(req.body);

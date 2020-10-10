@@ -7,7 +7,7 @@ class CompanyService {
     }
 
     async getOffers(companyId) {
-        const offers = Offer.find({owner: companyId});
+        const offers = await Offer.find({ owner: companyId });
 
         return offers;
     }
