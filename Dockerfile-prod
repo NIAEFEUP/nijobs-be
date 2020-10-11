@@ -1,6 +1,5 @@
 # Production deployment dockerfile
-# Use node 8-LTS
-FROM node:8
+FROM node:14.13.1
 
 WORKDIR /usr/src/app
 
