@@ -67,13 +67,13 @@ const reject = useExpressValidators([
 ]);
 
 const sortByParamValidator = (val) => {
-
-    if (typeof val === "string") return true;
+    if (typeof val === "string") {
+        return true;
+    }
 
     if (typeof val === "object") {
-
         for (const field in val) {
-            if (!CompanyApplicationProps.hasOwnProperty(field)) {
+            if (!Object.prototype.hasOwnProperty.call(CompanyApplicationProps, field)) {
                 throw new Error(ValidationReasons.IN_ARRAY(Object.keys(CompanyApplicationProps), field));
             }
             if (val[field] !== "desc" && val[field] !== "asc") {
@@ -81,6 +81,7 @@ const sortByParamValidator = (val) => {
             }
         }
     }
+
     return true;
 };
 
