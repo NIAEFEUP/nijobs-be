@@ -71,7 +71,7 @@ docker-compose build test
 After building the images/containers, the tests can be ran with:
 
 ```bash
-docker-compose up test mongo --exit-code-from test
+docker-compose up --exit-code-from test test
 ```
 > A `test.sh` file is available in the project's root folder to run these commands on linux environments (simply run `./test.sh [--build]`)
 
