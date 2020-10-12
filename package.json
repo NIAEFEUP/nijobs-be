@@ -18,7 +18,7 @@
   "author": "NIAEFEUP",
   "license": "GPL-3.0",
   "devDependencies": {
-    "eslint": "^5.13.0",
+    "eslint": "^7.11.0",
     "jest": "^24.9.0",
     "nodemon": "^1.18.10",
     "supertest": "^4.0.2"
