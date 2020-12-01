@@ -46,14 +46,14 @@ class CompanyApplicationService {
      * @param {*} limit - Number of documents to return
      * @param {*} offset - where to start the query (pagination - how many documents to skip, NOT how many pages to skip)
      *
-     * @returns {applications, docCount}
+     * @returns {applications, totalDocCount}
      */
     async findAll(limit, offset, sortingOptions) {
 
-        const docCount = await CompanyApplication.estimatedDocumentCount();
+        const totalDocCount = await CompanyApplication.estimatedDocumentCount();
 
         return {
-            docCount,
+            totalDocCount,
             applications:
                 [...(await CompanyApplication.find({})
                     .sort(sortingOptions || { submittedAt: "desc" })
@@ -90,13 +90,15 @@ class CompanyApplicationService {
 
     buildFiltersQuery({
         companyName,
-        submissionDate,
+        submissionDateFrom,
+        submissionDateTo,
     }) {
         const filterQueries = [];
 
         if (companyName) filterQueries.push(this.buildCompnayNameFilter(companyName));
 
-        if (submissionDate) filterQueries.push(this.buildSubmissionDateFilter(submissionDate));
+        if (submissionDateFrom || submissionDateTo)
+            filterQueries.push(this.buildSubmissionDateFilter({ from: submissionDateFrom, to: submissionDateTo }));
 
         return filterQueries;
     }
@@ -113,7 +115,7 @@ class CompanyApplicationService {
      *      }
      *      state: String | Array - String for exact match, Array to provide set of options
      * }
-     * @returns {applications, docCount}
+     * @returns {applications, totalDocCount}
      */
     async find(filters, limit, offset, sortingOptions) {
 
@@ -121,13 +123,13 @@ class CompanyApplicationService {
 
         if (!filters || Object.keys(filters).length === 0) return this.findAll(limit, offset, sortingOptions);
 
-        const docCount = await CompanyApplication.estimatedDocumentCount();
+        const totalDocCount = await CompanyApplication.estimatedDocumentCount();
 
         // Using .skip().limit() can be problematic if we get big data,
         // Once problems appear, consider using .cursor API
 
         return {
-            docCount,
+            totalDocCount,
             applications:
                 (await CompanyApplication.find(
                     Object.keys(queryFilters).length ? {

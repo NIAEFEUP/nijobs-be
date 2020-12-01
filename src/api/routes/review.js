@@ -10,6 +10,22 @@ const { buildErrorResponse, ErrorTypes } = require("../middleware/errorHandler")
 
 const router = Router();
 
+const parseSortingOptions = (sortingOptions) => sortingOptions
+    .reduce((sortingOptionsObj, sortingOption) => {
+        const [field, mode] = sortingOption.split(":");
+        if (!mode) {
+            return {
+                ...sortingOptionsObj,
+                [field]: "desc"
+            };
+        } else {
+            return {
+                ...sortingOptionsObj,
+                [field]: mode
+            };
+        }
+    }, {});
+
 module.exports = (app) => {
     app.use("/applications/company", router);
 
@@ -17,15 +33,14 @@ module.exports = (app) => {
      * Searches for a Company Application, with provided filters
      * @param {*} limit - Number of documents to return
      * @param {*} offset - where to start the query (pagination - how many documents to skip, NOT how many pages to skip)
-     * @param {*} filters - object with optional properties: state, submissionDate, companyName
-     * {
-     *      companyName: String
-     *      submissionDate: { - only one of the properties is necessary, but you can use both to define interval
-     *          from: Date
-     *          to: Date
-     *      }
-     *      state: String | Array - String for exact match, Array to provide set of options
-     * }
+     * @param {*} companyName: String
+     * @param {*} submissionDateFrom: Date  - only one of the properties is necessary, but you can use both to define interval
+     * @param {*} submissionDateTo: Date  - only one of the properties is necessary, but you can use both to define interval
+     * @param {*} state: Array - set of options - NO NEED TO ESCAPE STRINGS
+     *      e.g. /applications/company/search?state=["APPROVED","REJECTED"]
+     * @param {*} sortBy: String - format: field:(desc|asc)?[,field:(desc|asc)?]*
+     * where field is a valid company application field to sort on
+     * If no mode (desc/asc) is given, it defaults to desc. Also if no sortBy is passed, the default is submittedAt:desc
      */
     router.get("/search",
         authMiddleware.authRequired,
@@ -33,21 +48,22 @@ module.exports = (app) => {
         companyApplicationValidators.search,
         async (req, res, next) => {
 
-            const limit = parseInt(req.query.limit || MAX_LIMIT_RESULTS, 10);
-            const offset = parseInt(req.query.offset || 0, 10);
+            const { limit, offset, sortBy, ...filters } = req.query;
+            const computedLimit = parseInt(limit || MAX_LIMIT_RESULTS, 10);
+            const computedOffset = parseInt(offset || 0, 10);
             let sortingOptions;
 
-            if (!req.body.sortBy) {
+            if (!sortBy || sortBy.length === 0) {
                 sortingOptions = undefined;
-            } else if (typeof sortBy === "string") {
-                sortingOptions = { [req.body.sortBy]: "desc" };
             } else {
-                sortingOptions = req.body.sortBy;
+                sortingOptions = parseSortingOptions(sortBy);
             }
 
             try {
             // This is safe since the service is destructuring the passed object and the fields have been validated
-                const { applications, docCount } = await (new ApplicationService()).find(req.body.filters, limit, offset, sortingOptions);
+                const { applications, docCount } = await (new ApplicationService()).find(
+                    filters, computedLimit, computedOffset, sortingOptions
+                );
                 return res.json({ applications, docCount });
             } catch (err) {
                 return next(err);
