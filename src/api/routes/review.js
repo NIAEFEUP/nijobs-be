@@ -53,14 +53,11 @@ module.exports = (app) => {
             const computedOffset = parseInt(offset || 0, 10);
             let sortingOptions;
 
-            if (!sortBy || sortBy.length === 0) {
-                sortingOptions = undefined;
-            } else {
+            if (sortBy?.length) {
                 sortingOptions = parseSortingOptions(sortBy);
             }
 
             try {
-            // This is safe since the service is destructuring the passed object and the fields have been validated
                 const { applications, docCount } = await (new ApplicationService()).find(
                     filters, computedLimit, computedOffset, sortingOptions
                 );
@@ -68,7 +65,8 @@ module.exports = (app) => {
             } catch (err) {
                 return next(err);
             }
-        });
+        }
+    );
 
     /**
      * Approves a Pending Company Application

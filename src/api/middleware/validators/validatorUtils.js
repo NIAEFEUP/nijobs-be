@@ -26,14 +26,7 @@ const checkDuplicatedEmail = async (email) => {
     }
 };
 
-/**
- * Sanitize JSON string into a JS Array for validation
- * @param {*} json string to sanitize as JS array from JSON
- */
-const parseArrayJSON = (json) => JSON.parse(json);
-
 module.exports = {
     valuesInSet,
     checkDuplicatedEmail,
-    parseArrayJSON
 };

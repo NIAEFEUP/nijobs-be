@@ -24,6 +24,8 @@
     "supertest": "^4.0.2"
   },
   "dependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.12.7",
+    "babel": "^6.23.0",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.18.3",
     "dotenv-flow": "^3.0.0",
