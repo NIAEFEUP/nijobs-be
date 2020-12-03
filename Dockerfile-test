@@ -17,6 +17,8 @@ COPY test/ test/
 
 # Copying linting configuration (for running the linter)
 COPY .eslintrc .
+# Copying babel configuration
+COPY .babelrc .
 # Copying jest configs (for running the tests)
 COPY jest.config.js .
 
