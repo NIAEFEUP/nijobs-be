@@ -18,6 +18,7 @@ const ValidationReasons = Object.freeze({
     ALREADY_EXISTS: (variable) => `${variable}-already-exists`,
     DATE_EXPIRED: "date-already-past",
     MUST_BE_AFTER: (variable) => `must-be-after:${variable}`,
+    WRONG_FORMAT: (format) => `must-be-format-${format}`
 });
 
 module.exports = ValidationReasons;

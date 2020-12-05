@@ -1,8 +1,8 @@
-const { body, param } = require("express-validator");
+const { body, param, query } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
-const { checkDuplicatedEmail, stringOrValuesInSet } = require("./validatorUtils");
+const { checkDuplicatedEmail, valuesInSet } = require("./validatorUtils");
 const CompanyApplicationConstants = require("../../../models/constants/CompanyApplication");
 const CompanyConstants = require("../../../models/constants/Company");
 const AccountConstants = require("../../../models/constants/Account");
@@ -67,49 +67,57 @@ const reject = useExpressValidators([
 ]);
 
 const sortByParamValidator = (val) => {
-    if (typeof val === "string") {
-        return true;
+
+    const regex = /^(\w+(:(desc|asc))?)(,\w+(:(desc|asc))?)*$/;
+    if (!regex.test(val)) {
+        throw new Error(ValidationReasons.WRONG_FORMAT("field:(desc|asc)?[,field:(desc|asc)?]*"));
     }
 
-    if (typeof val === "object") {
-        for (const field in val) {
-            if (!Object.prototype.hasOwnProperty.call(CompanyApplicationProps, field)) {
-                throw new Error(ValidationReasons.IN_ARRAY(Object.keys(CompanyApplicationProps), field));
-            }
-            if (val[field] !== "desc" && val[field] !== "asc") {
-                throw new Error(ValidationReasons.IN_ARRAY(Object.keys(CompanyApplicationProps), val[field]));
-            }
+    const fields = val.split(",").map((sortOption) => sortOption.split(":")[0]);
+
+    for (const field of fields) {
+        if (!Object.prototype.hasOwnProperty.call(CompanyApplicationProps, field)) {
+            throw new Error(ValidationReasons.IN_ARRAY(Object.keys(CompanyApplicationProps), field));
         }
     }
 
     return true;
 };
 
+const parseSortByField = (val) => val.split(",");
+
 
 const search = useExpressValidators([
-    param("limit", ValidationReasons.DEFAULT)
+    query("limit", ValidationReasons.DEFAULT)
         .optional()
         .isInt({ min: 1, max: MAX_LIMIT_RESULTS })
         .withMessage(ValidationReasons.MAX(MAX_LIMIT_RESULTS)),
-    param("offset", ValidationReasons.DEFAULT)
+    query("offset", ValidationReasons.DEFAULT)
         .optional()
         .isInt({ min: 0 })
         .withMessage(ValidationReasons.MIN(0)),
-    body("filters.companyName", ValidationReasons.DEFAULT)
+    query("companyName", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING),
-    body("filters.state", ValidationReasons.DEFAULT)
+    query("state", ValidationReasons.DEFAULT)
         .optional()
-        .custom(stringOrValuesInSet(Object.keys(ApplicationStatus))),
-    body("filters.submissionDate.from", ValidationReasons.DEFAULT)
+        .isJSON().withMessage(ValidationReasons.ARRAY).bail()
+        .customSanitizer(JSON.parse)
+        .isArray().withMessage(ValidationReasons.ARRAY).bail()
+        .custom(valuesInSet(Object.keys(ApplicationStatus))),
+    query("submissionDateFrom", ValidationReasons.DEFAULT)
         .optional()
+        .toDate()
         .isISO8601().withMessage(ValidationReasons.DATE),
-    body("filters.submissionDate.to", ValidationReasons.DEFAULT)
+    query("submissionDateTo", ValidationReasons.DEFAULT)
         .optional()
+        .toDate()
         .isISO8601().withMessage(ValidationReasons.DATE),
-    body("sortBy", ValidationReasons.DEFAULT)
+    query("sortBy", ValidationReasons.DEFAULT)
         .optional()
-        .custom(sortByParamValidator),
+        .isString().withMessage(ValidationReasons.STRING)
+        .custom(sortByParamValidator)
+        .customSanitizer(parseSortByField),
 ]);
 
 module.exports = {
