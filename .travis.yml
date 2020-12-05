@@ -16,7 +16,7 @@ env:
     # Any separate test environment variables go here, one per line each creating a different test environment
 
 script:
-  - npm audit --audit-level=high &> /dev/null
+  - npm run audit
   - docker-compose up --exit-code-from test test
 
 cache:
