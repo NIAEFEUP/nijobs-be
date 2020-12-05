@@ -147,6 +147,8 @@ describe("Login endpoint test", () => {
 
             expect(res.status).toBe(HTTPStatus.OK);
             expect(res.body).toHaveProperty("data.email", test_user.email);
+            expect(res.body).toHaveProperty("data.isAdmin", true);
+            expect(res.body).not.toHaveProperty("data.company");
         });
 
         test("should be successful when loging out the current user", async () => {

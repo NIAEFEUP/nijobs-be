@@ -5,6 +5,7 @@ const passport = require("passport");
 const { authRequired, isGod } = require("../middleware/auth");
 const validators = require("../middleware/validators/auth");
 const AccountService = require("../../services/account");
+const Company = require("../../models/constants/Company");
 
 
 const router = Router();
@@ -13,12 +14,23 @@ module.exports = (app) => {
     app.use("/auth", router);
 
     // Get logged in user info
-    router.get("/me", authRequired, (req, res) => {
-        const userInfo = req.user;
+    router.get("/me", authRequired, async (req, res) => {
+        const { email, isAdmin, company: companyId } = req.user;
+
+        let company = undefined;
+
+        try {
+            if (companyId)
+                company = await Company.findById(companyId);
+        } catch (e) {
+            console.error(`Could not find the respective company of user ${req.user._id}, with id ${companyId}`, e);
+        }
+
         return res.status(HTTPStatus.OK).json({
             data: {
-                _id: userInfo._id,
-                email: userInfo.email,
+                email,
+                isAdmin,
+                company
             },
         });
     });
