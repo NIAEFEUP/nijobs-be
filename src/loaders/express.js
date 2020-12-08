@@ -8,6 +8,13 @@ const apiRoutes = require("../api");
 const config = require("../config/env");
 const { defaultErrorHandler } = require("../api/middleware/errorHandler");
 
+const helmet = require("helmet");
+
+const RateLimit = require("express-rate-limit");
+const MongoStore = require("rate-limit-mongo");
+
+const API_REQUEST_TIME_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+const API_MAX_REQUESTS_PER_WINDOW = 100;
 
 module.exports = (app) => {
     // Checking for session secret
@@ -34,6 +41,29 @@ module.exports = (app) => {
     // Initializing passport authentication settings
     app.use(passport.initialize());
     app.use(passport.session());
+
+    // Set the API call rate limit only on production
+    if (process.env.NODE_ENV === "production") {
+        const api_rate_limiter = new RateLimit({
+            store: new MongoStore({
+                uri: config.db_uri,
+                user: config.db_user,
+                password: config.db_pass,
+            }),
+            windowMs: API_REQUEST_TIME_WINDOW_MS,
+            max: API_MAX_REQUESTS_PER_WINDOW,
+            message: {
+                error: "Too many requests issued from this IP, please try again after a while",
+            },
+        });
+
+        // Adds rate limit to all routes
+        app.use(api_rate_limiter);
+    }
+
+    // Adds protection to common attacks
+    // Check https://helmetjs.github.io/#how-it-works to see a list of features
+    app.use(helmet());
 
     // Adds route logging
     if (process.env.NODE_ENV !== "test" || config.test_log_requests) {
