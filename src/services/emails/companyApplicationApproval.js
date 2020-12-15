@@ -11,8 +11,8 @@ module.exports = Object.freeze({
             \n           
             To review and approve or reject this application, log in to NIJobs and go to the Applications Review page (https://ni.fe.up.pt/nijobs/review/applications).
             \n
-            Sincerely,</p>
-            NIJobs team at NIAEFEUP</p>
+            Sincerely,
+            NIJobs team at NIAEFEUP
         `,
         html:
             `<h3>A company has requested access to NIJobs</h3>

@@ -8,8 +8,8 @@
     "prod": "NODE_ENV=production node src/index.js",
     "lint": "eslint src test --max-warnings 0",
     "lint-fix": "npm run lint -- --fix",
-    "test": "jest --runInBand",
-    "ci": "npm run lint && npm test",
+    "test": "NODE_ENV=test jest --runInBand",
+    "ci": "NODE_ENV=test npm run lint && npm test",
     "audit": "npm audit --audit-level=high --json | npm-audit-helper"
   },
   "repository": {

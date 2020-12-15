@@ -1,3 +1,4 @@
+const EmailService = require("../../src/lib/nodemailer");
 const HTTPStatus = require("http-status-codes");
 const CompanyApplication = require("../../src/models/CompanyApplication");
 const CompanyApplicationRules = require("../../src/models/CompanyApplication").CompanyApplicationRules;
@@ -6,6 +7,7 @@ const hash = require("../../src/lib/passwordHashing");
 const Account = require("../../src/models/Account");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ApplicationStatus = require("../../src/models/constants/ApplicationStatus");
+const { APPROVAL_NOTIFICATION } = require("../../src/services/emails/companyApplicationApproval");
 const { ObjectId } = require("mongoose").Types;
 
 describe("Company application review endpoint test", () => {
@@ -286,7 +288,6 @@ describe("Company application review endpoint test", () => {
 
                 describe("Approve application", () => {
 
-
                     beforeEach(async () => {
                         await Account.deleteMany({ email: pendingApplication.email });
                         application = await CompanyApplication.create(pendingApplication);
@@ -304,6 +305,24 @@ describe("Company application review endpoint test", () => {
                         expect(res.status).toBe(HTTPStatus.OK);
                         expect(res.body.email).toBe(pendingApplication.email);
                         expect(res.body.companyName).toBe(pendingApplication.companyName);
+                    });
+
+                    test("Should send approval email to company email", async () => {
+
+                        const res = await test_agent
+                            .post(`/applications/company/${application._id}/approve`);
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+
+                        const emailOptions = APPROVAL_NOTIFICATION(application.companyName);
+
+                        expect(EmailService.sendMail).toHaveBeenCalledWith({
+                            subject: emailOptions.subject,
+                            text: emailOptions.text,
+                            html: emailOptions.html,
+                            to: application.email
+                        });
+
                     });
 
                     test("Should fail if trying to approve inexistent application", async () => {

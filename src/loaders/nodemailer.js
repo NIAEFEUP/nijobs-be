@@ -32,7 +32,7 @@ const initNodemailer = async () => {
 
     } catch (err) {
         console.error("Nodemailer: failure in initializing the email service (aborting, will not retry)", err);
-        process.exit(44);
+        // process.exit(44);
     }
 
 };

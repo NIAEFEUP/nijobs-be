@@ -1,3 +1,4 @@
+const EmailService = require("../../src/lib/nodemailer");
 const HTTPStatus = require("http-status-codes");
 const CompanyApplication = require("../../src/models/CompanyApplication");
 const { CompanyApplicationRules }  = require("../../src/models/CompanyApplication");
@@ -7,6 +8,9 @@ const ValidationReasons = require("../../src/api/middleware/validators/validatio
 const CompanyApplicationConstants = require("../../src/models/constants/CompanyApplication");
 const AccountConstants = require("../../src/models/constants/Account");
 const CompanyConstants = require("../../src/models/constants/Company");
+const { NEW_COMPANY_APPLICATION_ADMINS, NEW_COMPANY_APPLICATION_COMPANY } = require("../../src/services/emails/companyApplicationApproval");
+const config = require("../../src/config/env");
+
 
 describe("Company application endpoint test", () => {
     describe("POST /application", () => {
@@ -82,6 +86,39 @@ describe("Company application endpoint test", () => {
                 expect(created_application).toHaveProperty("companyName", application.companyName);
                 expect(created_application).toHaveProperty("motivation", application.motivation);
                 expect(created_application).toHaveProperty("submittedAt", mockCurrentDate);
+            });
+
+            test("Should send an email to admin and to company user", async () => {
+                const application = {
+                    email: "test2@test.com",
+                    password: "password123",
+                    companyName: "Testing company",
+                    motivation: "This company has a very valid motivation because otherwise, the tests would not exist.",
+                };
+                const res = await request()
+                    .post("/apply/company")
+                    .send(application);
+
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const adminEmailOptions = NEW_COMPANY_APPLICATION_ADMINS(
+                    application.email, application.companyName, application.motivation);
+                const companyEmailOptions = NEW_COMPANY_APPLICATION_COMPANY(
+                    application.companyName, res.body._id);
+
+                expect(EmailService.sendMail).toHaveBeenNthCalledWith(1, {
+                    subject: adminEmailOptions.subject,
+                    text: adminEmailOptions.text,
+                    html: adminEmailOptions.html,
+                    to: config.mail_address
+                });
+
+                expect(EmailService.sendMail).toHaveBeenNthCalledWith(2, {
+                    subject: companyEmailOptions.subject,
+                    text: companyEmailOptions.text,
+                    html: companyEmailOptions.html,
+                    to: application.email
+                });
             });
 
             describe("Invalid input", () => {
