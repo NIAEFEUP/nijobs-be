@@ -98,21 +98,16 @@ const create = useExpressValidators([
         .optional()
         .isBoolean().withMessage(ValidationReasons.BOOLEAN),
 
-    // TODO: Add validation for the owner being a Mongo ObjectId that is correctly referencing an existing Company
     body("owner", ValidationReasons.DEFAULT)
         .custom(async (owner, { req }) => {
 
             // When it reaches this validation, the user is either company or god
-            if (req?.user?.company) {
-                return true;
-            }
+            if (req?.user?.company) return true;
 
-            if (!owner) {
-                throw new Error(ValidationReasons.REQUIRED);
-            }
+            if (!owner) throw new Error(ValidationReasons.REQUIRED);
 
             try {
-                await Company.findById(owner);
+                if (await Company.findById(owner) === null) throw new Error("Company not found");
             } catch (e) {
                 throw new Error(`no-company-found-with-id-${owner}`);
             }

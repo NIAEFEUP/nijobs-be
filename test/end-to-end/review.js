@@ -256,7 +256,6 @@ describe("Company application review endpoint test", () => {
                     const defaultQuery = await test_agent
                         .get("/applications/company/search");
 
-
                     expect(defaultQuery.status).toBe(HTTPStatus.OK);
                     expect(defaultQuery.body.applications.length).toBe(3);
                     expect(defaultQuery.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);

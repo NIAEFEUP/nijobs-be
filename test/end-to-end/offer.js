@@ -9,17 +9,114 @@ const ValidatorTester = require("../utils/ValidatorTester");
 const withGodToken = require("../utils/GodToken");
 const { DAY_TO_MS } = require("../utils/TimeConstants");
 const OfferConstants = require("../../src/models/constants/Offer");
+const Account = require("../../src/models/Account");
+const Company = require("../../src/models/Company");
+const hash = require("../../src/lib/passwordHashing");
 
 //----------------------------------------------------------------
 
 describe("Offer endpoint tests", () => {
-    describe("POST /offer", () => {
+    const offer = {
+        title: "Test Offer",
+        publishDate: new Date(Date.now() - (DAY_TO_MS)),
+        publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
+        description: "For Testing Purposes",
+        contacts: ["geral@niaefeup.pt", "229417766"],
+        jobType: "SUMMER INTERNSHIP",
+        fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+        technologies: ["React", "CSS"],
+        location: "Testing Street, Test City, 123",
+    };
+
+    let test_company;
+
+    beforeAll(async () => {
+        await Company.deleteMany({});
+        test_company = await Company.create({
+            name: "test company",
+            bio: "a bio",
+            contacts: ["a contact"]
+        });
+    });
+
+    describe("POST /offers", () => {
 
         describe("Authentication", () => {
+
+            describe("creating offers requires company account (without god token)", () => {
+
+                const test_agent = agent();
+                const test_user_admin = {
+                    email: "admin@email.com",
+                    password: "password123",
+                };
+                const test_user_company = {
+                    email: "company@email.com",
+                    password: "password123",
+                };
+
+
+                beforeAll(async () => {
+                    await Account.deleteMany({});
+                    await Account.create({
+                        email: test_user_admin.email,
+                        password: await hash(test_user_admin.password),
+                        isAdmin: true
+                    });
+                    await Account.create({
+                        email: test_user_company.email,
+                        password: await hash(test_user_company.password),
+                        company: test_company._id
+                    });
+                });
+
+                test("should fail if not logged in", async () => {
+                    const res = await request()
+                        .post("/offers/new")
+                        .send({});
+
+                    expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                    expect(res.body).toHaveProperty("reason", "Invalid god token");
+                });
+
+                test("should fail if logged to non-company account", async () => {
+                    // Login
+                    await test_agent
+                        .post("/auth/login")
+                        .send(test_user_admin)
+                        .expect(200);
+
+                    const res = await request()
+                        .post("/offers/new")
+                        .send(offer);
+
+                    expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                    expect(res.body).toHaveProperty("reason", "Invalid god token");
+                });
+
+                test("should create offer if logged in to company account", async () => {
+                    // Login
+                    await test_agent
+                        .post("/auth/login")
+                        .send(test_user_company)
+                        .expect(200);
+
+                    const res = await request()
+                        .post("/offers/new")
+                        .send({ ...offer, owner: test_company._id });
+
+                    expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                    expect(res.body).toHaveProperty("reason", "Invalid god token");
+                });
+            });
+
             describe("creating offers requires god permissions", () => {
                 test("should fail when god token not provided", async () => {
                     const res = await request()
-                        .post("/offer")
+                        .post("/offers/new")
                         .send({});
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
@@ -29,7 +126,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should fail when god token is incorrect", async () => {
                     const res = await request()
-                        .post("/offer")
+                        .post("/offers/new")
                         .send({
                             god_token: "NotAValidGodToken!!12345",
                         });
@@ -39,18 +136,39 @@ describe("Offer endpoint tests", () => {
                     expect(res.body).toHaveProperty("reason", "Invalid god token");
                 });
 
-                test("should succeed when god token is correct", async () => {
-                    const params = {};
+                test("should fail when god token is correct but owner doesn't exist", async () => {
+                    const params = { ...offer, owner: "invalidowner" };
                     const res = await request()
-                        .post("/offer")
+                        .post("/offers/new")
                         .send(withGodToken(params));
 
-                    expect(res.status).not.toBe(HTTPStatus.UNAUTHORIZED);
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body.errors).toContainEqual({
+                        value: "invalidowner",
+                        location: "body",
+                        msg: "no-company-found-with-id-invalidowner",
+                        param: "owner",
+                    });
+
+                });
+
+                test("should succeed when god token is correct and owner exists", async () => {
+                    const params = { ...offer, owner: test_company._id };
+                    const res = await request()
+                        .post("/offers/new")
+                        .send(withGodToken(params));
+
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("title", offer.title);
+                    expect(res.body).toHaveProperty("description", offer.description);
+                    expect(res.body).toHaveProperty("location", offer.location);
                 });
             });
         });
 
-        const EndpointValidatorTester = ValidatorTester((params) => request().post("/offer").send(withGodToken(params)));
+        const EndpointValidatorTester = ValidatorTester((params) => request().post("/offers/new").send(withGodToken(params)));
         const BodyValidatorTester = EndpointValidatorTester("body");
 
         describe("Input Validation", () => {
@@ -152,22 +270,14 @@ describe("Offer endpoint tests", () => {
             // TODO: This test should be 'with minimum requirements'
             // Thus, there should be another with all of the optional fields being sent, at least
             test("Should successfully create an Offer", async () => {
-                const offer = {
-                    title: "Test Offer",
-                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
-                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
-                    description: "For Testing Purposes",
-                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
-                    owner: "aaa712371273",
-                    location: "Testing Street, Test City, 123",
+                const offer_params = {
+                    ...offer,
+                    owner: test_company._id,
                 };
 
                 const res = await request()
-                    .post("/offer")
-                    .send(withGodToken(offer));
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
 
                 expect(res.status).toBe(HTTPStatus.OK);
                 const created_offer_id = res.body._id;
@@ -189,16 +299,16 @@ describe("Offer endpoint tests", () => {
                     title: "Test Offer",
                     publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
                     description: "For Testing Purposes",
-                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    contacts: ["geral@niaefeup.pt", "229417766"],
                     jobType: "SUMMER INTERNSHIP",
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
-                    owner: "aaa712371273",
+                    owner: test_company._id,
                     location: "Testing Street, Test City, 123",
                 };
 
                 const res = await request()
-                    .post("/offer")
+                    .post("/offers/new")
                     .send(withGodToken(offer));
 
                 expect(res.status).toBe(HTTPStatus.OK);
@@ -215,9 +325,9 @@ describe("Offer endpoint tests", () => {
         });
     });
 
-    describe("GET /offer", () => {
+    describe("GET /offers", () => {
         describe("Input Validation", () => {
-            const EndpointValidatorTester = ValidatorTester((params) => request().get("/offer").query(params));
+            const EndpointValidatorTester = ValidatorTester((params) => request().get("/offers").query(params));
             const QueryValidatorTester = EndpointValidatorTester("query");
 
             describe("offset", () => {
@@ -238,7 +348,7 @@ describe("Offer endpoint tests", () => {
                     publishDate: "2019-11-22T00:00:00.000Z",
                     publishEndDate: "2019-11-28T00:00:00.000Z",
                     description: "For Testing Purposes",
-                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    contacts: ["geral@niaefeup.pt", "229417766"],
                     jobType: "SUMMER INTERNSHIP",
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
@@ -251,7 +361,7 @@ describe("Offer endpoint tests", () => {
                     publishDate: "2019-11-17",
                     publishEndDate: "2019-11-18",
                     description: "For Testing Purposes",
-                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    contacts: ["geral@niaefeup.pt", "229417766"],
                     jobType: "SUMMER INTERNSHIP",
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
@@ -264,7 +374,7 @@ describe("Offer endpoint tests", () => {
                     publishDate: "2019-12-12",
                     publishEndDate: "2019-12-22",
                     description: "For Testing Purposes",
-                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    contacts: ["geral@niaefeup.pt", "229417766"],
                     jobType: "SUMMER INTERNSHIP",
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
@@ -295,7 +405,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should provide only current offer info (no expired or future offers)", async () => {
                     const res = await request()
-                        .get("/offer");
+                        .get("/offers");
 
                     expect(res.status).toBe(HTTPStatus.OK);
                     expect(res.body).toHaveLength(1);
@@ -303,7 +413,7 @@ describe("Offer endpoint tests", () => {
                     const extracted_data = res.body.map((elem) => {
                         delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
                     });
-                    const prepared_test_offer = { ...test_offer };
+                    const prepared_test_offer = { ...test_offer, isHidden: false };
                     delete prepared_test_offer["owner"];
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);
@@ -316,7 +426,7 @@ describe("Offer endpoint tests", () => {
                     publishDate: "2019-11-22T00:00:00.000Z",
                     publishEndDate: "2019-11-28T00:00:00.000Z",
                     description: "For Testing Purposes",
-                    contacts: { email: "geral@niaefeup.pt", phone: "229417766" },
+                    contacts: ["geral@niaefeup.pt", "229417766"],
                     jobType: "SUMMER INTERNSHIP",
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
@@ -353,7 +463,7 @@ describe("Offer endpoint tests", () => {
 
                 test("Only `limit` number of offers are returned", async () => {
                     const res = await request()
-                        .get("/offer")
+                        .get("/offers")
                         .query({
                             limit: 3,
                         });
@@ -363,9 +473,11 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
+                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                        return elem;
                     });
-                    const prepared_test_offer = { ...test_offer };
+
+                    const prepared_test_offer = { ...test_offer, isHidden: false };
                     delete prepared_test_offer["owner"];
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);

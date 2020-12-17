@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const HTTPStatus = require("http-status-codes");
 
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
@@ -27,12 +28,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             const params = {};
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.REQUIRED,
-                "param": field_name,
-            });
+            try {
+                checkCommonErrorResponse(res);
+
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.REQUIRED,
+                    "param": field_name,
+                });
+            } catch (e) {
+                throw new Error(`Failed isRequired test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -43,13 +49,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.STRING,
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.STRING,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed mustBeString test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -60,13 +70,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.DATE,
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.DATE,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed mustBeDate test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -77,13 +91,18 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.DATE_EXPIRED,
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.DATE_EXPIRED,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed mustBeFuture test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -96,13 +115,18 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.MUST_BE_AFTER(field_name2),
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.MUST_BE_AFTER(field_name2),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed mustBeAfter test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -113,13 +137,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.INT,
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.INT,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed mustBeNumber test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -130,13 +158,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.BOOLEAN,
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.BOOLEAN,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed mustBeBoolean test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -147,13 +179,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.IN_ARRAY(array),
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.IN_ARRAY(array),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed mustBeInArray test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -168,13 +204,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.IN_ARRAY(array),
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.IN_ARRAY(array),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed mustHaveValuesInRange test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -185,13 +225,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.ARRAY_SIZE(arr_min, arr_max),
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.ARRAY_SIZE(arr_min, arr_max),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed mustBeArrayBetween test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -203,13 +247,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.TOO_LONG(max_length),
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.TOO_LONG(max_length),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed haxMaxLength test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -221,13 +269,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.TOO_SHORT(min_length),
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.TOO_SHORT(min_length),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed hasMinLength test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -240,13 +292,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.EMAIL,
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.EMAIL,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed mustBeEmail test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 
@@ -258,13 +314,17 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.HAS_NUMBER,
-                "param": field_name,
-                "value": params[field_name],
-            });
+            try {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.HAS_NUMBER,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            } catch (e) {
+                throw new Error(`Failed hasNumber test (${requestEndpoint}, ${location}, ${field_name})\n\n${e}`);
+            }
         });
     },
 });
