@@ -48,11 +48,10 @@ const OfferSchema = new Schema({
     description: { type: String, maxlength: OfferConstants.description.max_length, required: true },
 
     contacts: {
-        type: Map,
-        of: String,
+        type: [String],
         required: true,
         validate: [
-            (val) => val.size >= 1,
+            (val) => val.length >= 1,
             "There must be at least one contact",
         ],
     },
@@ -71,7 +70,10 @@ const OfferSchema = new Schema({
         validate: (val) => lengthBetweenValidator(val, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES) && noDuplicatesValidator(val),
     },
 
-    isHidden: { type: Boolean },
+    isHidden: {
+        type: Boolean,
+        default: false
+    },
     owner: { type: Types.ObjectId, ref: "Company", required: true },
 
     location: { type: String, required: true },
@@ -108,6 +110,13 @@ OfferSchema.query.current = function() {
             $gt: new Date(Date.now()),
         },
     });
+};
+
+/**
+ * Currently active and non-hidden Offers
+ */
+OfferSchema.query.bright = function() {
+    return this.current().where({ isHidden: false });
 };
 
 const Offer = mongoose.model("Offer", OfferSchema);

@@ -25,6 +25,12 @@ const isGod = (req, res, next) => {
     return next();
 };
 
+const isCompanyOrGod = (req, res, next) => {
+    if (req?.user?.company) return next();
+
+    return isGod(req, res, next);
+};
+
 const isAdmin = (req, res, next) => {
     if (!req.user.isAdmin) {
         return res.status(HTTPStatus.UNAUTHORIZED).json({
@@ -40,4 +46,5 @@ module.exports = {
     authRequired,
     isGod,
     isAdmin,
+    isCompanyOrGod,
 };

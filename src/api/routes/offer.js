@@ -7,10 +7,11 @@ const OfferService = require("../../services/offer");
 const router = Router();
 
 module.exports = (app) => {
-    app.use("/offer", router);
+    app.use("/offers", router);
 
     /**
      * Gets all currently active offers (without filtering, for now)
+     * supports offset and limit as query params
      */
     router.get("/", validators.get, async (req, res, next) => {
         try {
@@ -25,10 +26,15 @@ module.exports = (app) => {
     /**
      * Creates a new Offer
      */
-    router.post("/", authMiddleware.isGod, validators.create, async (req, res, next) => {
+    router.post("/", authMiddleware.isCompanyOrGod, validators.create, async (req, res, next) => {
         try {
-            // This is safe since the service is destructuring the passed object and the fields have been validated
-            const offer = await (new OfferService()).create(req.body);
+
+            const params = {
+                ...req.body,
+                owner: req.user ? req.user._id : req.body.owner
+            };
+
+            const offer = await (new OfferService()).create(params);
 
             return res.json(offer);
         } catch (err) {
