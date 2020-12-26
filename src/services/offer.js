@@ -57,14 +57,14 @@ class OfferService {
         let offers;
 
         if (showHidden) {
-            offers = await Offer.find().current()
-                .skip(offset).limit(limit);
+            offers = (await Offer.find().current()
+                .skip(offset).limit(limit)).map((o) => o.withCompany());
         } else {
-            offers = await Offer.find().bright()
-                .skip(offset).limit(limit);
+            offers = (await Offer.find().bright()
+                .skip(offset).limit(limit)).map((o) => o.withCompany());
         }
 
-        return offers;
+        return Promise.all(offers);
     }
 }
 

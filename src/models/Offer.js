@@ -5,6 +5,7 @@ const JobTypes = require("./constants/JobTypes");
 const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./constants/FieldTypes");
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./constants/TechnologyTypes");
 const PointSchema = require("./Point");
+const Company = require("./Company");
 const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./constants/TimeConstants");
 const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
 const OfferConstants = require("./constants/Offer");
@@ -79,6 +80,14 @@ const OfferSchema = new Schema({
     location: { type: String, required: true },
     coordinates: { type: PointSchema, required: false },
 });
+
+OfferSchema.methods.withCompany = async function() {
+    const offer = this.toObject();
+
+    const company = await Company.findById(offer.owner);
+
+    return { ...offer, company };
+};
 
 // Checking if the publication date is less than or equal than the end date.
 function validatePublishDate(value) {

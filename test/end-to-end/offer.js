@@ -343,47 +343,60 @@ describe("Offer endpoint tests", () => {
 
         describe("Using already created offer(s)", () => {
             describe("Only current offers are returned", () => {
-                const test_offer = {
-                    title: "Test Offer",
-                    publishDate: "2019-11-22T00:00:00.000Z",
-                    publishEndDate: "2019-11-28T00:00:00.000Z",
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
-                    owner: "aaa712371273",
-                    location: "Testing Street, Test City, 123",
-                };
 
-                const expired_test_offer = {
-                    title: "Expired Test Offer",
-                    publishDate: "2019-11-17",
-                    publishEndDate: "2019-11-18",
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
-                    owner: "aaa712371273",
-                    location: "Testing Street, Test City, 123",
-                };
+                let test_offer;
+                let expired_test_offer;
+                let future_test_offer;
+                let test_company;
 
-                const future_test_offer = {
-                    title: "Future Test Offer",
-                    publishDate: "2019-12-12",
-                    publishEndDate: "2019-12-22",
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
-                    owner: "aaa712371273",
-                    location: "Testing Street, Test City, 123",
-                };
-
-                // TODO: Create a mock owner Company for this test
                 beforeAll(async () => {
+
+                    await Company.deleteMany({});
+                    test_company = await Company.create({
+                        name: "test company",
+                        bio: "a bio",
+                        contacts: ["a contact"]
+                    });
+
+                    test_offer = {
+                        title: "Test Offer",
+                        publishDate: "2019-11-22T00:00:00.000Z",
+                        publishEndDate: "2019-11-28T00:00:00.000Z",
+                        description: "For Testing Purposes",
+                        contacts: ["geral@niaefeup.pt", "229417766"],
+                        jobType: "SUMMER INTERNSHIP",
+                        fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                        technologies: ["React", "CSS"],
+                        owner: test_company._id,
+                        location: "Testing Street, Test City, 123",
+                    };
+
+                    expired_test_offer = {
+                        title: "Expired Test Offer",
+                        publishDate: "2019-11-17",
+                        publishEndDate: "2019-11-18",
+                        description: "For Testing Purposes",
+                        contacts: ["geral@niaefeup.pt", "229417766"],
+                        jobType: "SUMMER INTERNSHIP",
+                        fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                        technologies: ["React", "CSS"],
+                        owner: test_company._id,
+                        location: "Testing Street, Test City, 123",
+                    };
+
+                    future_test_offer = {
+                        title: "Future Test Offer",
+                        publishDate: "2019-12-12",
+                        publishEndDate: "2019-12-22",
+                        description: "For Testing Purposes",
+                        contacts: ["geral@niaefeup.pt", "229417766"],
+                        jobType: "SUMMER INTERNSHIP",
+                        fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                        technologies: ["React", "CSS"],
+                        owner: test_company._id,
+                        location: "Testing Street, Test City, 123",
+                    };
+
                     await Offer.deleteMany({});
                     await Offer.create([test_offer, expired_test_offer, future_test_offer]);
                 });
@@ -413,63 +426,30 @@ describe("Offer endpoint tests", () => {
                     const extracted_data = res.body.map((elem) => {
                         delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
                     });
-                    const prepared_test_offer = { ...test_offer, isHidden: false };
+                    const prepared_test_offer = {
+                        ...test_offer,
+                        isHidden: false,
+                        // JSON.parse->JSON.stringify needed because comparison below fails otherwise. Spread operator does not work
+                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                    };
                     delete prepared_test_offer["owner"];
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);
                 });
-            });
-
-            describe("When a `limit` is given", () => {
-                const test_offer = {
-                    title: "Test Offer",
-                    publishDate: "2019-11-22T00:00:00.000Z",
-                    publishEndDate: "2019-11-28T00:00:00.000Z",
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
-                    owner: "aaa712371273",
-                    location: "Testing Street, Test City, 123",
-                };
-
-                const N_OFFERS = 5;
-
-                // TODO: Create a mock owner Company for this test
-                beforeAll(async () => {
-                    await Offer.deleteMany({});
-                    const offers = [];
-                    for (let i = 0; i < N_OFFERS; ++i) {
-                        offers.push(test_offer);
-                    }
-                    await Offer.create(offers);
-                });
-
-                afterAll(async () => {
-                    await Offer.deleteMany({});
-                });
-
-                const RealDateNow = Date.now;
-                const mockCurrentDate = new Date("2019-11-23");
-
-                beforeEach(() => {
-                    Date.now = () => mockCurrentDate.getTime();
-                });
-
-                afterEach(() => {
-                    Date.now = RealDateNow;
-                });
 
                 test("Only `limit` number of offers are returned", async () => {
+
+                    // Add 2 more offers
+                    await Offer.create([test_offer, test_offer]);
+
                     const res = await request()
                         .get("/offers")
                         .query({
-                            limit: 3,
+                            limit: 2,
                         });
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(3);
+                    expect(res.body).toHaveLength(2);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
@@ -477,7 +457,12 @@ describe("Offer endpoint tests", () => {
                         return elem;
                     });
 
-                    const prepared_test_offer = { ...test_offer, isHidden: false };
+                    const prepared_test_offer = {
+                        ...test_offer,
+                        isHidden: false,
+                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                    };
+
                     delete prepared_test_offer["owner"];
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);
