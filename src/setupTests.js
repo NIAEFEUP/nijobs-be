@@ -25,9 +25,9 @@ afterAll(async () => {
 });
 
 // Mock the emailing service
-jest.mock("./lib/nodemailer");
+jest.mock("./lib/emailService");
 
-const { EmailService } = require("./lib/nodemailer");
+const { EmailService } = require("./lib/emailService");
 jest.spyOn(EmailService.prototype, "verifyConnection").mockImplementation(() => Promise.resolve());
 
 // Setting up the end-to-end request testing helper methods

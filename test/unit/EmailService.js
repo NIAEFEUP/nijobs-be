@@ -1,7 +1,6 @@
-const EmailService = jest.requireActual("../../src/lib/nodemailer"); // Bypass auto jest mocks
+const EmailService = jest.requireActual("../../src/lib/emailService"); // Bypass auto jest mocks
 const EmailServiceClass = EmailService.EmailService;
 const nodemailer = require("nodemailer"); // Mocked at __mocks__/nodemailer.js
-const signature = require("../../src/services/emails/signature");
 
 describe("EmailService", () => {
 
@@ -9,11 +8,11 @@ describe("EmailService", () => {
         expect(EmailService).toBe(EmailService);
     });
 
-    test("Should init a transporter", () => {
+    test("Should init a transporter", async () => {
         const emailService = new EmailServiceClass();
 
         expect(emailService.transporter).toBeUndefined();
-        emailService.init({
+        await emailService.init({
             user: "user",
             clientId: "clientId",
             clientSecret: "clientSecret",
@@ -32,9 +31,9 @@ describe("EmailService", () => {
         expect(nodemailer.createTransport).toHaveBeenCalledTimes(0);
     });
 
-    test("Should send email with delivery state notification", () => {
+    test("Should send email with delivery state notification", async () => {
         const emailService = new EmailServiceClass();
-        emailService.init({
+        await emailService.init({
             user: "user",
             clientId: "clientId",
             clientSecret: "clientSecret",
@@ -62,12 +61,21 @@ describe("EmailService", () => {
             recipient: this.email
 
         });
+
+        emailService.sendMail({ mockMessage: true }, {});
+        expect(nodemailer.transporter.sendMail.mock.calls[2][0]).toHaveProperty("dsn", {
+            id: Math.random().toString(36).substring(7),
+            return: "headers",
+            notify: ["failure", "delay"],
+            recipient: this.email
+
+        });
         Math.random = MathRandom;
     });
 
-    test("Should not send email with delivery state notification", () => {
+    test("Should not send email with delivery state notification", async () => {
         const emailService = new EmailServiceClass();
-        emailService.init({
+        await emailService.init({
             user: "user",
             clientId: "clientId",
             clientSecret: "clientSecret",
@@ -81,26 +89,5 @@ describe("EmailService", () => {
         emailService.sendMail({ mockMessage: true }, { sendFailureNotification: false });
         expect(nodemailer.transporter.sendMail.mock.calls[0][0]).not.toHaveProperty("dsn");
         Math.random = MathRandom;
-    });
-
-    test("Should include email signature", () => {
-        const emailService = new EmailServiceClass();
-        emailService.init({
-            user: "user",
-            clientId: "clientId",
-            clientSecret: "clientSecret",
-            accessToken: "accessToken",
-            refreshToken: "refreshToken"
-        });
-
-        emailService.sendMail({ html: "htmltest", text: "texttest" }, { sendFailureNotification: false });
-        expect(nodemailer.transporter.sendMail.mock.calls[0][0]).toHaveProperty("html", `htmltest${signature}`);
-        expect(nodemailer.transporter.sendMail.mock.calls[0][0]).toHaveProperty("text", "texttest");
-        expect(nodemailer.transporter.sendMail.mock.calls[0][0]).toHaveProperty("attachments",
-            [{ filename: "logo-niaefeup.png",
-                path: "https://ni.fe.up.pt/images/logo-niaefeup.png",
-                cid: "id_1234698" }
-            ]
-        );
     });
 });

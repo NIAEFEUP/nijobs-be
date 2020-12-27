@@ -2,12 +2,12 @@ const CompanyApplication = require("../models/CompanyApplication");
 const CompanyApplicationRules = require("../models/CompanyApplication").CompanyApplicationRules;
 const hash = require("../lib/passwordHashing");
 const AccountService = require("./account");
-const EmailService = require("../lib/nodemailer");
+const EmailService = require("../lib/emailService");
 const {
     NEW_COMPANY_APPLICATION_ADMINS,
     NEW_COMPANY_APPLICATION_COMPANY,
     APPROVAL_NOTIFICATION,
-} = require("./emails/companyApplicationApproval");
+} = require("../email-templates/companyApplicationApproval");
 const config = require("../config/env");
 
 class CompanyApplicationNotFound extends Error {
@@ -42,13 +42,13 @@ class CompanyApplicationService {
         });
 
         await EmailService.sendMail({
-            to: config.mail_address,
+            to: config.mail_from,
             ...NEW_COMPANY_APPLICATION_ADMINS(application.email, companyName, motivation)
         });
 
         await EmailService.sendMail({
             to: application.email,
-            ...NEW_COMPANY_APPLICATION_COMPANY(companyName, application._id)
+            ...NEW_COMPANY_APPLICATION_COMPANY(companyName, application._id.toString())
         });
 
         return application.toObject();

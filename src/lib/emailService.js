@@ -1,41 +1,50 @@
-const promisify = require("util").promisify;
 const nodemailer = require("nodemailer");
-const EMAIL_SIGNATURE = require("../services/emails/signature");
+const hbs = require("nodemailer-express-handlebars");
 
 class EmailService {
 
-    init({ email: user, clientId, clientSecret, refreshToken, accessToken }) {
+    async init({ email: user, password: pass }) {
         this.email = user;
-        this.transporter = nodemailer.createTransport({
+        const transporter = await nodemailer.createTransport({
             pool: true,
             host: "smtp.gmail.com",
             port: 465,
             secure: true,
             auth: {
-                type: "OAuth2",
                 user,
-                clientId,
-                clientSecret,
-                refreshToken,
-                accessToken,
+                pass
             },
             connectionTimeout: 30000
         });
+
+        transporter.use("compile", hbs({
+            viewEngine: {
+                layoutsDir: `${__dirname}/../email-templates/layouts`,
+                partialsDir: `${__dirname}/../email-templates/partials/`,
+                extName: ".handlebars",
+                defaultLayout: "main"
+            },
+            extName: ".handlebars",
+            viewPath: `${__dirname}/../email-templates/`,
+        }));
+
+        this.transporter = transporter;
     }
 
     verifyConnection() {
         if (!this.transporter) throw new Error("Trying to use Email Service without having a transporter set. Call init() first.");
-        return promisify(this.transporter.verify)();
+        return this.transporter.verify();
     }
 
     async sendMail(message, options) {
         if (!this.transporter) {
             console.warn(`Email service transporter not defined. 
-        Either you forgot to call init(), or MAIL_ADDRESS is not present in .env. Executing no-op.`);
+        Either you forgot to call init(), or MAIL_FROM is not present in .env. Executing no-op.`);
             return Promise.resolve();
         }
 
-        const { sendFailureNotification = true } = { ...options }; // To allow undefined options object
+        // Sets default properties (only if they are not present). The spread operator allows undefined `options` param
+        const { sendFailureNotification = true } = { ...options };
 
         const data = {};
         if (sendFailureNotification) {
@@ -58,10 +67,9 @@ class EmailService {
             });
         }
 
-        message.html += EMAIL_SIGNATURE;
-
         const info = await this.transporter.sendMail({ ...data, ...message });
-        console.info("Sent email:", info);
+        const { response, envelope, messageId } = info;
+        console.info("Sent email:", { response, envelope, messageId });
         return info;
     }
 

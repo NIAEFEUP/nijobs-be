@@ -1,4 +1,4 @@
-const EmailService = require("../../src/lib/nodemailer");
+const EmailService = require("../../src/lib/emailService");
 const HTTPStatus = require("http-status-codes");
 const CompanyApplication = require("../../src/models/CompanyApplication");
 const CompanyApplicationRules = require("../../src/models/CompanyApplication").CompanyApplicationRules;
@@ -7,7 +7,7 @@ const hash = require("../../src/lib/passwordHashing");
 const Account = require("../../src/models/Account");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ApplicationStatus = require("../../src/models/constants/ApplicationStatus");
-const { APPROVAL_NOTIFICATION } = require("../../src/services/emails/companyApplicationApproval");
+const { APPROVAL_NOTIFICATION } = require("../../src/email-templates/companyApplicationApproval");
 const { ObjectId } = require("mongoose").Types;
 
 describe("Company application review endpoint test", () => {
@@ -318,9 +318,9 @@ describe("Company application review endpoint test", () => {
 
                         expect(EmailService.sendMail).toHaveBeenCalledWith({
                             subject: emailOptions.subject,
-                            text: emailOptions.text,
-                            html: emailOptions.html,
-                            to: application.email
+                            to: application.email,
+                            template: emailOptions.template,
+                            context: emailOptions.context,
                         });
 
                     });

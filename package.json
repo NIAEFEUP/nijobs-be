@@ -9,7 +9,7 @@
     "lint": "eslint src test --max-warnings 0",
     "lint-fix": "npm run lint -- --fix",
     "test": "NODE_ENV=test jest --runInBand",
-    "ci": "NODE_ENV=test npm run lint && npm test",
+    "ci": "npm run lint && npm test",
     "audit": "npm audit --audit-level=high --json | npm-audit-helper"
   },
   "repository": {
@@ -41,6 +41,7 @@
     "mongoose-unique-array": "^0.3.1",
     "morgan": "^1.9.1",
     "nodemailer": "^6.4.17",
+    "nodemailer-express-handlebars": "^4.0.0",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "rate-limit-mongo": "^2.1.0"

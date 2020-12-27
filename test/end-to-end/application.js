@@ -1,4 +1,4 @@
-const EmailService = require("../../src/lib/nodemailer");
+const EmailService = require("../../src/lib/emailService");
 const HTTPStatus = require("http-status-codes");
 const CompanyApplication = require("../../src/models/CompanyApplication");
 const { CompanyApplicationRules }  = require("../../src/models/CompanyApplication");
@@ -8,7 +8,7 @@ const ValidationReasons = require("../../src/api/middleware/validators/validatio
 const CompanyApplicationConstants = require("../../src/models/constants/CompanyApplication");
 const AccountConstants = require("../../src/models/constants/Account");
 const CompanyConstants = require("../../src/models/constants/Company");
-const { NEW_COMPANY_APPLICATION_ADMINS, NEW_COMPANY_APPLICATION_COMPANY } = require("../../src/services/emails/companyApplicationApproval");
+const { NEW_COMPANY_APPLICATION_ADMINS, NEW_COMPANY_APPLICATION_COMPANY } = require("../../src/email-templates/companyApplicationApproval");
 const config = require("../../src/config/env");
 
 
@@ -106,19 +106,19 @@ describe("Company application endpoint test", () => {
                 const companyEmailOptions = NEW_COMPANY_APPLICATION_COMPANY(
                     application.companyName, res.body._id);
 
-                expect(EmailService.sendMail).toHaveBeenNthCalledWith(1, {
+                expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
                     subject: adminEmailOptions.subject,
-                    text: adminEmailOptions.text,
-                    html: adminEmailOptions.html,
-                    to: config.mail_address
-                });
+                    to: config.mail_from,
+                    template: adminEmailOptions.template,
+                    context: adminEmailOptions.context,
+                }));
 
-                expect(EmailService.sendMail).toHaveBeenNthCalledWith(2, {
+                expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
                     subject: companyEmailOptions.subject,
-                    text: companyEmailOptions.text,
-                    html: companyEmailOptions.html,
-                    to: application.email
-                });
+                    to: application.email,
+                    template: companyEmailOptions.template,
+                    context: { ...companyEmailOptions.context },
+                }));
             });
 
             describe("Invalid input", () => {
