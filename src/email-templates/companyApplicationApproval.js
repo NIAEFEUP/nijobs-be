@@ -10,8 +10,13 @@ module.exports = Object.freeze({
         context: { companyName, applicationId },
     }),
     APPROVAL_NOTIFICATION: (companyName) => ({
-        subject: "Your NIJobs Application",
+        subject: "Welcome to NIJobs!",
         template: "approval_notification",
+        context: { companyName },
+    }),
+    REJECTION_NOTIFICATION: (companyName) => ({
+        subject: "Your NIJobs Application",
+        template: "rejection_notification",
         context: { companyName },
     })
 });
