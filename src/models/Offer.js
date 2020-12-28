@@ -81,6 +81,11 @@ const OfferSchema = new Schema({
     coordinates: { type: PointSchema, required: false },
 });
 
+OfferSchema.index(
+    { title: "text", jobType: "text", fields: "text", technologies: "text", location: "text" },
+    { name: "Search index", weights: { title: 10, jobType: 5, location: 5, fields: 5, technologies: 5 } }
+);
+
 OfferSchema.methods.withCompany = async function() {
     const offer = this.toObject();
 

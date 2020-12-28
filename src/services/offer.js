@@ -52,13 +52,16 @@ class OfferService {
         return offer;
     }
 
-    async get({ offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false }) {
+    async get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false }) {
 
-        const offers = Offer.find().current();
+        const offers = value ? Offer.find(
+            { "$text": { "$search": value } }, { score: { "$meta": "textScore" } }
+        ) : Offer.find({}, { score: { "$meta": "textScore" } }).current();
 
         if (!showHidden) offers.withoutHidden();
 
         return Promise.all((await offers
+            .sort({ score: { "$meta": "textScore" } })
             .skip(offset)
             .limit(limit)
         ).map((o) => o.withCompany()));
