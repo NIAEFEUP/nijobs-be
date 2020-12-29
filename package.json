@@ -8,7 +8,7 @@
     "prod": "NODE_ENV=production node src/index.js",
     "lint": "eslint src test --max-warnings 0",
     "lint-fix": "npm run lint -- --fix",
-    "test": "jest --runInBand",
+    "test": "NODE_ENV=test jest --runInBand",
     "ci": "npm run lint && npm test",
     "audit": "npm audit --audit-level=high --json | npm-audit-helper"
   },
@@ -35,11 +35,13 @@
     "express-rate-limit": "^5.0.0",
     "express-session": "^1.15.6",
     "express-validator": "^6.2.0",
-    "http-status-codes": "^1.4.0",
     "helmet": "^3.21.2",
+    "http-status-codes": "^1.4.0",
     "mongoose": "^5.7.5",
     "mongoose-unique-array": "^0.3.1",
     "morgan": "^1.9.1",
+    "nodemailer": "^6.4.17",
+    "nodemailer-express-handlebars": "^4.0.0",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "rate-limit-mongo": "^2.1.0"

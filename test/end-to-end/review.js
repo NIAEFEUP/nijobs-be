@@ -1,3 +1,4 @@
+const EmailService = require("../../src/lib/emailService");
 const HTTPStatus = require("http-status-codes");
 const CompanyApplication = require("../../src/models/CompanyApplication");
 const CompanyApplicationRules = require("../../src/models/CompanyApplication").CompanyApplicationRules;
@@ -6,6 +7,7 @@ const hash = require("../../src/lib/passwordHashing");
 const Account = require("../../src/models/Account");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const ApplicationStatus = require("../../src/models/constants/ApplicationStatus");
+const { APPROVAL_NOTIFICATION, REJECTION_NOTIFICATION } = require("../../src/email-templates/companyApplicationApproval");
 const { ObjectId } = require("mongoose").Types;
 
 describe("Company application review endpoint test", () => {
@@ -286,7 +288,6 @@ describe("Company application review endpoint test", () => {
 
                 describe("Approve application", () => {
 
-
                     beforeEach(async () => {
                         await Account.deleteMany({ email: pendingApplication.email });
                         application = await CompanyApplication.create(pendingApplication);
@@ -304,6 +305,24 @@ describe("Company application review endpoint test", () => {
                         expect(res.status).toBe(HTTPStatus.OK);
                         expect(res.body.email).toBe(pendingApplication.email);
                         expect(res.body.companyName).toBe(pendingApplication.companyName);
+                    });
+
+                    test("Should send approval email to company email", async () => {
+
+                        const res = await test_agent
+                            .post(`/applications/company/${application._id}/approve`);
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+
+                        const emailOptions = APPROVAL_NOTIFICATION(application.companyName);
+
+                        expect(EmailService.sendMail).toHaveBeenCalledWith({
+                            subject: emailOptions.subject,
+                            to: application.email,
+                            template: emailOptions.template,
+                            context: emailOptions.context,
+                        });
+
                     });
 
                     test("Should fail if trying to approve inexistent application", async () => {
@@ -379,6 +398,25 @@ describe("Company application review endpoint test", () => {
                         expect(res.status).toBe(HTTPStatus.OK);
                         expect(res.body.email).toBe(pendingApplication.email);
                         expect(res.body.companyName).toBe(pendingApplication.companyName);
+                    });
+
+                    test("Should send rejection email to company email", async () => {
+
+                        const res = await test_agent
+                            .post(`/applications/company/${application._id}/reject`)
+                            .send({ rejectReason: "Some reason which is valid" });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+
+                        const emailOptions = REJECTION_NOTIFICATION(application.companyName);
+
+                        expect(EmailService.sendMail).toHaveBeenCalledWith({
+                            subject: emailOptions.subject,
+                            to: application.email,
+                            template: emailOptions.template,
+                            context: emailOptions.context,
+                        });
+
                     });
 
                     test("Should fail if trying to reject inexistent application", async () => {

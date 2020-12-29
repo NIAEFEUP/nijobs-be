@@ -24,6 +24,12 @@ afterAll(async () => {
     await (mongoose.connection && mongoose.connection.close());
 });
 
+// Mock the emailing service
+jest.mock("./lib/emailService");
+
+const { EmailService } = require("./lib/emailService");
+jest.spyOn(EmailService.prototype, "verifyConnection").mockImplementation(() => Promise.resolve());
+
 // Setting up the end-to-end request testing helper methods
 const supertest_request = require("supertest");
 const app = require("./index");

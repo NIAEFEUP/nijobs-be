@@ -2,6 +2,14 @@ const CompanyApplication = require("../models/CompanyApplication");
 const CompanyApplicationRules = require("../models/CompanyApplication").CompanyApplicationRules;
 const hash = require("../lib/passwordHashing");
 const AccountService = require("./account");
+const EmailService = require("../lib/emailService");
+const {
+    NEW_COMPANY_APPLICATION_ADMINS,
+    NEW_COMPANY_APPLICATION_COMPANY,
+    APPROVAL_NOTIFICATION,
+    REJECTION_NOTIFICATION,
+} = require("../email-templates/companyApplicationApproval");
+const config = require("../config/env");
 
 class CompanyApplicationNotFound extends Error {
     constructor(msg) {
@@ -32,6 +40,16 @@ class CompanyApplicationService {
             companyName,
             motivation,
             submittedAt: Date.now(),
+        });
+
+        await EmailService.sendMail({
+            to: config.mail_from,
+            ...NEW_COMPANY_APPLICATION_ADMINS(application.email, companyName, motivation)
+        });
+
+        await EmailService.sendMail({
+            to: application.email,
+            ...NEW_COMPANY_APPLICATION_COMPANY(companyName, application._id.toString())
         });
 
         return application.toObject();
@@ -163,6 +181,12 @@ class CompanyApplicationService {
 
         try {
             const account = await (new AccountService()).registerCompany(application.email, application.password, application.companyName);
+
+            await EmailService.sendMail({
+                to: application.email,
+                ...APPROVAL_NOTIFICATION(application.companyName),
+            });
+
             return { application, account };
 
         } catch (err) {
@@ -182,6 +206,11 @@ class CompanyApplicationService {
             if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_REJECT.msg);
 
             application.reject(reason);
+
+            await EmailService.sendMail({
+                to: application.email,
+                ...REJECTION_NOTIFICATION(application.companyName),
+            });
 
             return application.toObject();
         } catch (e) {
