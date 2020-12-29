@@ -2,10 +2,10 @@ const { body, query } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
-const { valuesInSet } = require("./validatorUtils");
+const { valuesInSet, ensureArray } = require("./validatorUtils");
 const JobTypes = require("../../../models/constants/JobTypes");
-const FieldTypes = require("../../../models/constants/FieldTypes");
-const TechnologyTypes = require("../../../models/constants/TechnologyTypes");
+const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("../../../models/constants/FieldTypes");
+const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../../models/constants/TechnologyTypes");
 const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
 const Company = require("../../../models/Company");
@@ -82,17 +82,17 @@ const create = useExpressValidators([
 
     body("fields", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isArray({ min: FieldTypes.MIN_FIELDS, max: FieldTypes.MAX_FIELDS })
-        .withMessage(ValidationReasons.ARRAY_SIZE(FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS))
+        .isArray({ min: MIN_FIELDS, max: MAX_FIELDS })
+        .withMessage(ValidationReasons.ARRAY_SIZE(MIN_FIELDS, MAX_FIELDS))
         .bail()
-        .custom(valuesInSet(FieldTypes.FieldTypes)),
+        .custom(valuesInSet(FieldTypes)),
 
     body("technologies", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isArray({ min: TechnologyTypes.MIN_TECHNOLOGIES, max: TechnologyTypes.MAX_TECHNOLOGIES })
-        .withMessage(ValidationReasons.ARRAY_SIZE(TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES))
+        .isArray({ min: MIN_TECHNOLOGIES, max: MAX_TECHNOLOGIES })
+        .withMessage(ValidationReasons.ARRAY_SIZE(MIN_TECHNOLOGIES, MAX_TECHNOLOGIES))
         .bail()
-        .custom(valuesInSet(TechnologyTypes.TechnologyTypes)),
+        .custom(valuesInSet(TechnologyTypes)),
 
     body("isHidden", ValidationReasons.DEFAULT)
         .optional()
@@ -144,6 +144,33 @@ const get = useExpressValidators([
         .optional()
         .isBoolean().withMessage(ValidationReasons.BOOLEAN)
         .toBoolean(),
+
+    query("jobType")
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .isIn(JobTypes).withMessage(ValidationReasons.IN_ARRAY(JobTypes)),
+
+    query("jobMinDuration", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt().withMessage(ValidationReasons.INT).bail()
+        .toInt(),
+
+    query("jobMaxDuration", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt().withMessage(ValidationReasons.INT).bail()
+        .toInt(),
+
+    query("fields", ValidationReasons.DEFAULT)
+        .optional()
+        .customSanitizer(ensureArray)
+        .isArray().withMessage(ValidationReasons.ARRAY).bail()
+        .custom(valuesInSet((FieldTypes))),
+
+    query("technologies", ValidationReasons.DEFAULT)
+        .optional()
+        .customSanitizer(ensureArray)
+        .isArray().withMessage(ValidationReasons.ARRAY).bail()
+        .custom(valuesInSet((TechnologyTypes))),
 ]);
 
 module.exports = { create, get };

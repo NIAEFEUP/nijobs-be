@@ -52,20 +52,42 @@ class OfferService {
         return offer;
     }
 
-    async get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false }) {
+    /**
+     * Fetches offers according to specified options
+     * @param {*} options
+     * value: Text to use in full-text-search
+     * offset: Point to start looking (and limiting)
+     * limit: How many offers to show
+     * jobType: Array of jobTypes allowed
+     */
+    async get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false, ...filters }) {
 
         const offers = value ? Offer.find(
-            { "$text": { "$search": value } }, { score: { "$meta": "textScore" } }
-        ) : Offer.find({}, { score: { "$meta": "textScore" } }).current();
+            { "$and": [this._buildFilterQuery(filters), { "$text": { "$search": value } }] }, { score: { "$meta": "textScore" } }
+        ) : Offer.find(this._buildFilterQuery(filters)).current();
 
         if (!showHidden) offers.withoutHidden();
 
         return Promise.all((await offers
-            .sort({ score: { "$meta": "textScore" } })
+            .sort(value ? { score: { "$meta": "textScore" } } : undefined)
             .skip(offset)
             .limit(limit)
         ).map((o) => o.withCompany()));
 
+    }
+    _buildFilterQuery(filters) {
+        if (!filters || !Object.keys(filters).length) return {};
+
+        const { jobType, jobMinDuration, jobMaxDuration, fields, technologies } = filters;
+        const constraints = [];
+
+        if (jobType) constraints.push({ jobType: { "$in": jobType } });
+        if (jobMinDuration) constraints.push({ jobMinDuration: { "$gte": jobMinDuration } });
+        if (jobMaxDuration) constraints.push({ jobMaxDuration: { "$lte": jobMaxDuration } });
+        if (fields?.length) constraints.push({ fields: {  "$elemMatch": { "$in": fields } } });
+        if (technologies?.length) constraints.push({ technologies: {  "$elemMatch": { "$in": technologies } } });
+
+        return constraints.length ? { "$and": constraints } : {};
     }
 }
 

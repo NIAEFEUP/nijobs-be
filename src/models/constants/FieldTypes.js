@@ -1,6 +1,6 @@
 const FieldTypes = Object.freeze([
-    "BACK_END",
-    "FRONT_END",
+    "BACKEND",
+    "FRONTEND",
     "DEVOPS",
     "BLOCKCHAIN",
     "MACHINE LEARNING",

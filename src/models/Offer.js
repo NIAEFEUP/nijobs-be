@@ -76,6 +76,7 @@ const OfferSchema = new Schema({
         default: false
     },
     owner: { type: Types.ObjectId, ref: "Company", required: true },
+    // ownerName: { type: String, required: true },
 
     location: { type: String, required: true },
     coordinates: { type: PointSchema, required: false },
@@ -89,7 +90,7 @@ OfferSchema.index(
 OfferSchema.methods.withCompany = async function() {
     const offer = this.toObject();
 
-    const company = await Company.findById(offer.owner);
+    const company = (await Company.findById(offer.owner)).toObject();
 
     return { ...offer, company };
 };
