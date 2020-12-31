@@ -107,15 +107,15 @@ const create = useExpressValidators([
             if (!owner) throw new Error(ValidationReasons.REQUIRED);
 
             try {
-                if (await Company.findById(owner) === null) throw new Error("Company not found");
-            } catch (e) {
-                throw new Error(`no-company-found-with-id-${owner}`);
+                if (await Company.findById(owner) === null) throw new Error();
+            } catch (_e) {
+                // Also catches any fail to the DB
+                throw new Error(ValidationReasons.COMPANY_NOT_FOUND(owner));
             }
 
             // Returning truthy value to indicate no error ocurred
             return true;
-        })
-        .withMessage("no-company-found-with-id-"),
+        }),
 
     body("location", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()

@@ -31,7 +31,7 @@ module.exports = (app) => {
 
             const params = {
                 ...req.body,
-                owner: req.user ? req.user.company : req.body.owner
+                owner: req?.user?.company || req.body.owner
             };
 
             const offer = await (new OfferService()).create(params);

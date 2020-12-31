@@ -12,6 +12,7 @@ const OfferConstants = require("../../src/models/constants/Offer");
 const Account = require("../../src/models/Account");
 const Company = require("../../src/models/Company");
 const hash = require("../../src/lib/passwordHashing");
+const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 
 //----------------------------------------------------------------
 
@@ -103,13 +104,16 @@ describe("Offer endpoint tests", () => {
                         .send(test_user_company)
                         .expect(200);
 
-                    const res = await request()
+                    const res = await test_agent
                         .post("/offers/new")
-                        .send({ ...offer, owner: test_company._id });
+                        .send({ ...offer });
 
-                    expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Invalid god token");
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("title", offer.title);
+                    expect(res.body).toHaveProperty("description", offer.description);
+                    expect(res.body).toHaveProperty("location", offer.location);
+                    expect(res.body).toHaveProperty("owner", test_company._id.toString());
+                    // TODO: When ownerName is a thing -> expect(res.body).toHaveProperty("ownerName", test_company.name);
                 });
             });
 
@@ -147,7 +151,7 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors).toContainEqual({
                         value: "invalidowner",
                         location: "body",
-                        msg: "no-company-found-with-id-invalidowner",
+                        msg: ValidationReasons.COMPANY_NOT_FOUND("invalidowner"),
                         param: "owner",
                     });
 
