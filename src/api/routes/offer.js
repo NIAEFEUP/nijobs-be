@@ -15,7 +15,12 @@ module.exports = (app) => {
      */
     router.get("/", validators.get, async (req, res, next) => {
         try {
-            const offers = await (new OfferService()).get(req.query);
+            const offers = await (new OfferService()).get(
+                {
+                    ...req.query,
+                    showHidden: req?.query?.showHidden && req?.user?.isAdmin
+                }
+            );
 
             return res.json(offers);
         } catch (err) {

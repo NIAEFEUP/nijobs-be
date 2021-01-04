@@ -78,7 +78,7 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Invalid god token");
+                    expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
                 });
 
                 test("should fail if logged to non-company account", async () => {
@@ -94,7 +94,7 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Invalid god token");
+                    expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
                 });
 
                 test("should create offer if logged in to company account", async () => {
@@ -125,7 +125,7 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Invalid god token");
+                    expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
                 });
 
                 test("should fail when god token is incorrect", async () => {
@@ -443,16 +443,141 @@ describe("Offer endpoint tests", () => {
                 describe("When a limit is given", () => {
                     beforeAll(async () => {
                         // Add 2 more offers
-                        await Offer.create([test_offer, test_offer]);
+                        await Offer.deleteMany({});
+                        await Offer.create([test_offer, expired_test_offer, future_test_offer, test_offer, test_offer]);
                     });
 
                     test("Only `limit` number of offers are returned", async () => {
-
-
                         const res = await request()
                             .get("/offers")
                             .query({
                                 limit: 2,
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body).toHaveLength(2);
+
+                        // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                        const extracted_data = res.body.map((elem) => {
+                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            return elem;
+                        });
+
+                        const prepared_test_offer = {
+                            ...test_offer,
+                            isHidden: false,
+                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        };
+
+                        delete prepared_test_offer["owner"];
+
+                        expect(extracted_data).toContainEqual(prepared_test_offer);
+                    });
+                });
+                describe("When showHidden is active", () => {
+                    const test_agent = agent();
+                    const test_user_admin = {
+                        email: "admin@email.com",
+                        password: "password123",
+                        isAdmin: true
+                    };
+                    const test_user_non_admin = {
+                        email: "company@email.com",
+                        password: "password123",
+                    };
+
+                    beforeAll(async () => {
+                        // Add 1 hidden offer
+                        await Offer.deleteMany({});
+                        await Offer.create([test_offer, { ...test_offer, isHidden: true }]);
+
+                        await request()
+                            .post("/auth/register")
+                            .send(withGodToken(test_user_admin));
+
+                        await request()
+                            .post("/auth/register")
+                            .send(withGodToken(test_user_non_admin));
+
+                    });
+
+                    test("Should not return hidden offers by default", async () => {
+                        await test_agent
+                            .post("/auth/login")
+                            .send({
+                                email: test_user_non_admin.email,
+                                password: test_user_non_admin.password,
+                            });
+
+                        const res = await test_agent
+                            .get("/offers");
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body).toHaveLength(1);
+
+                        // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                        const extracted_data = res.body.map((elem) => {
+                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            return elem;
+                        });
+
+                        const prepared_test_offer = {
+                            ...test_offer,
+                            isHidden: false,
+                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        };
+
+                        delete prepared_test_offer["owner"];
+
+                        expect(extracted_data).toContainEqual(prepared_test_offer);
+                    });
+
+                    test("Only admins can use showHidden", async () => {
+                        await test_agent
+                            .post("/auth/login")
+                            .send({
+                                email: test_user_non_admin.email,
+                                password: test_user_non_admin.password,
+                            });
+
+                        const res = await test_agent
+                            .get("/offers")
+                            .query({
+                                showHidden: true,
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body).toHaveLength(1);
+
+                        // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                        const extracted_data = res.body.map((elem) => {
+                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            return elem;
+                        });
+
+                        const prepared_test_offer = {
+                            ...test_offer,
+                            isHidden: false,
+                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        };
+
+                        delete prepared_test_offer["owner"];
+
+                        expect(extracted_data).toContainEqual(prepared_test_offer);
+                    });
+
+                    test("Only admins can use showHidden (with admin)", async () => {
+                        await test_agent
+                            .post("/auth/login")
+                            .send({
+                                email: test_user_admin.email,
+                                password: test_user_admin.password,
+                            });
+
+                        const res = await test_agent
+                            .get("/offers")
+                            .query({
+                                showHidden: true,
                             });
 
                         expect(res.status).toBe(HTTPStatus.OK);
