@@ -5,6 +5,7 @@ const JobTypes = require("./constants/JobTypes");
 const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./constants/FieldTypes");
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./constants/TechnologyTypes");
 const PointSchema = require("./Point");
+const Company = require("./Company");
 const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./constants/TimeConstants");
 const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
 const OfferConstants = require("./constants/Offer");
@@ -48,12 +49,11 @@ const OfferSchema = new Schema({
     description: { type: String, maxlength: OfferConstants.description.max_length, required: true },
 
     contacts: {
-        type: Map,
-        of: String,
+        type: [String],
         required: true,
         validate: [
-            (val) => val.size >= 1,
-            "There must be at least one contact",
+            (val) => val.length >= 1,
+            "There must be at least one contact.",
         ],
     },
 
@@ -71,12 +71,23 @@ const OfferSchema = new Schema({
         validate: (val) => lengthBetweenValidator(val, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES) && noDuplicatesValidator(val),
     },
 
-    isHidden: { type: Boolean },
+    isHidden: {
+        type: Boolean,
+        default: false
+    },
     owner: { type: Types.ObjectId, ref: "Company", required: true },
 
     location: { type: String, required: true },
     coordinates: { type: PointSchema, required: false },
 });
+
+OfferSchema.methods.withCompany = async function() {
+    const offer = this.toObject();
+
+    const company = await Company.findById(offer.owner);
+
+    return { ...offer, company };
+};
 
 // Checking if the publication date is less than or equal than the end date.
 function validatePublishDate(value) {
@@ -108,6 +119,13 @@ OfferSchema.query.current = function() {
             $gt: new Date(Date.now()),
         },
     });
+};
+
+/**
+ * Currently active and non-hidden Offers
+ */
+OfferSchema.query.withoutHidden = function() {
+    return this.where({ isHidden: false });
 };
 
 const Offer = mongoose.model("Offer", OfferSchema);

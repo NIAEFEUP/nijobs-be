@@ -10,12 +10,7 @@ const CompanySchema = new Schema({
         minlength: CompanyConstants.companyName.min_length,
     },
     contacts: {
-        type: Map,
-        of: String,
-        validate: [
-            (val) => val.size >= 1,
-            "There must be at least one contact",
-        ],
+        type: [String],
     },
     bio: {
         type: String,

@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 const HTTPStatus = require("http-status-codes");
 
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
@@ -15,6 +16,23 @@ const checkCommonErrorResponse = (res) => {
 };
 
 /**
+ * Wraps the test in a try-catch to show additional context to the error message
+ * @param {*} context - the fields to show in the context message
+ * @param {*} test - the callback to execute (test)
+ */
+const executeValidatorTestWithContext = (context, test) => {
+    try {
+        test();
+    } catch (e) {
+        throw new Error(
+            `Failed isRequired test (${Object.entries(context)
+                .map(([k, v]) => `${k}: ${v}`)
+                .join(", ")
+            })\n\n${e}`);
+    }
+};
+
+/**
  * `requestEndpoint` is a method that receives params and calls the appropriate endpoint with the params if they exist/are appropriate.
  * Returns a promise (request() return value)
  *
@@ -27,11 +45,13 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             const params = {};
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.REQUIRED,
-                "param": field_name,
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.REQUIRED,
+                    "param": field_name,
+                });
             });
         });
     },
@@ -43,12 +63,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.STRING,
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.STRING,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -60,12 +82,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.DATE,
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.DATE,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -77,12 +101,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.DATE_EXPIRED,
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.DATE_EXPIRED,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -96,12 +122,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.MUST_BE_AFTER(field_name2),
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.MUST_BE_AFTER(field_name2),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -113,12 +141,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.INT,
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.INT,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -130,12 +160,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.BOOLEAN,
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.BOOLEAN,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -147,12 +179,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.IN_ARRAY(array),
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.IN_ARRAY(array),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -168,12 +202,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.IN_ARRAY(array),
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.IN_ARRAY(array),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -185,12 +221,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             };
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.ARRAY_SIZE(arr_min, arr_max),
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.ARRAY_SIZE(arr_min, arr_max),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -203,12 +241,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.TOO_LONG(max_length),
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.TOO_LONG(max_length),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -221,12 +261,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.TOO_SHORT(min_length),
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.TOO_SHORT(min_length),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -240,12 +282,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.EMAIL,
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.EMAIL,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },
@@ -258,12 +302,14 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
 
             const res = await requestEndpoint(params);
 
-            checkCommonErrorResponse(res);
-            expect(res.body.errors).toContainEqual({
-                "location": location,
-                "msg": ValidationReasons.HAS_NUMBER,
-                "param": field_name,
-                "value": params[field_name],
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.HAS_NUMBER,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
             });
         });
     },

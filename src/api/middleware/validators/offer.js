@@ -8,6 +8,7 @@ const FieldTypes = require("../../../models/constants/FieldTypes");
 const TechnologyTypes = require("../../../models/constants/TechnologyTypes");
 const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
+const Company = require("../../../models/Company");
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
@@ -62,7 +63,9 @@ const create = useExpressValidators([
         .trim(),
 
     body("contacts", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isArray({ min: 1 })
+        .withMessage(ValidationReasons.TOO_SHORT(1)),
 
     body("isPaid", ValidationReasons.DEFAULT)
         .optional()
@@ -95,9 +98,24 @@ const create = useExpressValidators([
         .optional()
         .isBoolean().withMessage(ValidationReasons.BOOLEAN),
 
-    // TODO: Add validation for the owner being a Mongo ObjectId that is correctly referencing an existing Company
     body("owner", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail(),
+        .custom(async (owner, { req }) => {
+
+            // When it reaches this validation, the user is either company or god
+            if (req?.user?.company) return true;
+
+            if (!owner) throw new Error(ValidationReasons.REQUIRED);
+
+            try {
+                if (await Company.findById(owner) === null) throw new Error();
+            } catch (_e) {
+                // Also catches any fail to the DB
+                throw new Error(ValidationReasons.COMPANY_NOT_FOUND(owner));
+            }
+
+            // Returning truthy value to indicate no error ocurred
+            return true;
+        }),
 
     body("location", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
@@ -121,6 +139,11 @@ const get = useExpressValidators([
         .optional()
         .isInt({ min: 0, max: OfferService.MAX_OFFERS_PER_QUERY }).withMessage(ValidationReasons.INT)
         .toInt(),
+
+    query("showHidden")
+        .optional()
+        .isBoolean().withMessage(ValidationReasons.BOOLEAN)
+        .toBoolean(),
 ]);
 
 module.exports = { create, get };

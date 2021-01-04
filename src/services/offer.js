@@ -52,11 +52,17 @@ class OfferService {
         return offer;
     }
 
-    async get({ offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY }) {
-        const offers = await Offer.find().current()
-            .skip(offset).limit(limit);
+    async get({ offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false }) {
 
-        return offers;
+        const offers = Offer.find().current();
+
+        if (!showHidden) offers.withoutHidden();
+
+        return Promise.all((await offers
+            .skip(offset)
+            .limit(limit)
+        ).map((o) => o.withCompany()));
+
     }
 }
 

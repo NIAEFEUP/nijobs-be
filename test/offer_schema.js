@@ -62,8 +62,8 @@ describe("# Offer Schema tests", () => {
                     await offer.validate();
                 } catch (err) {
                     expect(err.errors.contacts).toBeDefined();
-                    expect(err.errors.contacts).toHaveProperty("kind", "required");
-                    expect(err.errors.contacts).toHaveProperty("message", "Path `contacts` is required.");
+                    expect(err.errors.contacts).toHaveProperty("kind", "user defined");
+                    expect(err.errors.contacts).toHaveProperty("message", "There must be at least one contact.");
                 }
             });
 
@@ -213,7 +213,7 @@ describe("# Offer Schema tests", () => {
 
             describe("There must be at least one contact", () => {
                 test("No contacts throws error", async () => {
-                    const test_contacts = new Map();
+                    const test_contacts = [];
 
                     const offer = new Offer({
                         contacts: test_contacts,
@@ -224,13 +224,12 @@ describe("# Offer Schema tests", () => {
                     } catch (err) {
                         expect(err.errors.contacts).toBeDefined();
                         expect(err.errors.contacts).toHaveProperty("kind", "user defined");
-                        expect(err.errors.contacts).toHaveProperty("message", "There must be at least one contact");
+                        expect(err.errors.contacts).toHaveProperty("message", "There must be at least one contact.");
                     }
                 });
 
                 test("At least 1 contact does not throw error", async () => {
-                    const test_contacts = new Map();
-                    test_contacts.set("email", "memes@niaefeup.pt");
+                    const test_contacts = ["contact@niaefeup.pt"];
 
                     const offer = new Offer({
                         contacts: test_contacts,
