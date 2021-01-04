@@ -6,6 +6,7 @@ const withGodToken = require("../utils/GodToken");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 const hash = require("../../src/lib/passwordHashing");
 const AccountConstants = require("../../src/models/constants/Account");
+const Company = require("../../src/models/Company");
 
 describe("Register endpoint test", () => {
     describe("Input Validation (unsuccessful registration)", () => {
@@ -83,20 +84,30 @@ describe("Login endpoint test", () => {
 
     describe("Using already resgistered user", () => {
         const test_agent = agent();
-        const test_user = {
-            email: "user@email.com",
+        const test_user_admin = {
+            email: "admin@email.com",
             password: "password123",
         };
+        const test_user_company = {
+            email: "company@email.com",
+            password: "password123",
+        };
+        let test_company;
 
         beforeAll(async () => {
             await Account.deleteMany({});
-            await Account.create({ email: test_user.email, password: await hash(test_user.password), isAdmin: true });
+            await Account.create({ email: test_user_admin.email, password: await hash(test_user_admin.password), isAdmin: true });
+            test_company = await Company.create({ name: "test comapny" });
+            await Account.create({
+                email: test_user_company.email,
+                password: await hash(test_user_admin.password),
+                company: test_company._id });
         });
 
         test("should return an error when registering with an already existing email", async () => {
             const res = await request()
                 .post("/auth/register")
-                .send(withGodToken(test_user));
+                .send(withGodToken(test_user_admin));
 
             expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
@@ -105,7 +116,7 @@ describe("Login endpoint test", () => {
                 "location": "body",
                 "msg": ValidationReasons.ALREADY_EXISTS("email"),
                 "param": "email",
-                "value": test_user.email,
+                "value": test_user_admin.email,
             });
         });
 
@@ -134,21 +145,43 @@ describe("Login endpoint test", () => {
         test("should successfully login with registered account", async () => {
             const res = await test_agent
                 .post("/auth/login")
-                .send(test_user);
+                .send(test_user_admin);
 
             // TODO: Reimplement res.should.have.cookie("connect.sid");
             expect(res.status).toBe(HTTPStatus.OK);
         });
 
-        test("should return the informations of the logged in user", async () => {
+        test("should return the informations of the logged in user (admin)", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin);
+
             const res = await test_agent
                 .get("/auth/me")
                 .send();
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(res.body).toHaveProperty("data.email", test_user.email);
+            expect(res.body).toHaveProperty("data.email", test_user_admin.email);
             expect(res.body).toHaveProperty("data.isAdmin", true);
             expect(res.body).not.toHaveProperty("data.company");
+        });
+
+        test("should return the informations of the logged in user (company)", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company);
+
+            const res = await test_agent
+                .get("/auth/me")
+                .send();
+
+            expect(res.status).toBe(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("data.email", test_user_company.email);
+            expect(res.body).toHaveProperty("data.isAdmin", false);
+            expect(res.body).toHaveProperty("data.company", expect.objectContaining(
+                JSON.parse(JSON.stringify(test_company.toObject())) // Necessary since mongoose objects don't play well with jest...
+            ));
         });
 
         test("should be successful when loging out the current user", async () => {

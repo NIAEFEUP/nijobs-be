@@ -124,8 +124,8 @@ OfferSchema.query.current = function() {
 /**
  * Currently active and non-hidden Offers
  */
-OfferSchema.query.bright = function() {
-    return this.current().where({ isHidden: false });
+OfferSchema.query.withoutHidden = function() {
+    return this.where({ isHidden: false });
 };
 
 const Offer = mongoose.model("Offer", OfferSchema);

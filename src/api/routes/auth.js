@@ -5,7 +5,7 @@ const passport = require("passport");
 const { authRequired, isGod } = require("../middleware/auth");
 const validators = require("../middleware/validators/auth");
 const AccountService = require("../../services/account");
-const Company = require("../../models/constants/Company");
+const Company = require("../../models/Company");
 
 
 const router = Router();
