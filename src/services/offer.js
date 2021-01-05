@@ -1,3 +1,4 @@
+const Company = require("../models/Company");
 const Offer = require("../models/Offer");
 
 class OfferService {
@@ -29,6 +30,8 @@ class OfferService {
         location,
         coordinates,
     }) {
+
+        const ownerName = (await Company.findById(owner)).name;
         const offer = await Offer.create({
             title,
             publishDate,
@@ -45,6 +48,7 @@ class OfferService {
             technologies,
             isHidden,
             owner,
+            ownerName,
             location,
             coordinates,
         });
@@ -60,7 +64,7 @@ class OfferService {
      * limit: How many offers to show
      * jobType: Array of jobTypes allowed
      */
-    async get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false, ...filters }) {
+    get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false, ...filters }) {
 
         const offers = value ? Offer.find(
             { "$and": [this._buildFilterQuery(filters), { "$text": { "$search": value } }] }, { score: { "$meta": "textScore" } }
@@ -68,11 +72,11 @@ class OfferService {
 
         if (!showHidden) offers.withoutHidden();
 
-        return Promise.all((await offers
+        return offers
             .sort(value ? { score: { "$meta": "textScore" } } : undefined)
             .skip(offset)
             .limit(limit)
-        ).map((o) => o.withCompany()));
+        ;
 
     }
     _buildFilterQuery(filters) {

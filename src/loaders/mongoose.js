@@ -15,6 +15,7 @@ const setupDbConnection = async () => {
         dbName: config.db_name,
         useNewUrlParser: true,
         useCreateIndex: true,
+        useFindAndModify: false
     };
 
     try {

@@ -5,7 +5,6 @@ const JobTypes = require("./constants/JobTypes");
 const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./constants/FieldTypes");
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./constants/TechnologyTypes");
 const PointSchema = require("./Point");
-const Company = require("./Company");
 const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./constants/TimeConstants");
 const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
 const OfferConstants = require("./constants/Offer");
@@ -76,24 +75,16 @@ const OfferSchema = new Schema({
         default: false
     },
     owner: { type: Types.ObjectId, ref: "Company", required: true },
-    // ownerName: { type: String, required: true },
+    ownerName: { type: String, required: true },
 
     location: { type: String, required: true },
     coordinates: { type: PointSchema, required: false },
 });
 
 OfferSchema.index(
-    { title: "text", jobType: "text", fields: "text", technologies: "text", location: "text" },
-    { name: "Search index", weights: { title: 10, jobType: 5, location: 5, fields: 5, technologies: 5 } }
+    { title: "text", ownerName: "text", jobType: "text", fields: "text", technologies: "text", location: "text" },
+    { name: "Search index", weights: { title: 10, ownerName: 5, jobType: 5, location: 5, fields: 5, technologies: 5 } }
 );
-
-OfferSchema.methods.withCompany = async function() {
-    const offer = this.toObject();
-
-    const company = (await Company.findById(offer.owner)).toObject();
-
-    return { ...offer, company };
-};
 
 // Checking if the publication date is less than or equal than the end date.
 function validatePublishDate(value) {

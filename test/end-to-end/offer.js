@@ -88,7 +88,7 @@ describe("Offer endpoint tests", () => {
                         .send(test_user_admin)
                         .expect(200);
 
-                    const res = await request()
+                    const res = await test_agent
                         .post("/offers/new")
                         .send(offer);
 
@@ -277,6 +277,7 @@ describe("Offer endpoint tests", () => {
                 const offer_params = {
                     ...offer,
                     owner: test_company._id,
+                    ownerName: test_company.name
                 };
 
                 const res = await request()
@@ -308,6 +309,7 @@ describe("Offer endpoint tests", () => {
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
                     owner: test_company._id,
+                    ownerName: test_company.name,
                     location: "Testing Street, Test City, 123",
                 };
 
@@ -393,6 +395,7 @@ describe("Offer endpoint tests", () => {
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
                     owner: test_company._id,
+                    ownerName: test_company.name,
                     location: "Testing Street, Test City, 123",
                 };
 
@@ -423,6 +426,7 @@ describe("Offer endpoint tests", () => {
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
                     // owner: Will be set in beforeAll, since it is not accessible here
+                    // ownerName: Will be set in beforeAll, since it is not accessible here
                     location: "Testing Street, Test City, 123",
                 };
                 const future_test_offer = {
@@ -435,6 +439,7 @@ describe("Offer endpoint tests", () => {
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
                     // owner: Will be set in beforeAll, since it is not accessible here
+                    // ownerName: Will be set in beforeAll, since it is not accessible here
                     location: "Testing Street, Test City, 123",
                 };
 
@@ -443,6 +448,7 @@ describe("Offer endpoint tests", () => {
                     [future_test_offer, expired_test_offer]
                         .forEach((offer) => {
                             offer.owner = test_company._id;
+                            offer.ownerName = test_company.name;
                         });
 
                     await Offer.create([expired_test_offer, future_test_offer]);
@@ -457,15 +463,13 @@ describe("Offer endpoint tests", () => {
                     expect(res.body).toHaveLength(1);
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; delete elem["score"]; return elem;
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"]; return elem;
                     });
                     const prepared_test_offer = {
                         ...test_offer,
                         isHidden: false,
-                        // JSON.parse->JSON.stringify needed because comparison below fails otherwise. Spread operator does not work
-                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        owner: test_offer.owner.toString()
                     };
-                    delete prepared_test_offer["owner"];
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);
                 });
@@ -489,17 +493,15 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            delete elem["_id"]; delete elem["__v"];
                             return elem;
                         });
 
                         const prepared_test_offer = {
                             ...test_offer,
                             isHidden: false,
-                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                            owner: test_offer.owner.toString()
                         };
-
-                        delete prepared_test_offer["owner"];
 
                         expect(extracted_data).toContainEqual(prepared_test_offer);
                     });
@@ -547,17 +549,15 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            delete elem["_id"]; delete elem["__v"];
                             return elem;
                         });
 
                         const prepared_test_offer = {
                             ...test_offer,
                             isHidden: false,
-                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                            owner: test_offer.owner.toString()
                         };
-
-                        delete prepared_test_offer["owner"];
 
                         expect(extracted_data).toContainEqual(prepared_test_offer);
                     });
@@ -581,17 +581,15 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            delete elem["_id"]; delete elem["__v"];
                             return elem;
                         });
 
                         const prepared_test_offer = {
                             ...test_offer,
                             isHidden: false,
-                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                            owner: test_offer.owner.toString()
                         };
-
-                        delete prepared_test_offer["owner"];
 
                         expect(extracted_data).toContainEqual(prepared_test_offer);
                     });
@@ -615,17 +613,15 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            delete elem["_id"]; delete elem["__v"];
                             return elem;
                         });
 
                         const prepared_test_offer = {
                             ...test_offer,
                             isHidden: false,
-                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                            owner: test_offer.owner.toString()
                         };
-
-                        delete prepared_test_offer["owner"];
 
                         expect(extracted_data).toContainEqual(prepared_test_offer);
                     });
@@ -638,6 +634,7 @@ describe("Offer endpoint tests", () => {
                 let portoFrontend;
                 let portoBackend;
                 let lisboaBackend;
+                let niaefeupOffer;
 
                 beforeAll(async () => {
                     portoFrontend = {
@@ -660,8 +657,14 @@ describe("Offer endpoint tests", () => {
                         location: "Lisboa",
                         fields: ["BACKEND", "DEVOPS"]
                     };
+                    niaefeupOffer = {
+                        ...test_offer,
+                        location: "FEUP",
+                        fields: ["BLOCKCHAIN", "OTHER"],
+                        ownerName: "NIAEFEUP"
+                    };
                     await Offer.deleteMany({});
-                    await Offer.create([portoBackend, portoFrontend, lisboaBackend]);
+                    await Offer.create([portoBackend, portoFrontend, lisboaBackend, niaefeupOffer]);
                 });
 
                 test("should return porto offers", async () => {
@@ -677,7 +680,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
                         return elem;
                     });
 
@@ -685,12 +688,38 @@ describe("Offer endpoint tests", () => {
                     const expected_offers = [portoBackend, portoFrontend].map(({ owner, ...offer }) => ({
                         ...offer,
                         isHidden: false,
-                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        owner: owner.toString()
                     }));
 
                     expected_offers.forEach((expected) => {
                         expect(extracted_data).toContainEqual(expected);
                     });
+                });
+
+                test("should return niaefeup (company) offers", async () => {
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({
+                            value: "niaefeup"
+                        });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(1);
+
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        return elem;
+                    });
+
+                    const prepared_test_offer = {
+                        ...niaefeupOffer,
+                        isHidden: false,
+                        owner: niaefeupOffer.owner.toString()
+                    };
+
+                    expect(extracted_data).toContainEqual(prepared_test_offer);
                 });
 
                 test("should return porto offers in order", async () => {
@@ -706,7 +735,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
                         return elem;
                     });
 
@@ -714,7 +743,7 @@ describe("Offer endpoint tests", () => {
                     const expected_offers = [portoFrontend, portoBackend].map(({ owner, ...offer }) => ({
                         ...offer,
                         isHidden: false,
-                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        owner: owner.toString()
                     }));
 
                     expected_offers.forEach((expected, i) => {
@@ -736,17 +765,15 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
                         return elem;
                     });
 
                     const prepared_test_offer = {
                         ...portoFrontend,
                         isHidden: false,
-                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        owner: portoFrontend.owner.toString()
                     };
-
-                    delete prepared_test_offer["owner"];
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);
                 });
@@ -765,7 +792,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
                         return elem;
                     });
 
@@ -773,7 +800,7 @@ describe("Offer endpoint tests", () => {
                     const expected_offers = [portoFrontend, portoBackend].map(({ owner, ...offer }) => ({
                         ...offer,
                         isHidden: false,
-                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        owner: owner.toString()
                     }));
 
                     expected_offers.forEach((expected) => {
@@ -794,17 +821,15 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
                         return elem;
                     });
 
                     const prepared_test_offer = {
                         ...lisboaBackend,
                         isHidden: false,
-                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        owner: lisboaBackend.owner.toString()
                     };
-
-                    delete prepared_test_offer["owner"];
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);
                 });
@@ -823,7 +848,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
                         return elem;
                     });
 
@@ -831,7 +856,7 @@ describe("Offer endpoint tests", () => {
                     const expected_offers = [portoFrontend, portoBackend].map(({ owner, ...offer }) => ({
                         ...offer,
                         isHidden: false,
-                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        owner: owner.toString()
                     }));
 
                     expected_offers.forEach((expected) => {
@@ -853,17 +878,15 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
                         return elem;
                     });
 
                     const prepared_test_offer = {
                         ...portoBackend,
                         isHidden: false,
-                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        owner: portoBackend.owner.toString()
                     };
-
-                    delete prepared_test_offer["owner"];
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);
                 });

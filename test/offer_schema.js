@@ -91,6 +91,18 @@ describe("# Offer Schema tests", () => {
                 }
             });
 
+            test("'ownerName' is required", async () => {
+                const offer = new Offer({});
+                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
+                try {
+                    await offer.validate();
+                } catch (err) {
+                    expect(err.errors.ownerName).toBeDefined();
+                    expect(err.errors.ownerName).toHaveProperty("kind", "required");
+                    expect(err.errors.ownerName).toHaveProperty("message", "Path `ownerName` is required.");
+                }
+            });
+
             test("'location' is required", async () => {
                 const offer = new Offer({});
                 // Returning the validation promise to ensure the test doesn't finish before all the assertions do
