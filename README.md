@@ -110,7 +110,7 @@ This approach might be the least straightforward to set up but is the most flexi
 
 This project uses [`Node.js`](https://nodejs.org/en/) with [`Express.js`](https://expressjs.com/) for the API routing and request-response logic. The DBMS used is [`MongoDB`](https://www.mongodb.com/), along with [`Mongoose`](https://mongoosejs.com/) for integrating it with Node.
 
-Testing is done using [`Mocha`](https://mochajs.org/) and [`Chai`](https://www.chaijs.com/).
+Testing is done using [`Jest`](https://jestjs.io/) and [`Supertest`](https://github.com/visionmedia/supertest).
 
 ### Project Concepts Map
 
