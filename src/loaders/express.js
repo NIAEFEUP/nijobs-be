@@ -30,6 +30,11 @@ module.exports = (app) => {
         secret: config.session_secret,
         resave: true,
         saveUninitialized: true,
+
+        // Set to true only in prod. Necessary due to reverse proxy setup
+        // Check https://github.com/expressjs/session/issues/281 for more details
+        proxy: process.env.NODE_ENV === "production",
+
         cookie: {
             secure: process.env.NODE_ENV === "production",
         },
