@@ -28,6 +28,16 @@ module.exports = (app) => {
         }
     });
 
+    router.get("/:offer", validators.get, async (req, res, next) => {
+
+        try {
+            const offer = await (new OfferService()).getOfferByID({ id: req.params.offer });
+            return res.json(offer);
+        } catch (err) {
+            return next(err);
+        }
+    });
+
     /**
      * Creates a new Offer
      */

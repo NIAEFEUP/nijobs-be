@@ -1,4 +1,6 @@
 const Company = require("../models/Company");
+const { Mongoose } = require("mongoose");
+const { off } = require("../models/Offer");
 const Offer = require("../models/Offer");
 
 class OfferService {
@@ -93,6 +95,15 @@ class OfferService {
 
         return constraints.length ? { "$and": constraints } : {};
     }
+
+    async getOfferByID({ id = 0, showHidden = false }) {
+        let offer = await Offer.findById(id).current();
+        //if (!showHidden) offer = undefined;
+
+        return offer;
+
+    }
+
 }
 
 module.exports = OfferService;
