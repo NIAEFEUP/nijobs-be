@@ -28,8 +28,10 @@ module.exports = (app) => {
         }
     });
 
+    /**
+     * Gets an offer from the database with its id
+    */
     router.get("/:offer", validators.get, async (req, res, next) => {
-
         try {
             const offer = await (new OfferService()).getOfferByID({ id: req.params.offer });
             return res.json(offer);

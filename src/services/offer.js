@@ -96,12 +96,10 @@ class OfferService {
         return constraints.length ? { "$and": constraints } : {};
     }
 
-    async getOfferByID({ id = 0, showHidden = false }) {
-        let offer = await Offer.findById(id).current();
-        //if (!showHidden) offer = undefined;
+    async getOfferByID({ id = 0 }) {
+        const offer = await Offer.findById(id).current();
 
         return offer;
-
     }
 
 }
