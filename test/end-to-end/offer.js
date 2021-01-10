@@ -15,6 +15,7 @@ const hash = require("../../src/lib/passwordHashing");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 const APIErrorTypes = require("../../src/api/APIErrorTypes");
 const { Types } = require("mongoose");
+const CompanyService = require("../../src/services/company");
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -301,7 +302,83 @@ describe("Offer endpoint tests", () => {
                 expect(created_offer).toHaveProperty("location", offer.location);
             });
         });
+/*
+        describe("After reaching the offers limit", () => {
+            const testOffers = [];
+            for (let i = 1; i <= CompanyService.MAX_OFFERS_PER_COMPANY; ++i) {
+                testOffers.push({
+                    title: `Test Offer no${i}`,
+                    publishDate: "2021-01-09",
+                    publishEndDate: "2021-01-30",
+                    description: "For Testing Purposes",
+                    contacts: ["geral@niaefeup.pt", "229417766"],
+                    jobType: "SUMMER INTERNSHIP",
+                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    technologies: ["React", "CSS"],
+                    // owner: Will be set in beforeAll,
+                    location: "New Testing Avenue, New Testing, 234",
+                });
+            }
+            let test_company;
 
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+                await Company.deleteMany({});
+
+                test_company = await Company.create({
+                    name: "Test Company",
+                    bio: "A very interesting bio",
+                    contacts: ["President"]
+                });
+
+                testOffers.forEach((offer) => {
+                    offer.owner = test_company._id;
+                });
+
+                await Offer.create(testOffers);
+            });
+
+            afterAll(async () => {
+                await Offer.deleteMany({});
+            });
+
+            const realCurrentDate = Date.now();
+            const fakeCurrentDate = new Date("2021-01-10");
+
+            beforeEach(() => {
+                Date.now = () => fakeCurrentDate.getTime();
+            });
+
+            afterEach(() => {
+                Date.now = realCurrentDate;
+            });
+
+            test("should fail to create a new offer", async () => {
+                const offer_params = {
+                    title: `Failed Test Offer`,
+                    publishDate: "2021-01-09",
+                    publishEndDate: "2021-01-30",
+                    description: "For Testing Purposes",
+                    contacts: ["geral@niaefeup.pt", "229417766"],
+                    jobType: "SUMMER INTERNSHIP",
+                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    technologies: ["React", "CSS"],
+                    owner: test_company._id,
+                    location: "New Testing Avenue, New Testing, 234",
+                };
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.BAD_REQUEST);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("reason",
+                    `Number of active offers exceeded! The limit is ${CompanyService.MAX_OFFERS_PER_COMPANY} offers`);
+
+            });
+        });
+*/
         describe("Default values", () => {
             test("publishDate defaults to the current time if not provided", async () => {
                 const offer = {

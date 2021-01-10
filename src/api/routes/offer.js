@@ -1,6 +1,7 @@
 const { Router } = require("express");
 
 const authMiddleware = require("../middleware/auth");
+const companyMiddleware = require("../middleware/company");
 const validators = require("../middleware/validators/offer");
 const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
@@ -53,7 +54,7 @@ module.exports = (app) => {
     /**
      * Creates a new Offer
      */
-    router.post("/new", authMiddleware.isCompanyOrGod, validators.create, async (req, res, next) => {
+    router.post("/new", authMiddleware.isCompanyOrGod, companyMiddleware.canCreateOffer, validators.create, async (req, res, next) => {
         try {
 
             const params = {
