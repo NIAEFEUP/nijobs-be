@@ -1,6 +1,4 @@
 const Company = require("../models/Company");
-const { Mongoose } = require("mongoose");
-const { off } = require("../models/Offer");
 const Offer = require("../models/Offer");
 
 class OfferService {

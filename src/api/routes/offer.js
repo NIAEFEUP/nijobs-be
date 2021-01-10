@@ -34,7 +34,27 @@ module.exports = (app) => {
     router.get("/:offer", validators.get, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferByID({ id: req.params.offer });
-            return res.json(offer);
+
+            // Later add here requirements
+            const filters = [
+                "title",
+                "jobStartDate",
+                "jobMinDuration",
+                "jobMaxDuration",
+                "description",
+                "vacancies",
+                "isPaid",
+                "location",
+                "jobType"
+            ];
+
+            const filteredOffer = {};
+
+            filters.forEach((key) => {
+                filteredOffer[key] = offer[key];
+            });
+            return res.json(filteredOffer);
+
         } catch (err) {
             return next(err);
         }
