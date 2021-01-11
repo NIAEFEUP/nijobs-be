@@ -26,7 +26,22 @@ const checkDuplicatedEmail = async (email) => {
     }
 };
 
+/**
+ * Sanitizes the input val to return an array. If val is an array, this is a no-op
+ * Otherwise wraps val in an array
+ *
+ * This is especially helpful when you expect an array in a query param,
+ * but a one-element array is given, therefore it is parsed as a string instead
+ * @param {*} val
+ */
+const ensureArray = (val) => {
+    if (Array.isArray(val)) return val;
+
+    else return [val];
+};
+
 module.exports = {
     valuesInSet,
     checkDuplicatedEmail,
+    ensureArray
 };

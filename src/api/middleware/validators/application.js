@@ -2,7 +2,7 @@ const { body, param, query } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
-const { checkDuplicatedEmail, valuesInSet } = require("./validatorUtils");
+const { checkDuplicatedEmail, valuesInSet, ensureArray } = require("./validatorUtils");
 const CompanyApplicationConstants = require("../../../models/constants/CompanyApplication");
 const CompanyConstants = require("../../../models/constants/Company");
 const AccountConstants = require("../../../models/constants/Account");
@@ -101,8 +101,7 @@ const search = useExpressValidators([
         .isString().withMessage(ValidationReasons.STRING),
     query("state", ValidationReasons.DEFAULT)
         .optional()
-        .isJSON().withMessage(ValidationReasons.ARRAY).bail()
-        .customSanitizer(JSON.parse)
+        .customSanitizer(ensureArray)
         .isArray().withMessage(ValidationReasons.ARRAY).bail()
         .custom(valuesInSet(Object.keys(ApplicationStatus))),
     query("submissionDateFrom", ValidationReasons.DEFAULT)

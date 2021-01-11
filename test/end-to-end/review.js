@@ -133,28 +133,27 @@ describe("Company application review endpoint test", () => {
 
                 test("Should filter by state", async () => {
 
-
                     const wrongFormatQuery = await test_agent
                         .get(`/applications/company/search?state=<["${APPROVED}"]`);
 
                     expect(wrongFormatQuery.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(wrongFormatQuery.body.errors[0]).toStrictEqual({
                         location: "query",
-                        msg: "must-be-array",
+                        msg: "must-be-in:[PENDING,APPROVED,REJECTED]",
                         param: "state",
-                        value: `<["${APPROVED}"]`
+                        value: [`<["${APPROVED}"]`]
                     });
 
 
                     const singleStateQuery = await test_agent
-                        .get(`/applications/company/search?state=["${APPROVED}"]`);
+                        .get("/applications/company/search").query({ state: [APPROVED] });
 
                     expect(singleStateQuery.status).toBe(HTTPStatus.OK);
                     expect(singleStateQuery.body.applications.length).toBe(1);
                     expect(singleStateQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
 
                     const multiStateQuery = await test_agent
-                        .get(`/applications/company/search?state=["${APPROVED}", "${PENDING}"]`);
+                        .get("/applications/company/search?").query({ state: [APPROVED, PENDING] });
 
                     expect(multiStateQuery.status).toBe(HTTPStatus.OK);
                     expect(multiStateQuery.body.applications.length).toBe(2);

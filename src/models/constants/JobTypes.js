@@ -1,6 +1,6 @@
 const JobTypes = Object.freeze([
-    "FULL_TIME",
-    "PART_TIME",
+    "FULL-TIME",
+    "PART-TIME",
     "SUMMER INTERNSHIP",
     "CURRICULAR INTERNSHIP",
     "OTHER",

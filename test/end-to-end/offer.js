@@ -88,7 +88,7 @@ describe("Offer endpoint tests", () => {
                         .send(test_user_admin)
                         .expect(200);
 
-                    const res = await request()
+                    const res = await test_agent
                         .post("/offers/new")
                         .send(offer);
 
@@ -277,6 +277,7 @@ describe("Offer endpoint tests", () => {
                 const offer_params = {
                     ...offer,
                     owner: test_company._id,
+                    ownerName: test_company.name
                 };
 
                 const res = await request()
@@ -308,6 +309,7 @@ describe("Offer endpoint tests", () => {
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
                     owner: test_company._id,
+                    ownerName: test_company.name,
                     location: "Testing Street, Test City, 123",
                 };
 
@@ -343,12 +345,47 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = QueryValidatorTester("limit");
                 FieldValidatorTester.mustBeNumber();
             });
+
+            describe("jobMinDuration", () => {
+                const FieldValidatorTester = QueryValidatorTester("jobMinDuration");
+                FieldValidatorTester.mustBeNumber();
+            });
+
+            describe("jobMaxDuration", () => {
+                const FieldValidatorTester = QueryValidatorTester("jobMaxDuration");
+                FieldValidatorTester.mustBeNumber();
+            });
+
+            describe("jobType", () => {
+                const FieldValidatorTester = QueryValidatorTester("jobType");
+                FieldValidatorTester.mustBeInArray(JobTypes);
+            });
+
+            describe("fields", () => {
+                const FieldValidatorTester = QueryValidatorTester("fields");
+                FieldValidatorTester.mustHaveValuesInRange(FieldTypes.FieldTypes, FieldTypes.MIN_FIELDS + 1);
+            });
+
+            describe("technologies", () => {
+                const FieldValidatorTester = QueryValidatorTester("technologies");
+                FieldValidatorTester.mustHaveValuesInRange(TechnologyTypes.TechnologyTypes, TechnologyTypes.MIN_TECHNOLOGIES + 1);
+            });
         });
 
         describe("Using already created offer(s)", () => {
-            describe("Only current offers are returned", () => {
+            let test_company;
+            let test_offer;
 
-                const test_offer = {
+            beforeAll(async () => {
+
+                await Company.deleteMany({});
+                test_company = await Company.create({
+                    name: "test company",
+                    bio: "a bio",
+                    contacts: ["a contact"]
+                });
+
+                test_offer = {
                     title: "Test Offer",
                     publishDate: "2019-11-22T00:00:00.000Z",
                     publishEndDate: "2019-11-28T00:00:00.000Z",
@@ -357,9 +394,28 @@ describe("Offer endpoint tests", () => {
                     jobType: "SUMMER INTERNSHIP",
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
-                    // owner: Will be set in beforeAll,
+                    owner: test_company._id,
+                    ownerName: test_company.name,
                     location: "Testing Street, Test City, 123",
                 };
+
+                await Offer.deleteMany({});
+                await Offer.create(test_offer);
+            });
+
+            const RealDateNow = Date.now;
+            const mockCurrentDate = new Date("2019-11-23");
+
+            beforeEach(() => {
+                Date.now = () => mockCurrentDate.getTime();
+            });
+
+            afterEach(() => {
+                Date.now = RealDateNow;
+            });
+
+            describe("Only current offers are returned", () => {
+
                 const expired_test_offer = {
                     title: "Expired Test Offer",
                     publishDate: "2019-11-17",
@@ -369,7 +425,8 @@ describe("Offer endpoint tests", () => {
                     jobType: "SUMMER INTERNSHIP",
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
-                    // owner: Will be set in beforeAll,
+                    // owner: Will be set in beforeAll, since it is not accessible here
+                    // ownerName: Will be set in beforeAll, since it is not accessible here
                     location: "Testing Street, Test City, 123",
                 };
                 const future_test_offer = {
@@ -381,43 +438,22 @@ describe("Offer endpoint tests", () => {
                     jobType: "SUMMER INTERNSHIP",
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
-                    // owner: Will be set in beforeAll,
+                    // owner: Will be set in beforeAll, since it is not accessible here
+                    // ownerName: Will be set in beforeAll, since it is not accessible here
                     location: "Testing Street, Test City, 123",
                 };
-                let test_company;
 
                 beforeAll(async () => {
 
-                    await Company.deleteMany({});
-                    test_company = await Company.create({
-                        name: "test company",
-                        bio: "a bio",
-                        contacts: ["a contact"]
-                    });
-
-                    [test_offer, future_test_offer, expired_test_offer]
+                    [future_test_offer, expired_test_offer]
                         .forEach((offer) => {
                             offer.owner = test_company._id;
+                            offer.ownerName = test_company.name;
                         });
 
-                    await Offer.deleteMany({});
-                    await Offer.create([test_offer, expired_test_offer, future_test_offer]);
+                    await Offer.create([expired_test_offer, future_test_offer]);
                 });
 
-                afterAll(async () => {
-                    await Offer.deleteMany({});
-                });
-
-                const RealDateNow = Date.now;
-                const mockCurrentDate = new Date("2019-11-23");
-
-                beforeEach(() => {
-                    Date.now = () => mockCurrentDate.getTime();
-                });
-
-                afterEach(() => {
-                    Date.now = RealDateNow;
-                });
 
                 test("should provide only current offer info (no expired or future offers)", async () => {
                     const res = await request()
@@ -427,15 +463,13 @@ describe("Offer endpoint tests", () => {
                     expect(res.body).toHaveLength(1);
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["owner"]; return elem;
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"]; return elem;
                     });
                     const prepared_test_offer = {
                         ...test_offer,
                         isHidden: false,
-                        // JSON.parse->JSON.stringify needed because comparison below fails otherwise. Spread operator does not work
-                        company: JSON.parse(JSON.stringify(test_company.toObject()))
+                        owner: test_offer.owner.toString()
                     };
-                    delete prepared_test_offer["owner"];
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);
                 });
@@ -459,17 +493,15 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            delete elem["_id"]; delete elem["__v"];
                             return elem;
                         });
 
                         const prepared_test_offer = {
                             ...test_offer,
                             isHidden: false,
-                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                            owner: test_offer.owner.toString()
                         };
-
-                        delete prepared_test_offer["owner"];
 
                         expect(extracted_data).toContainEqual(prepared_test_offer);
                     });
@@ -517,17 +549,15 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            delete elem["_id"]; delete elem["__v"];
                             return elem;
                         });
 
                         const prepared_test_offer = {
                             ...test_offer,
                             isHidden: false,
-                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                            owner: test_offer.owner.toString()
                         };
-
-                        delete prepared_test_offer["owner"];
 
                         expect(extracted_data).toContainEqual(prepared_test_offer);
                     });
@@ -551,17 +581,15 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            delete elem["_id"]; delete elem["__v"];
                             return elem;
                         });
 
                         const prepared_test_offer = {
                             ...test_offer,
                             isHidden: false,
-                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                            owner: test_offer.owner.toString()
                         };
-
-                        delete prepared_test_offer["owner"];
 
                         expect(extracted_data).toContainEqual(prepared_test_offer);
                     });
@@ -585,20 +613,282 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                            delete elem["_id"]; delete elem["__v"];
                             return elem;
                         });
 
                         const prepared_test_offer = {
                             ...test_offer,
                             isHidden: false,
-                            company: JSON.parse(JSON.stringify(test_company.toObject()))
+                            owner: test_offer.owner.toString()
                         };
-
-                        delete prepared_test_offer["owner"];
 
                         expect(extracted_data).toContainEqual(prepared_test_offer);
                     });
+                });
+
+            });
+
+            describe("Full text search", () => {
+
+                let portoFrontend;
+                let portoBackend;
+                let lisboaBackend;
+                let niaefeupOffer;
+
+                beforeAll(async () => {
+                    portoFrontend = {
+                        ...test_offer,
+                        location: "Porto",
+                        jobType: "FULL-TIME",
+                        fields: ["FRONTEND", "OTHER"],
+                        jobMinDuration: 3,
+                        jobMaxDuration: 6
+                    };
+                    portoBackend = {
+                        ...test_offer,
+                        location: "Porto",
+                        fields: ["BACKEND", "OTHER"],
+                        jobMinDuration: 2,
+                        jobMaxDuration: 4
+                    };
+                    lisboaBackend = {
+                        ...test_offer,
+                        location: "Lisboa",
+                        fields: ["BACKEND", "DEVOPS"]
+                    };
+                    niaefeupOffer = {
+                        ...test_offer,
+                        location: "FEUP",
+                        fields: ["BLOCKCHAIN", "OTHER"],
+                        ownerName: "NIAEFEUP"
+                    };
+                    await Offer.deleteMany({});
+                    await Offer.create([portoBackend, portoFrontend, lisboaBackend, niaefeupOffer]);
+                });
+
+                test("should return porto offers", async () => {
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({
+                            value: "porto"
+                        });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(2);
+
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        return elem;
+                    });
+
+                    // eslint-disable-next-line no-unused-vars
+                    const expected_offers = [portoBackend, portoFrontend].map(({ owner, ...offer }) => ({
+                        ...offer,
+                        isHidden: false,
+                        owner: owner.toString()
+                    }));
+
+                    expected_offers.forEach((expected) => {
+                        expect(extracted_data).toContainEqual(expected);
+                    });
+                });
+
+                test("should return niaefeup (company) offers", async () => {
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({
+                            value: "niaefeup"
+                        });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(1);
+
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        return elem;
+                    });
+
+                    const prepared_test_offer = {
+                        ...niaefeupOffer,
+                        isHidden: false,
+                        owner: niaefeupOffer.owner.toString()
+                    };
+
+                    expect(extracted_data).toContainEqual(prepared_test_offer);
+                });
+
+                test("should return porto offers in order", async () => {
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({
+                            value: "porto frontend"
+                        });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(2);
+
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        return elem;
+                    });
+
+                    // eslint-disable-next-line no-unused-vars
+                    const expected_offers = [portoFrontend, portoBackend].map(({ owner, ...offer }) => ({
+                        ...offer,
+                        isHidden: false,
+                        owner: owner.toString()
+                    }));
+
+                    expected_offers.forEach((expected, i) => {
+                        expect(extracted_data[i]).toEqual(expected);
+                    });
+                });
+
+                test("should return porto offers for FULL-TIME", async () => {
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({
+                            value: "porto",
+                            jobType: "FULL-TIME"
+                        });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(1);
+
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        return elem;
+                    });
+
+                    const prepared_test_offer = {
+                        ...portoFrontend,
+                        isHidden: false,
+                        owner: portoFrontend.owner.toString()
+                    };
+
+                    expect(extracted_data).toContainEqual(prepared_test_offer);
+                });
+
+                test("should return porto offers with React", async () => {
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({
+                            value: "porto",
+                            technologies: ["React"]
+                        });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(2);
+
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        return elem;
+                    });
+
+                    // eslint-disable-next-line no-unused-vars
+                    const expected_offers = [portoFrontend, portoBackend].map(({ owner, ...offer }) => ({
+                        ...offer,
+                        isHidden: false,
+                        owner: owner.toString()
+                    }));
+
+                    expected_offers.forEach((expected) => {
+                        expect(extracted_data).toContainEqual(expected);
+                    });
+                });
+
+                test("should return offers with DEVOPS", async () => {
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({
+                            fields: ["DEVOPS"]
+                        });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(1);
+
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        return elem;
+                    });
+
+                    const prepared_test_offer = {
+                        ...lisboaBackend,
+                        isHidden: false,
+                        owner: lisboaBackend.owner.toString()
+                    };
+
+                    expect(extracted_data).toContainEqual(prepared_test_offer);
+                });
+
+                test("should return porto offers with min duration of 2", async () => {
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({
+                            value: "porto",
+                            jobMinDuration: 2
+                        });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(2);
+
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        return elem;
+                    });
+
+                    // eslint-disable-next-line no-unused-vars
+                    const expected_offers = [portoFrontend, portoBackend].map(({ owner, ...offer }) => ({
+                        ...offer,
+                        isHidden: false,
+                        owner: owner.toString()
+                    }));
+
+                    expected_offers.forEach((expected) => {
+                        expect(extracted_data).toContainEqual(expected);
+                    });
+                });
+
+                test("should return porto offers with min duration of 2 and max duration of 4", async () => {
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({
+                            value: "porto",
+                            jobMinDuration: 2,
+                            jobMaxDuration: 4
+                        });
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(1);
+
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        return elem;
+                    });
+
+                    const prepared_test_offer = {
+                        ...portoBackend,
+                        isHidden: false,
+                        owner: portoBackend.owner.toString()
+                    };
+
+                    expect(extracted_data).toContainEqual(prepared_test_offer);
                 });
             });
         });
