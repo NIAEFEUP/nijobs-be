@@ -302,34 +302,26 @@ describe("Offer endpoint tests", () => {
                 expect(created_offer).toHaveProperty("location", offer.location);
             });
         });
-/*
+
         describe("After reaching the offers limit", () => {
             const testOffers = [];
             for (let i = 1; i <= CompanyService.MAX_OFFERS_PER_COMPANY; ++i) {
                 testOffers.push({
                     title: `Test Offer no${i}`,
-                    publishDate: "2021-01-09",
-                    publishEndDate: "2021-01-30",
+                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
+                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
                     description: "For Testing Purposes",
                     contacts: ["geral@niaefeup.pt", "229417766"],
                     jobType: "SUMMER INTERNSHIP",
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
-                    // owner: Will be set in beforeAll,
+                    // owner: will be set in beforeAll
                     location: "New Testing Avenue, New Testing, 234",
                 });
             }
-            let test_company;
 
             beforeAll(async () => {
                 await Offer.deleteMany({});
-                await Company.deleteMany({});
-
-                test_company = await Company.create({
-                    name: "Test Company",
-                    bio: "A very interesting bio",
-                    contacts: ["President"]
-                });
 
                 testOffers.forEach((offer) => {
                     offer.owner = test_company._id;
@@ -342,22 +334,12 @@ describe("Offer endpoint tests", () => {
                 await Offer.deleteMany({});
             });
 
-            const realCurrentDate = Date.now();
-            const fakeCurrentDate = new Date("2021-01-10");
-
-            beforeEach(() => {
-                Date.now = () => fakeCurrentDate.getTime();
-            });
-
-            afterEach(() => {
-                Date.now = realCurrentDate;
-            });
 
             test("should fail to create a new offer", async () => {
                 const offer_params = {
-                    title: `Failed Test Offer`,
-                    publishDate: "2021-01-09",
-                    publishEndDate: "2021-01-30",
+                    title: "Failed Test Offer",
+                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
+                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
                     description: "For Testing Purposes",
                     contacts: ["geral@niaefeup.pt", "229417766"],
                     jobType: "SUMMER INTERNSHIP",
@@ -378,7 +360,7 @@ describe("Offer endpoint tests", () => {
 
             });
         });
-*/
+
         describe("Default values", () => {
             test("publishDate defaults to the current time if not provided", async () => {
                 const offer = {

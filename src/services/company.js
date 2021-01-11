@@ -1,4 +1,4 @@
-const Company = require("../models/Company");
+const Offer = require("../models/Offer");
 
 class CompanyService {
     // TODO
@@ -11,10 +11,9 @@ class CompanyService {
     }
 
     getCurrentOffers(companyOwner) {
-        const today = Date.now();
-        return Company.find({
+        return Offer.find({
             owner: companyOwner,
-            publishEndDate: { $gte: { today } }
+            publishEndDate: { $gte: Date.now() }
         });
     }
 }

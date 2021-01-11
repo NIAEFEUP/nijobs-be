@@ -14,9 +14,7 @@ const isCompanyRep = (req, res, next) => {
 };
 
 const canCreateOffer = async (req, res, next) => {
-    const currentOffers = await (new CompanyService()).getCurrentOffers(req.owner);
-
-    console.log(req.owner, currentOffers.length);
+    const currentOffers = await (new CompanyService()).getCurrentOffers(req.body.owner);
 
     if (currentOffers.length >= CompanyService.MAX_OFFERS_PER_COMPANY) {
         return res.status(HTTPStatus.BAD_REQUEST).json({

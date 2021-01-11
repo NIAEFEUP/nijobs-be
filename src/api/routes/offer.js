@@ -54,7 +54,7 @@ module.exports = (app) => {
     /**
      * Creates a new Offer
      */
-    router.post("/new", authMiddleware.isCompanyOrGod, companyMiddleware.canCreateOffer, validators.create, async (req, res, next) => {
+    router.post("/new",  companyMiddleware.canCreateOffer, authMiddleware.isCompanyOrGod, validators.create, async (req, res, next) => {
         try {
 
             const params = {
