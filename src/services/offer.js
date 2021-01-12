@@ -94,7 +94,7 @@ class OfferService {
         return constraints.length ? { "$and": constraints } : {};
     }
 
-    async getOfferByID({ id = 0 }) {
+    async getOfferByID( id = 0 ) {
         const offer = await Offer.findById(id).current();
 
         return offer;
