@@ -4,6 +4,7 @@ const authMiddleware = require("../middleware/auth");
 const validators = require("../middleware/validators/offer");
 const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
+const ValidationReasons = require("../middleware/validators/validationReasons");
 
 const router = Router();
 
@@ -35,13 +36,12 @@ module.exports = (app) => {
     router.get("/:offerId", validators.get, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferById(req.params.offerId);
-            if (offer !== null) {
-                return res.json(offer);
-            } else {
-                return res.status(HTTPStatus.UNAUTHORIZED).json({
-                    reason: `No offer with id:${req.params.offer}`,
-                });
+
+            if (!offer) {
+                return res.status(HTTPStatus.NOT_FOUND).json({ reason: ValidationReasons.OFFER_NOT_FOUND(req.params.offerId) });
             }
+
+            return res.json(offer);
 
         } catch (err) {
             return next(err);
