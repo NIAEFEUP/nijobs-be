@@ -6,4 +6,7 @@ module.exports = Object.freeze({
     bio: {
         max_length: 1500,
     },
+    offers: {
+        max_number: 5,
+    },
 });

@@ -15,7 +15,7 @@ const hash = require("../../src/lib/passwordHashing");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 const APIErrorTypes = require("../../src/api/APIErrorTypes");
 const { Types } = require("mongoose");
-const CompanyService = require("../../src/services/company");
+const CompanyConstants = require("../../src/models/constants/Company");
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -305,7 +305,7 @@ describe("Offer endpoint tests", () => {
 
         describe("Before reaching the offers limit while having past offers", () => {
             const testOffers = [];
-            for (let i = 1; i < CompanyService.MAX_OFFERS_PER_COMPANY; ++i) {
+            for (let i = 1; i < CompanyConstants.offers.max_number; ++i) {
                 testOffers.push({
                     title: `Active Test Offer no${i}`,
                     publishDate: new Date(Date.now() - (DAY_TO_MS)),
@@ -378,7 +378,7 @@ describe("Offer endpoint tests", () => {
 
         describe("After reaching the offers limit", () => {
             const testOffers = [];
-            for (let i = 1; i <= CompanyService.MAX_OFFERS_PER_COMPANY; ++i) {
+            for (let i = 1; i <= CompanyConstants.offers.max_number; ++i) {
                 testOffers.push({
                     title: `Test Offer no${i}`,
                     publishDate: new Date(Date.now() - (DAY_TO_MS)),
@@ -431,8 +431,7 @@ describe("Offer endpoint tests", () => {
 
                 expect(res.status).toBe(HTTPStatus.BAD_REQUEST);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("reason",
-                    `Number of active offers exceeded! The limit is ${CompanyService.MAX_OFFERS_PER_COMPANY} offers`);
+                expect(res.body).toHaveProperty("reason", ValidationReasons.MAX_OFFERS_EXCEEDED(CompanyConstants.offers.max_number));
 
             });
         });

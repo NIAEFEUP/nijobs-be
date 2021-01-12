@@ -6,10 +6,6 @@ class CompanyService {
 
     }
 
-    static get MAX_OFFERS_PER_COMPANY() {
-        return 5;   // The value may change later
-    }
-
     getCurrentOffers(companyOwner) {
         return Offer.find({
             owner: companyOwner,

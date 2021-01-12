@@ -1,6 +1,8 @@
 const { ErrorTypes } = require("./errorHandler");
 const HTTPStatus = require("http-status-codes");
 const CompanyService = require("../../services/company");
+const CompanyConstants = require("../../models/constants/Company");
+const ValidationReasons = require("./validators/validationReasons");
 
 const isCompanyRep = (req, res, next) => {
     if (!req.user.company) {
@@ -16,9 +18,9 @@ const isCompanyRep = (req, res, next) => {
 const canCreateOffer = async (req, res, next) => {
     const currentOffers = await (new CompanyService()).getCurrentOffers(req.body.owner);
 
-    if (currentOffers.length >= CompanyService.MAX_OFFERS_PER_COMPANY) {
+    if (currentOffers.length >= CompanyConstants.offers.max_number) {
         return res.status(HTTPStatus.BAD_REQUEST).json({
-            reason: `Number of active offers exceeded! The limit is ${CompanyService.MAX_OFFERS_PER_COMPANY} offers`,
+            reason: ValidationReasons.MAX_OFFERS_EXCEEDED(CompanyConstants.offers.max_number),
             error_code: ErrorTypes.VALIDATION_ERROR
         });
     }

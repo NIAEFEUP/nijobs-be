@@ -20,6 +20,10 @@ const ValidationReasons = Object.freeze({
     MUST_BE_AFTER: (variable) => `must-be-after:${variable}`,
     WRONG_FORMAT: (format) => `must-be-format-${format}`,
     COMPANY_NOT_FOUND: (id) => `no-company-found-with-id:${id}`,
+<<<<<<< HEAD
+=======
+    MAX_OFFERS_EXCEEDED: (max) => `Number of active offers exceeded! The limit is ${max} offers`,
+>>>>>>> Created validation reason, moved MAX_OFFERS and changed order of validations
 });
 
 module.exports = ValidationReasons;
