@@ -3,6 +3,7 @@ const { Router } = require("express");
 const authMiddleware = require("../middleware/auth");
 const validators = require("../middleware/validators/offer");
 const OfferService = require("../../services/offer");
+const HTTPStatus = require("http-status-codes");
 
 const router = Router();
 
@@ -31,11 +32,16 @@ module.exports = (app) => {
     /**
      * Gets an offer from the database with its id
     */
-    router.get("/:offer", validators.get, async (req, res, next) => {
+    router.get("/:offerId", validators.get, async (req, res, next) => {
         try {
-            const offer = await (new OfferService()).getOfferByID(req.params.offer);
-
-            return res.json(offer);
+            const offer = await (new OfferService()).getOfferById(req.params.offerId);
+            if (offer !== null) {
+                return res.json(offer);
+            } else {
+                return res.status(HTTPStatus.UNAUTHORIZED).json({
+                    reason: `No offer with id:${req.params.offer}`,
+                });
+            }
 
         } catch (err) {
             return next(err);
