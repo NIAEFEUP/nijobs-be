@@ -303,6 +303,79 @@ describe("Offer endpoint tests", () => {
             });
         });
 
+        describe("Before reaching the offers limit while having past offers", () => {
+            const testOffers = [];
+            for (let i = 1; i < CompanyService.MAX_OFFERS_PER_COMPANY; ++i) {
+                testOffers.push({
+                    title: `Active Test Offer no${i}`,
+                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
+                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
+                    description: "For Testing Purposes",
+                    contacts: ["geral@niaefeup.pt", "229417766"],
+                    jobType: "SUMMER INTERNSHIP",
+                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    technologies: ["React", "CSS"],
+                    // owner: will be set in beforeAll
+                    // ownerName: will be set in beforeAll
+                    location: "New Testing Avenue, New Testing, 234",
+                });
+            }
+
+            testOffers.push({
+                title: "Past Test Offer",
+                publishDate: new Date(Date.now() - (2 * (DAY_TO_MS))),
+                publishEndDate: new Date(Date.now() - (DAY_TO_MS)),
+                description: "For Testing Purposes",
+                contacts: ["geral@niaefeup.pt", "229417766"],
+                jobType: "SUMMER INTERNSHIP",
+                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                technologies: ["React", "CSS"],
+                // owner: will be set in beforeAll
+                // ownerName: will be set in beforeAll
+                location: "New Testing Avenue, New Testing, 234",
+            });
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                testOffers.forEach((offer) => {
+                    offer.owner = test_company._id;
+                    offer.ownerName = test_company.name;
+                });
+
+                await Offer.create(testOffers);
+            });
+
+            afterAll(async () => {
+                await Offer.deleteMany({});
+            });
+
+            test("should be able to create a new offer (past offers do not restrain the company)", async () => {
+                const offer_params = {
+                    title: "Successful Test Offer",
+                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
+                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
+                    description: "For Testing Purposes",
+                    contacts: ["geral@niaefeup.pt", "229417766"],
+                    jobType: "SUMMER INTERNSHIP",
+                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    technologies: ["React", "CSS"],
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                    location: "New Testing Avenue, New Testing, 234",
+                };
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("title", offer_params.title);
+                expect(res.body).toHaveProperty("description", offer_params.description);
+                expect(res.body).toHaveProperty("location", offer_params.location);
+            });
+        });
+
         describe("After reaching the offers limit", () => {
             const testOffers = [];
             for (let i = 1; i <= CompanyService.MAX_OFFERS_PER_COMPANY; ++i) {
@@ -316,6 +389,7 @@ describe("Offer endpoint tests", () => {
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
                     // owner: will be set in beforeAll
+                    // ownerName: will be set in beforeAll
                     location: "New Testing Avenue, New Testing, 234",
                 });
             }
@@ -325,6 +399,7 @@ describe("Offer endpoint tests", () => {
 
                 testOffers.forEach((offer) => {
                     offer.owner = test_company._id;
+                    offer.ownerName = test_company.name;
                 });
 
                 await Offer.create(testOffers);
@@ -346,6 +421,7 @@ describe("Offer endpoint tests", () => {
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
                     owner: test_company._id,
+                    ownerName: test_company.name,
                     location: "New Testing Avenue, New Testing, 234",
                 };
 
