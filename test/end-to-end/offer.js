@@ -13,6 +13,7 @@ const Account = require("../../src/models/Account");
 const Company = require("../../src/models/Company");
 const hash = require("../../src/lib/passwordHashing");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
+const APIErrorTypes = require("../../src/api/APIErrorTypes");
 
 //----------------------------------------------------------------
 
@@ -890,6 +891,106 @@ describe("Offer endpoint tests", () => {
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);
                 });
+            });
+        });
+    });
+
+    describe("GET /offers/offerId", () => {
+
+        beforeAll(async () => {
+            await Offer.deleteMany({});
+        });
+
+        describe("Id Validation", () => {
+            test("Invalid ID", async () => {
+                const res = await request()
+                    .get("/offers/123");
+
+                expect(res.status).toBe(HTTPStatus.NOT_FOUND);
+                expect(res.body).toHaveProperty("reason", ValidationReasons.OBJECT_ID);
+            });
+            test("Offer not found", async () => {
+                const id = "5facf0cdb8bc30016ee58952";
+                const res = await request()
+                    .get(`/offers/${id}`);
+                expect(res.status).toBe(HTTPStatus.NOT_FOUND);
+                expect(res.body).toHaveProperty("reason", APIErrorTypes.OFFER_NOT_FOUND(id));
+            });
+        });
+
+        describe("Get offer by Id", () => {
+            const test_offer_1 = {
+                title: "Test Offer 1",
+                publishDate: "2021-01-14T00:00:00.000Z",
+                publishEndDate: "2021-02-28T00:00:00.000Z",
+                description: "For Testing Purposes",
+                contacts: ["geral@niaefeup.pt", "229417766"],
+                jobType: "SUMMER INTERNSHIP",
+                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                technologies: ["React", "CSS"],
+                // owner: Will be set in beforeAll,
+                location: "Testing Street, Test City, 123",
+            };
+            const test_offer_2 = {
+                title: "Test Offer",
+                publishDate: "2021-01-01T00:00:00.000Z",
+                publishEndDate: "2021-01-05T00:00:00.000Z",
+                description: "For Testing Purposes",
+                contacts: ["geral@niaefeup.pt", "229417766"],
+                jobType: "SUMMER INTERNSHIP",
+                fields: ["FRONT_END", "BACK_END"],
+                technologies: ["Flutter", "Node.js"],
+                // owner: Will be set in beforeAll,
+                location: "Testing Avenue, Test State, 321",
+            };
+
+            const test_agent = agent();
+
+            let test_company;
+
+            beforeAll(async () => {
+                await Company.deleteMany({});
+                await Offer.deleteMany({});
+                test_company = await Company.create({
+                    name: "test company",
+                    bio: "a bio",
+                    contacts: ["a contact"]
+                });
+
+                [test_offer_1, test_offer_2]
+                    .forEach((offer) => {
+                        offer.owner = test_company._id;
+                    });
+
+                await Offer.deleteMany({});
+                await Offer.create([test_offer_1, test_offer_2]);
+            });
+
+            test("Offer 1", async () => {
+                let res = await test_agent.get(`/offers/${test_offer_1._id}`);
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                let extracted_data = res.body.map((elem) => {
+                    delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                    return elem;
+                });
+
+                expect(extracted_data).toContainEqual(test_offer_1);
+
+                res = await test_agent.get(`/offers/${test_offer_2._id}`);
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                extracted_data = res.body.map((elem) => {
+                    delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
+                    return elem;
+                });
+
+                expect(extracted_data).toContainEqual(test_offer_1);
+            });
+
+            afterAll(async () => {
+                await Company.deleteMany({});
+                await Offer.deleteMany({});
             });
         });
     });
