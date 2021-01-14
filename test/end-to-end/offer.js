@@ -102,6 +102,7 @@ describe("Offer endpoint tests", () => {
                     const offer = generateTestOffer();
 
                     // Login
+                    const offer = generateTestOffer();
                     await test_agent
                         .post("/auth/login")
                         .send(test_user_company)
@@ -304,36 +305,16 @@ describe("Offer endpoint tests", () => {
         });
 
         describe("Before reaching the offers limit while having past offers", () => {
-            const testOffers = [];
-            for (let i = 1; i < CompanyConstants.offers.max_number; ++i) {
-                testOffers.push({
-                    title: `Active Test Offer no${i}`,
-                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
-                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
-                    // owner: will be set in beforeAll
-                    // ownerName: will be set in beforeAll
-                    location: "New Testing Avenue, New Testing, 234",
-                });
-            }
+            const testOffers = Array(CompanyConstants.offers.max_concurrent - 1)
+                .fill(generateTestOffer(
+                    new Date(Date.now() - (DAY_TO_MS)),
+                    new Date(Date.now() + (DAY_TO_MS))
+                ));
 
-            testOffers.push({
-                title: "Past Test Offer",
-                publishDate: new Date(Date.now() - (2 * (DAY_TO_MS))),
-                publishEndDate: new Date(Date.now() - (DAY_TO_MS)),
-                description: "For Testing Purposes",
-                contacts: ["geral@niaefeup.pt", "229417766"],
-                jobType: "SUMMER INTERNSHIP",
-                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                technologies: ["React", "CSS"],
-                // owner: will be set in beforeAll
-                // ownerName: will be set in beforeAll
-                location: "New Testing Avenue, New Testing, 234",
-            });
+            testOffers.push(generateTestOffer(
+                new Date(Date.now() - (3 * (DAY_TO_MS))),
+                new Date(Date.now() - (2 * (DAY_TO_MS)))
+            ));
 
             beforeAll(async () => {
                 await Offer.deleteMany({});
@@ -352,17 +333,9 @@ describe("Offer endpoint tests", () => {
 
             test("should be able to create a new offer (past offers do not restrain the company)", async () => {
                 const offer_params = {
-                    title: "Successful Test Offer",
-                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
-                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
+                    ...generateTestOffer(),
                     owner: test_company._id,
                     ownerName: test_company.name,
-                    location: "New Testing Avenue, New Testing, 234",
                 };
 
                 const res = await request()
@@ -377,22 +350,11 @@ describe("Offer endpoint tests", () => {
         });
 
         describe("After reaching the offers limit", () => {
-            const testOffers = [];
-            for (let i = 1; i <= CompanyConstants.offers.max_number; ++i) {
-                testOffers.push({
-                    title: `Test Offer no${i}`,
-                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
-                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
-                    // owner: will be set in beforeAll
-                    // ownerName: will be set in beforeAll
-                    location: "New Testing Avenue, New Testing, 234",
-                });
-            }
+            const testOffers = Array(CompanyConstants.offers.max_concurrent)
+                .fill(generateTestOffer(
+                    new Date(Date.now() - (DAY_TO_MS)),
+                    new Date(Date.now() + (DAY_TO_MS))
+                ));
 
             beforeAll(async () => {
                 await Offer.deleteMany({});
@@ -412,27 +374,60 @@ describe("Offer endpoint tests", () => {
 
             test("should fail to create a new offer", async () => {
                 const offer_params = {
-                    title: "Failed Test Offer",
-                    publishDate: new Date(Date.now() - (DAY_TO_MS)),
-                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
+                    ...generateTestOffer(),
                     owner: test_company._id,
                     ownerName: test_company.name,
-                    location: "New Testing Avenue, New Testing, 234",
                 };
 
                 const res = await request()
                     .post("/offers/new")
                     .send(withGodToken(offer_params));
 
-                expect(res.status).toBe(HTTPStatus.BAD_REQUEST);
+                expect(res.status).toBe(HTTPStatus.CONFLICT);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("reason", ValidationReasons.MAX_OFFERS_EXCEEDED(CompanyConstants.offers.max_number));
+                expect(res.body).toHaveProperty("reason",
+                    ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
 
+            });
+        });
+
+        describe("Trying to schedule an offer in a time period which reached the offers limit", () => {
+            const testOffers = Array(CompanyConstants.offers.max_concurrent)
+                .fill(generateTestOffer(
+                    new Date(Date.now() + (3 * (DAY_TO_MS))),
+                    new Date(Date.now() + (6 * (DAY_TO_MS)))
+                ));
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                testOffers.forEach((offer) => {
+                    offer.owner = test_company._id;
+                    offer.ownerName = test_company.name;
+                });
+
+                await Offer.create(testOffers);
+            });
+
+            afterAll(async () => {
+                await Offer.deleteMany({});
+            });
+
+            test("should fail to schedule a new offer", async () => {
+                const offer_params = {
+                    ...generateTestOffer(new Date(Date.now() + (4 * (DAY_TO_MS))), new Date(Date.now() + (5 * (DAY_TO_MS)))),
+                    owner: test_company._id,
+                    ownerName: test_company.name
+                };
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.CONFLICT);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("reason",
+                    ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
             });
         });
 

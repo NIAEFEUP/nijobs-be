@@ -6,10 +6,13 @@ class CompanyService {
 
     }
 
-    getCurrentOffers(companyOwner) {
+    getOffersInTimePeriod(owner, publishDate, publishEndDate) {
         return Offer.find({
-            owner: companyOwner,
-            publishEndDate: { $gte: Date.now() }
+            owner,
+
+            $or: [{ $and: [{ publishEndDate: { $gte: publishDate } }, { publishEndDate: { $lte: publishEndDate } }] },
+                { $and: [{ publishDate: { $gte: publishDate } }, { publishDate: { $lte: publishEndDate } }] },
+                { $and: [{ publishDate: { $lte: publishDate } }, { publishEndDate: { $gte: publishEndDate } }] }]
         });
     }
 }

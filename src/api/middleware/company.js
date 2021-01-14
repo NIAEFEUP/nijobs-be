@@ -15,12 +15,13 @@ const isCompanyRep = (req, res, next) => {
     return next();
 };
 
-const canCreateOffer = async (req, res, next) => {
-    const currentOffers = await (new CompanyService()).getCurrentOffers(req.body.owner);
+const verifyMaxConcurrentOffers = async (req, res, next) => {
+    const concurrentOffers = await (new CompanyService()).
+        getOffersInTimePeriod(req.body.owner, req.body.publishDate, req.body.publishEndDate);
 
-    if (currentOffers.length >= CompanyConstants.offers.max_number) {
-        return res.status(HTTPStatus.BAD_REQUEST).json({
-            reason: ValidationReasons.MAX_OFFERS_EXCEEDED(CompanyConstants.offers.max_number),
+    if (concurrentOffers.length >= CompanyConstants.offers.max_concurrent) {
+        return res.status(HTTPStatus.CONFLICT).json({
+            reason: ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent),
             error_code: ErrorTypes.VALIDATION_ERROR
         });
     }
@@ -30,5 +31,5 @@ const canCreateOffer = async (req, res, next) => {
 
 module.exports = {
     isCompanyRep,
-    canCreateOffer
+    verifyMaxConcurrentOffers
 };

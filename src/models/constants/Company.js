@@ -7,6 +7,6 @@ module.exports = Object.freeze({
         max_length: 1500,
     },
     offers: {
-        max_number: 5,
+        max_concurrent: 5,
     },
 });

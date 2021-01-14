@@ -54,19 +54,20 @@ module.exports = (app) => {
     /**
      * Creates a new Offer
      */
-    router.post("/new", authMiddleware.isCompanyOrGod, validators.create, companyMiddleware.canCreateOffer, async (req, res, next) => {
-        try {
+    router.post("/new", authMiddleware.isCompanyOrGod, validators.create, companyMiddleware.verifyMaxConcurrentOffers,
+        async (req, res, next) => {
+            try {
 
-            const params = {
-                ...req.body,
-                owner: req?.user?.company || req.body.owner
-            };
+                const params = {
+                    ...req.body,
+                    owner: req?.user?.company || req.body.owner
+                };
 
-            const offer = await (new OfferService()).create(params);
+                const offer = await (new OfferService()).create(params);
 
-            return res.json(offer);
-        } catch (err) {
-            return next(err);
-        }
-    });
+                return res.json(offer);
+            } catch (err) {
+                return next(err);
+            }
+        });
 };

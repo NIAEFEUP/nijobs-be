@@ -21,9 +21,13 @@ const ValidationReasons = Object.freeze({
     WRONG_FORMAT: (format) => `must-be-format-${format}`,
     COMPANY_NOT_FOUND: (id) => `no-company-found-with-id:${id}`,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     MAX_OFFERS_EXCEEDED: (max) => `Number of active offers exceeded! The limit is ${max} offers`,
 >>>>>>> Created validation reason, moved MAX_OFFERS and changed order of validations
+=======
+    MAX_CONCURRENT_OFFERS_EXCEEDED: (max) => `max-concurrent-offers-reached:${max}`,
+>>>>>>> Offers limit with time interval, offer generator and new test
 });
 
 module.exports = ValidationReasons;
