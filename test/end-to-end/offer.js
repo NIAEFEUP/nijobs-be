@@ -964,46 +964,92 @@ describe("Offer endpoint tests", () => {
 
             const test_agent = agent();
 
-            let test_company;
+            const test_user_admin = {
+                email: "admin@email.com",
+                password: "password123",
+            };
+            const test_user_company = {
+                email: "company@email.com",
+                password: "password123",
+            };
 
             beforeAll(async () => {
                 await Company.deleteMany({});
                 await Offer.deleteMany({});
+                await Account.deleteMany({});
+
                 test_company = await Company.create({
                     name: "test company",
                     bio: "a bio",
                     contacts: ["a contact"]
                 });
 
+                await Account.create({
+                    email: test_user_admin.email,
+                    password: await hash(test_user_admin.password),
+                    isAdmin: true
+                });
+                await Account.create({
+                    email: test_user_company.email,
+                    password: await hash(test_user_company.password),
+                    company: test_company._id
+                });
                 [test_1, test_2, test_3] =
                     await Promise.all([test_offer_1, test_offer_2, test_offer_3].map(async (offer) => {
-                        offer.owner = test_company._id;
+                        offer.owner = test_company._id.toString();
                         const { _id } = await Offer.create(offer);
-                        offer["_id"] = _id;
+                        offer["_id"] = _id.toString();
                         return offer;
                     }));
+                // test_user_non_admin = {
+                //     email: "company@email.com",
+                //     password: "password123",
+                // };
             });
 
             test("should return offer", async () => {
-                let res = await test_agent.get(`/offers/${test_1["_id"].toString()}`);
+                let res = await test_agent.get(`/offers/${test_1["_id"]}`);
                 expect(res.status).toBe(HTTPStatus.OK);
                 const extracted_data_1 = res.body;
 
-                res = await test_agent.get(`/offers/${test_2["_id"].toString()}`);
+                res = await test_agent.get(`/offers/${test_2["_id"]}`);
                 expect(res.status).toBe(HTTPStatus.OK);
-
                 const extracted_data_2 = res.body;
-                [extracted_data_1, extracted_data_2, test_1, test_2]
-                    .forEach((elem) => {
-                        delete elem["_id"]; delete elem["owner"]; delete elem["__v"]; return elem;
-                    });
+
                 expect(extracted_data_1).toMatchObject(test_1);
                 expect(extracted_data_2).toMatchObject(test_2);
             });
 
             test("should fail if not admin or owner", async () => {
-                const res = await test_agent.get(`/offers/${test_3["_id"].toString()}`);
+                const res = await test_agent.get(`/offers/${test_3["_id"]}`);
                 expect(res.status).toBe(HTTPStatus.NOT_FOUND);
+            });
+
+            test("should return hidden offer as admin", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(200);
+
+                const res = await test_agent.get(`/offers/${test_3["_id"]}`);
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extracted_data = res.body;
+
+                expect(extracted_data).toMatchObject(test_3);
+            });
+
+            test("should return hidden offer as company", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(200);
+
+                const res = await test_agent.get(`/offers/${test_3["_id"]}`);
+                expect(res.status).toBe(HTTPStatus.OK);
+                const extracted_data = res.body;
+
+                expect(extracted_data).toMatchObject(test_3);
             });
 
             afterAll(async () => {
