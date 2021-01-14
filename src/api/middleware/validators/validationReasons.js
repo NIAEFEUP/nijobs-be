@@ -20,7 +20,6 @@ const ValidationReasons = Object.freeze({
     MUST_BE_AFTER: (variable) => `must-be-after:${variable}`,
     WRONG_FORMAT: (format) => `must-be-format-${format}`,
     COMPANY_NOT_FOUND: (id) => `no-company-found-with-id:${id}`,
-    OFFER_NOT_FOUND: (id) => `no-offer-found-with-id:${id}`,
 });
 
 module.exports = ValidationReasons;

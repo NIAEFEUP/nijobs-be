@@ -1,4 +1,4 @@
-const { body, query } = require("express-validator");
+const { body, query, param } = require("express-validator");
 
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
@@ -9,8 +9,7 @@ const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../.
 const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
 const Company = require("../../../models/Company");
-const { Types } = require("mongoose");
-const HTTPStatus = require("http-status-codes");
+const { isObjectId } = require("../validators/validatorUtils");
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
@@ -175,17 +174,10 @@ const get = useExpressValidators([
         .custom(valuesInSet((TechnologyTypes))),
 ]);
 
-const getOfferById = (req, res, next) => {
-
-    try {
-        Types.ObjectId(req.params.offerId);
-    } catch (_) {
-        return res.status(HTTPStatus.NOT_FOUND).json({
-            reason: ValidationReasons.OBJECT_ID,
-        });
-    }
-
-    return next();
-};
+const getOfferById = useExpressValidators([
+    param("offerId", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED)
+        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID),
+]);
 
 module.exports = { create, get, getOfferById };

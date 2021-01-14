@@ -14,6 +14,7 @@ const Company = require("../../src/models/Company");
 const hash = require("../../src/lib/passwordHashing");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 const APIErrorTypes = require("../../src/api/APIErrorTypes");
+const { Types } = require("mongoose");
 
 //----------------------------------------------------------------
 
@@ -895,22 +896,21 @@ describe("Offer endpoint tests", () => {
         });
     });
 
-    describe("GET /offers/offerId", () => {
+    describe("GET /offers/:offerId", () => {
 
         beforeAll(async () => {
             await Offer.deleteMany({});
         });
 
         describe("Id Validation", () => {
-            test("Invalid ID", async () => {
+            test("should fail if requested an invalid id", async () => {
                 const res = await request()
                     .get("/offers/123");
 
-                expect(res.status).toBe(HTTPStatus.NOT_FOUND);
-                expect(res.body).toHaveProperty("reason", ValidationReasons.OBJECT_ID);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
             });
-            test("Offer not found", async () => {
-                const id = "5facf0cdb8bc30016ee58952";
+            test("should fail if an offer does not exist", async () => {
+                const id = Types.ObjectId("5facf0cdb8bc30016ee58952");
                 const res = await request()
                     .get(`/offers/${id}`);
                 expect(res.status).toBe(HTTPStatus.NOT_FOUND);
@@ -928,21 +928,39 @@ describe("Offer endpoint tests", () => {
                 jobType: "SUMMER INTERNSHIP",
                 fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                 technologies: ["React", "CSS"],
+                isHidden: false,
                 // owner: Will be set in beforeAll,
                 location: "Testing Street, Test City, 123",
             };
             const test_offer_2 = {
                 title: "Test Offer",
-                publishDate: "2021-01-01T00:00:00.000Z",
-                publishEndDate: "2021-01-05T00:00:00.000Z",
+                publishDate: "2021-01-14T00:00:00.000Z",
+                publishEndDate: "2021-02-28T00:00:00.000Z",
                 description: "For Testing Purposes",
                 contacts: ["geral@niaefeup.pt", "229417766"],
                 jobType: "SUMMER INTERNSHIP",
                 fields: ["FRONT_END", "BACK_END"],
                 technologies: ["Flutter", "Node.js"],
+                isHidden: false,
                 // owner: Will be set in beforeAll,
                 location: "Testing Avenue, Test State, 321",
             };
+
+            const test_offer_3 = {
+                title: "Secret Offer",
+                publishDate: "2021-01-14T00:00:00.000Z",
+                publishEndDate: "2021-02-28T00:00:00.000Z",
+                description: "Secret offer that only admins and the owner can see",
+                contacts: ["geral@niaefeup.pt", "229417766"],
+                jobType: "SUMMER INTERNSHIP",
+                fields: ["FRONT_END", "BACK_END"],
+                technologies: ["Flutter", "Node.js"],
+                isHidden: true,
+                // owner: Will be set in beforeAll,
+                location: "Area 51, Secret State, 321",
+            };
+
+            let test_1, test_2, test_3;
 
             const test_agent = agent();
 
@@ -957,35 +975,35 @@ describe("Offer endpoint tests", () => {
                     contacts: ["a contact"]
                 });
 
-                [test_offer_1, test_offer_2]
-                    .forEach((offer) => {
+                [test_1, test_2, test_3] =
+                    await Promise.all([test_offer_1, test_offer_2, test_offer_3].map(async (offer) => {
                         offer.owner = test_company._id;
-                    });
-
-                await Offer.deleteMany({});
-                await Offer.create([test_offer_1, test_offer_2]);
+                        const { _id } = await Offer.create(offer);
+                        offer["_id"] = _id;
+                        return offer;
+                    }));
             });
 
-            test("Offer 1", async () => {
-                let res = await test_agent.get(`/offers/${test_offer_1._id}`);
+            test("should return offer", async () => {
+                let res = await test_agent.get(`/offers/${test_1["_id"].toString()}`);
+                expect(res.status).toBe(HTTPStatus.OK);
+                const extracted_data_1 = res.body;
+
+                res = await test_agent.get(`/offers/${test_2["_id"].toString()}`);
                 expect(res.status).toBe(HTTPStatus.OK);
 
-                let extracted_data = res.body.map((elem) => {
-                    delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
-                    return elem;
-                });
+                const extracted_data_2 = res.body;
+                [extracted_data_1, extracted_data_2, test_1, test_2]
+                    .forEach((elem) => {
+                        delete elem["_id"]; delete elem["owner"]; delete elem["__v"]; return elem;
+                    });
+                expect(extracted_data_1).toMatchObject(test_1);
+                expect(extracted_data_2).toMatchObject(test_2);
+            });
 
-                expect(extracted_data).toContainEqual(test_offer_1);
-
-                res = await test_agent.get(`/offers/${test_offer_2._id}`);
-                expect(res.status).toBe(HTTPStatus.OK);
-
-                extracted_data = res.body.map((elem) => {
-                    delete elem["_id"]; delete elem["__v"]; delete elem["owner"];
-                    return elem;
-                });
-
-                expect(extracted_data).toContainEqual(test_offer_1);
+            test("should fail if not admin or owner", async () => {
+                const res = await test_agent.get(`/offers/${test_3["_id"].toString()}`);
+                expect(res.status).toBe(HTTPStatus.NOT_FOUND);
             });
 
             afterAll(async () => {

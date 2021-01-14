@@ -35,10 +35,12 @@ module.exports = (app) => {
     */
     router.get("/:offerId", validators.getOfferById, async (req, res, next) => {
         try {
-            const offer = await (new OfferService()).getOfferById(req.params.offerId);
+            const offer = await (new OfferService()).getOfferById(req);
 
             if (!offer) {
-                return res.status(HTTPStatus.NOT_FOUND).json({ reason: APIErrorTypes.OFFER_NOT_FOUND(req.params.offerId) });
+                return res.status(HTTPStatus.NOT_FOUND).json({
+                    reason: APIErrorTypes.OFFER_NOT_FOUND(req.params.offerId)
+                });
             }
 
             return res.json(offer);

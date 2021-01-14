@@ -94,8 +94,12 @@ class OfferService {
         return constraints.length ? { "$and": constraints } : {};
     }
 
-    getOfferById(id) {
-        return Offer.findById(id);
+    async getOfferById(req) {
+        const offer = await Offer.findById(req.params.offerId);
+
+        if (offer?.isHidden && !(req.user?.isAdmin || offer.owner.toString() === req.user?.company?._id.toString())) return null;
+
+        return offer;
     }
 
 }
