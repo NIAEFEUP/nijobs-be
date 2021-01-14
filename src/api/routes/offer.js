@@ -4,7 +4,7 @@ const authMiddleware = require("../middleware/auth");
 const validators = require("../middleware/validators/offer");
 const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
-const ValidationReasons = require("../middleware/validators/validationReasons");
+const APIErrorTypes = require("../APIErrorTypes");
 
 const router = Router();
 
@@ -38,7 +38,7 @@ module.exports = (app) => {
             const offer = await (new OfferService()).getOfferById(req.params.offerId);
 
             if (!offer) {
-                return res.status(HTTPStatus.NOT_FOUND).json({ reason: ValidationReasons.OFFER_NOT_FOUND(req.params.offerId) });
+                return res.status(HTTPStatus.NOT_FOUND).json({ reason: APIErrorTypes.OFFER_NOT_FOUND(req.params.offerId) });
             }
 
             return res.json(offer);
