@@ -9,6 +9,8 @@ const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../.
 const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
 const Company = require("../../../models/Company");
+const { Types } = require("mongoose");
+const HTTPStatus = require("http-status-codes");
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
@@ -173,4 +175,17 @@ const get = useExpressValidators([
         .custom(valuesInSet((TechnologyTypes))),
 ]);
 
-module.exports = { create, get };
+const getOfferById = (req, res, next) => {
+
+    try {
+        Types.ObjectId(req.params.offerId);
+    } catch (_) {
+        return res.status(HTTPStatus.NOT_FOUND).json({
+            reason: ValidationReasons.OBJECT_ID,
+        });
+    }
+
+    return next();
+};
+
+module.exports = { create, get, getOfferById };

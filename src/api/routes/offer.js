@@ -33,7 +33,7 @@ module.exports = (app) => {
     /**
      * Gets an offer from the database with its id
     */
-    router.get("/:offerId", validators.get, async (req, res, next) => {
+    router.get("/:offerId", validators.getOfferById, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferById(req.params.offerId);
 
