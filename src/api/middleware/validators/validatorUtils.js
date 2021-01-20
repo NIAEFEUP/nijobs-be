@@ -1,6 +1,11 @@
 const ValidationReasons = require("./validationReasons");
 const Account = require("../../../models/Account");
+<<<<<<< HEAD
 const { Types } = require("mongoose");
+=======
+const CompanyService = require("../../../services/company");
+const CompanyConstants = require("../../../models/constants/Company");
+>>>>>>> Reusing offer validation
 
 /**
  * Returns a validator that checks whether all of the elements of an array belong to the provided set of values
@@ -50,9 +55,17 @@ const isObjectId = (id) => {
     return true;
 };
 
+const offerLimitNotReached = async (owner, publishDate, publishEndDate, offer) => {
+    const concurrentOffers = await (new CompanyService()).
+        getOffersInTimePeriod(owner, publishDate, publishEndDate, offer);
+
+    return concurrentOffers.length < CompanyConstants.offers.max_concurrent;
+};
+
 module.exports = {
     valuesInSet,
     checkDuplicatedEmail,
     ensureArray,
     isObjectId,
+    offerLimitNotReached
 };

@@ -6,8 +6,9 @@ class CompanyService {
 
     }
 
-    getOffersInTimePeriod(owner, publishDate, publishEndDate) {
-        return Offer.find({
+    getOffersInTimePeriod(owner, publishDate, publishEndDate, offer) {
+        const test = offer || Offer;
+        return test.find({
             owner,
 
             $or: [{ $and: [{ publishEndDate: { $gte: publishDate } }, { publishEndDate: { $lte: publishEndDate } }] },
