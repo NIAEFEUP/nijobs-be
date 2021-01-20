@@ -99,8 +99,6 @@ describe("Offer endpoint tests", () => {
 
                 test("should create offer if logged in to company account", async () => {
 
-                    const offer = generateTestOffer();
-
                     // Login
                     const offer = generateTestOffer();
                     await test_agent

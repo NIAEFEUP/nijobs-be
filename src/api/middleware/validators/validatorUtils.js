@@ -1,11 +1,8 @@
 const ValidationReasons = require("./validationReasons");
 const Account = require("../../../models/Account");
-<<<<<<< HEAD
 const { Types } = require("mongoose");
-=======
 const CompanyService = require("../../../services/company");
 const CompanyConstants = require("../../../models/constants/Company");
->>>>>>> Reusing offer validation
 
 /**
  * Returns a validator that checks whether all of the elements of an array belong to the provided set of values
@@ -55,9 +52,17 @@ const isObjectId = (id) => {
     return true;
 };
 
-const offerLimitNotReached = async (owner, publishDate, publishEndDate, offer) => {
-    const concurrentOffers = await (new CompanyService()).
-        getOffersInTimePeriod(owner, publishDate, publishEndDate, offer);
+/**
+ * Checks if the concurrent offers of a given owner have not exceeded the defined limit
+ * @param {*} OfferModel Either the default Offer model or an instance's constructor
+ * @param {*} owner Owner of the offer
+ * @param {*} publishDate Publish date of the
+ * @param {*} publishEndDate Date in which the offer will end
+ */
+const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, publishEndDate) => {
+    // We need to pass the offer model in case we're inside an Offer instance
+    const concurrentOffers = await (new CompanyService())
+        .getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel);
 
     return concurrentOffers.length < CompanyConstants.offers.max_concurrent;
 };
@@ -67,5 +72,5 @@ module.exports = {
     checkDuplicatedEmail,
     ensureArray,
     isObjectId,
-    offerLimitNotReached
+    concurrentOffersNotExceeded
 };

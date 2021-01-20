@@ -8,7 +8,7 @@ const PointSchema = require("./Point");
 const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./constants/TimeConstants");
 const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
 const OfferConstants = require("./constants/Offer");
-const { offerLimitNotReached } = require("../api/middleware/validators/validatorUtils");
+const { concurrentOffersNotExceeded } = require("../api/middleware/validators/validatorUtils");
 
 const OfferSchema = new Schema({
     title: { type: String, maxlength: OfferConstants.title.max_length, required: true },
@@ -79,7 +79,7 @@ const OfferSchema = new Schema({
         type: Types.ObjectId,
         ref: "Company",
         required: true,
-        validate: validateOwnerMaxOffers
+        validator: validateOwnerConcurrentOffers,
     },
     ownerName: { type: String, required: true },
 
@@ -110,9 +110,8 @@ function validateJobMaxDuration(value) {
     return value >= this.jobMinDuration;
 }
 
-async function validateOwnerMaxOffers(value) {
-    const val = await offerLimitNotReached(value, this.publishDate, this.publishEndDate, this);
-    return val;
+function validateOwnerConcurrentOffers(value) {
+    return concurrentOffersNotExceeded(this.constructor)(value, this.publishDate, this.publishEndDate);
 }
 
 /**
