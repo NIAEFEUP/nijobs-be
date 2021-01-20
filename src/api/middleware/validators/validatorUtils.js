@@ -39,7 +39,7 @@ const ensureArray = (val) => {
     if (Array.isArray(val)) return val;
 
     else return [val];
-}
+};
 
 const isObjectId = (id) => {
     try {

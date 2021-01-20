@@ -35,7 +35,7 @@ module.exports = (app) => {
     */
     router.get("/:offerId", validators.getOfferById, async (req, res, next) => {
         try {
-            const offer = await (new OfferService()).getOfferById(req);
+            const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
 
             if (!offer) {
                 return res.status(HTTPStatus.NOT_FOUND).json({

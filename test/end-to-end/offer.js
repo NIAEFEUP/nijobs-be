@@ -17,21 +17,33 @@ const APIErrorTypes = require("../../src/api/APIErrorTypes");
 const { Types } = require("mongoose");
 
 //----------------------------------------------------------------
-
 describe("Offer endpoint tests", () => {
-    const offer = {
+    const generateTestOffer = (publishDate, publishEndDate, isHidden) => ({
         title: "Test Offer",
-        publishDate: new Date(Date.now() - (DAY_TO_MS)),
-        publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
+        publishDate: publishDate || (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+        publishEndDate: publishEndDate || (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
         description: "For Testing Purposes",
         contacts: ["geral@niaefeup.pt", "229417766"],
         jobType: "SUMMER INTERNSHIP",
         fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
         technologies: ["React", "CSS"],
         location: "Testing Street, Test City, 123",
-    };
+        isHidden: isHidden || false,
+    });
 
     let test_company;
+
+    const test_agent = agent();
+
+    const test_user_admin = {
+        email: "admin@email.com",
+        password: "password123",
+    };
+    const test_user_company = {
+        email: "company@email.com",
+        password: "password123",
+    };
+
 
     beforeAll(async () => {
         await Company.deleteMany({});
@@ -40,6 +52,17 @@ describe("Offer endpoint tests", () => {
             bio: "a bio",
             contacts: ["a contact"]
         });
+        await Account.deleteMany({});
+        await Account.create({
+            email: test_user_admin.email,
+            password: await hash(test_user_admin.password),
+            isAdmin: true
+        });
+        await Account.create({
+            email: test_user_company.email,
+            password: await hash(test_user_company.password),
+            company: test_company._id
+        });
     });
 
     describe("POST /offers", () => {
@@ -47,32 +70,6 @@ describe("Offer endpoint tests", () => {
         describe("Authentication", () => {
 
             describe("creating offers requires company account (without god token)", () => {
-
-                const test_agent = agent();
-                const test_user_admin = {
-                    email: "admin@email.com",
-                    password: "password123",
-                };
-                const test_user_company = {
-                    email: "company@email.com",
-                    password: "password123",
-                };
-
-
-                beforeAll(async () => {
-                    await Account.deleteMany({});
-                    await Account.create({
-                        email: test_user_admin.email,
-                        password: await hash(test_user_admin.password),
-                        isAdmin: true
-                    });
-                    await Account.create({
-                        email: test_user_company.email,
-                        password: await hash(test_user_company.password),
-                        company: test_company._id
-                    });
-                });
-
                 test("should fail if not logged in", async () => {
                     const res = await request()
                         .post("/offers/new")
@@ -92,7 +89,7 @@ describe("Offer endpoint tests", () => {
 
                     const res = await test_agent
                         .post("/offers/new")
-                        .send(offer);
+                        .send(generateTestOffer());
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
@@ -100,6 +97,9 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test("should create offer if logged in to company account", async () => {
+
+                    const offer = generateTestOffer();
+
                     // Login
                     await test_agent
                         .post("/auth/login")
@@ -143,7 +143,7 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test("should fail when god token is correct but owner doesn't exist", async () => {
-                    const params = { ...offer, owner: "invalidowner" };
+                    const params = { ...generateTestOffer(), owner: "invalidowner" };
                     const res = await request()
                         .post("/offers/new")
                         .send(withGodToken(params));
@@ -160,6 +160,7 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test("should succeed when god token is correct and owner exists", async () => {
+                    const offer = generateTestOffer();
                     const params = { ...offer, owner: test_company._id };
                     const res = await request()
                         .post("/offers/new")
@@ -276,6 +277,7 @@ describe("Offer endpoint tests", () => {
             // TODO: This test should be 'with minimum requirements'
             // Thus, there should be another with all of the optional fields being sent, at least
             test("Should successfully create an Offer", async () => {
+                const offer = generateTestOffer();
                 const offer_params = {
                     ...offer,
                     owner: test_company._id,
@@ -304,7 +306,7 @@ describe("Offer endpoint tests", () => {
             test("publishDate defaults to the current time if not provided", async () => {
                 const offer = {
                     title: "Test Offer",
-                    publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
+                    publishEndDate: (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
                     description: "For Testing Purposes",
                     contacts: ["geral@niaefeup.pt", "229417766"],
                     jobType: "SUMMER INTERNSHIP",
@@ -418,32 +420,11 @@ describe("Offer endpoint tests", () => {
 
             describe("Only current offers are returned", () => {
 
-                const expired_test_offer = {
-                    title: "Expired Test Offer",
-                    publishDate: "2019-11-17",
-                    publishEndDate: "2019-11-18",
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
-                    // owner: Will be set in beforeAll, since it is not accessible here
-                    // ownerName: Will be set in beforeAll, since it is not accessible here
-                    location: "Testing Street, Test City, 123",
-                };
-                const future_test_offer = {
-                    title: "Future Test Offer",
-                    publishDate: "2019-12-12",
-                    publishEndDate: "2019-12-22",
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
-                    // owner: Will be set in beforeAll, since it is not accessible here
-                    // ownerName: Will be set in beforeAll, since it is not accessible here
-                    location: "Testing Street, Test City, 123",
-                };
+                const expired_test_offer = generateTestOffer("2019-11-17", "2019-11-18");
+                const future_test_offer = generateTestOffer(
+                    (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                    (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+                );
 
                 beforeAll(async () => {
 
@@ -509,29 +490,11 @@ describe("Offer endpoint tests", () => {
                     });
                 });
                 describe("When showHidden is active", () => {
-                    const test_agent = agent();
-                    const test_user_admin = {
-                        email: "admin@email.com",
-                        password: "password123",
-                        isAdmin: true
-                    };
-                    const test_user_non_admin = {
-                        email: "company@email.com",
-                        password: "password123",
-                    };
 
                     beforeAll(async () => {
                         // Add 1 hidden offer
                         await Offer.deleteMany({});
                         await Offer.create([test_offer, { ...test_offer, isHidden: true }]);
-
-                        await request()
-                            .post("/auth/register")
-                            .send(withGodToken(test_user_admin));
-
-                        await request()
-                            .post("/auth/register")
-                            .send(withGodToken(test_user_non_admin));
 
                     });
 
@@ -539,8 +502,8 @@ describe("Offer endpoint tests", () => {
                         await test_agent
                             .post("/auth/login")
                             .send({
-                                email: test_user_non_admin.email,
-                                password: test_user_non_admin.password,
+                                email: test_user_company.email,
+                                password: test_user_company.password,
                             });
 
                         const res = await test_agent
@@ -568,8 +531,8 @@ describe("Offer endpoint tests", () => {
                         await test_agent
                             .post("/auth/login")
                             .send({
-                                email: test_user_non_admin.email,
-                                password: test_user_non_admin.password,
+                                email: test_user_company.email,
+                                password: test_user_company.password,
                             });
 
                         const res = await test_agent
@@ -919,142 +882,80 @@ describe("Offer endpoint tests", () => {
         });
 
         describe("Get offer by Id", () => {
-            const test_offer_1 = {
-                title: "Test Offer 1",
-                publishDate: "2021-01-14T00:00:00.000Z",
-                publishEndDate: "2021-02-28T00:00:00.000Z",
-                description: "For Testing Purposes",
-                contacts: ["geral@niaefeup.pt", "229417766"],
-                jobType: "SUMMER INTERNSHIP",
-                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                technologies: ["React", "CSS"],
-                isHidden: false,
-                // owner: Will be set in beforeAll,
-                location: "Testing Street, Test City, 123",
-            };
-            const test_offer_2 = {
-                title: "Test Offer",
-                publishDate: "2021-01-14T00:00:00.000Z",
-                publishEndDate: "2021-02-28T00:00:00.000Z",
-                description: "For Testing Purposes",
-                contacts: ["geral@niaefeup.pt", "229417766"],
-                jobType: "SUMMER INTERNSHIP",
-                fields: ["FRONT_END", "BACK_END"],
-                technologies: ["Flutter", "Node.js"],
-                isHidden: false,
-                // owner: Will be set in beforeAll,
-                location: "Testing Avenue, Test State, 321",
-            };
-
-            const test_offer_3 = {
-                title: "Secret Offer",
-                publishDate: "2021-01-14T00:00:00.000Z",
-                publishEndDate: "2021-02-28T00:00:00.000Z",
-                description: "Secret offer that only admins and the owner can see",
-                contacts: ["geral@niaefeup.pt", "229417766"],
-                jobType: "SUMMER INTERNSHIP",
-                fields: ["FRONT_END", "BACK_END"],
-                technologies: ["Flutter", "Node.js"],
-                isHidden: true,
-                // owner: Will be set in beforeAll,
-                location: "Area 51, Secret State, 321",
-            };
-
-            let test_1, test_2, test_3;
+            const test_offers = [{}, {}, {}];
 
             const test_agent = agent();
 
-            const test_user_admin = {
-                email: "admin@email.com",
-                password: "password123",
-            };
-            const test_user_company = {
-                email: "company@email.com",
-                password: "password123",
-            };
 
             beforeAll(async () => {
-                await Company.deleteMany({});
                 await Offer.deleteMany({});
-                await Account.deleteMany({});
 
-                test_company = await Company.create({
-                    name: "test company",
-                    bio: "a bio",
-                    contacts: ["a contact"]
-                });
+                const createOffer = async (offer) => {
+                    const { _id, owner, ownerName } = await Offer.create({
+                        ...offer,
+                        owner: test_company._id.toString(),
+                        ownerName: test_company.name,
+                    });
+                    return {
+                        ...offer,
+                        owner: owner.toString(),
+                        ownerName,
+                        _id: _id.toString()
+                    };
+                };
 
-                await Account.create({
-                    email: test_user_admin.email,
-                    password: await hash(test_user_admin.password),
-                    isAdmin: true
-                });
-                await Account.create({
-                    email: test_user_company.email,
-                    password: await hash(test_user_company.password),
-                    company: test_company._id
-                });
-                [test_1, test_2, test_3] =
-                    await Promise.all([test_offer_1, test_offer_2, test_offer_3].map(async (offer) => {
-                        offer.owner = test_company._id.toString();
-                        const { _id } = await Offer.create(offer);
-                        offer["_id"] = _id.toString();
-                        return offer;
-                    }));
-                // test_user_non_admin = {
-                //     email: "company@email.com",
-                //     password: "password123",
-                // };
+                (await Promise.all(test_offers
+                    .map((_, i) => createOffer({ ...generateTestOffer(), isHidden: i === 2 }))))
+                    .forEach((elem, i) => {
+                        test_offers[i] = elem;
+                    });
             });
 
             test("should return offer", async () => {
-                let res = await test_agent.get(`/offers/${test_1["_id"]}`);
-                expect(res.status).toBe(HTTPStatus.OK);
-                const extracted_data_1 = res.body;
+                const res_1 = await test_agent.get(`/offers/${test_offers[0]._id}`);
+                expect(res_1.status).toBe(HTTPStatus.OK);
+                const extracted_data_1 = res_1.body;
+                expect(extracted_data_1).toMatchObject(test_offers[0]);
 
-                res = await test_agent.get(`/offers/${test_2["_id"]}`);
-                expect(res.status).toBe(HTTPStatus.OK);
-                const extracted_data_2 = res.body;
+                const res_2 = await test_agent.get(`/offers/${test_offers[1]._id}`);
+                expect(res_2.status).toBe(HTTPStatus.OK);
+                const extracted_data_2 = res_2.body;
 
-                expect(extracted_data_1).toMatchObject(test_1);
-                expect(extracted_data_2).toMatchObject(test_2);
+                expect(extracted_data_2).toMatchObject(test_offers[1]);
             });
 
             test("should fail if not admin or owner", async () => {
-                const res = await test_agent.get(`/offers/${test_3["_id"]}`);
+                const res = await test_agent.get(`/offers/${test_offers[2]._id}`);
                 expect(res.status).toBe(HTTPStatus.NOT_FOUND);
             });
 
             test("should return hidden offer as admin", async () => {
+                const hiddenOffer = test_offers[2];
                 await test_agent
                     .post("/auth/login")
                     .send(test_user_admin)
                     .expect(200);
 
-                const res = await test_agent.get(`/offers/${test_3["_id"]}`);
+                const res = await test_agent.get(`/offers/${hiddenOffer._id}`);
                 expect(res.status).toBe(HTTPStatus.OK);
 
                 const extracted_data = res.body;
 
-                expect(extracted_data).toMatchObject(test_3);
+                expect(extracted_data).toMatchObject(hiddenOffer);
             });
 
             test("should return hidden offer as company", async () => {
+                const hiddenOffer = test_offers[2];
                 await test_agent
                     .post("/auth/login")
                     .send(test_user_company)
                     .expect(200);
 
-                const res = await test_agent.get(`/offers/${test_3["_id"]}`);
+                const res = await test_agent.get(`/offers/${hiddenOffer._id}`);
                 expect(res.status).toBe(HTTPStatus.OK);
                 const extracted_data = res.body;
 
-                expect(extracted_data).toMatchObject(test_3);
-            });
-
-            afterAll(async () => {
-                await Company.deleteMany({});
-                await Offer.deleteMany({});
+                expect(extracted_data).toMatchObject(hiddenOffer);
             });
         });
     });

@@ -94,10 +94,10 @@ class OfferService {
         return constraints.length ? { "$and": constraints } : {};
     }
 
-    async getOfferById(req) {
-        const offer = await Offer.findById(req.params.offerId);
+    async getOfferById(offerId, user) {
+        const offer = await Offer.findById(offerId);
 
-        if (offer?.isHidden && !(req.user?.isAdmin || offer.owner.toString() === req.user?.company?._id.toString())) return null;
+        if (offer?.isHidden && !(user?.isAdmin || offer.owner.toString() === user?.company?._id.toString())) return null;
 
         return offer;
     }
