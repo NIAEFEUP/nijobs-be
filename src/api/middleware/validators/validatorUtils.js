@@ -1,5 +1,6 @@
 const ValidationReasons = require("./validationReasons");
 const Account = require("../../../models/Account");
+const { Types } = require("mongoose");
 
 /**
  * Returns a validator that checks whether all of the elements of an array belong to the provided set of values
@@ -40,8 +41,18 @@ const ensureArray = (val) => {
     else return [val];
 };
 
+const isObjectId = (id) => {
+    try {
+        Types.ObjectId(id);
+    } catch {
+        return false;
+    }
+    return true;
+};
+
 module.exports = {
     valuesInSet,
     checkDuplicatedEmail,
-    ensureArray
+    ensureArray,
+    isObjectId,
 };

@@ -3,6 +3,8 @@ const { Router } = require("express");
 const authMiddleware = require("../middleware/auth");
 const validators = require("../middleware/validators/offer");
 const OfferService = require("../../services/offer");
+const HTTPStatus = require("http-status-codes");
+const APIErrorTypes = require("../APIErrorTypes");
 
 const router = Router();
 
@@ -23,6 +25,26 @@ module.exports = (app) => {
             );
 
             return res.json(offers);
+        } catch (err) {
+            return next(err);
+        }
+    });
+
+    /**
+     * Gets an offer from the database with its id
+    */
+    router.get("/:offerId", validators.getOfferById, async (req, res, next) => {
+        try {
+            const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
+
+            if (!offer) {
+                return res.status(HTTPStatus.NOT_FOUND).json({
+                    reason: APIErrorTypes.OFFER_NOT_FOUND(req.params.offerId)
+                });
+            }
+
+            return res.json(offer);
+
         } catch (err) {
             return next(err);
         }
