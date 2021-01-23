@@ -1,6 +1,6 @@
 # <Route Title>
 
-Route description
+<Route description>
 
 **URL** : `/.....`
 
@@ -11,6 +11,8 @@ Route description
 **Data Rules**
 
 * **Query**
+> Change this to match the endpoint's query params. If it has no query params, remove this entry.
+
 
 > These fields go in after the URL e.g. `api/?field1=foo&field2=bar`
 
