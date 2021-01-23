@@ -15,6 +15,7 @@ const hash = require("../../src/lib/passwordHashing");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 const APIErrorTypes = require("../../src/api/APIErrorTypes");
 const { Types } = require("mongoose");
+const CompanyConstants = require("../../src/models/constants/Company");
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -98,9 +99,8 @@ describe("Offer endpoint tests", () => {
 
                 test("should create offer if logged in to company account", async () => {
 
-                    const offer = generateTestOffer();
-
                     // Login
+                    const offer = generateTestOffer();
                     await test_agent
                         .post("/auth/login")
                         .send(test_user_company)
@@ -299,6 +299,133 @@ describe("Offer endpoint tests", () => {
                 expect(created_offer).toHaveProperty("title", offer.title);
                 expect(created_offer).toHaveProperty("description", offer.description);
                 expect(created_offer).toHaveProperty("location", offer.location);
+            });
+        });
+
+        describe("Before reaching the offers limit while having past offers", () => {
+            const testOffers = Array(CompanyConstants.offers.max_concurrent - 1)
+                .fill(generateTestOffer(
+                    new Date(Date.now() - (DAY_TO_MS)),
+                    new Date(Date.now() + (DAY_TO_MS))
+                ));
+
+            testOffers.push(generateTestOffer(
+                new Date(Date.now() - (3 * (DAY_TO_MS))),
+                new Date(Date.now() - (2 * (DAY_TO_MS)))
+            ));
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                testOffers.forEach((offer) => {
+                    offer.owner = test_company._id;
+                    offer.ownerName = test_company.name;
+                });
+
+                await Offer.create(testOffers);
+            });
+
+            afterAll(async () => {
+                await Offer.deleteMany({});
+            });
+
+            test("should be able to create a new offer (past offers do not restrain the company)", async () => {
+                const offer_params = {
+                    ...generateTestOffer(),
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                };
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("title", offer_params.title);
+                expect(res.body).toHaveProperty("description", offer_params.description);
+                expect(res.body).toHaveProperty("location", offer_params.location);
+            });
+        });
+
+        describe("After reaching the offers limit", () => {
+            const testOffers = Array(CompanyConstants.offers.max_concurrent)
+                .fill(generateTestOffer(
+                    new Date(Date.now() - (DAY_TO_MS)),
+                    new Date(Date.now() + (DAY_TO_MS))
+                ));
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                testOffers.forEach((offer) => {
+                    offer.owner = test_company._id;
+                    offer.ownerName = test_company.name;
+                });
+
+                await Offer.create(testOffers);
+            });
+
+            afterAll(async () => {
+                await Offer.deleteMany({});
+            });
+
+
+            test("should fail to create a new offer", async () => {
+                const offer_params = {
+                    ...generateTestOffer(),
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                };
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.CONFLICT);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("reason",
+                    ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+
+            });
+        });
+
+        describe("Trying to schedule an offer in a time period which reached the offers limit", () => {
+            const testOffers = Array(CompanyConstants.offers.max_concurrent)
+                .fill(generateTestOffer(
+                    new Date(Date.now() + (3 * (DAY_TO_MS))),
+                    new Date(Date.now() + (6 * (DAY_TO_MS)))
+                ));
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                testOffers.forEach((offer) => {
+                    offer.owner = test_company._id;
+                    offer.ownerName = test_company.name;
+                });
+
+                await Offer.create(testOffers);
+            });
+
+            afterAll(async () => {
+                await Offer.deleteMany({});
+            });
+
+            test("should fail to schedule a new offer", async () => {
+                const offer_params = {
+                    ...generateTestOffer(new Date(Date.now() + (4 * (DAY_TO_MS))), new Date(Date.now() + (5 * (DAY_TO_MS)))),
+                    owner: test_company._id,
+                    ownerName: test_company.name
+                };
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.CONFLICT);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("reason",
+                    ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
             });
         });
 

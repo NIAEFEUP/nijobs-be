@@ -1,5 +1,9 @@
 const { ErrorTypes } = require("./errorHandler");
 const HTTPStatus = require("http-status-codes");
+const { concurrentOffersNotExceeded } = require("./validators/validatorUtils");
+const ValidationReasons = require("./validators/validationReasons");
+const CompanyConstants = require("../../models/constants/Company");
+const Offer = require("../../models/Offer");
 
 const isCompanyRep = (req, res, next) => {
     if (!req.user.company) {
@@ -12,5 +16,20 @@ const isCompanyRep = (req, res, next) => {
     return next();
 };
 
+const verifyMaxConcurrentOffers = async (req, res, next) => {
+    const limitNotReached = await concurrentOffersNotExceeded(Offer)(req.body.owner, req.body.publishDate, req.body.publishEndDate);
 
-module.exports = { isCompanyRep };
+    if (!limitNotReached) {
+        return res.status(HTTPStatus.CONFLICT).json({
+            reason: ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent),
+            error_code: ErrorTypes.VALIDATION_ERROR
+        });
+    }
+    return next();
+};
+
+
+module.exports = {
+    isCompanyRep,
+    verifyMaxConcurrentOffers
+};

@@ -20,6 +20,7 @@ const ValidationReasons = Object.freeze({
     MUST_BE_AFTER: (variable) => `must-be-after:${variable}`,
     WRONG_FORMAT: (format) => `must-be-format-${format}`,
     COMPANY_NOT_FOUND: (id) => `no-company-found-with-id:${id}`,
+    MAX_CONCURRENT_OFFERS_EXCEEDED: (max) => `max-concurrent-offers-reached:${max}`,
 });
 
 module.exports = ValidationReasons;
