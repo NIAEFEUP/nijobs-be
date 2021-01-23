@@ -16,8 +16,7 @@ module.exports = (app) => {
     app.use("/offers", router);
 
     /**
-     * Gets all currently active offers (without filtering, for now)
-     * supports offset and limit as query params
+     * Searches currently active offers
      */
     router.get("/", validators.get, async (req, res, next) => {
         try {
