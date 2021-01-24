@@ -18,9 +18,15 @@ const ValidationReasons = Object.freeze({
     ALREADY_EXISTS: (variable) => `${variable}-already-exists`,
     DATE_EXPIRED: "date-already-past",
     MUST_BE_AFTER: (variable) => `must-be-after:${variable}`,
+    MUST_BE_BEFORE: (variable) => `must-be-before:${variable}`,
     WRONG_FORMAT: (format) => `must-be-format-${format}`,
     COMPANY_NOT_FOUND: (id) => `no-company-found-with-id:${id}`,
+<<<<<<< HEAD
     MAX_CONCURRENT_OFFERS_EXCEEDED: (max) => `max-concurrent-offers-reached:${max}`,
+=======
+    OFFER_NOT_FOUND: (id) => `no-offer-found-with-id:${id}`,
+    NOT_OFFER_OWNER: (id) => `not-offer-owner:${id}`,
+>>>>>>> Add some validators to edit and validationReasons
 });
 
 module.exports = ValidationReasons;

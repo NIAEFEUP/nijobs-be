@@ -70,4 +70,12 @@ module.exports = (app) => {
                 return next(err);
             }
         });
+
+    router.post("/edit", authMiddleware.isCompanyOrGod, validators.edit, (req, res, next) => {
+        try {
+            return res.json(req.body);
+        } catch (err) {
+            return next(err);
+        }
+    });
 };

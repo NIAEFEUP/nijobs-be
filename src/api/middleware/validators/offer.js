@@ -135,6 +135,150 @@ const create = useExpressValidators([
         .withMessage(ValidationReasons.TOO_SHORT(1)),
 ]);
 
+const edit = useExpressValidators([
+    body("_id", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
+        .custom(async (_id, { req }) => {
+            try {
+                const offer = await (new OfferService()).getOfferById(_id);
+                if (!offer) throw new Error(ValidationReasons.OFFER_NOT_FOUND(_id));
+                if (req.user?.company !== offer.owner) throw new Error(ValidationReasons.NOT_OFFER_OWNER(_id));
+            } catch (_e) {
+                // Also catches any fail to the DB
+                throw new Error(_e);
+            }
+
+            return true;
+        }),
+
+
+    body("title", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING)
+        .isLength({ max: OfferConstants.title.max_length }).withMessage(ValidationReasons.TOO_LONG(90))
+        .trim(),
+
+    body("publishDate", ValidationReasons.DEFAULT)
+        .optional()
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
+        .custom(async (publishDate, { req }) => {
+            try {
+                const offer = await (new OfferService()).getOfferById(req.body._id);
+
+                const { publishEndDate } = req.body;
+
+                if (publishDate <= Date.now().toISOString()) {
+                    throw new Error(ValidationReasons.MUST_BE_AFTER("currentDate"));
+                }
+
+                // If the new publish end date is going to change and is valid won't throw an error
+                if (publishDate >= offer.publishEndDate &&
+                    !(publishEndDate && publishDate < publishEndDate)) {
+                    throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
+                }
+
+            } catch (_e) {
+                // Also catches any fail to the DB
+                throw new Error(_e);
+            }
+            return true;
+        })
+        .toDate(),
+
+    body("publishEndDate", ValidationReasons.DEFAULT)
+        .optional()
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
+        .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
+        .custom(async (publishEndDate, { req }) => {
+            const offer = await (new OfferService()).getOfferById(req.body._id);
+
+            const { publishDate } = req.body;
+
+            if (publishEndDate <= Date.now().toISOString()) {
+                throw new Error(ValidationReasons.MUST_BE_AFTER("currentDate"));
+            }
+
+            // If the new publish date is going to change and is valid won't throw an error
+            if (!(publishDate && publishEndDate > publishDate) &&
+                publishEndDate <= offer.publishDate) {
+
+                // end date is earlier than publish date, error!
+                throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
+            }
+
+            // Returning truthy value to indicate no error ocurred
+            return true;
+        })
+        .toDate(),
+
+    body("jobMinDuration", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt().withMessage(ValidationReasons.INT),
+
+    body("jobMaxDuration", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt().withMessage(ValidationReasons.INT),
+
+    body("jobStartDate", ValidationReasons.DEFAULT)
+        .optional()
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .toDate(),
+
+    body("description", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING)
+        .isLength({ max: OfferConstants.description.max_length }).withMessage(ValidationReasons.TOO_LONG(1500))
+        .trim(),
+
+    body("contacts", ValidationReasons.DEFAULT)
+        .optional()
+        .isArray({ min: 1 })
+        .withMessage(ValidationReasons.TOO_SHORT(1)),
+
+    body("isPaid", ValidationReasons.DEFAULT)
+        .optional()
+        .isBoolean().withMessage(ValidationReasons.BOOLEAN),
+
+    body("vacancies", ValidationReasons.DEFAULT)
+        .optional()
+        .isInt().withMessage(ValidationReasons.INT),
+
+    body("jobType", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .isIn(JobTypes).withMessage(ValidationReasons.IN_ARRAY(JobTypes)),
+
+    body("fields", ValidationReasons.DEFAULT)
+        .optional()
+        .isArray({ min: MIN_FIELDS, max: MAX_FIELDS })
+        .withMessage(ValidationReasons.ARRAY_SIZE(MIN_FIELDS, MAX_FIELDS))
+        .bail()
+        .custom(valuesInSet(FieldTypes)),
+
+    body("technologies", ValidationReasons.DEFAULT)
+        .optional()
+        .isArray({ min: MIN_TECHNOLOGIES, max: MAX_TECHNOLOGIES })
+        .withMessage(ValidationReasons.ARRAY_SIZE(MIN_TECHNOLOGIES, MAX_TECHNOLOGIES))
+        .bail()
+        .custom(valuesInSet(TechnologyTypes)),
+
+    body("isHidden", ValidationReasons.DEFAULT)
+        .optional()
+        .isBoolean().withMessage(ValidationReasons.BOOLEAN),
+
+    body("location", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING)
+        .trim(),
+
+    // TODO: Figure out how to handle this field
+    // We should probably only receive the array part and inject the type that PointSchema requires in a custom sanitizer
+    body("coordinates", ValidationReasons.DEFAULT)
+        .optional()
+        .isArray(),
+]);
+
 const get = useExpressValidators([
     query("offset", ValidationReasons.DEFAULT)
         .optional()
@@ -185,4 +329,4 @@ const getOfferById = useExpressValidators([
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID),
 ]);
 
-module.exports = { create, get, getOfferById };
+module.exports = { create, get, getOfferById, edit };
