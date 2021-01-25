@@ -1,6 +1,6 @@
 const { body, query, param } = require("express-validator");
 
-const { useExpressValidators } = require("../errorHandler");
+const { useExpressValidators, useExpressSanitizers } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
 const { valuesInSet, ensureArray } = require("./validatorUtils");
 const JobTypes = require("../../../models/constants/JobTypes");
@@ -29,10 +29,9 @@ const create = useExpressValidators([
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
         .custom((publishEndDateCandidate, { req }) => {
             const { publishDate: publishDateRaw } = req.body;
+            // publishDateRaw will be a Date instance because it's sanitized on the publishDateValidator
             // Default values and also handling if it is string or date object
-            const publishDate =
-                (publishDateRaw instanceof Date ? publishDateRaw.toISOString() : publishDateRaw)
-                || (new Date(Date.now())).toISOString();
+            const publishDate = (publishDateRaw || (new Date(Date.now()))).toISOString();
 
             if (publishEndDateCandidate <= publishDate) {
                 // end date is earlier than publish date, error!
@@ -135,15 +134,66 @@ const create = useExpressValidators([
         .withMessage(ValidationReasons.TOO_SHORT(1)),
 ]);
 
+const publishDateEditable = async (publishDateRaw, { req }) => {
+    try {
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
+        // const publishDateCandidate = publishDateRaw instanceof Date ? publishDateRaw.toISOString() : publishDateRaw;
+        const { publishEndDate: publishEndDateCandidate } = req.body;
+
+        // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
+        if (publishDateRaw >= offer.publishEndDate.toISOString() &&
+                !publishEndDateCandidate) {
+
+            // end date is earlier than publish date, error!
+            throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
+        }
+
+    } catch (_e) {
+        // Also catches any fail to the DB
+        throw new Error(_e);
+    }
+    return true;
+};
+
+const publishEndDateEditable = async (publishEndDateCandidate, { req }) => {
+    try {
+        // Default values and also handling if it is string or date object
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
+        const { publishDate: publishDateCandidate } = req.body;
+
+        let publishDate;
+
+        // Verifies if it's possible to convert the date
+        // If not, the validator will stop running without an error message because it was already thrown in publishDate validator
+        if (publishDateCandidate) {
+            try {
+                publishDate = (new Date(Date.parse(publishDateCandidate))).toISOString();
+            } catch (_e) {
+                return false;
+            }
+        }
+        publishDate = publishDate || offer.publishDate.toISOString();
+
+        // If the new publishEndDate is after the new publishDate, this verification is already done in publishDate
+        if (publishEndDateCandidate <= publishDate) {
+            throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
+        }
+    } catch (_e) {
+        throw new Error(_e);
+    }
+    // Returning truthy value to indicate no error ocurred
+    return true;
+};
+
 const edit = useExpressValidators([
-    body("_id", ValidationReasons.DEFAULT)
+    param("offerId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
-        .custom(async (_id, { req }) => {
+        .custom(async (offerId, { req }) => {
             try {
-                const offer = await (new OfferService()).getOfferById(_id);
-                if (!offer) throw new Error(ValidationReasons.OFFER_NOT_FOUND(_id));
-                if (req.user?.company !== offer.owner) throw new Error(ValidationReasons.NOT_OFFER_OWNER(_id));
+                const offer = await (new OfferService()).getOfferById(offerId, req.user);
+                if (!offer) throw new Error(ValidationReasons.OFFER_NOT_FOUND(offerId));
+                if (req.user?.company.toString() !== offer.owner.toString()) throw new Error(ValidationReasons.NOT_OFFER_OWNER(offerId));
             } catch (_e) {
                 // Also catches any fail to the DB
                 throw new Error(_e);
@@ -151,7 +201,6 @@ const edit = useExpressValidators([
 
             return true;
         }),
-
 
     body("title", ValidationReasons.DEFAULT)
         .optional()
@@ -162,55 +211,14 @@ const edit = useExpressValidators([
     body("publishDate", ValidationReasons.DEFAULT)
         .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
-        .custom(async (publishDate, { req }) => {
-            try {
-                const offer = await (new OfferService()).getOfferById(req.body._id);
-
-                const { publishEndDate } = req.body;
-
-                if (publishDate <= Date.now().toISOString()) {
-                    throw new Error(ValidationReasons.MUST_BE_AFTER("currentDate"));
-                }
-
-                // If the new publish end date is going to change and is valid won't throw an error
-                if (publishDate >= offer.publishEndDate &&
-                    !(publishEndDate && publishDate < publishEndDate)) {
-                    throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
-                }
-
-            } catch (_e) {
-                // Also catches any fail to the DB
-                throw new Error(_e);
-            }
-            return true;
-        })
-        .toDate(),
+        .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
+        .custom(publishDateEditable),
 
     body("publishEndDate", ValidationReasons.DEFAULT)
         .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
-        .custom(async (publishEndDate, { req }) => {
-            const offer = await (new OfferService()).getOfferById(req.body._id);
-
-            const { publishDate } = req.body;
-
-            if (publishEndDate <= Date.now().toISOString()) {
-                throw new Error(ValidationReasons.MUST_BE_AFTER("currentDate"));
-            }
-
-            // If the new publish date is going to change and is valid won't throw an error
-            if (!(publishDate && publishEndDate > publishDate) &&
-                publishEndDate <= offer.publishDate) {
-
-                // end date is earlier than publish date, error!
-                throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
-            }
-
-            // Returning truthy value to indicate no error ocurred
-            return true;
-        })
-        .toDate(),
+        .custom(publishEndDateEditable),
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
         .optional()
@@ -279,6 +287,15 @@ const edit = useExpressValidators([
         .isArray(),
 ]);
 
+const editSanitizers = useExpressSanitizers([
+    body("publishDate")
+        .optional()
+        .toDate(),
+    body("publishEndDate")
+        .optional()
+        .toDate(),
+]);
+
 const get = useExpressValidators([
     query("offset", ValidationReasons.DEFAULT)
         .optional()
@@ -329,4 +346,10 @@ const getOfferById = useExpressValidators([
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID),
 ]);
 
-module.exports = { create, get, getOfferById, edit };
+module.exports = {
+    create,
+    get,
+    getOfferById,
+    edit,
+    editSanitizers,
+};
