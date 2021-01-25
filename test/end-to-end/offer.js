@@ -976,6 +976,24 @@ describe("Offer endpoint tests", () => {
                     expect(extracted_data).toContainEqual(prepared_test_offer);
                 });
             });
+
+            describe("Search for offer requirements", () => {
+
+                beforeAll(async () => {
+                    await Offer.deleteMany();
+                    await Offer.create(test_offer);
+                });
+
+                test("should return an array of requirements", async () => {
+
+                    const res = await request()
+                        .get("/offers");
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(1);
+                    expect(res.body[0].requirements).toEqual(test_offer.requirements);
+                });
+            });
         });
     });
 
