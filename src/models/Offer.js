@@ -84,6 +84,7 @@ const OfferSchema = new Schema({
     ownerName: { type: String, required: true },
 
     location: { type: String, required: true },
+    requirements: { type: [String], required: true },
     coordinates: { type: PointSchema, required: false },
 });
 
