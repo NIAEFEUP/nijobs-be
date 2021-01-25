@@ -268,6 +268,11 @@ describe("Offer endpoint tests", () => {
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
             });
+
+            describe("requirements", () => {
+                const FieldValidatorTester = BodyValidatorTester("requirements");
+                FieldValidatorTester.isRequired();
+            });
         });
 
         describe("Without pre-existing offers", () => {
@@ -443,6 +448,7 @@ describe("Offer endpoint tests", () => {
                     owner: test_company._id,
                     ownerName: test_company.name,
                     location: "Testing Street, Test City, 123",
+                    requirements: ["The candidate must be tested", "Fluent in testJS"],
                 };
 
                 const res = await request()
@@ -977,7 +983,7 @@ describe("Offer endpoint tests", () => {
                 });
             });
 
-            describe("Search for offer requirements", () => {
+            describe("Offer requirements", () => {
 
                 beforeAll(async () => {
                     await Offer.deleteMany();

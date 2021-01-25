@@ -29,6 +29,7 @@ class OfferService {
         owner,
         location,
         coordinates,
+        requirements,
     }) {
 
         const ownerName = (await Company.findById(owner)).name;
@@ -51,6 +52,7 @@ class OfferService {
             ownerName,
             location,
             coordinates,
+            requirements
         });
 
         return offer;

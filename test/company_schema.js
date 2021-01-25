@@ -39,6 +39,7 @@ describe("# Company Schema tests", () => {
                     fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
                     technologies: ["React", "CSS"],
                     location: "Testing Street, Test City, 123",
+                    requirements: ["The candidate must be tested", "Fluent in testJS"],
                     owner: company._id,
                     ownerName: company.name
                 };
