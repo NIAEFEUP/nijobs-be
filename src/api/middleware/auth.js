@@ -51,8 +51,9 @@ const isAdmin = (req, res, next) => {
 };
 
 const isCompanyOwner = async (req, res, next) => {
-    try {
+    if (req?.user?.company) return next();
 
+    try {
         const offer = (await (new OfferService()).getOfferById(req.params.offerId, req.user));
         if (offer.owner.toString() !== req.user.company?._id.toString()) {
             throw new Error();

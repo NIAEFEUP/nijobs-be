@@ -1,6 +1,5 @@
 const HTTPStatus = require("http-status-codes");
 const { validationResult } = require("express-validator");
-const { query } = require("../../models/Point");
 
 const ErrorTypes = Object.freeze({
     VALIDATION_ERROR: 1,

@@ -21,12 +21,10 @@ const ValidationReasons = Object.freeze({
     MUST_BE_BEFORE: (variable) => `must-be-before:${variable}`,
     WRONG_FORMAT: (format) => `must-be-format-${format}`,
     COMPANY_NOT_FOUND: (id) => `no-company-found-with-id:${id}`,
-<<<<<<< HEAD
     MAX_CONCURRENT_OFFERS_EXCEEDED: (max) => `max-concurrent-offers-reached:${max}`,
-=======
     OFFER_NOT_FOUND: (id) => `no-offer-found-with-id:${id}`,
     NOT_OFFER_OWNER: (id) => `not-offer-owner:${id}`,
->>>>>>> Add some validators to edit and validationReasons
+    OFFER_EDIT_PERIOD_OVER: (id) => `offer-edit-period-over:${id}`,
 });
 
 module.exports = ValidationReasons;

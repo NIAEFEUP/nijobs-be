@@ -71,11 +71,18 @@ module.exports = (app) => {
             }
         });
 
-    router.post("/edit/:offerId", authMiddleware.isCompanyOrGod, authMiddleware.isCompanyOwner, validators.edit, validators.editSanitizers, (req, res, next) => {
-        try {
-            return res.json(req.body);
-        } catch (err) {
-            return next(err);
-        }
-    });
+    router.post(
+        "/edit/:offerId",
+        authMiddleware.isCompanyOrGod,
+        validators.isEditable,
+        authMiddleware.isCompanyOwner,
+        validators.edit,
+        validators.editSanitizers,
+        (req, res, next) => {
+            try {
+                return res.json(req.body);
+            } catch (err) {
+                return next(err);
+            }
+        });
 };

@@ -10,6 +10,9 @@ const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
 const Company = require("../../../models/Company");
 const { isObjectId } = require("../validators/validatorUtils");
+const Offer = require("../../../models/Offer");
+const { ErrorTypes } = require("../errorHandler");
+const HTTPStatus = require("http-status-codes");
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
@@ -286,6 +289,23 @@ const edit = useExpressValidators([
         .isArray(),
 ]);
 
+const isEditable = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+    const currentDate = (new Date(Date.now())).toISOString();
+
+    // Should implement here grace period verification instead of true
+    if (offer.publishEndDate.toISOString() <= currentDate ||
+        (offer.publishDate.toISOString() <= currentDate && true)) {
+
+        return res.status(HTTPStatus.UNAUTHORIZED).json({
+            reason: ValidationReasons.OFFER_EDIT_PERIOD_OVER(req.params.offerId),
+            error_code: ErrorTypes.FORBIDDEN,
+        });
+    }
+
+    return next();
+};
+
 const editSanitizers = useExpressSanitizers([
     body("publishDate")
         .optional()
@@ -351,4 +371,5 @@ module.exports = {
     getOfferById,
     edit,
     editSanitizers,
+    isEditable,
 };
