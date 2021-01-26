@@ -169,11 +169,9 @@ class CompanyApplicationService {
 
     async approve(id, options) {
 
-        let application;
-
+        const application = await CompanyApplication.findById(id, {}, options);
+        if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_APPROVE.msg);
         try {
-            application = await CompanyApplication.findById(id, {}, options);
-            if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_APPROVE.msg);
             application.approve();
         } catch (e) {
             throw new CompanyApplicationAlreadyReiewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
@@ -201,10 +199,9 @@ class CompanyApplicationService {
     }
 
     async reject(id, reason, options) {
+        const application = (await CompanyApplication.findById(id, {}, options));
+        if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_REJECT.msg);
         try {
-            const application = (await CompanyApplication.findById(id, {}, options));
-            if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_REJECT.msg);
-
             application.reject(reason);
 
             await EmailService.sendMail({
