@@ -98,7 +98,6 @@ class OfferService {
 
     async getOfferById(offerId, user) {
         const offer = await Offer.findById(offerId);
-
         if (offer?.isHidden && !(user?.isAdmin || offer.owner.toString() === user?.company?._id.toString())) return null;
 
         return offer;

@@ -1,6 +1,8 @@
 const { ErrorTypes } = require("./errorHandler");
 const config = require("../../config/env");
 const HTTPStatus = require("http-status-codes");
+const OfferService = require("../../services/offer");
+const ValidationReasons = require("./validators/validationReasons");
 
 // Middleware to require login in an endpoint
 const authRequired = (req, res, next) => {
@@ -48,9 +50,26 @@ const isAdmin = (req, res, next) => {
     return next();
 };
 
+const isCompanyOwner = async (req, res, next) => {
+    try {
+
+        const offer = (await (new OfferService()).getOfferById(req.params.offerId, req.user));
+        if (offer.owner.toString() !== req.user.company?._id.toString()) {
+            throw new Error();
+        }
+    } catch {
+        return res.status(HTTPStatus.UNAUTHORIZED).json({
+            reason: ValidationReasons.NOT_OFFER_OWNER(req.params.offerId),
+            error_code: ErrorTypes.FORBIDDEN,
+        });
+    }
+    return next();
+};
+
 module.exports = {
     authRequired,
     isGod,
     isAdmin,
     isCompanyOrGod,
+    isCompanyOwner,
 };

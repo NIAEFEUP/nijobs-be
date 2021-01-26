@@ -193,7 +193,6 @@ const edit = useExpressValidators([
             try {
                 const offer = await (new OfferService()).getOfferById(offerId, req.user);
                 if (!offer) throw new Error(ValidationReasons.OFFER_NOT_FOUND(offerId));
-                if (req.user?.company.toString() !== offer.owner.toString()) throw new Error(ValidationReasons.NOT_OFFER_OWNER(offerId));
             } catch (_e) {
                 // Also catches any fail to the DB
                 throw new Error(_e);
