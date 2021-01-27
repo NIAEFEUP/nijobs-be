@@ -1,16 +1,14 @@
-name: Create Slate API Documentation
+name: Create Slate API Documentation (MASTER)
 
 on:
   push:
     branches:
       - master
-      - develop
     paths:
       - "documentation/*"
   pull_request:
     branches: 
       - master
-      - develop
     paths:
       - "documentation/*"
 
@@ -31,6 +29,6 @@ jobs:
       uses: jsmrcaga/action-netlify-deploy@v1.1.0
       with:
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
-        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_MASTER }}
         NETLIFY_DEPLOY_TO_PROD: true
         build_directory: documentation/build

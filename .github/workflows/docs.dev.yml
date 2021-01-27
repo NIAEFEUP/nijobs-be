@@ -1,0 +1,34 @@
+name: Create Slate API Documentation (DEV)
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - "documentation/*"
+  pull_request:
+    branches: 
+      - develop
+    paths:
+      - "documentation/*"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - name: Build documentation
+      uses: docker://decathlon/slate-builder-action:latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.SLATE_TOKEN }}
+        DOC_BASE_FOLDER: ./documentation
+        ZIP_BUILD: false
+
+    - name: Deploy Documentation
+      uses: jsmrcaga/action-netlify-deploy@v1.1.0
+      with:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_DEV }}
+        NETLIFY_DEPLOY_TO_PROD: true
+        build_directory: documentation/build
