@@ -328,7 +328,7 @@ describe("Company application review endpoint test", () => {
                         const res = await test_agent
                             .post(`/applications/company/${new ObjectId()}/approve`);
 
-                        expect(res.status).toBe(HTTPStatus.CONFLICT);
+                        expect(res.status).toBe(HTTPStatus.NOT_FOUND);
                     });
 
                     test("Should fail if trying to approve already approved application", async () => {
@@ -422,7 +422,7 @@ describe("Company application review endpoint test", () => {
                             .post(`/applications/company/${new ObjectId()}/reject`)
                             .send({ rejectReason: "Some reason which is valid" });
 
-                        expect(res.status).toBe(HTTPStatus.CONFLICT);
+                        expect(res.status).toBe(HTTPStatus.NOT_FOUND);
                     });
 
                     test("Should fail if trying to reject already approved application", async () => {
