@@ -1,15 +1,14 @@
-const { param, query } = require("express-validator");
+const { body, query } = require("express-validator");
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
-const mongoose = require("mongoose");
+const CompanyConstants = require("../../../models/constants/Company");
 
 const MAX_LIMIT_RESULTS = 100;
 
 const finish = useExpressValidators([
-    param("id", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .custom((value) => mongoose.Types.ObjectId.isValid(value))
-        .withMessage(ValidationReasons.OBJECT_ID).bail(),
+    body("bio", ValidationReasons.DEFAULT)
+        .isString().withMessage(ValidationReasons.STRING)
+        .isLength({ max: CompanyConstants.bio.max_length }).withMessage(ValidationReasons.TOO_LONG(CompanyConstants.bio.max_length)),
 ]);
 
 const list = useExpressValidators([

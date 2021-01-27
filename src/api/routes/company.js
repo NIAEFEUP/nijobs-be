@@ -12,11 +12,16 @@ module.exports = (app) => {
     /**
      * Creates a new Company Application
      */
-    router.post("/:id/finish", validators.finish, authMiddleware.isCompany,
-        (req, res, next) => {
+    router.post("/finish", validators.finish, authMiddleware.isCompany,
+        async (req, res, next) => {
 
             try {
-                return res.json("Hello");
+                companyService = new CompanyService()
+                const {bio} = req.body
+                const company_id = req.user.company
+                await companyService.changeBio(company_id, bio)
+                await companyService.setFinished(company_id)
+                return res.json({});
             } catch (err) {
                 return next(err);
             }

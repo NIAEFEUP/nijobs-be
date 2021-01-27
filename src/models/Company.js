@@ -17,6 +17,10 @@ const CompanySchema = new Schema({
         type: String,
         maxlength: CompanyConstants.bio.max_length,
     },
+    finished: {
+        type: Boolean,
+        default: false
+    }
 });
 
 // Update offers from this company on name change
