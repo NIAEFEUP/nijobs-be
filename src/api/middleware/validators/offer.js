@@ -13,6 +13,7 @@ const { isObjectId } = require("../validators/validatorUtils");
 const Offer = require("../../../models/Offer");
 const { ErrorTypes } = require("../errorHandler");
 const HTTPStatus = require("http-status-codes");
+const { HOUR_IN_MS, OFFER_EDIT_GRACE_PERIOD } = require("../../../models/constants/TimeConstants");
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
@@ -291,12 +292,15 @@ const edit = useExpressValidators([
 
 const isEditable = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
-    const currentDate = (new Date(Date.now())).toISOString();
+    const currentDate = new Date(Date.now());
+
+    // Verify if offer editing grace period is over
+    const timeDiff = currentDate.getTime() - offer.createdAt.getTime();
+    const diffInHours = timeDiff / HOUR_IN_MS;
 
     // Should implement here grace period verification instead of true
-    if (offer.publishEndDate.toISOString() <= currentDate ||
-        (offer.publishDate.toISOString() <= currentDate && true)) {
-
+    if (offer.publishEndDate.toISOString() <= currentDate.toISOString() ||
+        (offer.publishDate.toISOString() <= currentDate.toISOString() && diffInHours > OFFER_EDIT_GRACE_PERIOD)) {
         return res.status(HTTPStatus.UNAUTHORIZED).json({
             reason: ValidationReasons.OFFER_EDIT_PERIOD_OVER(req.params.offerId),
             error_code: ErrorTypes.FORBIDDEN,

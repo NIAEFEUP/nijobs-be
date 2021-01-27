@@ -44,7 +44,6 @@ const OfferSchema = new Schema({
             "`jobMaxDuration` must be larger than `jobMinDuration`",
         ],
     },
-
     jobStartDate: { type: Date },
     description: { type: String, maxlength: OfferConstants.description.max_length, required: true },
 
@@ -93,6 +92,11 @@ const OfferSchema = new Schema({
 
     location: { type: String, required: true },
     coordinates: { type: PointSchema, required: false },
+});
+
+OfferSchema.set("timestamps", {
+    createdAt: true,
+    updatedAt: false,
 });
 
 OfferSchema.index(

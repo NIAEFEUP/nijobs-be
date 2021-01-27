@@ -54,7 +54,6 @@ class OfferService {
             coordinates,
             requirements
         });
-
         return offer;
     }
 
@@ -66,7 +65,7 @@ class OfferService {
      * limit: How many offers to show
      * jobType: Array of jobTypes allowed
      */
-    get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false, ...filters }) {
+    get({ value = "", offset = 0, limit = OfferService._OFFERS_PER_QUERY, showHidden = false, ...filters }) {
 
         const offers = value ? Offer.find(
             { "$and": [this._buildFilterQuery(filters), { "$text": { "$search": value } }] }, { score: { "$meta": "textScore" } }
