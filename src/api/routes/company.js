@@ -2,6 +2,7 @@ const { Router } = require("express");
 
 const validators = require("../middleware/validators/company");
 const authMiddleware = require("../middleware/auth");
+const CompanyService = require("../../services/company");
 
 const router = Router();
 
@@ -12,7 +13,7 @@ module.exports = (app) => {
      * Creates a new Company Application
      */
     router.post("/:id/finish", validators.finish, authMiddleware.isCompany,
-        async (req, res, next) => {
+        (req, res, next) => {
 
             try {
                 return res.json("Hello");
@@ -20,4 +21,22 @@ module.exports = (app) => {
                 return next(err);
             }
         });
+
+    /**
+     * List all Companies
+     * @param {*} limit - Number of documents to return
+     * @param {*} offset - where to start the query (pagination - how many documents to skip, NOT how many pages to skip)
+     */
+    router.get("", validators.list, async (req, res, next) => {
+        const { limit, offset } = req.query;
+        const computedLimit = parseInt(limit || validators.MAX_LIMIT_RESULTS, 10);
+        const computedOffset = parseInt(offset || 0, 10);
+        try {
+            const { companies, totalDocCount } = await new CompanyService().findAll(computedLimit, computedOffset);
+            return res.json({ companies, totalDocCount });
+        } catch (error) {
+            return next(error);
+        }
+
+    });
 };
