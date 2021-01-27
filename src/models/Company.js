@@ -12,6 +12,8 @@ const CompanySchema = new Schema({
     },
     contacts: {
         type: [String],
+        minlength: CompanyConstants.contacts.min_length,
+        maxlength: CompanyConstants.contacts.max_length,
     },
     bio: {
         type: String,

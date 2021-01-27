@@ -40,24 +40,28 @@ class CompanyService {
 
 
     /**
-     * 
+     *
      * @param {*} company_id Id of the company to change
      * @param {*} bio New bio for the company
-     * 
+     *
      * @returns update Promise
      */
     changeBio(company_id, bio) {
-        return Company.updateOne({ _id: company_id }, { bio })
+        return Company.updateOne({ _id: company_id }, { bio });
+    }
+
+    changeContacts(company_id, contacts) {
+        return Company.updateOne({ _id: company_id }, { contacts });
     }
 
     /**
      * Sets a company profile to finished
      * @param {*} company_id Id of the company to change
-     * 
+     *
      * @returns update Promise
      */
     setFinished(company_id) {
-        return Company.updateOne({ _id: company_id }, { finished: true })
+        return Company.updateOne({ _id: company_id }, { finished: true });
     }
 
 }
