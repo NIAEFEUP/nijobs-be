@@ -128,6 +128,11 @@ const create = useExpressValidators([
     body("coordinates", ValidationReasons.DEFAULT)
         .optional()
         .isArray(),
+
+    body("requirements", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isArray({ min: 1 })
+        .withMessage(ValidationReasons.TOO_SHORT(1)),
 ]);
 
 const get = useExpressValidators([

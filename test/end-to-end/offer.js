@@ -30,6 +30,7 @@ describe("Offer endpoint tests", () => {
         technologies: ["React", "CSS"],
         location: "Testing Street, Test City, 123",
         isHidden: isHidden || false,
+        requirements: ["The candidate must be tested", "Fluent in testJS"],
     });
 
     let test_company;
@@ -267,6 +268,11 @@ describe("Offer endpoint tests", () => {
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
             });
+
+            describe("requirements", () => {
+                const FieldValidatorTester = BodyValidatorTester("requirements");
+                FieldValidatorTester.isRequired();
+            });
         });
 
         describe("Without pre-existing offers", () => {
@@ -442,6 +448,7 @@ describe("Offer endpoint tests", () => {
                     owner: test_company._id,
                     ownerName: test_company.name,
                     location: "Testing Street, Test City, 123",
+                    requirements: ["The candidate must be tested", "Fluent in testJS"],
                 };
 
                 const res = await request()
@@ -517,17 +524,9 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test_offer = {
-                    title: "Test Offer",
-                    publishDate: "2019-11-22T00:00:00.000Z",
-                    publishEndDate: "2019-11-28T00:00:00.000Z",
-                    description: "For Testing Purposes",
-                    contacts: ["geral@niaefeup.pt", "229417766"],
-                    jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
-                    technologies: ["React", "CSS"],
+                    ...generateTestOffer("2019-11-22T00:00:00.000Z", "2019-11-28T00:00:00.000Z"),
                     owner: test_company._id,
                     ownerName: test_company.name,
-                    location: "Testing Street, Test City, 123",
                 };
 
                 await Offer.deleteMany({});
@@ -981,6 +980,24 @@ describe("Offer endpoint tests", () => {
                     };
 
                     expect(extracted_data).toContainEqual(prepared_test_offer);
+                });
+            });
+
+            describe("Offer requirements", () => {
+
+                beforeAll(async () => {
+                    await Offer.deleteMany();
+                    await Offer.create(test_offer);
+                });
+
+                test("should return an array of requirements", async () => {
+
+                    const res = await request()
+                        .get("/offers");
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(1);
+                    expect(res.body[0].requirements).toEqual(test_offer.requirements);
                 });
             });
         });

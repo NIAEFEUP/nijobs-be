@@ -9,7 +9,6 @@ describe("# Offer Schema tests", () => {
         describe("required using schema 'required' property (no user defined validators)", () => {
             test("'title' is required", async () => {
                 const offer = new Offer({});
-                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
                 try {
                     await offer.validate();
                 } catch (err) {
@@ -21,7 +20,6 @@ describe("# Offer Schema tests", () => {
 
             test("'publishDate' is required", async () => {
                 const offer = new Offer({});
-                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
                 try {
                     await offer.validate();
                 } catch (err) {
@@ -33,7 +31,6 @@ describe("# Offer Schema tests", () => {
 
             test("'publishEndDate' is required", async () => {
                 const offer = new Offer({});
-                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
                 try {
                     await offer.validate();
                 } catch (err) {
@@ -45,7 +42,6 @@ describe("# Offer Schema tests", () => {
 
             test("'description' is required", async () => {
                 const offer = new Offer({});
-                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
                 try {
                     await offer.validate();
                 } catch (err) {
@@ -57,7 +53,6 @@ describe("# Offer Schema tests", () => {
 
             test("'contacts' is required", async () => {
                 const offer = new Offer({});
-                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
                 try {
                     await offer.validate();
                 } catch (err) {
@@ -69,7 +64,6 @@ describe("# Offer Schema tests", () => {
 
             test("'jobType' is required", async () => {
                 const offer = new Offer({});
-                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
                 try {
                     await offer.validate();
                 } catch (err) {
@@ -81,7 +75,6 @@ describe("# Offer Schema tests", () => {
 
             test("'owner' is required", async () => {
                 const offer = new Offer({});
-                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
                 try {
                     await offer.validate();
                 } catch (err) {
@@ -93,7 +86,6 @@ describe("# Offer Schema tests", () => {
 
             test("'ownerName' is required", async () => {
                 const offer = new Offer({});
-                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
                 try {
                     await offer.validate();
                 } catch (err) {
@@ -105,13 +97,23 @@ describe("# Offer Schema tests", () => {
 
             test("'location' is required", async () => {
                 const offer = new Offer({});
-                // Returning the validation promise to ensure the test doesn't finish before all the assertions do
                 try {
                     await offer.validate();
                 } catch (err) {
                     expect(err.errors.location).toBeDefined();
                     expect(err.errors.location).toHaveProperty("kind", "required");
                     expect(err.errors.location).toHaveProperty("message", "Path `location` is required.");
+                }
+            });
+
+            test("'requirements' is required", async () => {
+                const offer = new Offer({});
+                try {
+                    await offer.validate();
+                } catch (err) {
+                    expect(err.errors.requirements).toBeDefined();
+                    expect(err.errors.requirements).toHaveProperty("kind", "user defined");
+                    expect(err.errors.requirements).toHaveProperty("message", "There must be at least one requirement");
                 }
             });
         });

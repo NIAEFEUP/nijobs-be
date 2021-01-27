@@ -81,6 +81,14 @@ const OfferSchema = new Schema({
         required: true,
         validator: validateOwnerConcurrentOffers,
     },
+    requirements: {
+        type: [String],
+        required: true,
+        validate: [
+            (val) => val.length >= 1,
+            "There must be at least one requirement"
+        ],
+    },
     ownerName: { type: String, required: true },
 
     location: { type: String, required: true },
