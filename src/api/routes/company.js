@@ -19,9 +19,7 @@ module.exports = (app) => {
                 const companyService = new CompanyService();
                 const { bio, contacts } = req.body;
                 const company_id = req.user.company;
-                await companyService.changeBio(company_id, bio);
-                await companyService.changeContacts(company_id, contacts);
-                await companyService.setFinished(company_id);
+                await companyService.changeAttributes(company_id, { bio, contacts, finished: true });
                 return res.json({});
             } catch (err) {
                 return next(err);
