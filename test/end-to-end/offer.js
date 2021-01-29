@@ -572,7 +572,12 @@ describe("Offer endpoint tests", () => {
                     expect(res.body).toHaveLength(1);
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["score"]; return elem;
+                        delete elem["_id"];
+                        delete elem["__v"];
+                        delete elem["createdAt"];
+                        delete elem["updatedAt"];
+                        delete elem["score"];
+                        return elem;
                     });
                     const prepared_test_offer = {
                         ...test_offer,
@@ -602,7 +607,7 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
                             return elem;
                         });
 
@@ -640,7 +645,7 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
                             return elem;
                         });
 
@@ -672,7 +677,7 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
                             return elem;
                         });
 
@@ -704,7 +709,7 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
                             return elem;
                         });
 
@@ -771,7 +776,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -800,7 +805,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -826,7 +831,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -856,7 +861,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -883,7 +888,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -912,7 +917,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -939,7 +944,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -969,7 +974,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 

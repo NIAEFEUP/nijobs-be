@@ -78,9 +78,10 @@ module.exports = (app) => {
         authMiddleware.isCompanyOwner,
         validators.edit,
         validators.editSanitizers,
-        (req, res, next) => {
+        async (req, res, next) => {
             try {
-                return res.json(req.body);
+                const offer = await (new OfferService()).edit(req.params.offerId, req.body);
+                return res.json(offer);
             } catch (err) {
                 return next(err);
             }

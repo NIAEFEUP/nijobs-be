@@ -94,10 +94,7 @@ const OfferSchema = new Schema({
     coordinates: { type: PointSchema, required: false },
 });
 
-OfferSchema.set("timestamps", {
-    createdAt: true,
-    updatedAt: false,
-});
+OfferSchema.set("timestamps", true);
 
 OfferSchema.index(
     { title: "text", ownerName: "text", jobType: "text", fields: "text", technologies: "text", location: "text" },

@@ -138,6 +138,44 @@ const create = useExpressValidators([
         .withMessage(ValidationReasons.TOO_SHORT(1)),
 ]);
 
+const jobMinDurationEditable = async (jobMinDuration, { req }) => {
+    try {
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
+
+        const { jobMaxDuration } = req.body;
+
+        // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
+        if (jobMinDuration >= offer.jobMaxDuration.toString() &&
+            !jobMaxDuration) {
+
+            // end date is earlier than publish date, error!
+            throw new Error(ValidationReasons.MUST_BE_BEFORE("jobMaxDuration"));
+        }
+    } catch (err) {
+        throw new Error(err);
+    }
+    return true;
+};
+
+const jobMaxDurationEditable = async (jobMaxDuration, { req }) => {
+    try {
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
+
+        const { jobMinDuration: jobMinDurationCandidate } = req.body;
+
+        const jobMinDuration = jobMinDurationCandidate || offer.jobMinDuration.toString();
+        // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
+        if (jobMinDuration >= jobMaxDuration) {
+
+            // end date is earlier than publish date, error!
+            throw new Error(ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
+        }
+    } catch (err) {
+        throw new Error(err);
+    }
+    return true;
+};
+
 const publishDateEditable = async (publishDateRaw, { req }) => {
     try {
         const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
@@ -225,10 +263,12 @@ const edit = useExpressValidators([
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
         .optional()
+        .custom(jobMinDurationEditable).bail()
         .isInt().withMessage(ValidationReasons.INT),
 
     body("jobMaxDuration", ValidationReasons.DEFAULT)
         .optional()
+        .custom(jobMaxDurationEditable)
         .isInt().withMessage(ValidationReasons.INT),
 
     body("jobStartDate", ValidationReasons.DEFAULT)

@@ -57,6 +57,64 @@ class OfferService {
         return offer;
     }
 
+    async edit(
+        _id,
+        {
+            title,
+            publishDate,
+            publishEndDate,
+            jobMinDuration,
+            jobMaxDuration,
+            jobStartDate,
+            description,
+            contacts,
+            isPaid,
+            vacancies,
+            jobType,
+            fields,
+            technologies,
+            isHidden,
+            location,
+            coordinates,
+        }) {
+
+        const query = { _id };
+
+        // Cleaning up null entries
+        const edits = Object.fromEntries(
+            Object.entries({
+                title,
+                publishDate,
+                publishEndDate,
+                jobMinDuration,
+                jobMaxDuration,
+                jobStartDate,
+                description,
+                contacts,
+                isPaid,
+                vacancies,
+                jobType,
+                fields,
+                technologies,
+                isHidden,
+                location,
+                coordinates,
+            }).filter(([_, v]) => v));
+
+        const offer = await Offer.findOneAndUpdate(
+            query,
+            edits,
+            { new: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            }
+        );
+
+        return offer;
+    }
+
     /**
      * Fetches offers according to specified options
      * @param {*} options
