@@ -1,13 +1,11 @@
 # API Documentation
 
-This file is the entry-point for the API Documentation. Each route will be in its specific block, replicating the project structure.
+This folder contains the documentation website code.
 
-> If you want to create a new entry, start by copying the template available at [_API_DOC_TEMPLATE.md](_API_DOC_TEMPLATE.md)
+To edit the contents, simply edit the .md files in `docs/`
 
-## Routes
+This uses Docusaurus, so for any question, check their docs (https://v2.docusaurus.io/)
 
-### Offer
+## Previewing
 
-* [Search Offers](offer/search.md)
-* [Get Offer by ID](offer/get.md)
-* [Create Offer](offer/create.md)
+This is just a react website, so you can run `npm install` and `npm start` and it will launch it by default at localhost:3000
