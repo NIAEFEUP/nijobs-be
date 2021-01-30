@@ -51,15 +51,13 @@ const isAdmin = (req, res, next) => {
 };
 
 const isCompanyOwner = async (req, res, next) => {
-    if (req?.user?.company) return next();
-
     try {
         const offer = (await (new OfferService()).getOfferById(req.params.offerId, req.user));
-        if (offer.owner.toString() !== req.user.company?._id.toString()) {
+        if (offer.owner.toString() !== req.user.company?._id.toString() && req.body.god_token !== config.god_token) {
             throw new Error();
         }
     } catch {
-        return res.status(HTTPStatus.UNAUTHORIZED).json({
+        return res.status(HTTPStatus.FORBIDDEN).json({
             reason: ValidationReasons.NOT_OFFER_OWNER(req.params.offerId),
             error_code: ErrorTypes.FORBIDDEN,
         });

@@ -227,10 +227,15 @@ const publishEndDateEditable = async (publishEndDateCandidate, { req }) => {
     return true;
 };
 
-const edit = useExpressValidators([
+const validateOfferId = useExpressValidators([
     param("offerId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
+        .custom((offerId) => {
+            if (!isObjectId(offerId)) {
+                throw new Error(ValidationReasons.OBJECT_ID);
+            }
+            return true;
+        }).bail()
         .custom(async (offerId, { req }) => {
             try {
                 const offer = await (new OfferService()).getOfferById(offerId, req.user);
@@ -242,7 +247,9 @@ const edit = useExpressValidators([
 
             return true;
         }),
+]);
 
+const edit = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING)
@@ -335,13 +342,13 @@ const isEditable = async (req, res, next) => {
     const currentDate = new Date(Date.now());
 
     // Verify if offer editing grace period is over
-    const timeDiff = currentDate.getTime() - offer.createdAt.getTime();
+    const timeDiff = currentDate - offer.createdAt;
     const diffInHours = timeDiff / HOUR_IN_MS;
 
     // Should implement here grace period verification instead of true
     if (offer.publishEndDate.toISOString() <= currentDate.toISOString() ||
         (offer.publishDate.toISOString() <= currentDate.toISOString() && diffInHours > OFFER_EDIT_GRACE_PERIOD)) {
-        return res.status(HTTPStatus.UNAUTHORIZED).json({
+        return res.status(HTTPStatus.FORBIDDEN).json({
             reason: ValidationReasons.OFFER_EDIT_PERIOD_OVER(req.params.offerId),
             error_code: ErrorTypes.FORBIDDEN,
         });
@@ -352,10 +359,8 @@ const isEditable = async (req, res, next) => {
 
 const editSanitizers = useExpressSanitizers([
     body("publishDate")
-        .optional()
         .toDate(),
     body("publishEndDate")
-        .optional()
         .toDate(),
 ]);
 
@@ -413,6 +418,7 @@ module.exports = {
     create,
     get,
     getOfferById,
+    validateOfferId,
     edit,
     editSanitizers,
     isEditable,
