@@ -1,3 +1,11 @@
+---
+id: search
+title: Search Offers
+sidebar_label: Search Offers
+slug: /offers/search
+---
+
+
 # Search Offers
 
 Route description

@@ -1,0 +1,61 @@
+/* stylelint-disable docusaurus/copyright-header */
+/**
+ * Any CSS included here will be global. The classic template
+ * bundles Infima by default. Infima is a CSS framework designed to
+ * work well for content-centric websites.
+ */
+
+ /* primary: {
+    main: "#DC4F47",
+},
+secondary: {
+    main: "#4F1315",
+},
+tertiary: {
+    main: "#C1D2D6", */
+
+/* You can override the default Infima variables here. */
+:root {
+  --ifm-color-primary: rgb(220, 79, 71);
+  --ifm-color-primary-dark: rgb(212, 65, 57);
+  --ifm-color-primary-darker: rgb(197, 51, 43);
+  --ifm-color-primary-darkest: rgb(167, 61, 56);
+  --ifm-color-primary-light: rgb(216, 90, 83);
+  --ifm-color-primary-lighter: rgb(233, 101, 94);
+  --ifm-color-primary-lightest:rgb(216, 148, 144);
+  --ifm-code-font-size: 95%;
+  --collapse-button-bg-color-dark: red;
+}
+
+/* Navbar is set to dark mode always */
+.navbar--dark {
+  --ifm-navbar-link-color: white;
+  --collapse-button-bg-color: white;
+  --ifm-font-color-base-inverse: white;
+}
+
+.navbar--dark .navbar__brand:hover, .navbar--dark .navbar__toggle {
+  color: white;
+}
+
+.docusaurus-highlight-code-line {
+  background-color: rgb(79, 19, 21);
+  display: block;
+  margin: 0 calc(-1 * var(--ifm-pre-padding));
+  padding: 0 var(--ifm-pre-padding);
+}
+
+.main-wrapper {
+    justify-content: center;
+    flex-direction: column;
+    display: flex;
+}
+
+.main-wrapper > header {
+    padding: 4rem 2rem;
+    flex-grow: 1;
+}
+
+.hero.hero--primary, .hero.hero--primary .button.button--secondary.button--outline:not(.button--active):not(:hover) {
+    color:white;
+}
