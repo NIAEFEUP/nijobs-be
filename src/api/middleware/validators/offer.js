@@ -1,6 +1,6 @@
 const { body, query, param } = require("express-validator");
 
-const { useExpressValidators, useExpressSanitizers } = require("../errorHandler");
+const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
 const { valuesInSet, ensureArray } = require("./validatorUtils");
 const JobTypes = require("../../../models/constants/JobTypes");
@@ -13,7 +13,7 @@ const { isObjectId } = require("../validators/validatorUtils");
 const Offer = require("../../../models/Offer");
 const { ErrorTypes } = require("../errorHandler");
 const HTTPStatus = require("http-status-codes");
-const { HOUR_IN_MS, OFFER_EDIT_GRACE_PERIOD } = require("../../../models/constants/TimeConstants");
+const { HOUR_IN_MS, OFFER_EDIT_GRACE_PERIOD_HOURS } = require("../../../models/constants/TimeConstants");
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
@@ -24,18 +24,17 @@ const create = useExpressValidators([
 
     body("publishDate", ValidationReasons.DEFAULT)
         .optional()
-        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
-        .toDate(),
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail(),
 
     body("publishEndDate", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
         .custom((publishEndDateCandidate, { req }) => {
-            const { publishDate: publishDateRaw } = req.body;
+            const { publishDate: publishDateCandidate } = req.body;
             // publishDateRaw will be a Date instance because it's sanitized on the publishDateValidator
             // Default values and also handling if it is string or date object
-            const publishDate = (publishDateRaw || (new Date(Date.now()))).toISOString();
+            const publishDate = publishDateCandidate || (new Date(Date.now())).toISOString();
 
             if (publishEndDateCandidate <= publishDate) {
                 // end date is earlier than publish date, error!
@@ -44,8 +43,7 @@ const create = useExpressValidators([
 
             // Returning truthy value to indicate no error ocurred
             return true;
-        })
-        .toDate(),
+        }),
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
         .optional()
@@ -112,7 +110,8 @@ const create = useExpressValidators([
 
             try {
                 if (await Company.findById(owner) === null) throw new Error();
-            } catch (_e) {
+            } catch (err) {
+                console.error(err);
                 // Also catches any fail to the DB
                 throw new Error(ValidationReasons.COMPANY_NOT_FOUND(owner));
             }
@@ -138,26 +137,27 @@ const create = useExpressValidators([
         .withMessage(ValidationReasons.TOO_SHORT(1)),
 ]);
 
-const jobMinDurationEditable = async (jobMinDuration, { req }) => {
+const jobMinDurationEditable = async (jobMinDurationCandidate, { req }) => {
     try {
         const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
 
-        const { jobMaxDuration } = req.body;
+        const { jobMaxDuration: jobMaxDurationCandidate } = req.body;
 
         // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
-        if (jobMinDuration >= offer.jobMaxDuration.toString() &&
-            !jobMaxDuration) {
+        if (jobMinDurationCandidate >= offer.jobMaxDuration.toString() &&
+            !jobMaxDurationCandidate) {
 
             // end date is earlier than publish date, error!
             throw new Error(ValidationReasons.MUST_BE_BEFORE("jobMaxDuration"));
         }
     } catch (err) {
-        throw new Error(err);
+        console.error(err);
+        throw err;
     }
     return true;
 };
 
-const jobMaxDurationEditable = async (jobMaxDuration, { req }) => {
+const jobMaxDurationEditable = async (jobMaxDurationCandidate, { req }) => {
     try {
         const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
 
@@ -165,34 +165,35 @@ const jobMaxDurationEditable = async (jobMaxDuration, { req }) => {
 
         const jobMinDuration = jobMinDurationCandidate || offer.jobMinDuration.toString();
         // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
-        if (jobMinDuration >= jobMaxDuration) {
+        if (jobMinDuration >= jobMaxDurationCandidate) {
 
             // end date is earlier than publish date, error!
             throw new Error(ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
         }
     } catch (err) {
-        throw new Error(err);
+        console.error(err);
+        throw err;
     }
     return true;
 };
 
-const publishDateEditable = async (publishDateRaw, { req }) => {
+const publishDateEditable = async (publishDateCandidate, { req }) => {
     try {
         const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
-        // const publishDateCandidate = publishDateRaw instanceof Date ? publishDateRaw.toISOString() : publishDateRaw;
         const { publishEndDate: publishEndDateCandidate } = req.body;
 
         // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
-        if (publishDateRaw >= offer.publishEndDate.toISOString() &&
+        if (publishDateCandidate >= offer.publishEndDate.toISOString() &&
                 !publishEndDateCandidate) {
 
             // end date is earlier than publish date, error!
             throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
         }
 
-    } catch (_e) {
+    } catch (err) {
+        console.error(err);
         // Also catches any fail to the DB
-        throw new Error(_e);
+        throw err;
     }
     return true;
 };
@@ -210,8 +211,8 @@ const publishEndDateEditable = async (publishEndDateCandidate, { req }) => {
         if (publishDateCandidate) {
             try {
                 publishDate = (new Date(Date.parse(publishDateCandidate))).toISOString();
-            } catch (_e) {
-                return false;
+            } catch {
+                return true;
             }
         }
         publishDate = publishDate || offer.publishDate.toISOString();
@@ -220,29 +221,25 @@ const publishEndDateEditable = async (publishEndDateCandidate, { req }) => {
         if (publishEndDateCandidate <= publishDate) {
             throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
         }
-    } catch (_e) {
-        throw new Error(_e);
+    } catch (err) {
+        console.error(err);
+        throw err;
     }
     // Returning truthy value to indicate no error ocurred
     return true;
 };
 
-const validateOfferId = useExpressValidators([
+const isExistingOffer = useExpressValidators([
     param("offerId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .custom((offerId) => {
-            if (!isObjectId(offerId)) {
-                throw new Error(ValidationReasons.OBJECT_ID);
-            }
-            return true;
-        }).bail()
+        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
         .custom(async (offerId, { req }) => {
             try {
                 const offer = await (new OfferService()).getOfferById(offerId, req.user);
                 if (!offer) throw new Error(ValidationReasons.OFFER_NOT_FOUND(offerId));
-            } catch (_e) {
-                // Also catches any fail to the DB
-                throw new Error(_e);
+            } catch (err) {
+                console.error(err);
+                throw err;
             }
 
             return true;
@@ -270,13 +267,13 @@ const edit = useExpressValidators([
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
         .optional()
-        .custom(jobMinDurationEditable).bail()
-        .isInt().withMessage(ValidationReasons.INT),
+        .isInt().withMessage(ValidationReasons.INT)
+        .custom(jobMinDurationEditable).bail(),
 
     body("jobMaxDuration", ValidationReasons.DEFAULT)
         .optional()
-        .custom(jobMaxDurationEditable)
-        .isInt().withMessage(ValidationReasons.INT),
+        .isInt().withMessage(ValidationReasons.INT)
+        .custom(jobMaxDurationEditable),
 
     body("jobStartDate", ValidationReasons.DEFAULT)
         .optional()
@@ -286,7 +283,7 @@ const edit = useExpressValidators([
     body("description", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING)
-        .isLength({ max: OfferConstants.description.max_length }).withMessage(ValidationReasons.TOO_LONG(1500))
+        .withMessage(ValidationReasons.TOO_LONG(OfferConstants.description.max_length))
         .trim(),
 
     body("contacts", ValidationReasons.DEFAULT)
@@ -329,7 +326,10 @@ const edit = useExpressValidators([
         .optional()
         .isString().withMessage(ValidationReasons.STRING)
         .trim(),
-
+    body("requirements", ValidationReasons.DEFAULT)
+        .optional()
+        .isArray({ min: 1 })
+        .withMessage(ValidationReasons.TOO_SHORT(1)),
     // TODO: Figure out how to handle this field
     // We should probably only receive the array part and inject the type that PointSchema requires in a custom sanitizer
     body("coordinates", ValidationReasons.DEFAULT)
@@ -347,7 +347,7 @@ const isEditable = async (req, res, next) => {
 
     // Should implement here grace period verification instead of true
     if (offer.publishEndDate.toISOString() <= currentDate.toISOString() ||
-        (offer.publishDate.toISOString() <= currentDate.toISOString() && diffInHours > OFFER_EDIT_GRACE_PERIOD)) {
+        (offer.publishDate.toISOString() <= currentDate.toISOString() && diffInHours > OFFER_EDIT_GRACE_PERIOD_HOURS)) {
         return res.status(HTTPStatus.FORBIDDEN).json({
             reason: ValidationReasons.OFFER_EDIT_PERIOD_OVER(req.params.offerId),
             error_code: ErrorTypes.FORBIDDEN,
@@ -357,10 +357,12 @@ const isEditable = async (req, res, next) => {
     return next();
 };
 
-const editSanitizers = useExpressSanitizers([
+const offersDateSanitizers = useExpressValidators([
     body("publishDate")
+        .optional()
         .toDate(),
     body("publishEndDate")
+        .optional()
         .toDate(),
 ]);
 
@@ -418,8 +420,8 @@ module.exports = {
     create,
     get,
     getOfferById,
-    validateOfferId,
+    isExistingOffer,
     edit,
-    editSanitizers,
+    offersDateSanitizers,
     isEditable,
 };

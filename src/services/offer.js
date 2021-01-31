@@ -76,13 +76,13 @@ class OfferService {
             isHidden,
             location,
             coordinates,
+            requirements,
         }) {
 
         const query = { _id };
-
-        // Cleaning up null entries
-        const edits = Object.fromEntries(
-            Object.entries({
+        const offer = await Offer.findOneAndUpdate(
+            query,
+            {
                 title,
                 publishDate,
                 publishEndDate,
@@ -99,12 +99,9 @@ class OfferService {
                 isHidden,
                 location,
                 coordinates,
-            }).filter(([_, v]) => v));
-
-        const offer = await Offer.findOneAndUpdate(
-            query,
-            edits,
-            { new: true },
+                requirements,
+            },
+            { new: true, omitUndefined: true },
             (err) => {
                 if (err) {
                     throw err;

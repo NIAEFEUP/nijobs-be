@@ -27,19 +27,6 @@ const useExpressValidators = (validators) => async (req, res, next) => {
         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, errors.array()));
 };
 
-const useExpressSanitizers = (sanitizers) => async (req, res, next) => {
-    await Promise.all(sanitizers.map((sanitizer) => sanitizer.run(req)));
-
-    const errors = validationResult(req);
-    if (errors.isEmpty()) {
-        return next();
-    }
-
-    return res
-        .status(HTTPStatus.UNPROCESSABLE_ENTITY)
-        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, errors.array()));
-};
-
 const defaultErrorHandler = (err, req, res, _) => {
     console.error("UNEXPECTED ERROR:", err);
 
@@ -54,6 +41,5 @@ module.exports = {
     defaultErrorHandler,
     ErrorTypes,
     useExpressValidators,
-    useExpressSanitizers,
     buildErrorResponse,
 };

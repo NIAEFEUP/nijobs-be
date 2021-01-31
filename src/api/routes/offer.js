@@ -54,7 +54,11 @@ module.exports = (app) => {
     /**
      * Creates a new Offer
      */
-    router.post("/new", authMiddleware.isCompanyOrGod, validators.create, companyMiddleware.verifyMaxConcurrentOffers,
+    router.post("/new",
+        authMiddleware.isCompanyOrGod,
+        validators.create,
+        companyMiddleware.verifyMaxConcurrentOffers,
+        validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
 
@@ -74,11 +78,11 @@ module.exports = (app) => {
     router.post(
         "/edit/:offerId",
         authMiddleware.isCompanyOrAdminOrGod,
-        validators.validateOfferId,
+        validators.isExistingOffer,
         validators.isEditable,
         validators.edit,
-        authMiddleware.isCompanyOwner,
-        validators.editSanitizers,
+        (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).edit(req.params.offerId, req.body);

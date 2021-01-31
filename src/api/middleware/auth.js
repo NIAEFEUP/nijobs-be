@@ -65,17 +65,20 @@ const isAdminOrGod = (req, res, next) => {
     return next();
 };
 
-const isCompanyOwner = async (req, res, next) => {
+const isOfferOwner = (offerId) => async (req, res, next) => {
+
+    let offer;
     try {
-        const offer = (await (new OfferService()).getOfferById(req.params.offerId, req.user));
-        if (offer.owner.toString() !== req.user?.company?._id.toString() &&
+        offer = await (new OfferService()).getOfferById(offerId, req.user);
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+    if (offer.owner.toString() !== req.user?.company?._id.toString() &&
                 req.body.god_token !== config.god_token &&
                 !req.user?.isAdmin) {
-            throw new Error();
-        }
-    } catch {
         return res.status(HTTPStatus.FORBIDDEN).json({
-            reason: ValidationReasons.NOT_OFFER_OWNER(req.params.offerId),
+            reason: ValidationReasons.NOT_OFFER_OWNER(offerId),
             error_code: ErrorTypes.FORBIDDEN,
         });
     }
@@ -89,5 +92,5 @@ module.exports = {
     isAdminOrGod,
     isCompanyOrGod,
     isCompanyOrAdminOrGod,
-    isCompanyOwner,
+    isOfferOwner,
 };
