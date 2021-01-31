@@ -39,8 +39,15 @@ const isCompanyOrGod = (req, res, next) => {
     return isGod(req, res, next);
 };
 
+const isCompanyOrAdminOrGod = (req, res, next) => {
+    if (req?.user?.company) return next();
+
+    return isAdminOrGod(req, res, next);
+};
+
+
 const isAdmin = (req, res, next) => {
-    if (!req.user.isAdmin) {
+    if (!req.user?.isAdmin) {
         return res.status(HTTPStatus.UNAUTHORIZED).json({
             reason: "The user is not an admin",
             error_code: ErrorTypes.FORBIDDEN,
@@ -50,10 +57,20 @@ const isAdmin = (req, res, next) => {
     return next();
 };
 
+const isAdminOrGod = (req, res, next) => {
+    if (!req?.user?.isAdmin) {
+        return isGod(req, res, next);
+    }
+
+    return next();
+};
+
 const isCompanyOwner = async (req, res, next) => {
     try {
         const offer = (await (new OfferService()).getOfferById(req.params.offerId, req.user));
-        if (offer.owner.toString() !== req.user.company?._id.toString() && req.body.god_token !== config.god_token) {
+        if (offer.owner.toString() !== req.user?.company?._id.toString() &&
+                req.body.god_token !== config.god_token &&
+                !req.user?.isAdmin) {
             throw new Error();
         }
     } catch {
@@ -69,6 +86,8 @@ module.exports = {
     authRequired,
     isGod,
     isAdmin,
+    isAdminOrGod,
     isCompanyOrGod,
+    isCompanyOrAdminOrGod,
     isCompanyOwner,
 };

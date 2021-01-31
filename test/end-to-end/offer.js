@@ -1120,7 +1120,7 @@ describe("Offer endpoint tests", () => {
 
         beforeAll(async () => {
             await Offer.deleteMany({});
-            await test_agent.post("/auth/login");
+            await test_agent.del("/auth/login");
             createOffer = async (offer) => {
                 const { _id, owner, ownerName, jobMinDuration, jobMaxDuration } = await Offer.create({
                     ...offer,
@@ -1168,14 +1168,7 @@ describe("Offer endpoint tests", () => {
                 .expect(HTTPStatus.UNAUTHORIZED);
         });
 
-        describe("testing validations", () => {
-            beforeAll(async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(200);
-            });
-
+        describe("testing validations with god token", () => {
             test("should fail with invalid id", async () => {
                 const res = await test_agent
                     .post("/offers/edit/not-a-valid-id")
@@ -1404,6 +1397,20 @@ describe("Offer endpoint tests", () => {
                 });
             });
         });
+
+        describe("testing as admin without god token", () => {
+            beforeAll(async () => {
+                await test_agent.post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should edit as an admin", async () => {
+                await test_agent.post(`/offers/edit/${future_test_offer._id}`)
+                    .expect(HTTPStatus.OK);
+            });
+        });
+
 
         describe("testing as a company", () => {
 

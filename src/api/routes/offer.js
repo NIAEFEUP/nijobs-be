@@ -73,7 +73,7 @@ module.exports = (app) => {
 
     router.post(
         "/edit/:offerId",
-        authMiddleware.isCompanyOrGod,
+        authMiddleware.isCompanyOrAdminOrGod,
         validators.validateOfferId,
         validators.isEditable,
         validators.edit,
