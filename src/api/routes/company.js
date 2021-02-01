@@ -6,13 +6,18 @@ const CompanyService = require("../../services/company");
 
 const router = Router();
 
+const upload  = require("../../config/multer");
+
 module.exports = (app) => {
     app.use("/company", router);
 
     /**
      * Creates a new Company Application
      */
-    router.post("/finish", authMiddleware.isCompany, validators.finish,
+    router.post("/finish",
+        authMiddleware.isCompany,
+        upload.single("logo"),
+        validators.finish,
         async (req, res, next) => {
 
             try {

@@ -28,4 +28,7 @@ module.exports = Object.freeze({
     // Mail
     mail_from: process.env.MAIL_FROM,
     mail_from_password: process.env.MAIL_FROM_PASSWORD,
+
+    // Cloudinary
+    cloudinary_url: process.env.CLOUDINARY_URL
 });

@@ -1,11 +1,11 @@
 const { body, query } = require("express-validator");
-const { useExpressValidators } = require("../errorHandler");
+const { useExpressValidators, useExpressValidatorsWithFile } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
 const CompanyConstants = require("../../../models/constants/Company");
 
 const MAX_LIMIT_RESULTS = 100;
 
-const finish = useExpressValidators([
+const finish = useExpressValidatorsWithFile([
     body("bio", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
