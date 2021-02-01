@@ -16,22 +16,24 @@ const ValidationReasons = require("../../src/api/middleware/validators/validatio
 const APIErrorTypes = require("../../src/api/APIErrorTypes");
 const { Types } = require("mongoose");
 const CompanyConstants = require("../../src/models/constants/Company");
-const { OFFER_EDIT_GRACE_PERIOD_HOURS, HOUR_IN_MS } = require("../../src/models/constants/TimeConstants");
+const { OFFER_EDIT_GRACE_PERIOD_HOURS, HOUR_IN_MS  } = require("../../src/models/constants/TimeConstants");
+const { ensureArray } = require("../../src/api/middleware/validators/validatorUtils");
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
-    const generateTestOffer = (publishDate, publishEndDate, isHidden) => ({
+    const generateTestOffer = (params) => ({
         title: "Test Offer",
-        publishDate: publishDate || (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-        publishEndDate: publishEndDate || (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+        publishDate: (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+        publishEndDate: (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
         description: "For Testing Purposes",
         contacts: ["geral@niaefeup.pt", "229417766"],
         jobType: "SUMMER INTERNSHIP",
         fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
         technologies: ["React", "CSS"],
         location: "Testing Street, Test City, 123",
-        isHidden: isHidden || false,
+        isHidden: false,
         requirements: ["The candidate must be tested", "Fluent in testJS"],
+        ...params,
     });
 
     let test_company;
@@ -311,15 +313,17 @@ describe("Offer endpoint tests", () => {
 
         describe("Before reaching the offers limit while having past offers", () => {
             const testOffers = Array(CompanyConstants.offers.max_concurrent - 1)
-                .fill(generateTestOffer(
-                    new Date(Date.now() - (DAY_TO_MS)),
-                    new Date(Date.now() + (DAY_TO_MS))
-                ));
+                .fill(generateTestOffer({
+                    "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                }));
 
-            testOffers.push(generateTestOffer(
-                new Date(Date.now() - (3 * (DAY_TO_MS))),
-                new Date(Date.now() - (2 * (DAY_TO_MS)))
-            ));
+            testOffers.push(generateTestOffer({
+                "publishDate": (new Date(Date.now() - (3 * DAY_TO_MS))).toISOString(),
+                "publishEndDate": (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString()
+            }));
+
+            console.info("TEST OFFERS: ", ensureArray(testOffers));
 
             beforeAll(async () => {
                 await Offer.deleteMany({});
@@ -356,10 +360,10 @@ describe("Offer endpoint tests", () => {
 
         describe("After reaching the offers limit", () => {
             const testOffers = Array(CompanyConstants.offers.max_concurrent)
-                .fill(generateTestOffer(
-                    new Date(Date.now() - (DAY_TO_MS)),
-                    new Date(Date.now() + (DAY_TO_MS))
-                ));
+                .fill(generateTestOffer({
+                    "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                }));
 
             beforeAll(async () => {
                 await Offer.deleteMany({});
@@ -398,10 +402,10 @@ describe("Offer endpoint tests", () => {
 
         describe("Trying to schedule an offer in a time period which reached the offers limit", () => {
             const testOffers = Array(CompanyConstants.offers.max_concurrent)
-                .fill(generateTestOffer(
-                    new Date(Date.now() + (3 * (DAY_TO_MS))),
-                    new Date(Date.now() + (6 * (DAY_TO_MS)))
-                ));
+                .fill(generateTestOffer({
+                    "publishDate": (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (6 * DAY_TO_MS))).toISOString()
+                }));
 
             beforeAll(async () => {
                 await Offer.deleteMany({});
@@ -420,7 +424,10 @@ describe("Offer endpoint tests", () => {
 
             test("should fail to schedule a new offer", async () => {
                 const offer_params = {
-                    ...generateTestOffer(new Date(Date.now() + (4 * (DAY_TO_MS))), new Date(Date.now() + (5 * (DAY_TO_MS)))),
+                    ...generateTestOffer({
+                        "publishDate": (new Date(Date.now() + (4 * DAY_TO_MS))).toISOString(),
+                        "publishEndDate": (new Date(Date.now() + (5 * DAY_TO_MS))).toISOString()
+                    }),
                     owner: test_company._id,
                     ownerName: test_company.name
                 };
@@ -523,7 +530,10 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test_offer = {
-                    ...generateTestOffer("2019-11-22T00:00:00.000Z", "2019-11-28T00:00:00.000Z"),
+                    ...generateTestOffer({
+                        "publishDate": "2019-11-22T00:00:00.000Z",
+                        "publishEndDate": "2019-11-28T00:00:00.000Z"
+                    }),
                     owner: test_company._id,
                     ownerName: test_company.name,
                 };
@@ -545,11 +555,14 @@ describe("Offer endpoint tests", () => {
 
             describe("Only current offers are returned", () => {
 
-                const expired_test_offer = generateTestOffer("2019-11-17", "2019-11-18");
-                const future_test_offer = generateTestOffer(
-                    (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
-                    (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
-                );
+                const expired_test_offer = generateTestOffer({
+                    "publishDate": "2019-11-17",
+                    "publishEndDate": "2019-11-18"
+                });
+                const future_test_offer = generateTestOffer({
+                    "publishDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+                });
 
                 beforeAll(async () => {
 
@@ -1121,12 +1134,10 @@ describe("Offer endpoint tests", () => {
             await Offer.deleteMany({});
             await test_agent.del("/auth/login");
             createOffer = async (offer) => {
-                const { _id, owner, ownerName, jobMinDuration, jobMaxDuration } = await Offer.create({
+                const { _id, owner, ownerName, jobMinDuration, jobMaxDuration, createdAt } = await Offer.create({
                     ...offer,
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
-                    jobMinDuration: 4,
-                    jobMaxDuration: 5,
                 });
                 return {
                     ...offer,
@@ -1134,35 +1145,50 @@ describe("Offer endpoint tests", () => {
                     ownerName,
                     _id: _id.toString(),
                     jobMinDuration,
-                    jobMaxDuration
+                    jobMaxDuration,
+                    createdAt: createdAt.toISOString()
                 };
             };
 
-            expired_test_offer = await createOffer(generateTestOffer("2019-11-17", "2019-11-18"));
+            expired_test_offer = await createOffer(generateTestOffer({
+                "publishDate": "2019-11-17",
+                "publishEndDate": "2019-11-18"
+            }));
 
-            grace_period_over_test_offer = await createOffer(generateTestOffer(
-                (new Date(Date.now())).toISOString(),
-                (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+            grace_period_over_test_offer = await createOffer(generateTestOffer({
+                "publishDate": (new Date(Date.now())).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+            }
             ));
 
-            grace_period_valid_test_offer = await createOffer(generateTestOffer(
-                (new Date(Date.now())).toISOString(),
-                (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+            grace_period_valid_test_offer = await createOffer(generateTestOffer({
+                "publishDate": (new Date(Date.now())).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+            }
             ));
 
-            future_test_offer = await createOffer(generateTestOffer(
-                (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
-                (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString()
+            future_test_offer = await createOffer(generateTestOffer({
+                "publishDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString(),
+                "jobMinDuration": 4,
+                "jobMaxDuration": 5,
+            }
             ));
 
-            valid_test_offer_1 = await createOffer(generateTestOffer(
-                (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
-                (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString()
+            valid_test_offer_1 = await createOffer(generateTestOffer({
+                "publishDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString(),
+                "jobMinDuration": 4,
+                "jobMaxDuration": 5,
+            }
             ));
 
-            valid_test_offer_2 = await createOffer(generateTestOffer(
-                (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
-                (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString()
+            valid_test_offer_2 = await createOffer(generateTestOffer({
+                "publishDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString(),
+                "jobMinDuration": 4,
+                "jobMaxDuration": 5,
+            }
             ));
         });
 
@@ -1179,7 +1205,7 @@ describe("Offer endpoint tests", () => {
                     .post("/offers/edit/not-a-valid-id")
                     .send(withGodToken())
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
-
+                expect(res.body.errors[0]).toHaveProperty("param", "offerId");
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
             });
 
@@ -1189,18 +1215,18 @@ describe("Offer endpoint tests", () => {
                     .post(`/offers/edit/${_id}`)
                     .send(withGodToken())
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
-
+                expect(res.body.errors[0]).toHaveProperty("param", "offerId");
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OFFER_NOT_FOUND(_id));
             });
 
 
-            test("offer with grace period over", async () => {
-
+            test("should fail with expired offer", async () => {
                 const res = await test_agent
                     .post(`/offers/edit/${expired_test_offer._id.toString()}`)
                     .send(withGodToken())
                     .expect(HTTPStatus.FORBIDDEN);
-                expect(res.body).toHaveProperty("reason", ValidationReasons.OFFER_EDIT_PERIOD_OVER(expired_test_offer._id));
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_EXPIRED(expired_test_offer._id.toString()));
             });
 
             describe("should fail if offer with grace period over", () => {
@@ -1215,11 +1241,14 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test("should fail offer with grace period over", async () => {
+                    const expired_over_hours =
+                        ((new Date(Date.now())).getTime() - (new Date(grace_period_over_test_offer.createdAt)).getTime()) / HOUR_IN_MS;
                     const res = await test_agent
                         .post(`/offers/edit/${grace_period_over_test_offer._id.toString()}`)
                         .send(withGodToken())
                         .expect(HTTPStatus.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", ValidationReasons.OFFER_EDIT_PERIOD_OVER(grace_period_over_test_offer._id));
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_EDIT_PERIOD_OVER(expired_over_hours));
                 });
 
             });
@@ -1268,6 +1297,7 @@ describe("Offer endpoint tests", () => {
                                 .toISOString()
                         }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "publishDate");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
                 });
 
@@ -1280,6 +1310,7 @@ describe("Offer endpoint tests", () => {
                                 .toISOString()
                         }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("publishDate"));
                 });
 
@@ -1291,6 +1322,7 @@ describe("Offer endpoint tests", () => {
                             "publishDate": new Date(Date.now() + (2 * DAY_TO_MS)).toISOString(),
                         }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("publishDate"));
                 });
 
@@ -1324,6 +1356,7 @@ describe("Offer endpoint tests", () => {
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
                         .send(withGodToken({ "jobMinDuration": future_test_offer.jobMaxDuration + 1 }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "jobMinDuration");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_BEFORE("jobMaxDuration"));
                 });
                 test("should fail if maxDuration smaller than offer's minDuration", async () => {
@@ -1331,6 +1364,7 @@ describe("Offer endpoint tests", () => {
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
                         .send(withGodToken({ "jobMaxDuration": future_test_offer.jobMinDuration - 1 }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
                 });
                 test("should fail if invalid combination of jobDuration in request", async () => {
@@ -1341,6 +1375,7 @@ describe("Offer endpoint tests", () => {
                             "jobMinDuration": 12
                         }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
                 });
 
@@ -1349,6 +1384,7 @@ describe("Offer endpoint tests", () => {
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
                         .send(withGodToken({ "requirements": [] }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "requirements");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.TOO_SHORT(1));
                 });
 
@@ -1465,7 +1501,8 @@ describe("Offer endpoint tests", () => {
                     const res = await test_agent
                         .post(`/offers/edit/${future_test_offer._id}`)
                         .expect(HTTPStatus.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", ValidationReasons.NOT_OFFER_OWNER(future_test_offer._id));
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(future_test_offer._id));
                 });
 
             });

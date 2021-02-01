@@ -3,6 +3,7 @@ const config = require("../../config/env");
 const HTTPStatus = require("http-status-codes");
 const OfferService = require("../../services/offer");
 const ValidationReasons = require("./validators/validationReasons");
+const { buildErrorResponse } = require("./errorHandler");
 
 // Middleware to require login in an endpoint
 const authRequired = (req, res, next) => {
@@ -48,10 +49,8 @@ const isCompanyOrAdminOrGod = (req, res, next) => {
 
 const isAdmin = (req, res, next) => {
     if (!req.user?.isAdmin) {
-        return res.status(HTTPStatus.UNAUTHORIZED).json({
-            reason: "The user is not an admin",
-            error_code: ErrorTypes.FORBIDDEN,
-        });
+        return res.status(HTTPStatus.UNAUTHORIZED).json(
+            buildErrorResponse(ErrorTypes.FORBIDDEN, ["The user is not an admin"]));
     }
 
     return next();
@@ -67,22 +66,21 @@ const isAdminOrGod = (req, res, next) => {
 
 const isOfferOwner = (offerId) => async (req, res, next) => {
 
-    let offer;
     try {
-        offer = await (new OfferService()).getOfferById(offerId, req.user);
+        const offer = await (new OfferService()).getOfferById(offerId, req.user);
+
+        if (offer.owner.toString() !== req.user?.company?._id.toString() &&
+                req.body.god_token !== config.god_token &&
+                !req.user?.isAdmin) {
+            return res.status(HTTPStatus.FORBIDDEN).json(
+                buildErrorResponse(ErrorTypes.FORBIDDEN, [ValidationReasons.NOT_OFFER_OWNER(offerId)])
+            );
+        }
+        return next();
     } catch (err) {
         console.error(err);
         throw err;
     }
-    if (offer.owner.toString() !== req.user?.company?._id.toString() &&
-                req.body.god_token !== config.god_token &&
-                !req.user?.isAdmin) {
-        return res.status(HTTPStatus.FORBIDDEN).json({
-            reason: ValidationReasons.NOT_OFFER_OWNER(offerId),
-            error_code: ErrorTypes.FORBIDDEN,
-        });
-    }
-    return next();
 };
 
 module.exports = {

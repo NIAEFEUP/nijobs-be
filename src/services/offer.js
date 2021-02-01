@@ -78,29 +78,29 @@ class OfferService {
             coordinates,
             requirements,
         }) {
-
+        const edits = {
+            title,
+            publishDate,
+            publishEndDate,
+            jobMinDuration,
+            jobMaxDuration,
+            jobStartDate,
+            description,
+            contacts,
+            isPaid,
+            vacancies,
+            jobType,
+            fields,
+            technologies,
+            isHidden,
+            location,
+            coordinates,
+            requirements,
+        };
         const query = { _id };
         const offer = await Offer.findOneAndUpdate(
             query,
-            {
-                title,
-                publishDate,
-                publishEndDate,
-                jobMinDuration,
-                jobMaxDuration,
-                jobStartDate,
-                description,
-                contacts,
-                isPaid,
-                vacancies,
-                jobType,
-                fields,
-                technologies,
-                isHidden,
-                location,
-                coordinates,
-                requirements,
-            },
+            edits,
             { new: true, omitUndefined: true },
             (err) => {
                 if (err) {

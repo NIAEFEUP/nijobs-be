@@ -1,6 +1,6 @@
 const { body, query, param } = require("express-validator");
 
-const { useExpressValidators } = require("../errorHandler");
+const { useExpressValidators, buildErrorResponse } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
 const { valuesInSet, ensureArray } = require("./validatorUtils");
 const JobTypes = require("../../../models/constants/JobTypes");
@@ -13,7 +13,12 @@ const { isObjectId } = require("../validators/validatorUtils");
 const Offer = require("../../../models/Offer");
 const { ErrorTypes } = require("../errorHandler");
 const HTTPStatus = require("http-status-codes");
-const { HOUR_IN_MS, OFFER_EDIT_GRACE_PERIOD_HOURS } = require("../../../models/constants/TimeConstants");
+const {
+    HOUR_IN_MS,
+    OFFER_EDIT_GRACE_PERIOD_HOURS,
+    OFFER_MAX_LIFETIME_MONTHS,
+    MONTH_IN_MS
+} = require("../../../models/constants/TimeConstants");
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
@@ -32,7 +37,6 @@ const create = useExpressValidators([
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
         .custom((publishEndDateCandidate, { req }) => {
             const { publishDate: publishDateCandidate } = req.body;
-            // publishDateRaw will be a Date instance because it's sanitized on the publishDateValidator
             // Default values and also handling if it is string or date object
             const publishDate = publishDateCandidate || (new Date(Date.now())).toISOString();
 
@@ -143,7 +147,7 @@ const jobMinDurationEditable = async (jobMinDurationCandidate, { req }) => {
 
         const { jobMaxDuration: jobMaxDurationCandidate } = req.body;
 
-        // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
+        // If the new publishMinDuration is after the new publishMaxDuration, the verification will be done in publishMaxDurationEditable
         if (jobMinDurationCandidate >= offer.jobMaxDuration.toString() &&
             !jobMaxDurationCandidate) {
 
@@ -164,10 +168,8 @@ const jobMaxDurationEditable = async (jobMaxDurationCandidate, { req }) => {
         const { jobMinDuration: jobMinDurationCandidate } = req.body;
 
         const jobMinDuration = jobMinDurationCandidate || offer.jobMinDuration.toString();
-        // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
         if (jobMinDuration >= jobMaxDurationCandidate) {
 
-            // end date is earlier than publish date, error!
             throw new Error(ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
         }
     } catch (err) {
@@ -217,9 +219,15 @@ const publishEndDateEditable = async (publishEndDateCandidate, { req }) => {
         }
         publishDate = publishDate || offer.publishDate.toISOString();
 
-        // If the new publishEndDate is after the new publishDate, this verification is already done in publishDate
         if (publishEndDateCandidate <= publishDate) {
             throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
+        } else {
+            const timeDiffMonths =
+                ((new Date(publishEndDateCandidate)).getTime() - (new Date(publishDateCandidate)).getTime()) / MONTH_IN_MS;
+            if (timeDiffMonths > OFFER_MAX_LIFETIME_MONTHS) {
+                // Eventually throw a customized error here that defines the limit of 6 months
+                throw new Error();
+            }
         }
     } catch (err) {
         console.error(err);
@@ -345,13 +353,12 @@ const isEditable = async (req, res, next) => {
     const timeDiff = currentDate - offer.createdAt;
     const diffInHours = timeDiff / HOUR_IN_MS;
 
-    // Should implement here grace period verification instead of true
-    if (offer.publishEndDate.toISOString() <= currentDate.toISOString() ||
-        (offer.publishDate.toISOString() <= currentDate.toISOString() && diffInHours > OFFER_EDIT_GRACE_PERIOD_HOURS)) {
-        return res.status(HTTPStatus.FORBIDDEN).json({
-            reason: ValidationReasons.OFFER_EDIT_PERIOD_OVER(req.params.offerId),
-            error_code: ErrorTypes.FORBIDDEN,
-        });
+    if (offer.publishEndDate.toISOString() <= currentDate.toISOString()) {
+        return res.status(HTTPStatus.FORBIDDEN).json(
+            buildErrorResponse(ErrorTypes.FORBIDDEN, [ValidationReasons.OFFER_EXPIRED(req.params.offerId)]));
+    } else if (offer.publishDate.toISOString() <= currentDate.toISOString() && diffInHours > OFFER_EDIT_GRACE_PERIOD_HOURS) {
+        return res.status(HTTPStatus.FORBIDDEN).json(
+            buildErrorResponse(ErrorTypes.FORBIDDEN, [ValidationReasons.OFFER_EDIT_PERIOD_OVER(diffInHours)]));
     }
 
     return next();
