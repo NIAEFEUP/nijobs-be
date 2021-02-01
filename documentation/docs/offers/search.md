@@ -5,79 +5,63 @@ sidebar_label: Search Offers
 slug: /offers/search
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
-# Search Offers
+import  "./search.module.css";
 
-Route description
+import Highlight from "../../src/highlight.js"
+
+## Details 
+
+This endpoint returns offers based on search criteria. It allows for _Full-Text Search_ as well as results filtering. Perfect for a search component!
 
 **URL** : `/offer/search`
 
-**Method** : `GET`
+**Method** : <Highlight level="info" variant="darker">GET</Highlight>
 
-**Auth required** : MIXED - Auth is required to get hidden Offers. Only Admins or owners of hidden Offers will see them if `showHidden` is set to `true`
+:::caution Authentication
+Auth is required to get hidden Offers. Only Admins or owners of hidden Offers will see them if `showHidden` is set to `true`
+:::
 
-**Data Rules**
+## Parameters 
 
-* **Query**
-
-> These fields go in after the URL e.g. `api/?field1=foo&field2=bar`
-
-value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY
-
-* showHidden: 
-    * Optional
-    * Boolean
-    * If active, will also return hidden offers, only for admin or offer owner
-* limit:
-    * Optional
-    * Number
-    * Default: 20
-    * Limits the number of results returned
-* offset:
-    * Optional
-    * Number
-    * Default: 0
-    * Specifies offset where to start returning results (often used with limit to have pagination)
-* value:
-    * Optional
-    * String
-    * Default: ""
-    * Full-Text-Search query
-* jobType:
-    * Optional
-    * String
-    * Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "OTHER"]`)
-    * Filters the search results to only include ones of given type
-* jobMinDuration:
-    * Optional
-    * Number
-    * Filters the search results to only include Offers with a `jobMinDuration` greater than given value
-* jobMaxDuration:
-    * Optional
-    * Number
-    * Filters the search results to only include Offers with a `jobMaxDuration` lesser than given value
-* fields:
-    * Optional
-    * String (Will be an array if passed multiple times, check example below)
-    * Must be a valid Field Type (currently `["BACKEND", "FRONTEND", "DEVOPS", "BLOCKCHAIN", "MACHINE LEARNING", "OTHER"]`)
-    * Filters the search results to only include Offers with at least one of `fields` being one of given values
-* technologies :
-    * Optional
-    * String (Will be an array if passed multiple times, check example below)
-    * Must be a valid Field Type (currently `["React","Angular","Vue","Node.js","Java","C++","C","C#","Clojure","Go","Haskell","Spring Boot","Android","Flutter","Dart","PHP","CSS","Other"]`)
-    * Filters the search results to only include Offers with at least one of `technologies` being one of given values
+Parameter | Type  | Rules
+---------- | ------------------------ | ----
+showHidden | query | <ul><li>Optional</li><li>Boolean</li><li>If active, will also return hidden offers, only for admin or offer owner</li></ul> 
+limit | query | <ul><li>Optional</li><li>Number</li><li>Default: 20</li><li>Limits the number of results returned </li></ul>
+offset | query |<ul><li>Optional</li><li>Number</li><li>Default: 0</li><li>Specifies offset where to start returning results (often used with limit to have pagination)</li></ul>
+value | query |<ul><li>Optional</li><li>String</li><li>Default: ""</li><li>Full-Text-Search query</li></ul>
+jobType | query |<ul><li>Optional</li><li>String</li><li>Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "OTHER"]`)</li><li>Filters the search results to only include ones of given type</li></ul>
+jobMinDuration | query |<ul><li>Optional</li><li>Number</li><li>Filters the search results to only include Offers with a `jobMinDuration` greater than given value</li></ul>
+jobMaxDuration | query |<ul><li>Optional</li><li>Number</li><li>Filters the search results to only include Offers with a `jobMaxDuration` lesser than given value</li></ul>
+fields | query |<ul><li>Optional</li><li>String (Will be an array if passed multiple times, check example below)</li><li>Must be a valid Field Type (currently `["BACKEND", "FRONTEND", "DEVOPS", "BLOCKCHAIN", "MACHINE LEARNING", "OTHER"]`)</li><li>Filters the search results to only include Offers with at least one of `fields` being one of given values</li></ul>
+technologies  | query |<ul><li>Optional</li><li>String (Will be an array if passed multiple times, check example below)</li><li>Must be a valid Field Type (currently `["React","Angular","Vue","Node.js","Java","C++","C","C#","Clojure","Go","Haskell","Spring Boot","Android","Flutter","Dart","PHP","CSS","Other"]`)</li><li>Filters the search results to only include Offers with at least one of `technologies` being one of given values</li></ul>
 
 
-**Request examples**
+## Request examples
 
-> If using query or URL params, specifiy the full URL, like so 
-`/offers/?value=testcompany%20frontend&technologies=React&technologies=Node.js`
+### Example 1 - Valid Request
 
-## Success Response
+**Code** : <Highlight level="success" variant="darker">200 OK</Highlight>
 
-**Code** : `200 OK`
+<Tabs
+    defaultValue="request"
+    values={[
+        {label: 'Request', value: 'request'},
+        {label: 'Response', value: 'response'},
+    ]}
+>
+  
+<TabItem value="request">
 
-**Content example**
+```bash
+/offers/?value=testcompany%20frontend&technologies=React&technologies=Node.js
+```
+
+</TabItem>
+
+<TabItem value="response">
 
 ```json
 [
@@ -135,13 +119,32 @@ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY
 ]
 ```
 
-## Error Response
+</TabItem>
+</Tabs>
+
+### Example 2 - Invalid job type
 
 **Condition** : If jobType contains an invalid value (e.g. `jobType=fas`)
 
-**Code** : `422 UNPROCESSABLE ENTITY`
+**Code** : <Highlight level="danger" variant="darker">422 UNPROCESSABLE ENTITY</Highlight>
 
-**Content** :
+<Tabs
+    defaultValue="request"
+    values={[
+        {label: 'Request', value: 'request'},
+        {label: 'Response', value: 'response'},
+    ]}
+>
+  
+<TabItem value="request">
+
+```bash
+/offers/?jobType=fas
+```
+
+</TabItem>
+
+<TabItem value="response">
 
 ```json
 {
@@ -157,11 +160,32 @@ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY
 }
 ```
 
+</TabItem>
+</Tabs>
+
+### Example 3 - Invalid fields
+
 **Condition** : If fields contains an invalid value (e.g. `fields=fas`)
 
-**Code** : `422 UNPROCESSABLE ENTITY`
+**Code** : <Highlight level="danger" variant="darker">422 UNPROCESSABLE ENTITY</Highlight>
 
-**Content** :
+<Tabs
+    defaultValue="request"
+    values={[
+        {label: 'Request', value: 'request'},
+        {label: 'Response', value: 'response'},
+    ]}
+>
+  
+<TabItem value="request">
+
+```bash
+/offers/?fields=fas
+```
+
+</TabItem>
+
+<TabItem value="response">
 
 ```json
 {
@@ -179,11 +203,32 @@ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY
 }
 ```
 
+</TabItem>
+</Tabs>
+
+### Example 4 - Invalid technologies
+
 **Condition** : If technologies contains an invalid value (e.g. `technologies=fas`)
 
-**Code** : `422 UNPROCESSABLE ENTITY`
+**Code** : <Highlight level="danger" variant="darker">422 UNPROCESSABLE ENTITY</Highlight>
 
-**Content** :
+<Tabs
+    defaultValue="request"
+    values={[
+        {label: 'Request', value: 'request'},
+        {label: 'Response', value: 'response'},
+    ]}
+>
+  
+<TabItem value="request">
+
+```bash
+/offers/?technologies=fas
+```
+
+</TabItem>
+
+<TabItem value="response">
 
 ```json
 {
@@ -201,11 +246,32 @@ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY
 }
 ```
 
+</TabItem>
+</Tabs>
+
+### Example 5 - Invalid numeric fields
+
 **Condition** : If given a non-int to any of the numeric fields
 
-**Code** : `422 UNPROCESSABLE ENTITY`
+**Code** : <Highlight level="danger" variant="darker">422 UNPROCESSABLE ENTITY</Highlight>
 
-**Content** :
+<Tabs
+    defaultValue="request"
+    values={[
+        {label: 'Request', value: 'request'},
+        {label: 'Response', value: 'response'},
+    ]}
+>
+  
+<TabItem value="request">
+
+```bash
+/offers/?limit=fas
+```
+
+</TabItem>
+
+<TabItem value="response">
 
 ```json
 {
@@ -220,3 +286,6 @@ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY
     ]
 }
 ```
+
+</TabItem>
+</Tabs>

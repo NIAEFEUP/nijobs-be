@@ -1,0 +1,4 @@
+/* Allow field rules to take a bit more space and not overflow */
+table td:nth-child(3) {
+    max-width: 500px;
+}
