@@ -1,8 +1,10 @@
 let URL;
-if (process.env.TARGET === "master") {
-    URL = `https://${process.env.GITHUB_SHA || ""}--nijobs-docs.netlify.app`;
+if (process.env.PREVIEW_MODE) {
+    URL = `https://${process.env.BUILD_ID || ""}--nijobs-docs.netlify.app`;
+} else if (process.env.TARGET === "master") {
+    URL = "https://nijobs-docs.netlify.app";
 } else {
-    URL = `https://${process.env.GITHUB_SHA || ""}--nijobs-docs-develop.netlify.app`;
+    URL = "https://develop--nijobs-docs.netlify.app";
 }
 
 module.exports = {
