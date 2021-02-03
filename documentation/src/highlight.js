@@ -1,13 +1,22 @@
 import React from "react"
 
-export default ({children, level, variant}) => (
-    <span
+export default ({children, level = "secondary", inline = false}) => (
+    <div style={{
+        paddingBottom: "12px",
+        paddingRight: inline ? "12px": "initial",
+        display: inline ? "inline-block" : "block",
+        }}>
+    <div
       style={{
-        backgroundColor: `var(--ifm-color-${level}${variant ? `-${variant}` : ""})`,
         borderRadius: '5px',
-        color: '#fff',
+        backgroundColor : "var(--ifm-alert-background-color)",
+        borderColor: "var(--ifm-alert-border-color)",
+        color: "var(--ifm-alert-color)",
         padding: '0.3rem',
-      }}>
+        display: "inline-block",
+      }}
+      className={`alert--${level}`}>
       {children}
-    </span>
+    </div>
+    </div>
   );

@@ -16,15 +16,48 @@ tertiary: {
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: rgb(220, 79, 71);
-  --ifm-color-primary-dark: rgb(212, 65, 57);
-  --ifm-color-primary-darker: rgb(197, 51, 43);
-  --ifm-color-primary-darkest: rgb(167, 61, 56);
-  --ifm-color-primary-light: rgb(216, 90, 83);
-  --ifm-color-primary-lighter: rgb(233, 101, 94);
-  --ifm-color-primary-lightest:rgb(216, 148, 144);
-  --ifm-code-font-size: 95%;
-  --collapse-button-bg-color-dark: red;
+    --ifm-color-primary: rgb(220, 79, 71);
+    --ifm-color-primary-dark: rgb(212, 65, 57);
+    --ifm-color-primary-darker: rgb(197, 51, 43);
+    --ifm-color-primary-darkest: rgb(167, 61, 56);
+    --ifm-color-primary-light: rgb(216, 90, 83);
+    --ifm-color-primary-lighter: rgb(233, 101, 94);
+    --ifm-color-primary-lightest:rgb(216, 148, 144);
+    --ifm-code-font-size: 95%;
+    --collapse-button-bg-color-dark: red;
+
+
+    --ifm-color-success: #008b00;
+    --ifm-color-success-dark: #007d00;
+    --ifm-color-success-darker: #007600;
+    --ifm-color-success-darkest: #006100;
+    --ifm-color-success-light: #009900;
+    --ifm-color-success-lighter: #00a000;
+    --ifm-color-success-lightest: #00b500;
+
+    --ifm-color-info: #47a9c9;
+    --ifm-color-info-dark: #389cbd;
+    --ifm-color-info-darker: #3494b3;
+    --ifm-color-info-darkest: #2b7a93;
+    --ifm-color-info-light: #5cb3cf;
+    --ifm-color-info-lighter: #67b8d2;
+    --ifm-color-info-lightest: #86c6dc;
+
+    --ifm-color-warning: #d99e00;
+    --ifm-color-warning-dark: #c38e00;
+    --ifm-color-warning-darker: #b88600;
+    --ifm-color-warning-darkest: #986f00;
+    --ifm-color-warning-light: #efae00;
+    --ifm-color-warning-lighter: #fab600;
+    --ifm-color-warning-lightest: #ffc11b;
+
+    --ifm-color-danger: #d53035;
+    --ifm-color-danger-dark: #c3282c;
+    --ifm-color-danger-darker: #b8252a;
+    --ifm-color-danger-darkest: #981f22;
+    --ifm-color-danger-light: #d9464a;
+    --ifm-color-danger-lighter: #dc5155;
+    --ifm-color-danger-lightest: #e27175;
 }
 
 /* Navbar is set to dark mode always */

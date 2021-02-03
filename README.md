@@ -17,7 +17,7 @@ A platform for companies to advertise their job opportunities to the students.
 API Documentation is available for the main branch and for dev as well.
 
 * Main: https://nijobs-docs.netlify.app/
-* Dev: https://nijobs-docs-develop.netlify.app
+* Dev: https://develop--nijobs-docs.netlify.app
 
 Made with ❤️ by NIAEFEUP.
 

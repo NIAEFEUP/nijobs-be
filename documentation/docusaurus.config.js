@@ -19,7 +19,7 @@ module.exports = {
     projectName: "nijobs-be", // Usually your repo name.
     themeConfig: {
         navbar: {
-            title: "NIJobs API",
+            title: `NIJobs API ${process.env.TARGET !== "master" ? "- DEV" : ""}`,
             logo: {
                 alt: "NIJobs Logo",
                 src: "img/logo_2018.svg",
