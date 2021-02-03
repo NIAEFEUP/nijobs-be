@@ -18,7 +18,7 @@ This endpoint returns offers based on search criteria. It allows for _Full-Text 
 
 **URL** : `/offer/search`
 
-**Method** : <Highlight level="info" variant="darker">GET</Highlight>
+**Method** : <Highlight level="info" inline>GET</Highlight>
 
 :::caution Authentication
 Auth is required to get hidden Offers. Only Admins or owners of hidden Offers will see them if `showHidden` is set to `true`
@@ -26,24 +26,109 @@ Auth is required to get hidden Offers. Only Admins or owners of hidden Offers wi
 
 ## Parameters 
 
-Parameter | Type  | Rules
----------- | ------------------------ | ----
-showHidden | query | <ul><li>Optional</li><li>Boolean</li><li>If active, will also return hidden offers, only for admin or offer owner</li></ul> 
-limit | query | <ul><li>Optional</li><li>Number</li><li>Default: 20</li><li>Limits the number of results returned </li></ul>
-offset | query |<ul><li>Optional</li><li>Number</li><li>Default: 0</li><li>Specifies offset where to start returning results (often used with limit to have pagination)</li></ul>
-value | query |<ul><li>Optional</li><li>String</li><li>Default: ""</li><li>Full-Text-Search query</li></ul>
-jobType | query |<ul><li>Optional</li><li>String</li><li>Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "OTHER"]`)</li><li>Filters the search results to only include ones of given type</li></ul>
-jobMinDuration | query |<ul><li>Optional</li><li>Number</li><li>Filters the search results to only include Offers with a `jobMinDuration` greater than given value</li></ul>
-jobMaxDuration | query |<ul><li>Optional</li><li>Number</li><li>Filters the search results to only include Offers with a `jobMaxDuration` lesser than given value</li></ul>
-fields | query |<ul><li>Optional</li><li>String (Will be an array if passed multiple times, check example below)</li><li>Must be a valid Field Type (currently `["BACKEND", "FRONTEND", "DEVOPS", "BLOCKCHAIN", "MACHINE LEARNING", "OTHER"]`)</li><li>Filters the search results to only include Offers with at least one of `fields` being one of given values</li></ul>
-technologies  | query |<ul><li>Optional</li><li>String (Will be an array if passed multiple times, check example below)</li><li>Must be a valid Field Type (currently `["React","Angular","Vue","Node.js","Java","C++","C","C#","Clojure","Go","Haskell","Spring Boot","Android","Flutter","Dart","PHP","CSS","Other"]`)</li><li>Filters the search results to only include Offers with at least one of `technologies` being one of given values</li></ul>
+### showHidden <Highlight level="info" inline>Query Parameter</Highlight>
+
+<Highlight level="success">Optional</Highlight>
+
+<Highlight level="secondary">Boolean</Highlight>
+
+If active, will also return hidden offers, only for admin or offer owner 
+
+### limit <Highlight level="info" inline>Query Parameter</Highlight>
+
+<Highlight level="success" inline>Optional</Highlight> 
+<Highlight level="warning" inline>Default: 20</Highlight>
+
+<Highlight level="secondary">Number</Highlight>
+
+Limits the number of results returned
+
+### offset <Highlight level="info" inline>Query Parameter</Highlight>
+
+<Highlight level="success" inline>Optional</Highlight> 
+<Highlight level="warning" inline>Default: 0</Highlight>
+
+<Highlight level="secondary">Number</Highlight>
+
+Specifies offset where to start returning results (often used with [limit](#limit-query-parameter) to have pagination)
+
+### value <Highlight level="info" inline>Query Parameter</Highlight>
+
+<Highlight level="success" inline>Optional</Highlight> 
+<Highlight level="warning" inline>Default: ""</Highlight>
+
+<Highlight level="secondary">String</Highlight>
+
+Full-Text-Search query
+
+### jobType <Highlight level="info" inline>Query Parameter</Highlight>
+
+<Highlight level="success">Optional</Highlight> 
+
+<Highlight level="secondary">String</Highlight>
+
+Filters the search results to only include ones of given type
+
+:::caution
+Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "OTHER"]`)
+:::
+
+### jobMinDuration <Highlight level="info" inline>Query Parameter</Highlight>
+
+<Highlight level="success">Optional</Highlight> 
+
+<Highlight level="secondary">Number</Highlight>
+
+Filters the search results to only include Offers with a `jobMinDuration` greater than given value
+
+### jobMaxDuration <Highlight level="info" inline>Query Parameter</Highlight>
+
+<Highlight level="success">Optional</Highlight> 
+
+<Highlight level="secondary">Number</Highlight>
+
+Filters the search results to only include Offers with a `jobMinDuration` lower than given value
+
+### fields <Highlight level="info" inline>Query Parameter</Highlight>
+
+<Highlight level="success">Optional</Highlight> 
+
+<Highlight level="secondary" inline>String</Highlight>
+<Highlight level="secondary" inline>Array</Highlight>
+
+Filters the search results to only include Offers with at least one of `fields` being one of given values
+
+:::caution
+Must be a valid Field Type (currently `["BACKEND", "FRONTEND", "DEVOPS", "BLOCKCHAIN", "MACHINE LEARNING", "OTHER"]`)
+:::
+
+:::info
+If you pass multiple values like: `<url>/?fields=field1&fields=field2` it will be parsed as a String array 
+:::
+
+### technologies <Highlight level="info" inline>Query Parameter</Highlight>
+
+<Highlight level="success">Optional</Highlight> 
+
+<Highlight level="secondary" inline>String</Highlight>
+<Highlight level="secondary" inline>Array</Highlight>
+
+Filters the search results to only include Offers with at least one of `technologies` being one of given values
+
+:::caution
+Must be a valid Technology Type (currently `["React","Angular","Vue","Node.js","Java","C++","C","C#","Clojure","Go","Haskell","Spring Boot","Android","Flutter","Dart","PHP","CSS","Other"]`):::
+:::
+
+:::info
+If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2` it will be parsed as a String array 
+:::
 
 
 ## Request examples
 
 ### Example 1 - Valid Request
 
-**Code** : <Highlight level="success" variant="darker">200 OK</Highlight>
+**Code** : <Highlight level="success" inline>200 OK</Highlight>
 
 <Tabs
     defaultValue="request"
@@ -126,7 +211,7 @@ technologies  | query |<ul><li>Optional</li><li>String (Will be an array if pass
 
 **Condition** : If jobType contains an invalid value (e.g. `jobType=fas`)
 
-**Code** : <Highlight level="danger" variant="darker">422 UNPROCESSABLE ENTITY</Highlight>
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
     defaultValue="request"
@@ -167,7 +252,7 @@ technologies  | query |<ul><li>Optional</li><li>String (Will be an array if pass
 
 **Condition** : If fields contains an invalid value (e.g. `fields=fas`)
 
-**Code** : <Highlight level="danger" variant="darker">422 UNPROCESSABLE ENTITY</Highlight>
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
     defaultValue="request"
@@ -210,7 +295,7 @@ technologies  | query |<ul><li>Optional</li><li>String (Will be an array if pass
 
 **Condition** : If technologies contains an invalid value (e.g. `technologies=fas`)
 
-**Code** : <Highlight level="danger" variant="darker">422 UNPROCESSABLE ENTITY</Highlight>
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
     defaultValue="request"
@@ -253,7 +338,7 @@ technologies  | query |<ul><li>Optional</li><li>String (Will be an array if pass
 
 **Condition** : If given a non-int to any of the numeric fields
 
-**Code** : <Highlight level="danger" variant="darker">422 UNPROCESSABLE ENTITY</Highlight>
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
     defaultValue="request"
