@@ -23,8 +23,9 @@ module.exports = (app) => {
             try {
                 const companyService = new CompanyService();
                 const { bio, contacts } = req.body;
+                const logo = `static/uploads/${req.file.filename}`;
                 const company_id = req.user.company;
-                await companyService.changeAttributes(company_id, { bio, contacts, finished: true });
+                await companyService.changeAttributes(company_id, { bio, contacts, logo, finished: true });
                 return res.json({});
             } catch (err) {
                 return next(err);

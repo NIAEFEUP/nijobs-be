@@ -22,6 +22,9 @@ const CompanySchema = new Schema({
     finished: {
         type: Boolean,
         default: false
+    },
+    logo: {
+        type: String,
     }
 });
 
