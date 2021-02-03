@@ -1,9 +1,9 @@
 import React from "react"
 
-export default ({children, level = "secondary", inline = false}) => (
+export default ({children, level = "secondary", inline = false, noPadding = false}) => (
     <div style={{
         paddingBottom: "12px",
-        paddingRight: inline ? "12px": "initial",
+        paddingRight: inline && !noPadding ? "12px": "initial",
         display: inline ? "inline-block" : "block",
         }}>
     <div
