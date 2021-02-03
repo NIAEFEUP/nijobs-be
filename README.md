@@ -131,8 +131,6 @@ This project uses [`Node.js`](https://nodejs.org/en/) with [`Express.js`](https:
 
 Testing is done using [`Jest`](https://jestjs.io/) and [`Supertest`](https://github.com/visionmedia/supertest).
 
-Current API documentation is available in [documentation](documentation/README.md).
-
 ### Project Concepts Map
 
 ![Project Concepts Map](https://imgur.com/HVXk1Jg.png)
