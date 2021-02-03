@@ -46,6 +46,7 @@
     "nodemailer-express-handlebars": "^4.0.0",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
-    "rate-limit-mongo": "^2.1.0"
+    "rate-limit-mongo": "^2.1.0",
+    "uuid": "^8.3.2"
   }
 }

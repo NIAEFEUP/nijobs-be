@@ -1,6 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const env = require("./env");
+const { v4: uuidv4 } = require("uuid");
 
 let storage;
 
@@ -9,7 +10,7 @@ storage = multer.diskStorage({
     destination: path.join(__dirname, "../../public/uploads"),
     filename: (req, file, cb) => {
         const extension = file.mimetype.substr(file.mimetype.indexOf("/") + 1);
-        const full_name = `logo-${req.user.company}.${extension}`;
+        const full_name = `${uuidv4()}.${extension}`;
         cb(null, full_name);
     },
 });
