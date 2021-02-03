@@ -40,7 +40,7 @@ module.exports = {
                     items: [
                         {
                             label: "How to use",
-                            to: "docs/intro/how-to-docs",
+                            to: "intro/how-to-docs",
                         },
                         {
                             label: "Docussaurus",
