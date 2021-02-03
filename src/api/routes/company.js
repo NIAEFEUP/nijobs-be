@@ -6,7 +6,7 @@ const CompanyService = require("../../services/company");
 
 const router = Router();
 
-const upload  = require("../../config/multer");
+const upload  = require("../middleware/multer");
 
 module.exports = (app) => {
     app.use("/company", router);

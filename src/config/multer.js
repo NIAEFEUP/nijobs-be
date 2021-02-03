@@ -21,7 +21,7 @@ const fileFilter = (req, file, cb) => {
     if (mimeType) {
         cb(null, true);
     } else {
-        cb("Only allowed types are png, jpeg and jpg");
+        cb(new Error("formats-supported-png-jpeg-jpg"));
     }
 };
 module.exports = multer({ storage, limits, fileFilter });
