@@ -1,12 +1,13 @@
 const { Router } = require("express");
 
 const validators = require("../middleware/validators/company");
-const authMiddleware = require("../middleware/auth");
+const companyMiddleware = require("../middleware/company");
 const CompanyService = require("../../services/company");
 
 const router = Router();
 
-const upload  = require("../middleware/multer");
+const fileMiddleware  = require("../middleware/files");
+const { authRequired } = require("../middleware/auth");
 
 module.exports = (app) => {
     app.use("/company", router);
@@ -15,9 +16,11 @@ module.exports = (app) => {
      * Creates a new Company Application
      */
     router.post("/finish",
-        authMiddleware.isCompany,
-        upload.single("logo"),
+        authRequired,
+        companyMiddleware.isCompanyRep,
+        fileMiddleware.single("logo"),
         validators.finish,
+        fileMiddleware.save,
         async (req, res, next) => {
 
             try {
