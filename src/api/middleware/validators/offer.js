@@ -11,11 +11,14 @@ const OfferConstants = require("../../../models/constants/Offer");
 const Company = require("../../../models/Company");
 const { isObjectId } = require("../validators/validatorUtils");
 const Offer = require("../../../models/Offer");
+const { validatePublishEndDateLimit } = require("../../../models/Offer");
 const { ErrorTypes } = require("../errorHandler");
 const HTTPStatus = require("http-status-codes");
 const {
     HOUR_IN_MS,
     OFFER_EDIT_GRACE_PERIOD_HOURS,
+    MONTH_IN_MS,
+    OFFER_MAX_LIFETIME_MONTHS
 } = require("../../../models/constants/TimeConstants");
 
 const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
@@ -38,6 +41,33 @@ const jobMaxDurationGreaterOrEqualThanJobMinDuration = (jobMaxDuration, { req })
     return true;
 };
 
+const publishEndDateAfterPublishDate = (publishEndDateCandidate, { req }) => {
+    const { publishDate: publishDateCandidate } = req.body;
+    // Default values and also handling if it is string or date object
+    const publishDate = publishDateCandidate || (new Date(Date.now())).toISOString();
+
+    if (publishEndDateCandidate <= publishDate) {
+        // end date is earlier than publish date, error!
+        throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
+    }
+
+    // Returning truthy value to indicate no error ocurred
+    return true;
+};
+
+const publishEndDateLimit = (publishEndDateCandidate, { req }) => {
+    const { publishDate: publishDateCandidate } = req.body;
+    // Default values and also handling if it is string or date object
+    const publishDate = publishDateCandidate || (new Date(Date.now()));
+    if (!validatePublishEndDateLimit(new Date(Date.parse(publishDate)), new Date(Date.parse(publishEndDateCandidate)))) {
+        const maxPublishEndDate = new Date(Date.parse(publishDate) + (MONTH_IN_MS * OFFER_MAX_LIFETIME_MONTHS)).toISOString();
+        throw new Error(ValidationReasons.MUST_BE_BEFORE(maxPublishEndDate));
+    }
+
+    // Returning truthy value to indicate no error ocurred
+    return true;
+};
+
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
@@ -53,19 +83,8 @@ const create = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
-        .custom((publishEndDateCandidate, { req }) => {
-            const { publishDate: publishDateCandidate } = req.body;
-            // Default values and also handling if it is string or date object
-            const publishDate = publishDateCandidate || (new Date(Date.now())).toISOString();
-
-            if (publishEndDateCandidate <= publishDate) {
-                // end date is earlier than publish date, error!
-                throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
-            }
-
-            // Returning truthy value to indicate no error ocurred
-            return true;
-        }),
+        .custom(publishEndDateAfterPublishDate)
+        .custom(publishEndDateLimit),
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
         .optional()
@@ -211,7 +230,7 @@ const publishDateEditable = async (publishDateCandidate, { req }) => {
 
         // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
         if (publishDateCandidate >= offer.publishEndDate.toISOString() &&
-                !publishEndDateCandidate) {
+            !publishEndDateCandidate) {
 
             // end date is earlier than publish date, error!
             throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
@@ -289,7 +308,8 @@ const edit = useExpressValidators([
         .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
-        .custom(publishEndDateEditable),
+        .custom(publishEndDateEditable)
+        .custom(publishEndDateLimit),
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
         .optional()

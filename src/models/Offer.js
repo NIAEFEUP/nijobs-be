@@ -107,8 +107,13 @@ function validatePublishDate(value) {
 }
 
 function validateEndDate(value) {
+    return validatePublishEndDateLimit(this.publishDate, value);
+}
+
+function validatePublishEndDateLimit(publishDate, publishEndDate) {
+
     // Milisseconds from publish date to end date (Offer is no longer valid)
-    const timeDiff = value.getTime() - this.publishDate.getTime();
+    const timeDiff = publishEndDate.getTime() - publishDate.getTime();
     const diffInMonths = timeDiff / MONTH_IN_MS;
 
     return diffInMonths <= OFFER_MAX_LIFETIME_MONTHS;
@@ -150,3 +155,4 @@ const Offer = mongoose.model("Offer", OfferSchema);
 // console.log("DBG: ", OfferSchema.path("location"));
 
 module.exports = Offer;
+module.exports.validatePublishEndDateLimit = validatePublishEndDateLimit;
