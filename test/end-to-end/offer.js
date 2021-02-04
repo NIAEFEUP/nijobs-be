@@ -13,7 +13,6 @@ const Account = require("../../src/models/Account");
 const Company = require("../../src/models/Company");
 const hash = require("../../src/lib/passwordHashing");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
-const APIErrorTypes = require("../../src/api/APIErrorTypes");
 const { Types } = require("mongoose");
 const CompanyConstants = require("../../src/models/constants/Company");
 const { OFFER_EDIT_GRACE_PERIOD_HOURS, HOUR_IN_MS  } = require("../../src/models/constants/TimeConstants");
@@ -74,7 +73,7 @@ describe("Offer endpoint tests", () => {
 
         describe("Authentication", () => {
 
-            describe("creating offers requires company account (without god token)", () => {
+            describe("creating offers requires company account or admin account (without god token)", () => {
                 test("should fail if not logged in", async () => {
                     const res = await request()
                         .post("/offers/new")
@@ -85,20 +84,23 @@ describe("Offer endpoint tests", () => {
                     expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
                 });
 
-                test("should fail if logged to non-company account", async () => {
+                test("should succeed if logged to admin account", async () => {
                     // Login
                     await test_agent
                         .post("/auth/login")
                         .send(test_user_admin)
                         .expect(200);
 
+                    const params = { owner: test_company._id };
+                    const offer = generateTestOffer(params);
                     const res = await test_agent
                         .post("/offers/new")
-                        .send(generateTestOffer());
+                        .send(offer);
 
-                    expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("title", offer.title);
+                    expect(res.body).toHaveProperty("description", offer.description);
+                    expect(res.body).toHaveProperty("location", offer.location);
                 });
 
                 test("should create offer if logged in to company account", async () => {
@@ -1038,7 +1040,7 @@ describe("Offer endpoint tests", () => {
                 const res = await request()
                     .get(`/offers/${id}`);
                 expect(res.status).toBe(HTTPStatus.NOT_FOUND);
-                expect(res.body).toHaveProperty("reason", APIErrorTypes.OFFER_NOT_FOUND(id));
+                expect(res.body).toHaveProperty("reason", ValidationReasons.OFFER_NOT_FOUND(id));
             });
         });
 

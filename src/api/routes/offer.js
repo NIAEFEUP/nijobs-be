@@ -55,7 +55,7 @@ module.exports = (app) => {
      * Creates a new Offer
      */
     router.post("/new",
-        authMiddleware.isCompanyOrGod,
+        authMiddleware.isCompanyOrAdminOrGod,
         validators.create,
         companyMiddleware.verifyMaxConcurrentOffers,
         validators.offersDateSanitizers,
