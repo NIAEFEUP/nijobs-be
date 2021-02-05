@@ -1,6 +1,7 @@
 const ValidationReasons = Object.freeze({
     DEFAULT: "invalid",
     REQUIRED: "required",
+    INSUFFICIENT_PERMISSIONS: "Insufficient Permissions",
     MIN: (val) => `must-be-greater-than-${val}`,
     MAX: (val) => `must-be-lower-than-${val}`,
     TOO_LONG: (len) => `max-length-exceeded:${len}`,

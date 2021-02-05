@@ -16,8 +16,6 @@ const HTTPStatus = require("http-status-codes");
 const {
     HOUR_IN_MS,
     OFFER_EDIT_GRACE_PERIOD_HOURS,
-    OFFER_MAX_LIFETIME_MONTHS,
-    MONTH_IN_MS
 } = require("../../../models/constants/TimeConstants");
 
 const create = useExpressValidators([
@@ -221,13 +219,6 @@ const publishEndDateEditable = async (publishEndDateCandidate, { req }) => {
 
         if (publishEndDateCandidate <= publishDate) {
             throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
-        } else {
-            const timeDiffMonths =
-                ((new Date(publishEndDateCandidate)).getTime() - (new Date(publishDateCandidate)).getTime()) / MONTH_IN_MS;
-            if (timeDiffMonths > OFFER_MAX_LIFETIME_MONTHS) {
-                // Eventually throw a customized error here that defines the limit of 6 months
-                throw new Error();
-            }
         }
     } catch (err) {
         console.error(err);

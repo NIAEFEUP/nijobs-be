@@ -81,7 +81,7 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
+                    expect(res.body).toHaveProperty("reason", ValidationReasons.INSUFFICIENT_PERMISSIONS);
                 });
 
                 test("should succeed if logged to admin account", async () => {
@@ -133,7 +133,7 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
+                    expect(res.body).toHaveProperty("reason", ValidationReasons.INSUFFICIENT_PERMISSIONS);
                 });
 
                 test("should fail when god token is incorrect", async () => {
@@ -1198,7 +1198,7 @@ describe("Offer endpoint tests", () => {
             const res = await test_agent
                 .post(`/offers/edit/${future_test_offer._id}`)
                 .expect(HTTPStatus.UNAUTHORIZED);
-            expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
+            expect(res.body).toHaveProperty("reason", ValidationReasons.INSUFFICIENT_PERMISSIONS);
         });
 
         describe("testing validations with god token", () => {

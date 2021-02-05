@@ -20,7 +20,7 @@ const authRequired = (req, res, next) => {
 const isGod = (req, res, next) => {
     if (!req.body.god_token) {
         return res.status(HTTPStatus.UNAUTHORIZED).json({
-            reason: "Insufficient Permissions",
+            reason: ValidationReasons.INSUFFICIENT_PERMISSIONS,
             error_code: ErrorTypes.FORBIDDEN,
         });
     }
