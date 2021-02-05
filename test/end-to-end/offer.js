@@ -80,8 +80,8 @@ describe("Offer endpoint tests", () => {
                         .send({});
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
                 });
 
                 test("should succeed if logged to admin account", async () => {
@@ -133,7 +133,8 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
                 });
 
                 test("should fail when god token is incorrect", async () => {
@@ -144,8 +145,8 @@ describe("Offer endpoint tests", () => {
                         });
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Invalid god token");
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.BAD_GOD_TOKEN);
                 });
 
                 test("should fail when god token is correct but owner doesn't exist", async () => {
@@ -396,9 +397,9 @@ describe("Offer endpoint tests", () => {
 
                 expect(res.status).toBe(HTTPStatus.CONFLICT);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("reason",
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(
                     ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
-
             });
         });
 
@@ -440,7 +441,8 @@ describe("Offer endpoint tests", () => {
 
                 expect(res.status).toBe(HTTPStatus.CONFLICT);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("reason",
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(
                     ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
             });
         });
@@ -1040,7 +1042,9 @@ describe("Offer endpoint tests", () => {
                 const res = await request()
                     .get(`/offers/${id}`);
                 expect(res.status).toBe(HTTPStatus.NOT_FOUND);
-                expect(res.body).toHaveProperty("reason", ValidationReasons.OFFER_NOT_FOUND(id));
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_NOT_FOUND(id));
             });
         });
 
@@ -1198,7 +1202,10 @@ describe("Offer endpoint tests", () => {
             const res = await test_agent
                 .post(`/offers/edit/${future_test_offer._id}`)
                 .expect(HTTPStatus.UNAUTHORIZED);
-            expect(res.body).toHaveProperty("reason", ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
         });
 
         describe("testing validations with god token", () => {
@@ -1250,7 +1257,7 @@ describe("Offer endpoint tests", () => {
                         .send(withGodToken())
                         .expect(HTTPStatus.FORBIDDEN);
                     expect(res.body).toHaveProperty("errors");
-                    expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_EDIT_PERIOD_OVER(expired_over_hours));
+                    expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_EDIT_PERIOD_OVER(expired_over_hours.toFixed(2)));
                 });
 
             });

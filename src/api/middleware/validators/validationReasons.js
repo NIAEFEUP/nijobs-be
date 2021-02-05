@@ -2,6 +2,8 @@ const ValidationReasons = Object.freeze({
     DEFAULT: "invalid",
     REQUIRED: "required",
     INSUFFICIENT_PERMISSIONS: "Insufficient Permissions",
+    MUST_BE_LOGGED_IN: "Must be logged in",
+    BAD_GOD_TOKEN: "Invalid god token",
     MIN: (val) => `must-be-greater-than-${val}`,
     MAX: (val) => `must-be-lower-than-${val}`,
     TOO_LONG: (len) => `max-length-exceeded:${len}`,
@@ -26,7 +28,7 @@ const ValidationReasons = Object.freeze({
     OFFER_NOT_FOUND: (id) => `no-offer-found-with-id:${id}`,
     OFFER_EXPIRED: (id) => `offer-expired:${id}`,
     NOT_OFFER_OWNER: (id) => `not-offer-owner:${id}`,
-    OFFER_EDIT_PERIOD_OVER: (max) => `offer-edit-period-over:${max.toFixed(2)}-hours`,
+    OFFER_EDIT_PERIOD_OVER: (value) => `offer-edit-period-over:${value}-hours`,
 });
 
 module.exports = ValidationReasons;

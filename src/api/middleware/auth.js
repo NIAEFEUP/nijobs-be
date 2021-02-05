@@ -10,25 +10,29 @@ const authRequired = (req, res, next) => {
     if (req.isAuthenticated()) {
         return next();
     }
-    return res.status(HTTPStatus.UNAUTHORIZED).json({
-        reason: "Must be logged in",
-        error_code: ErrorTypes.FORBIDDEN,
-    });
+    return res.status(HTTPStatus.UNAUTHORIZED).json(
+        buildErrorResponse(
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.MUST_BE_LOGGED_IN
+        ));
 };
 
 // Eventually should be done via a session in an god account, but at least this will work for now, before a permission system is added
 const isGod = (req, res, next) => {
     if (!req.body.god_token) {
-        return res.status(HTTPStatus.UNAUTHORIZED).json({
-            reason: ValidationReasons.INSUFFICIENT_PERMISSIONS,
-            error_code: ErrorTypes.FORBIDDEN,
-        });
+        return res.status(HTTPStatus.UNAUTHORIZED).json(
+            buildErrorResponse(
+                ErrorTypes.FORBIDDEN,
+                [ValidationReasons.INSUFFICIENT_PERMISSIONS]
+            )
+        );
     }
     if (req.body.god_token !== config.god_token) {
-        return res.status(HTTPStatus.UNAUTHORIZED).json({
-            reason: "Invalid god token",
-            error_code: ErrorTypes.FORBIDDEN,
-        });
+        return res.status(HTTPStatus.UNAUTHORIZED).json(
+            buildErrorResponse(
+                ErrorTypes.FORBIDDEN,
+                [ValidationReasons.BAD_GOD_TOKEN]
+            ));
     }
 
     return next();

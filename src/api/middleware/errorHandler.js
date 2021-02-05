@@ -1,5 +1,6 @@
 const HTTPStatus = require("http-status-codes");
 const { validationResult } = require("express-validator");
+const { ensureArray } = require("./validators/validatorUtils");
 
 const ErrorTypes = Object.freeze({
     VALIDATION_ERROR: 1,
@@ -10,7 +11,7 @@ const ErrorTypes = Object.freeze({
 
 const buildErrorResponse = (error_code, errors) => ({
     error_code,
-    errors,
+    errors: ensureArray(errors),
 });
 
 // Automatically run validators in order to have a standardized error response

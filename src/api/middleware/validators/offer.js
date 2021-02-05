@@ -349,7 +349,7 @@ const isEditable = async (req, res, next) => {
             buildErrorResponse(ErrorTypes.FORBIDDEN, [ValidationReasons.OFFER_EXPIRED(req.params.offerId)]));
     } else if (offer.publishDate.toISOString() <= currentDate.toISOString() && diffInHours > OFFER_EDIT_GRACE_PERIOD_HOURS) {
         return res.status(HTTPStatus.FORBIDDEN).json(
-            buildErrorResponse(ErrorTypes.FORBIDDEN, [ValidationReasons.OFFER_EDIT_PERIOD_OVER(diffInHours)]));
+            buildErrorResponse(ErrorTypes.FORBIDDEN, [ValidationReasons.OFFER_EDIT_PERIOD_OVER(diffInHours.toFixed(2))]));
     }
 
     return next();
