@@ -1,4 +1,5 @@
 const ValidationReasons = Object.freeze({
+    UNKNOWN: "An unexpected error occured",
     DEFAULT: "invalid",
     REQUIRED: "required",
     INSUFFICIENT_PERMISSIONS: "Insufficient Permissions",

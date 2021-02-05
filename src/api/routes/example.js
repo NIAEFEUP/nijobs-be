@@ -1,8 +1,9 @@
 const HTTPStatus = require("http-status-codes");
 const { Router } = require("express");
 
-const { ErrorTypes } = require("../middleware/errorHandler");
+const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ExampleUser = require("../../models/ExampleUser");
+const { or } = require("../middleware/utils");
 
 const router = Router();
 
@@ -22,10 +23,23 @@ module.exports = (app) => {
         });
     });
 
+    const p1 = (req, res, next) => {
+        console.log("RUNNING P1", req.query.p);
+        if (req.query.p !== "1") return next(new APIError(HTTPStatus.BAD_GATEWAY, ErrorTypes.FORBIDDEN, "MUST BE 1"));
+        console.log("IS 1");
+        return next();
+    };
+    const p2 = (req, res, next) => {
+        console.log("RUNNING P2");
+
+        if (req.query.p !== "2") next(new APIError(HTTPStatus.BAD_GATEWAY, ErrorTypes.FORBIDDEN, "MUST BE 2"));
+        return next();
+    };
+
     /**
     * Gets all the users from the db
     */
-    router.get("/", async (req, res) => {
+    router.get("/", or([p1, p2], { msg: "ASD" }), async (req, res) => {
         try {
             const users = await ExampleUser.find();
 
