@@ -1,10 +1,12 @@
 const HTTPStatus = require("http-status-codes");
 const fs = require("fs");
 const path = require("path");
+const util = require("util");
 const { MulterError } = require("multer");
 const multerConfig = require("../../config/multer");
 const { ErrorTypes } = require("./errorHandler");
-const { v4: uuidv4 } = require("uuid");
+const cloudinary = require("cloudinary").v2;
+const env = require("../../config/env");
 
 
 const save_folder = path.join(__dirname, "../../../public/uploads/");
@@ -43,7 +45,7 @@ const single = (field_name) => (req, res, next) => {
 const save = async (req, res, next) => {
     const buffer = req.file.buffer;
     const extension = req.file.mimetype.substr(req.file.mimetype.indexOf("/") + 1);
-    const filename = `${uuidv4()}.${extension}`;
+    const filename = `${req.user.company}.${extension}`;
     const file_path = path.join(save_folder, filename);
     req.file.filename = filename;
 
@@ -58,7 +60,7 @@ const save = async (req, res, next) => {
                 errors: [
                     {
                         location: "body",
-                        param: req.fieldname,
+                        param: req.file.fieldname,
                         msg: "failed-save"
                     }
                 ]
@@ -67,5 +69,41 @@ const save = async (req, res, next) => {
     return next();
 };
 
+const upload = util.promisify(cloudinary.uploader.upload);
 
-module.exports = { single, save };
+const cloudSave = async (req, res, next) => {
+    const filename = req.file.filename;
+    const file_path = path.join(save_folder, filename);
+
+    try {
+        if (env.cloudinary_url) {
+            const resp = await upload(file_path,
+                {
+                    resource_type: "image",
+                    public_id: filename,
+                    overwrite: true
+                });
+            await fs.promises.unlink(file_path);
+            req.file.url = resp.secure_url;
+        }
+    } catch (err) {
+        return res
+            .status(HTTPStatus.UNPROCESSABLE_ENTITY)
+            .json({
+                error_code: ErrorTypes.FILE_ERROR,
+                errors: [
+                    {
+                        location: "body",
+                        param: req.file.fieldname,
+                        msg: "failed-cloud-save"
+                    }
+                ]
+            });
+    }
+
+    return next();
+
+};
+
+
+module.exports = { single, save, cloudSave };

@@ -21,12 +21,15 @@ module.exports = (app) => {
         fileMiddleware.single("logo"),
         validators.finish,
         fileMiddleware.save,
+        fileMiddleware.cloudSave,
         async (req, res, next) => {
 
             try {
                 const companyService = new CompanyService();
                 const { bio, contacts } = req.body;
-                const logo = `static/uploads/${req.file.filename}`;
+                let logo = `static/uploads/${req.file.filename}`;
+                if (req.file.url)
+                    logo = req.file.url;
                 const company_id = req.user.company;
                 await companyService.changeAttributes(company_id, { bio, contacts, logo, finished: true });
                 return res.json({});
