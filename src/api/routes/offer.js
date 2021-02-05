@@ -5,7 +5,8 @@ const companyMiddleware = require("../middleware/company");
 const validators = require("../middleware/validators/offer");
 const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
-const APIErrorTypes = require("../APIErrorTypes");
+const { buildErrorResponse, ErrorTypes } = require("../middleware/errorHandler");
+const ValidationReasons = require("../middleware/validators/validationReasons");
 
 const router = Router();
 
@@ -39,9 +40,12 @@ module.exports = (app) => {
             const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
 
             if (!offer) {
-                return res.status(HTTPStatus.NOT_FOUND).json({
-                    reason: APIErrorTypes.OFFER_NOT_FOUND(req.params.offerId)
-                });
+                return res.status(HTTPStatus.NOT_FOUND).json(
+                    buildErrorResponse(
+                        ErrorTypes.FORBIDDEN,
+                        [ValidationReasons.OFFER_NOT_FOUND(req.params.offerId)]
+                    )
+                );
             }
 
             return res.json(offer);
@@ -54,7 +58,11 @@ module.exports = (app) => {
     /**
      * Creates a new Offer
      */
-    router.post("/new", authMiddleware.isCompanyOrGod, validators.create, companyMiddleware.verifyMaxConcurrentOffers,
+    router.post("/new",
+        authMiddleware.isCompanyOrAdminOrGod,
+        validators.create,
+        companyMiddleware.verifyMaxConcurrentOffers,
+        validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
 
@@ -65,6 +73,23 @@ module.exports = (app) => {
 
                 const offer = await (new OfferService()).create(params);
 
+                return res.json(offer);
+            } catch (err) {
+                return next(err);
+            }
+        });
+
+    router.post(
+        "/edit/:offerId",
+        authMiddleware.isCompanyOrAdminOrGod,
+        validators.isExistingOffer,
+        validators.isEditable,
+        validators.edit,
+        (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        validators.offersDateSanitizers,
+        async (req, res, next) => {
+            try {
+                const offer = await (new OfferService()).edit(req.params.offerId, req.body);
                 return res.json(offer);
             } catch (err) {
                 return next(err);

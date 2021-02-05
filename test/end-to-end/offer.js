@@ -13,24 +13,26 @@ const Account = require("../../src/models/Account");
 const Company = require("../../src/models/Company");
 const hash = require("../../src/lib/passwordHashing");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
-const APIErrorTypes = require("../../src/api/APIErrorTypes");
 const { Types } = require("mongoose");
 const CompanyConstants = require("../../src/models/constants/Company");
+const { OFFER_EDIT_GRACE_PERIOD_HOURS, HOUR_IN_MS  } = require("../../src/models/constants/TimeConstants");
+const { ensureArray } = require("../../src/api/middleware/validators/validatorUtils");
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
-    const generateTestOffer = (publishDate, publishEndDate, isHidden) => ({
+    const generateTestOffer = (params) => ({
         title: "Test Offer",
-        publishDate: publishDate || (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-        publishEndDate: publishEndDate || (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+        publishDate: (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+        publishEndDate: (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
         description: "For Testing Purposes",
         contacts: ["geral@niaefeup.pt", "229417766"],
         jobType: "SUMMER INTERNSHIP",
         fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
         technologies: ["React", "CSS"],
         location: "Testing Street, Test City, 123",
-        isHidden: isHidden || false,
+        isHidden: false,
         requirements: ["The candidate must be tested", "Fluent in testJS"],
+        ...params,
     });
 
     let test_company;
@@ -71,31 +73,34 @@ describe("Offer endpoint tests", () => {
 
         describe("Authentication", () => {
 
-            describe("creating offers requires company account (without god token)", () => {
+            describe("creating offers requires company account or admin account (without god token)", () => {
                 test("should fail if not logged in", async () => {
                     const res = await request()
                         .post("/offers/new")
                         .send({});
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
                 });
 
-                test("should fail if logged to non-company account", async () => {
+                test("should succeed if logged to admin account", async () => {
                     // Login
                     await test_agent
                         .post("/auth/login")
                         .send(test_user_admin)
                         .expect(200);
 
+                    const params = { owner: test_company._id };
+                    const offer = generateTestOffer(params);
                     const res = await test_agent
                         .post("/offers/new")
-                        .send(generateTestOffer());
+                        .send(offer);
 
-                    expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("title", offer.title);
+                    expect(res.body).toHaveProperty("description", offer.description);
+                    expect(res.body).toHaveProperty("location", offer.location);
                 });
 
                 test("should create offer if logged in to company account", async () => {
@@ -128,7 +133,8 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Insufficient Permissions");
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
                 });
 
                 test("should fail when god token is incorrect", async () => {
@@ -139,8 +145,8 @@ describe("Offer endpoint tests", () => {
                         });
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                    expect(res.body).toHaveProperty("reason", "Invalid god token");
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.BAD_GOD_TOKEN);
                 });
 
                 test("should fail when god token is correct but owner doesn't exist", async () => {
@@ -310,15 +316,17 @@ describe("Offer endpoint tests", () => {
 
         describe("Before reaching the offers limit while having past offers", () => {
             const testOffers = Array(CompanyConstants.offers.max_concurrent - 1)
-                .fill(generateTestOffer(
-                    new Date(Date.now() - (DAY_TO_MS)),
-                    new Date(Date.now() + (DAY_TO_MS))
-                ));
+                .fill(generateTestOffer({
+                    "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                }));
 
-            testOffers.push(generateTestOffer(
-                new Date(Date.now() - (3 * (DAY_TO_MS))),
-                new Date(Date.now() - (2 * (DAY_TO_MS)))
-            ));
+            testOffers.push(generateTestOffer({
+                "publishDate": (new Date(Date.now() - (3 * DAY_TO_MS))).toISOString(),
+                "publishEndDate": (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString()
+            }));
+
+            console.info("TEST OFFERS: ", ensureArray(testOffers));
 
             beforeAll(async () => {
                 await Offer.deleteMany({});
@@ -355,10 +363,10 @@ describe("Offer endpoint tests", () => {
 
         describe("After reaching the offers limit", () => {
             const testOffers = Array(CompanyConstants.offers.max_concurrent)
-                .fill(generateTestOffer(
-                    new Date(Date.now() - (DAY_TO_MS)),
-                    new Date(Date.now() + (DAY_TO_MS))
-                ));
+                .fill(generateTestOffer({
+                    "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                }));
 
             beforeAll(async () => {
                 await Offer.deleteMany({});
@@ -389,18 +397,18 @@ describe("Offer endpoint tests", () => {
 
                 expect(res.status).toBe(HTTPStatus.CONFLICT);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("reason",
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(
                     ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
-
             });
         });
 
         describe("Trying to schedule an offer in a time period which reached the offers limit", () => {
             const testOffers = Array(CompanyConstants.offers.max_concurrent)
-                .fill(generateTestOffer(
-                    new Date(Date.now() + (3 * (DAY_TO_MS))),
-                    new Date(Date.now() + (6 * (DAY_TO_MS)))
-                ));
+                .fill(generateTestOffer({
+                    "publishDate": (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (6 * DAY_TO_MS))).toISOString()
+                }));
 
             beforeAll(async () => {
                 await Offer.deleteMany({});
@@ -419,7 +427,10 @@ describe("Offer endpoint tests", () => {
 
             test("should fail to schedule a new offer", async () => {
                 const offer_params = {
-                    ...generateTestOffer(new Date(Date.now() + (4 * (DAY_TO_MS))), new Date(Date.now() + (5 * (DAY_TO_MS)))),
+                    ...generateTestOffer({
+                        "publishDate": (new Date(Date.now() + (4 * DAY_TO_MS))).toISOString(),
+                        "publishEndDate": (new Date(Date.now() + (5 * DAY_TO_MS))).toISOString()
+                    }),
                     owner: test_company._id,
                     ownerName: test_company.name
                 };
@@ -430,7 +441,8 @@ describe("Offer endpoint tests", () => {
 
                 expect(res.status).toBe(HTTPStatus.CONFLICT);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("reason",
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(
                     ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
             });
         });
@@ -515,8 +527,6 @@ describe("Offer endpoint tests", () => {
             let test_offer;
 
             beforeAll(async () => {
-
-                await Company.deleteMany({});
                 test_company = await Company.create({
                     name: "test company",
                     bio: "a bio",
@@ -524,7 +534,10 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test_offer = {
-                    ...generateTestOffer("2019-11-22T00:00:00.000Z", "2019-11-28T00:00:00.000Z"),
+                    ...generateTestOffer({
+                        "publishDate": "2019-11-22T00:00:00.000Z",
+                        "publishEndDate": "2019-11-28T00:00:00.000Z"
+                    }),
                     owner: test_company._id,
                     ownerName: test_company.name,
                 };
@@ -546,11 +559,14 @@ describe("Offer endpoint tests", () => {
 
             describe("Only current offers are returned", () => {
 
-                const expired_test_offer = generateTestOffer("2019-11-17", "2019-11-18");
-                const future_test_offer = generateTestOffer(
-                    (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
-                    (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
-                );
+                const expired_test_offer = generateTestOffer({
+                    "publishDate": "2019-11-17",
+                    "publishEndDate": "2019-11-18"
+                });
+                const future_test_offer = generateTestOffer({
+                    "publishDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+                });
 
                 beforeAll(async () => {
 
@@ -572,7 +588,12 @@ describe("Offer endpoint tests", () => {
                     expect(res.body).toHaveLength(1);
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["score"]; return elem;
+                        delete elem["_id"];
+                        delete elem["__v"];
+                        delete elem["createdAt"];
+                        delete elem["updatedAt"];
+                        delete elem["score"];
+                        return elem;
                     });
                     const prepared_test_offer = {
                         ...test_offer,
@@ -602,7 +623,7 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"];
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
                             return elem;
                         });
 
@@ -640,7 +661,7 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"];
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
                             return elem;
                         });
 
@@ -672,7 +693,7 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"];
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
                             return elem;
                         });
 
@@ -704,7 +725,7 @@ describe("Offer endpoint tests", () => {
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                         const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"];
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
                             return elem;
                         });
 
@@ -771,7 +792,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -800,7 +821,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -826,7 +847,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -856,7 +877,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -883,7 +904,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -912,7 +933,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -939,7 +960,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -969,7 +990,7 @@ describe("Offer endpoint tests", () => {
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["score"];
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
                         return elem;
                     });
 
@@ -1021,7 +1042,9 @@ describe("Offer endpoint tests", () => {
                 const res = await request()
                     .get(`/offers/${id}`);
                 expect(res.status).toBe(HTTPStatus.NOT_FOUND);
-                expect(res.body).toHaveProperty("reason", APIErrorTypes.OFFER_NOT_FOUND(id));
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_NOT_FOUND(id));
             });
         });
 
@@ -1102,5 +1125,435 @@ describe("Offer endpoint tests", () => {
                 expect(extracted_data).toMatchObject(hiddenOffer);
             });
         });
+    });
+
+    describe("POST /offers/edit/:offerId", () => {
+        let createOffer,
+            expired_test_offer,
+            grace_period_over_test_offer,
+            grace_period_valid_test_offer,
+            future_test_offer,
+            valid_test_offer_1,
+            valid_test_offer_2;
+
+        beforeAll(async () => {
+            await Offer.deleteMany({});
+            await test_agent.del("/auth/login");
+            createOffer = async (offer) => {
+                const { _id, owner, ownerName, jobMinDuration, jobMaxDuration, createdAt } = await Offer.create({
+                    ...offer,
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                });
+                return {
+                    ...offer,
+                    owner: owner.toString(),
+                    ownerName,
+                    _id: _id.toString(),
+                    jobMinDuration,
+                    jobMaxDuration,
+                    createdAt: createdAt.toISOString()
+                };
+            };
+
+            expired_test_offer = await createOffer(generateTestOffer({
+                "publishDate": "2019-11-17",
+                "publishEndDate": "2019-11-18"
+            }));
+
+            grace_period_over_test_offer = await createOffer(generateTestOffer({
+                "publishDate": (new Date(Date.now())).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+            }
+            ));
+
+            grace_period_valid_test_offer = await createOffer(generateTestOffer({
+                "publishDate": (new Date(Date.now())).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+            }
+            ));
+
+            future_test_offer = await createOffer(generateTestOffer({
+                "publishDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString(),
+                "jobMinDuration": 4,
+                "jobMaxDuration": 5,
+            }
+            ));
+
+            valid_test_offer_1 = await createOffer(generateTestOffer({
+                "publishDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString(),
+                "jobMinDuration": 4,
+                "jobMaxDuration": 5,
+            }
+            ));
+
+            valid_test_offer_2 = await createOffer(generateTestOffer({
+                "publishDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (3 * DAY_TO_MS))).toISOString(),
+                "jobMinDuration": 4,
+                "jobMaxDuration": 5,
+            }
+            ));
+        });
+
+        test("should fail not logged in", async () => {
+            const res = await test_agent
+                .post(`/offers/edit/${future_test_offer._id}`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+        describe("testing validations with god token", () => {
+            test("should fail with invalid id", async () => {
+                const res = await test_agent
+                    .post("/offers/edit/not-a-valid-id")
+                    .send(withGodToken())
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body.errors[0]).toHaveProperty("param", "offerId");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+            });
+
+            test("should fail if offer does not exist", async () => {
+                const _id = "111111111111111111111111";
+                const res = await test_agent
+                    .post(`/offers/edit/${_id}`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body.errors[0]).toHaveProperty("param", "offerId");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OFFER_NOT_FOUND(_id));
+            });
+
+
+            test("should fail with expired offer", async () => {
+                const res = await test_agent
+                    .post(`/offers/edit/${expired_test_offer._id.toString()}`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_EXPIRED(expired_test_offer._id.toString()));
+            });
+
+            describe("should fail if offer with grace period over", () => {
+                const RealDateNow = Date.now;
+                const mockDate = new Date(Date.now() + (OFFER_EDIT_GRACE_PERIOD_HOURS * HOUR_IN_MS * 2));
+                beforeEach(() => {
+                    Date.now = () => mockDate.getTime();
+                });
+
+                afterEach(() => {
+                    Date.now = RealDateNow;
+                });
+
+                test("should fail offer with grace period over", async () => {
+                    const expired_over_hours =
+                        ((new Date(Date.now())).getTime() - (new Date(grace_period_over_test_offer.createdAt)).getTime()) / HOUR_IN_MS;
+                    const res = await test_agent
+                        .post(`/offers/edit/${grace_period_over_test_offer._id.toString()}`)
+                        .send(withGodToken())
+                        .expect(HTTPStatus.FORBIDDEN);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_EDIT_PERIOD_OVER(expired_over_hours.toFixed(2)));
+                });
+
+            });
+
+            test("should allow editing offer with valid grace period", async () => {
+                await test_agent
+                    .post(`/offers/edit/${grace_period_valid_test_offer._id.toString()}`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should allow editing offer in the future", async () => {
+                await test_agent
+                    .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+            });
+
+            describe("testing edit dates in the past", () => {
+                test("should fail if publishDate in the past", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "publishDate": "2019-02-01" }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "publishDate");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.DATE_EXPIRED);
+                });
+
+                test("should fail if publishEndDate in the past", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "publishEndDate": "2019-02-01" }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.DATE_EXPIRED);
+                });
+            });
+
+            describe("testing dates editing", () => {
+                test("should fail if publishDate after offer publishEndDate", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({
+                            "publishDate":
+                            (new Date(new Date(future_test_offer.publishEndDate).getTime() + DAY_TO_MS))
+                                .toISOString()
+                        }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "publishDate");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
+                });
+
+                test("should fail if publishEndDate before offer publishDate", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({
+                            "publishEndDate":
+                            (new Date(new Date(future_test_offer.publishDate).getTime() - DAY_TO_MS))
+                                .toISOString()
+                        }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("publishDate"));
+                });
+
+                test("should fail if sending invalid date combination in request", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({
+                            "publishEndDate": new Date(Date.now() + DAY_TO_MS).toISOString(),
+                            "publishDate": new Date(Date.now() + (2 * DAY_TO_MS)).toISOString(),
+                        }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("publishDate"));
+                });
+
+                test("should edit if is after offer's publishEndDate", async () => {
+                    const newDate = (new Date(new Date(future_test_offer.publishEndDate).getTime() - DAY_TO_MS));
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "publishDate": newDate.toISOString() }))
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("publishDate", newDate.toISOString());
+                });
+
+                test("should edit if is after request's publishEndDate", async () => {
+                    const newPublishDate = (new Date(new Date(future_test_offer.publishEndDate).getTime() + DAY_TO_MS));
+                    const newPublishEndDate = (new Date(new Date(future_test_offer.publishEndDate).getTime() + (2 * DAY_TO_MS)));
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({
+                            "publishDate": newPublishDate.toISOString(),
+                            "publishEndDate": newPublishEndDate.toISOString()
+                        }))
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("publishDate", newPublishDate.toISOString());
+                    expect(res.body).toHaveProperty("publishEndDate", newPublishEndDate.toISOString());
+                });
+            });
+
+            describe("testing other validations", () => {
+                test("should fail if minDuration bigger than offer's maxDuration", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "jobMinDuration": future_test_offer.jobMaxDuration + 1 }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "jobMinDuration");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_BEFORE("jobMaxDuration"));
+                });
+                test("should fail if maxDuration smaller than offer's minDuration", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "jobMaxDuration": future_test_offer.jobMinDuration - 1 }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
+                });
+                test("should fail if invalid combination of jobDuration in request", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({
+                            "jobMaxDuration": 11,
+                            "jobMinDuration": 12
+                        }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
+                });
+
+                test("should fail if requirements is empty array", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "requirements": [] }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "requirements");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.TOO_SHORT(1));
+                });
+
+                test("should edit if valid requirements", async () => {
+                    await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "requirements": future_test_offer.requirements }))
+                        .expect(HTTPStatus.OK);
+                });
+
+                const EndpointValidatorTester = ValidatorTester((params) => request().post("/offers/new").send(withGodToken(params)));
+                const BodyValidatorTester = EndpointValidatorTester("body");
+
+                describe("title", () => {
+                    const FieldValidatorTester = BodyValidatorTester("title");
+                    FieldValidatorTester.mustBeString();
+                    FieldValidatorTester.hasMaxLength(OfferConstants.title.max_length);
+                });
+
+                describe("jobStartDate", () => {
+                    const FieldValidatorTester = BodyValidatorTester("jobStartDate");
+                    FieldValidatorTester.mustBeDate();
+                });
+
+                describe("description", () => {
+                    const FieldValidatorTester = BodyValidatorTester("description");
+                    FieldValidatorTester.mustBeString();
+                    FieldValidatorTester.hasMaxLength(OfferConstants.description.max_length);
+                });
+
+                describe("contacts", () => {
+                    const FieldValidatorTester = BodyValidatorTester("contacts");
+                    FieldValidatorTester.isRequired();
+                });
+
+                describe("isPaid", () => {
+                    const FieldValidatorTester = BodyValidatorTester("isPaid");
+                    FieldValidatorTester.mustBeBoolean();
+                });
+
+                describe("vacancies", () => {
+                    const FieldValidatorTester = BodyValidatorTester("vacancies");
+                    FieldValidatorTester.mustBeNumber();
+                });
+
+                describe("jobType", () => {
+                    const FieldValidatorTester = BodyValidatorTester("jobType");
+                    FieldValidatorTester.mustBeString();
+                    FieldValidatorTester.mustBeInArray(JobTypes);
+                });
+
+                describe("fields", () => {
+                    const FieldValidatorTester = BodyValidatorTester("fields");
+                    FieldValidatorTester.mustBeArrayBetween(FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS);
+                    FieldValidatorTester.mustHaveValuesInRange(FieldTypes.FieldTypes, FieldTypes.MIN_FIELDS + 1);
+                });
+
+                describe("technologies", () => {
+                    const FieldValidatorTester = BodyValidatorTester("technologies");
+                    FieldValidatorTester.mustBeArrayBetween(TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES);
+                    FieldValidatorTester.mustHaveValuesInRange(TechnologyTypes.TechnologyTypes, TechnologyTypes.MIN_TECHNOLOGIES + 1);
+                });
+
+                describe("location", () => {
+                    const FieldValidatorTester = BodyValidatorTester("location");
+                    FieldValidatorTester.mustBeString();
+                });
+            });
+        });
+
+        describe("testing as admin without god token", () => {
+            beforeAll(async () => {
+                await test_agent.post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should edit as an admin", async () => {
+                await test_agent.post(`/offers/edit/${future_test_offer._id}`)
+                    .expect(HTTPStatus.OK);
+            });
+        });
+
+
+        describe("testing as a company", () => {
+
+            describe("testing as another company", () => {
+
+                const test_user_company_2 = {
+                    email: "company2@email.com",
+                    password: "password123",
+                };
+
+                let test_company_2;
+
+                beforeAll(async () => {
+                    test_company_2 = await Company.create({
+                        name: "test company",
+                        bio: "a bio",
+                        contacts: ["a contact"]
+                    });
+                    await Account.create({
+                        email: test_user_company_2.email,
+                        password: await hash(test_user_company.password),
+                        company: test_company_2._id
+                    });
+
+                    await test_agent.post("/auth/login")
+                        .send(test_user_company_2)
+                        .expect(HTTPStatus.OK);
+                });
+
+                test("should fail if the company is not the owner", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id}`)
+                        .expect(HTTPStatus.FORBIDDEN);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(future_test_offer._id));
+                });
+
+            });
+
+            describe("testing as offer's owner", () => {
+                beforeAll(async () => {
+                    await test_agent.post("/auth/login")
+                        .send(test_user_company)
+                        .expect(HTTPStatus.OK);
+
+                });
+
+                test("should edit title", async () => {
+                    const edits = { "title": "This is a new title" };
+                    const res = await test_agent.post(`/offers/edit/${valid_test_offer_1._id}`)
+                        .send(edits)
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toMatchObject({
+                        ...valid_test_offer_1,
+                        ...edits
+                    });
+                });
+
+                test("should edit several parameters", async () => {
+                    const edits = {
+                        "title": "This is a new title",
+                        "description": "This is a new description",
+                        "jobMinDuration": valid_test_offer_1.jobMinDuration - 1,
+                        "location": "Porto",
+                        "technologies": ["CSS"]
+                    };
+                    const res = await test_agent.post(`/offers/edit/${valid_test_offer_2._id}`)
+                        .send(edits)
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toMatchObject({
+                        ...valid_test_offer_2,
+                        ...edits
+                    });
+                });
+            });
+
+        });
+
     });
 });

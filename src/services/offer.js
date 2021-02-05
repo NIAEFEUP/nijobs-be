@@ -54,6 +54,60 @@ class OfferService {
             coordinates,
             requirements
         });
+        return offer;
+    }
+
+    async edit(
+        _id,
+        {
+            title,
+            publishDate,
+            publishEndDate,
+            jobMinDuration,
+            jobMaxDuration,
+            jobStartDate,
+            description,
+            contacts,
+            isPaid,
+            vacancies,
+            jobType,
+            fields,
+            technologies,
+            isHidden,
+            location,
+            coordinates,
+            requirements,
+        }) {
+        const edits = {
+            title,
+            publishDate,
+            publishEndDate,
+            jobMinDuration,
+            jobMaxDuration,
+            jobStartDate,
+            description,
+            contacts,
+            isPaid,
+            vacancies,
+            jobType,
+            fields,
+            technologies,
+            isHidden,
+            location,
+            coordinates,
+            requirements,
+        };
+        const query = { _id };
+        const offer = await Offer.findOneAndUpdate(
+            query,
+            edits,
+            { new: true, omitUndefined: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            }
+        );
 
         return offer;
     }
