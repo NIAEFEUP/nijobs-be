@@ -23,9 +23,10 @@ module.exports = (app) => {
         });
     });
 
-    const p1 = (req, res, next) => {
+    const p1 = async (req, res, next) => {
+        await Promise.resolve();
         console.log("RUNNING P1", req.query.p);
-        if (req.query.p !== "1") return next(new APIError(HTTPStatus.BAD_GATEWAY, ErrorTypes.FORBIDDEN, "MUST BE 1"));
+        if (req.query.p !== "1") throw new APIError(HTTPStatus.BAD_GATEWAY, ErrorTypes.FORBIDDEN, "MUST BE 1");
         console.log("IS 1");
         return next();
     };

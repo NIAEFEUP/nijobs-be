@@ -18,7 +18,6 @@ class APIError extends Error {
     }
 
     toObject() {
-        console.log("TOOBJECT", buildErrorResponse(this.error_code, [this.message]));
         return { ...buildErrorResponse(this.error_code, [this.message]), ...this.payload };
     }
 

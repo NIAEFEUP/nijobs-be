@@ -7,10 +7,10 @@ const DEFAULT_ERROR_CODE = ErrorTypes.VALIDATION_ERROR;
 const DEFAULT_ERROR_MSG = ValidationReasons.UNKNOWN;
 const DEFAULT_STATUS_CODE = HTTPStatus.BAD_REQUEST;
 
-TODO 
-* ADD TESTS
-* REFACOTR EXISTING OR* MIDDLEWARE TO USE THIS
-* REFACTOR ALL MIDDLEWARE TO RETURN NEXT WITH ERROR
+// TODO
+// * ADD TESTS
+// * REFACOTR EXISTING OR* MIDDLEWARE TO USE THIS
+// * REFACTOR ALL MIDDLEWARE TO RETURN NEXT WITH ERROR
 
 
 const or = (
@@ -36,7 +36,7 @@ const or = (
     }
 
     if (errors.length) {
-        return next(new APIError(status_code, error_code, msg, { or: errors }));
+        return next(new APIError(status_code, error_code, msg, { or: errors.map((e) => e.toObject()) }));
     } else {
         return next();
     }
