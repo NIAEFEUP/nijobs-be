@@ -18,6 +18,7 @@ module.exports = (app) => {
     router.post("/finish",
         authRequired,
         companyMiddleware.isCompanyRep,
+        companyMiddleware.profileNotComplete,
         fileMiddleware.single("logo"),
         validators.finish,
         fileMiddleware.save,

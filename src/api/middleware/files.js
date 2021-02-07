@@ -7,6 +7,7 @@ const multerConfig = require("../../config/multer");
 const { ErrorTypes } = require("./errorHandler");
 const cloudinary = require("cloudinary").v2;
 const env = require("../../config/env");
+const ValidationReasons = require("./validators/validationReasons");
 
 
 const save_folder = path.join(__dirname, "../../../public/uploads/");
@@ -61,7 +62,7 @@ const save = async (req, res, next) => {
                     {
                         location: "body",
                         param: req.file.fieldname,
-                        msg: "failed-save"
+                        msg: ValidationReasons.FAILED_SAVE
                     }
                 ]
             });
@@ -95,7 +96,7 @@ const cloudSave = async (req, res, next) => {
                     {
                         location: "body",
                         param: req.file.fieldname,
-                        msg: "failed-cloud-save"
+                        msg: ValidationReasons.FAILED_SAVE
                     }
                 ]
             });

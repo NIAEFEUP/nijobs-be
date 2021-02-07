@@ -38,6 +38,13 @@ class CompanyService {
         };
     }
 
+    /**
+     * @param {*} company_id Id of the company
+     */
+    findById(company_id) {
+        return Company.findById(company_id);
+    }
+
 
     /**
      * Changes the attributes of a company

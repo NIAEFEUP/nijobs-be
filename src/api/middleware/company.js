@@ -4,6 +4,7 @@ const { concurrentOffersNotExceeded } = require("./validators/validatorUtils");
 const ValidationReasons = require("./validators/validationReasons");
 const CompanyConstants = require("../../models/constants/Company");
 const Offer = require("../../models/Offer");
+const CompanyService = require("../../services/company");
 
 const verifyMaxConcurrentOffers = async (req, res, next) => {
     const limitNotReached = await concurrentOffersNotExceeded(Offer)(req.body.owner, req.body.publishDate, req.body.publishEndDate);
@@ -18,7 +19,22 @@ const verifyMaxConcurrentOffers = async (req, res, next) => {
     return next();
 };
 
+const profileNotComplete = async (req, res, next) => {
+    const company = await (new CompanyService()).findById(req.user.company);
+    if (company.finished) {
+        return res
+            .status(HTTPStatus.FORBIDDEN)
+            .json({
+                reason: ValidationReasons.REGISTRATION_FINISHED,
+                error_code: ErrorTypes.FORBIDDEN
+            });
+    }
+    return next();
+
+};
+
 
 module.exports = {
-    verifyMaxConcurrentOffers
+    verifyMaxConcurrentOffers,
+    profileNotComplete
 };
