@@ -53,7 +53,20 @@ const create = useExpressValidators([
 
     body("jobMaxDuration", ValidationReasons.DEFAULT)
         .optional()
-        .isInt().withMessage(ValidationReasons.INT),
+        .isInt().withMessage(ValidationReasons.INT)
+        .custom((jobMaxDuration, { req }) => {
+            try {
+                const { jobMinDuration } = req.body;
+
+                if (jobMinDuration >= jobMaxDuration) {
+                    throw new Error(ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
+                }
+            } catch (err) {
+                console.error(err);
+                throw err;
+            }
+            return true;
+        }),
 
     body("jobStartDate", ValidationReasons.DEFAULT)
         .optional()
