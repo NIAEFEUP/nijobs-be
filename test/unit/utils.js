@@ -26,6 +26,19 @@ describe("Middleware utils", () => {
         expect(nextMock).toHaveBeenCalledWith();
     });
 
+    test("Should pass with only one function not erroring", async () => {
+        const m1 = (req, res, next) => next(new APIError(400, 1, "error_message", { test: 1 }));
+        const m2 = () => {
+            throw new APIError(400, 1, "error_message", { test: 1 });
+        };
+        const m3 = (req, res, next) => next();
+
+        const nextMock = jest.fn();
+        await or([m1, m2, m3])({}, {}, nextMock);
+
+        expect(nextMock).toHaveBeenCalledWith();
+    });
+
     test("Should fail if every middleware erroring", async () => {
         const m1 = (req, res, next) => next(new APIError(400, 1, "error_message1", { test: 1 }));
         const m2 = (req, res, next) => next(new APIError(400, 2, "error_message2", { test: 2 }));

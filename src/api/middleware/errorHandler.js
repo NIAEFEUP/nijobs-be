@@ -12,13 +12,14 @@ const buildErrorResponse = (error_code, errors) => ({
 class APIError extends Error {
     constructor(status_code, error_code, msg, payload) {
         super(msg);
+        this.errors = ensureArray(msg);
         this.status_code = status_code;
         this.error_code = error_code;
         this.payload = payload;
     }
 
     toObject() {
-        return { ...buildErrorResponse(this.error_code, [this.message]), ...this.payload };
+        return { ...buildErrorResponse(this.error_code, this.errors), ...this.payload };
     }
 
     sendResponse(res) {
@@ -44,20 +45,20 @@ const useExpressValidators = (validators) => async (req, res, next) => {
         return next();
     }
 
-    return res
-        .status(HTTPStatus.UNPROCESSABLE_ENTITY)
-        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, errors.array()));
+    return next(new APIError(HTTPStatus.UNPROCESSABLE_ENTITY, ErrorTypes.VALIDATION_ERROR, errors.array()));
 };
 
 const defaultErrorHandler = (err, req, res, _) => {
-    console.error("UNEXPECTED ERROR:", err instanceof APIError, err);
 
     if (err instanceof APIError) return err.sendResponse(res);
-    else return (new APIError(
-        HTTPStatus.INTERNAL_SERVER_ERROR,
-        ErrorTypes.UNEXPECTED_ERROR,
-        ValidationReasons.UNKNOWN)
-    ).sendResponse(res);
+    else {
+        console.error("UNEXPECTED ERROR:", err instanceof APIError, err);
+        return (new APIError(
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            ErrorTypes.UNEXPECTED_ERROR,
+            ValidationReasons.UNKNOWN)
+        ).sendResponse(res);
+    }
 };
 
 

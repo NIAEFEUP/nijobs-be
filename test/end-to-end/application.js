@@ -162,7 +162,7 @@ describe("Company application endpoint test", () => {
                     await Account.deleteOne({ email: application.email });
 
 
-                    // Existing Application - Deafult `Pending` state
+                    // Existing Application - Default `Pending` state
                     await CompanyApplication.create({
                         ...application,
                         submittedAt: Date.now(),

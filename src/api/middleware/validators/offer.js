@@ -1,6 +1,6 @@
 const { body, query, param } = require("express-validator");
 
-const { useExpressValidators, buildErrorResponse } = require("../errorHandler");
+const { useExpressValidators, APIError } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
 const { valuesInSet, ensureArray } = require("./validatorUtils");
 const JobTypes = require("../../../models/constants/JobTypes");
@@ -372,11 +372,12 @@ const isEditable = async (req, res, next) => {
     const diffInHours = timeDiff / HOUR_IN_MS;
 
     if (offer.publishEndDate.toISOString() <= currentDate.toISOString()) {
-        return res.status(HTTPStatus.FORBIDDEN).json(
-            buildErrorResponse(ErrorTypes.FORBIDDEN, [ValidationReasons.OFFER_EXPIRED(req.params.offerId)]));
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_EXPIRED(req.params.offerId)));
     } else if (offer.publishDate.toISOString() <= currentDate.toISOString() && diffInHours > OFFER_EDIT_GRACE_PERIOD_HOURS) {
-        return res.status(HTTPStatus.FORBIDDEN).json(
-            buildErrorResponse(ErrorTypes.FORBIDDEN, [ValidationReasons.OFFER_EDIT_PERIOD_OVER(diffInHours.toFixed(2))]));
+        return next(
+            new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_EDIT_PERIOD_OVER(diffInHours.toFixed(2)))
+        );
+
     }
 
     return next();

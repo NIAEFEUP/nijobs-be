@@ -7,9 +7,6 @@ const DEFAULT_ERROR_CODE = ErrorTypes.VALIDATION_ERROR;
 const DEFAULT_ERROR_MSG = ValidationReasons.UNKNOWN;
 const DEFAULT_STATUS_CODE = HTTPStatus.BAD_REQUEST;
 
-// TODO
-// * REFACOTR EXISTING OR* MIDDLEWARE TO USE THIS
-
 /**
  * Comibnes array of middleware using OR logic. Only fails if ALL functions fail (either by throwing or calling next(error))
  *
@@ -17,7 +14,7 @@ const DEFAULT_STATUS_CODE = HTTPStatus.BAD_REQUEST;
  *
  * @param {Function[]} Array of express middleware to be run
  * @param {object} Options:
- *  - error_code: error_code in case of error (default: ErrorTypes.VALIDATION_ERROR)
+ *  - error_code: error code in case of error (default: ErrorTypes.VALIDATION_ERROR)
  *  - msg: the message in case of error (default: ValidationReasons.UNKNOWN)
  *  - status_code: The status used in the HTTP Response in case of error (default: BAD_REQUEST (400))
  */
@@ -44,7 +41,7 @@ const or = (
         }
     }
 
-    if (errors.length) {
+    if (!success && errors.length) {
         return next(new APIError(status_code, error_code, msg, { or: errors.map((e) => e.toObject()) }));
     } else {
         return next();
