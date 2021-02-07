@@ -48,6 +48,7 @@ module.exports = (app) => {
         const { limit, offset } = req.query;
         const computedLimit = parseInt(limit || validators.MAX_LIMIT_RESULTS, 10);
         const computedOffset = parseInt(offset || 0, 10);
+
         try {
             const { companies, totalDocCount } = await new CompanyService().findAll(computedLimit, computedOffset);
             return res.json({ companies, totalDocCount });

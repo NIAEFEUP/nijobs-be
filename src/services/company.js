@@ -33,7 +33,7 @@ class CompanyService {
                     .limit(limit)
                     .exec()
                 )]
-                    .map((application) => application.toObject()),
+                    .map((company) => company.toObject()),
 
         };
     }
