@@ -25,13 +25,10 @@ module.exports = (app) => {
 
     const p1 = async (req, res, next) => {
         await Promise.resolve();
-        console.info("RUNNING P1", req.query.p);
         if (req.query.p !== "1") throw new APIError(HTTPStatus.BAD_GATEWAY, ErrorTypes.FORBIDDEN, "MUST BE 1");
-        console.info("IS 1");
         return next();
     };
     const p2 = (req, res, next) => {
-        console.info("RUNNING P2");
 
         if (req.query.p !== "2") next(new APIError(HTTPStatus.BAD_GATEWAY, ErrorTypes.FORBIDDEN, "MUST BE 2"));
         return next();

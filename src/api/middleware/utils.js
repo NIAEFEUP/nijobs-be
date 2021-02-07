@@ -8,9 +8,7 @@ const DEFAULT_ERROR_MSG = ValidationReasons.UNKNOWN;
 const DEFAULT_STATUS_CODE = HTTPStatus.BAD_REQUEST;
 
 // TODO
-// * ADD TESTS
 // * REFACOTR EXISTING OR* MIDDLEWARE TO USE THIS
-// * REFACTOR ALL MIDDLEWARE TO RETURN NEXT WITH ERROR (maybe not needed)
 
 /**
  * Comibnes array of middleware using OR logic. Only fails if ALL functions fail (either by throwing or calling next(error))
@@ -55,4 +53,7 @@ const or = (
 
 module.exports = {
     or,
+    DEFAULT_ERROR_CODE,
+    DEFAULT_ERROR_MSG,
+    DEFAULT_STATUS_CODE
 };
