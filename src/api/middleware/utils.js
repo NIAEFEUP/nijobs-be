@@ -1,5 +1,5 @@
 const HTTPStatus = require("http-status-codes");
-const { APIError, ErrorTypes } = require("./errorHandler");
+const { APIError, ErrorTypes, hideInsecureError } = require("./errorHandler");
 const ValidationReasons = require("./validators/validationReasons");
 const lodash = require("lodash");
 
@@ -8,11 +8,14 @@ const DEFAULT_ERROR_MSG = ValidationReasons.UNKNOWN;
 const DEFAULT_STATUS_CODE = HTTPStatus.BAD_REQUEST;
 
 /**
- * Comibnes array of middleware using OR logic. Only fails if ALL functions fail (either by throwing or calling next(error))
+ * Combines array of middleware using OR logic. Only fails if ALL functions fail (either by throwing or calling next(error))
  *
  * Each middleware will receive a different req object, no not rely on it to be shared among them
  *
- * @param {Function[]} Array of express middleware to be run
+ * The failed middleware errors will be available in the `or` field of the response.
+ * However, only APIErrors will show the actual error message, in order to prevent unwanted errors (such as DB's) to leak here
+ *
+ * @param {Function[]} middleware: Array of express middleware to be run
  * @param {object} Options:
  *  - error_code: error code in case of error (default: ErrorTypes.VALIDATION_ERROR)
  *  - msg: the message in case of error (default: ValidationReasons.UNKNOWN)
@@ -30,23 +33,20 @@ const or = (
     const errors = [];
     for (const middleware of middlewares) {
         const req = lodash.cloneDeep(initialReq);
-        if (success) return next();
         try {
             await middleware(req, res, (error) => {
-                if (error) errors.push(error);
+                if (error) errors.push(hideInsecureError(error).toObject());
                 else success = true;
             });
-        } catch (err) {
-            errors.push(err);
+        } catch (error) {
+            errors.push(hideInsecureError(error).toObject());
         }
+        if (success) return next();
     }
 
-    if (!success && errors.length) {
-        return next(new APIError(status_code, error_code, msg, { or: errors.map((e) => e.toObject()) }));
-    } else {
-        return next();
-    }
+    return next(new APIError(status_code, error_code, msg, { or: errors }));
 };
+
 
 module.exports = {
     or,

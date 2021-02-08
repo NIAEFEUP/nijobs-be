@@ -167,7 +167,7 @@ const jobMinDurationEditable = async (jobMinDurationCandidate, { req }) => {
 
         const { jobMaxDuration: jobMaxDurationCandidate } = req.body;
 
-        // If the new publishMinDuration is after the new publishMaxDuration, the verification will be done in publishMaxDurationEditable
+        // If the new jobMinDuration is after the new jobMaxDuration, the verification will be done in jobMaxDurationEditable
         if ((offer.jobMaxDuration && jobMinDurationCandidate > offer.jobMaxDuration.toString())
             && !jobMaxDurationCandidate) {
 
