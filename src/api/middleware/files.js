@@ -10,7 +10,7 @@ const env = require("../../config/env");
 const ValidationReasons = require("./validators/validationReasons");
 
 
-const save_folder = path.join(__dirname, "../../../public/uploads/");
+const save_folder = path.join(__dirname, "../../../public/");
 if (!fs.existsSync(save_folder)) fs.mkdirSync(save_folder);
 
 const parseError = (message) => message.toLowerCase().replace(" ", "-");

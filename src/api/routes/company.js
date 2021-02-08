@@ -28,7 +28,7 @@ module.exports = (app) => {
             try {
                 const companyService = new CompanyService();
                 const { bio, contacts } = req.body;
-                let logo = `static/uploads/${req.file.filename}`;
+                let logo = `static/${req.file.filename}`;
                 if (req.file.url)
                     logo = req.file.url;
                 const company_id = req.user.company;

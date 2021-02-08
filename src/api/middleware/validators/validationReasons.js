@@ -36,6 +36,7 @@ const ValidationReasons = Object.freeze({
     JOB_MIN_DURATION_NOT_SPECIFIED: "job-max-duration-requires-job-min-duration",
     REGISTRATION_FINISHED: "registration-already-finished",
     FAILED_SAVE: "failed-save",
+    IMAGE_FORMAT: "formats-supported-png-jpeg-jpg",
 });
 
 module.exports = ValidationReasons;
