@@ -116,7 +116,7 @@ function validateEndDate(value) {
 
 // jobMaxDuration must be larger than jobMinDuration
 function validateJobMaxDuration(value) {
-    return value > this.jobMinDuration;
+    return value >= this.jobMinDuration;
 }
 
 function validateOwnerConcurrentOffers(value) {

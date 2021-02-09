@@ -29,6 +29,7 @@ const ValidationReasons = Object.freeze({
     OFFER_EXPIRED: (id) => `offer-expired:${id}`,
     NOT_OFFER_OWNER: (id) => `not-offer-owner:${id}`,
     OFFER_EDIT_PERIOD_OVER: (value) => `offer-edit-period-over:${value}-hours`,
+    JOB_MIN_DURATION_NOT_SPECIFIED: "job-max-duration-requires-job-min-duration",
 });
 
 module.exports = ValidationReasons;
