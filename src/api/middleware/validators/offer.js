@@ -244,7 +244,7 @@ const publishDateEditable = async (publishDateCandidate, { req }) => {
     return true;
 };
 
-const publishEndDateEditable = async (publishEndDateCandidate, { req }) => {
+const publishEndDateEditableAfterPublishDate = async (publishEndDateCandidate, { req }) => {
     try {
         // Default values and also handling if it is string or date object
         const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
@@ -270,6 +270,39 @@ const publishEndDateEditable = async (publishEndDateCandidate, { req }) => {
         console.error(err);
         throw err;
     }
+    // Returning truthy value to indicate no error ocurred
+    return true;
+};
+
+const publishEndDateEditableLimit = async (publishEndDateCandidate, { req }) => {
+    try {
+        // Default values and also handling if it is string or date object
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
+        const { publishDate: publishDateCandidate } = req.body;
+
+        let publishDate;
+
+        // Verifies if it's possible to convert the date
+        // If not, the validator will stop running without an error message because it was already thrown in publishDate validator
+        if (publishDateCandidate) {
+            try {
+                publishDate = (new Date(Date.parse(publishDateCandidate))).toISOString();
+            } catch {
+                return true;
+            }
+        }
+        publishDate = publishDate || offer.publishDate.toISOString();
+
+        if (!validatePublishEndDateLimit(new Date(Date.parse(publishDate)), new Date(Date.parse(publishEndDateCandidate)))) {
+            const maxPublishEndDate = new Date(Date.parse(publishDate) + (MONTH_IN_MS * OFFER_MAX_LIFETIME_MONTHS)).toISOString();
+            throw new Error(ValidationReasons.MUST_BE_BEFORE(maxPublishEndDate));
+        }
+
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+
     // Returning truthy value to indicate no error ocurred
     return true;
 };
@@ -308,8 +341,8 @@ const edit = useExpressValidators([
         .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
-        .custom(publishEndDateEditable)
-        .custom(publishEndDateLimit),
+        .custom(publishEndDateEditableAfterPublishDate)
+        .custom(publishEndDateEditableLimit),
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
         .optional()
