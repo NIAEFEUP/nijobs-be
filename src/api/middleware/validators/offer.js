@@ -490,18 +490,72 @@ const get = useExpressValidators([
         .custom(valuesInSet((TechnologyTypes))),
 ]);
 
-const getOfferById = useExpressValidators([
+const validOfferId = useExpressValidators([
     param("offerId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED)
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID),
 ]);
 
+// Validator to check if the offer can be managed, checking hiddenOffer flag
+const canBeManaged = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+
+    // Admin or gods can enable even if it was blocked by another admin
+    if (req.user.company &&
+         offer.hiddenReason === OfferConstants.HiddenOfferReasons.admin) {
+        return res.status(HTTPStatus.FORBIDDEN).json(
+            buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
+    }
+
+    return next();
+};
+
+const canEnable = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+
+    // Admin or gods can enable even if it was blocked by another admin
+    if (!offer.isHidden) {
+        return res.status(HTTPStatus.FORBIDDEN).json(
+            buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_VISIBLE));
+    }
+
+    return next();
+};
+
+// Validator to check if the offer is not already hidden
+const canHide = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+
+    if (offer.isHidden) {
+        return res.status(HTTPStatus.FORBIDDEN).json(
+            buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
+    }
+
+    return next();
+};
+
+// Validator to check if the offer is not already disabled by admin
+const canDisable = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+
+    if (offer.isHidden && offer.hiddenReason === OfferConstants.HiddenOfferReasons.admin) {
+        return res.status(HTTPStatus.FORBIDDEN).json(
+            buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
+    }
+
+    return next();
+};
+
 module.exports = {
     create,
     get,
-    getOfferById,
+    validOfferId,
     isExistingOffer,
     edit,
     offersDateSanitizers,
     isEditable,
+    canBeManaged,
+    canEnable,
+    canHide,
+    canDisable,
 };

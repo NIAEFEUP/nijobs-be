@@ -37,7 +37,7 @@ module.exports = (app) => {
     /**
      * Gets an offer from the database with its id
     */
-    router.get("/:offerId", validators.getOfferById, async (req, res, next) => {
+    router.get("/:offerId", validators.validOfferId, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
 
@@ -105,12 +105,18 @@ module.exports = (app) => {
             }
         });
 
-    // Company owner hiding its offer
+    /**
+     * Hides an offer.
+     * Used by companies or admins to hide an offer
+     * Offer can be later enabled by owner or admins
+     */
     router.post(
         "/:offerId/hide",
-        authMiddleware.isCompanyOrGod, // Later change this to only company when new or method is available
+        authMiddleware.isCompanyOrAdminOrGod, // Change this to OR method
+        validators.validOfferId,
         validators.isExistingOffer,
         (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        validators.canHide,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.company);
@@ -120,12 +126,17 @@ module.exports = (app) => {
             }
         });
 
-    // Company disabling an offer
+    /**
+     * Disables an offer.
+     * Used by admins or gods to disable an offer.
+     * Leaves the offer in a state that only admins and gods can enable it again
+     */
     router.post(
         "/:offerId/disable",
         authMiddleware.isAdminOrGod, // Later change this to or method when it is available
+        validators.validOfferId,
         validators.isExistingOffer,
-        (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        validators.canDisable,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.admin);
@@ -135,12 +146,17 @@ module.exports = (app) => {
             }
         });
 
-    // Enable an offer
+    /**
+     * Enables an hidden/disabled offer
+     */
     router.post(
         "/:offerId/enable",
-        authMiddleware.isCompanyOrAdminOrGod, // Later change this to only company when new or method is available
+        authMiddleware.isCompanyOrAdminOrGod, // Change to OR method
+        validators.validOfferId,
         validators.isExistingOffer,
         (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        validators.canBeManaged,
+        validators.canEnable,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).enable(req.params.offerId);
