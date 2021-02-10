@@ -69,7 +69,9 @@ const OfferSchema = new Schema({
         required: true,
         validate: (val) => lengthBetweenValidator(val, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES) && noDuplicatesValidator(val),
     },
-
+    hiddenReason: {
+        type: { type: String, enum: OfferConstants.HiddenOfferReasons },
+    },
     isHidden: {
         type: Boolean,
         default: false

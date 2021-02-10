@@ -5,4 +5,8 @@ module.exports = Object.freeze({
     description: {
         max_length: 1500,
     },
+    HiddenOfferReasons: Object.freeze({
+        admin: "ADMIN_REQUEST",
+        company: "COMPANY_REQUEST",
+    })
 });

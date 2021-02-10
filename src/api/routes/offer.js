@@ -8,6 +8,7 @@ const HTTPStatus = require("http-status-codes");
 const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
 const { or } = require("../middleware/utils");
+const OfferConstants = require("../../models/constants/Offer");
 
 const router = Router();
 
@@ -98,6 +99,51 @@ module.exports = (app) => {
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).edit(req.params.offerId, req.body);
+                return res.json(offer);
+            } catch (err) {
+                return next(err);
+            }
+        });
+
+    // Company owner hiding its offer
+    router.post(
+        "/:offerId/hide",
+        authMiddleware.isCompanyOrGod, // Later change this to only company when new or method is available
+        validators.isExistingOffer,
+        (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        async (req, res, next) => {
+            try {
+                const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.company);
+                return res.json(offer);
+            } catch (err) {
+                return next(err);
+            }
+        });
+
+    // Company disabling an offer
+    router.post(
+        "/:offerId/disable",
+        authMiddleware.isAdminOrGod, // Later change this to or method when it is available
+        validators.isExistingOffer,
+        (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        async (req, res, next) => {
+            try {
+                const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.admin);
+                return res.json(offer);
+            } catch (err) {
+                return next(err);
+            }
+        });
+
+    // Enable an offer
+    router.post(
+        "/:offerId/enable",
+        authMiddleware.isCompanyOrAdminOrGod, // Later change this to only company when new or method is available
+        validators.isExistingOffer,
+        (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        async (req, res, next) => {
+            try {
+                const offer = await (new OfferService()).enable(req.params.offerId);
                 return res.json(offer);
             } catch (err) {
                 return next(err);

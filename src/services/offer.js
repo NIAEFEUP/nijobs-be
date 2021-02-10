@@ -73,7 +73,6 @@ class OfferService {
             jobType,
             fields,
             technologies,
-            isHidden,
             location,
             coordinates,
             requirements,
@@ -92,7 +91,6 @@ class OfferService {
             jobType,
             fields,
             technologies,
-            isHidden,
             location,
             coordinates,
             requirements,
@@ -109,6 +107,47 @@ class OfferService {
             }
         );
 
+        return offer;
+    }
+
+    async disable(
+        _id,
+        hiddenReason
+    ) {
+        const query = { _id };
+        const offer = await Offer.findOneAndUpdate(
+            query,
+            {
+                isHidden: true,
+                hiddenReason
+            },
+            { new: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            }
+        );
+        return offer;
+    }
+
+    async enable(
+        _id
+    ) {
+        const query = { _id };
+        const offer = await Offer.findOneAndUpdate(
+            query,
+            {
+                isHidden: false,
+                $unset: { hiddenReason: undefined } // Removing property from document.
+            },
+            { new: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            }
+        );
         return offer;
     }
 
