@@ -18,6 +18,26 @@ const {
     OFFER_EDIT_GRACE_PERIOD_HOURS,
 } = require("../../../models/constants/TimeConstants");
 
+const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
+
+    const { jobMinDuration } = req.body;
+
+    if (!jobMinDuration) {
+        throw new Error(ValidationReasons.JOB_MIN_DURATION_NOT_SPECIFIED);
+    }
+    return true;
+};
+
+const jobMaxDurationGreaterOrEqualThanJobMinDuration = (jobMaxDuration, { req }) => {
+
+    const { jobMinDuration } = req.body;
+
+    if (jobMinDuration > jobMaxDuration) {
+        throw new Error(ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
+    }
+    return true;
+};
+
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
@@ -53,7 +73,9 @@ const create = useExpressValidators([
 
     body("jobMaxDuration", ValidationReasons.DEFAULT)
         .optional()
-        .isInt().withMessage(ValidationReasons.INT),
+        .isInt().withMessage(ValidationReasons.INT)
+        .custom(mustSpecifyJobMinDurationIfJobMaxDurationSpecified).bail()
+        .custom(jobMaxDurationGreaterOrEqualThanJobMinDuration),
 
     body("jobStartDate", ValidationReasons.DEFAULT)
         .optional()
@@ -146,8 +168,8 @@ const jobMinDurationEditable = async (jobMinDurationCandidate, { req }) => {
         const { jobMaxDuration: jobMaxDurationCandidate } = req.body;
 
         // If the new publishMinDuration is after the new publishMaxDuration, the verification will be done in publishMaxDurationEditable
-        if (jobMinDurationCandidate >= offer.jobMaxDuration.toString() &&
-            !jobMaxDurationCandidate) {
+        if ((offer.jobMaxDuration && jobMinDurationCandidate > offer.jobMaxDuration.toString())
+            && !jobMaxDurationCandidate) {
 
             // end date is earlier than publish date, error!
             throw new Error(ValidationReasons.MUST_BE_BEFORE("jobMaxDuration"));
@@ -166,7 +188,12 @@ const jobMaxDurationEditable = async (jobMaxDurationCandidate, { req }) => {
         const { jobMinDuration: jobMinDurationCandidate } = req.body;
 
         const jobMinDuration = jobMinDurationCandidate || offer.jobMinDuration.toString();
-        if (jobMinDuration >= jobMaxDurationCandidate) {
+
+        if (!jobMinDuration) {
+            throw new Error(ValidationReasons.JOB_MIN_DURATION_NOT_SPECIFIED);
+        }
+
+        if (jobMinDuration > jobMaxDurationCandidate) {
 
             throw new Error(ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
         }

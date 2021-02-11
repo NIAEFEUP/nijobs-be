@@ -479,6 +479,74 @@ describe("Offer endpoint tests", () => {
                 expect(created_offer).toHaveProperty("publishDate");
             });
         });
+
+        describe("Job Duration", () => {
+            test("should fail if jobMinDuration is greater than jobMaxDuration", async () => {
+                const offer_params = generateTestOffer({
+                    jobMinDuration: 10,
+                    jobMaxDuration: 8,
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
+            });
+
+            test("should succeed if jobMaxDuration is greater than jobMinDuration", async () => {
+                const offer_params = generateTestOffer({
+                    jobMinDuration: 8,
+                    jobMaxDuration: 10,
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.OK);
+            });
+
+            test("should fail if jobMaxDuration is specified and jobMinDuration isn't", async () => {
+                const offer_params = generateTestOffer({
+                    jobMaxDuration: 8,
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.JOB_MIN_DURATION_NOT_SPECIFIED);
+            });
+
+            test("should succeed if jobMinDuration is specified and jobMaxDuration isn't", async () => {
+                const offer_params = generateTestOffer({
+                    jobMinDuration: 8,
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.OK);
+            });
+        });
     });
 
     describe("GET /offers", () => {
