@@ -86,6 +86,7 @@ const create = useExpressValidators([
         .custom(publishEndDateAfterPublishDate)
         .custom(publishEndDateLimit),
 
+
     body("jobMinDuration", ValidationReasons.DEFAULT)
         .optional()
         .isInt().withMessage(ValidationReasons.INT),

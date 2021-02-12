@@ -21,7 +21,6 @@ const {
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
 } = require("../../src/models/constants/TimeConstants");
-const { ensureArray } = require("../../src/api/middleware/validators/validatorUtils");
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -295,7 +294,7 @@ describe("Offer endpoint tests", () => {
                 await Offer.deleteMany({});
             });
 
-            test("Should fail to create an offer due to publish end date being aftr publish date more than the limit", async () => {
+            test("Should fail to create an offer due to publish end date being after publish date more than the limit", async () => {
                 const offer = generateTestOffer();
                 const publishDate = new Date(Date.now() - (DAY_TO_MS));
                 const offer_params = {
@@ -310,6 +309,8 @@ describe("Offer endpoint tests", () => {
                     .post("/offers/new")
                     .send(withGodToken(offer_params));
 
+
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body.errors).toHaveLength(1);
                 expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
@@ -1448,6 +1449,27 @@ describe("Offer endpoint tests", () => {
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("publishDate"));
+                });
+
+                test("should fail to edit if publishEndDate is after publishDate more than the time limit", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({
+                            "publishEndDate":
+                                (new Date(
+                                    new Date(future_test_offer.publishDate).getTime() +
+                                    (MONTH_IN_MS * OFFER_MAX_LIFETIME_MONTHS) +
+                                    DAY_TO_MS)
+                                ).toISOString()
+                        }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_BEFORE(
+                        new Date(
+                            new Date(future_test_offer.publishDate).getTime() +
+                            (MONTH_IN_MS * OFFER_MAX_LIFETIME_MONTHS)
+                        ).toISOString()
+                    ));
                 });
 
                 test("should fail if sending invalid date combination in request", async () => {
