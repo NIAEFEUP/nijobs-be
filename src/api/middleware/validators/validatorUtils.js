@@ -65,7 +65,8 @@ const sortOffersByFieldAscending = (field) => (offer1, offer2) => Date.parse(off
 const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, publishEndDate) => {
     // We need to pass the offer model in case we're inside an Offer instance
     const offersInTimePeriod = await (new CompanyService())
-        .getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel);
+        .getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel)
+        .withoutHidden();
 
     const offerNumber = offersInTimePeriod.length;
     if (offerNumber < CompanyConstants.offers.max_concurrent) return true;

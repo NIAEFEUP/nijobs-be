@@ -6,10 +6,13 @@ const CompanyConstants = require("../../models/constants/Company");
 const Offer = require("../../models/Offer");
 const CompanyService = require("../../services/company");
 
-const verifyMaxConcurrentOffers = async (req, res, next) => {
-    const limitNotReached = await concurrentOffersNotExceeded(Offer)(req.body.owner, req.body.publishDate, req.body.publishEndDate);
-
-    if (!limitNotReached) {
+const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate) => async (req, res, next) => {
+    const limitNotReached = await concurrentOffersNotExceeded(Offer)(
+        owner,
+        publishDate || req.body.publishDate,
+        publishEndDate || req.body.publishEndDate
+    );
+    if (!req.body.isHidden && !limitNotReached) {
         return next(new APIError(
             HTTPStatus.CONFLICT,
             ErrorTypes.VALIDATION_ERROR,

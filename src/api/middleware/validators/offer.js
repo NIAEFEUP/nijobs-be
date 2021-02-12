@@ -20,6 +20,7 @@ const {
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
 } = require("../../../models/constants/TimeConstants");
+const companyMiddleware = require("../company");
 
 const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
 
@@ -271,7 +272,6 @@ const publishEndDateEditableAfterPublishDate = async (publishEndDateCandidate, {
         console.error(err);
         throw err;
     }
-    // Returning truthy value to indicate no error ocurred
     return true;
 };
 
@@ -501,7 +501,7 @@ const canBeManaged = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     // Admin or gods can enable even if it was blocked by another admin
-    if (req.user.company &&
+    if (req.user?.company &&
          offer.hiddenReason === OfferConstants.HiddenOfferReasons.admin) {
         return res.status(HTTPStatus.FORBIDDEN).json(
             buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
@@ -519,7 +519,7 @@ const canEnable = async (req, res, next) => {
             buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_VISIBLE));
     }
 
-    return next();
+    return companyMiddleware.verifyMaxConcurrentOffers(offer.owner, offer.publishDate, offer.publishEndDate)(req, res, next);
 };
 
 // Validator to check if the offer is not already hidden
