@@ -6,12 +6,8 @@ const { MulterError } = require("multer");
 const multerConfig = require("../../config/multer");
 const { ErrorTypes } = require("./errorHandler");
 const cloudinary = require("cloudinary").v2;
-const env = require("../../config/env");
+const config = require("../../config/env");
 const ValidationReasons = require("./validators/validationReasons");
-
-
-const save_folder = path.join(__dirname, "../../../public/");
-if (!fs.existsSync(save_folder)) fs.mkdirSync(save_folder);
 
 const parseError = (message) => message.toLowerCase().replace(" ", "-");
 
@@ -43,11 +39,11 @@ const single = (field_name) => (req, res, next) => {
     });
 };
 
-const save = async (req, res, next) => {
+const localSave = async (req, res, next) => {
     const buffer = req.file.buffer;
     const extension = req.file.mimetype.substr(req.file.mimetype.indexOf("/") + 1);
     const filename = `${req.user.company}.${extension}`;
-    const file_path = path.join(save_folder, filename);
+    const file_path = path.join(config.upload_folder, filename);
     req.file.filename = filename;
 
     try {
@@ -74,10 +70,10 @@ const upload = util.promisify(cloudinary.uploader.upload);
 
 const cloudSave = async (req, res, next) => {
     const filename = req.file.filename;
-    const file_path = path.join(save_folder, filename);
+    const file_path = path.join(config.upload_folder, filename);
 
     try {
-        if (env.cloudinary_url) {
+        if (config.cloudinary_url) {
             const resp = await upload(file_path,
                 {
                     resource_type: "image",
@@ -107,4 +103,4 @@ const cloudSave = async (req, res, next) => {
 };
 
 
-module.exports = { single, save, cloudSave };
+module.exports = { single, localSave, cloudSave };

@@ -19,7 +19,7 @@ const CompanySchema = new Schema({
         type: String,
         maxlength: CompanyConstants.bio.max_length,
     },
-    finished: {
+    hasFinishedRegistration: {
         type: Boolean,
         default: false
     },

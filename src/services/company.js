@@ -28,7 +28,7 @@ class CompanyService {
             totalDocCount,
             companies:
                 [...(await Company.find({})
-                    .sort({ Name: "desc" })
+                    .sort({ name: "asc" })
                     .skip(offset)
                     .limit(limit)
                     .exec()
@@ -49,7 +49,7 @@ class CompanyService {
     /**
      * Changes the attributes of a company
      * @param {*} company_id id of the company
-     * @param {*} attributes attributes to change in company
+     * @param {*} attributes object containing the attributes to change in company
      */
     changeAttributes(company_id, attributes) {
         return Company.updateOne({ _id: company_id }, attributes);

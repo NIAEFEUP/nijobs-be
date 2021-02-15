@@ -8,16 +8,11 @@ const fs = require("fs");
 const path = require("path");
 
 const getCompanies = async (options) =>
-    [
-        ...(await Company
-            .find(options)
-            .exec())
-    ]
-        .map((c) => {
-            const obj = c.toObject();
-            obj._id = obj._id.toString();
-            return obj;
-        });
+    [...(await Company.find(options))]
+        .map((company) => ({
+            ...company.toObject(),
+            _id: company._id.toString(),
+        }));
 
 describe("Company application endpoint", () => {
     describe("GET /company", () => {
@@ -44,12 +39,12 @@ describe("Company application endpoint", () => {
         });
     });
 
-    describe("POST /company/finish", () => {
+    describe("POST /company/application/finish", () => {
 
         describe("Without Auth", () => {
             test("should respond with forbidden", async () => {
                 const emptyRes = await request()
-                    .post("/company/finish");
+                    .post("/company/application/finish");
 
                 expect(emptyRes.status).toBe(HTTPStatus.UNAUTHORIZED);
             });
@@ -68,9 +63,9 @@ describe("Company application endpoint", () => {
 
             beforeEach(async () => {
                 await Company.deleteMany({});
-                const c = await Company.create({ name: company_data.name });
+                const test_company = await Company.create({ name: company_data.name });
                 await Account.deleteMany({});
-                await Account.create({ email: test_user.email, password: await hash(test_user.password), company: c._id });
+                await Account.create({ email: test_user.email, password: await hash(test_user.password), company: test_company._id });
 
                 // Login
                 await test_agent
@@ -81,21 +76,21 @@ describe("Company application endpoint", () => {
 
             test("should finish the application", async () => {
                 await test_agent
-                    .post("/company/finish")
+                    .post("/company/application/finish")
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", ["contact1", "contact2"])
                     .expect(HTTPStatus.OK);
 
-                const c = [... await Company.find({}).exec()][0];
-                expect([...c.contacts]).toEqual(["contact1", "contact2"]);
-                expect(c.finished).toBe(true);
-                expect(c.bio).toBe("A very interesting and compelling bio");
-                const filename = path.join(__dirname, `../../${c.logo.replace("static", "public")}`);
+                const test_company = [... await Company.find({}).exec()][0];
+                expect([...test_company.contacts]).toEqual(["contact1", "contact2"]);
+                expect(test_company.hasFinishedRegistration).toBe(true);
+                expect(test_company.bio).toBe("A very interesting and compelling bio");
+                const filename = path.join(__dirname, `../../${test_company.logo.replace("static", "public")}`);
                 expect(fs.existsSync(filename)).toBe(true);
 
                 await test_agent
-                    .post("/company/finish")
+                    .post("/company/application/finish")
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", ["contact1", "contact2"])
@@ -109,7 +104,7 @@ describe("Company application endpoint", () => {
 
                 test("should return error when the logo is missing", async () => {
                     const res = await test_agent
-                        .post("/company/finish")
+                        .post("/company/application/finish")
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
                     expect(res.body.errors).toContainEqual({
@@ -121,7 +116,7 @@ describe("Company application endpoint", () => {
 
                 test("should return error when the logo is missing", async () => {
                     const res = await test_agent
-                        .post("/company/finish")
+                        .post("/company/application/finish")
                         .attach("logo", __filename)
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
@@ -138,7 +133,7 @@ describe("Company application endpoint", () => {
                 test("should return an error because the bio is required", async () => {
 
                     const res = await test_agent
-                        .post("/company/finish")
+                        .post("/company/application/finish")
                         .attach("logo", "test/data/logo-niaefeup.png")
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
@@ -154,7 +149,7 @@ describe("Company application endpoint", () => {
                 test("should return an error because the bio is too long", async () => {
                     const long_bio = "a".repeat(CompanyConstants.bio.max_length + 1);
                     const res = await test_agent
-                        .post("/company/finish")
+                        .post("/company/application/finish")
                         .attach("logo", "test/data/logo-niaefeup.png")
                         .field("bio", long_bio)
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
@@ -174,7 +169,7 @@ describe("Company application endpoint", () => {
                 test("should return an error because the contacts are required", async () => {
 
                     const res = await test_agent
-                        .post("/company/finish")
+                        .post("/company/application/finish")
                         .attach("logo", "test/data/logo-niaefeup.png")
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
@@ -191,7 +186,7 @@ describe("Company application endpoint", () => {
                     const contacts = new Array(CompanyConstants.contacts.max_length + 1)
                         .fill("contact");
                     const res = await test_agent
-                        .post("/company/finish")
+                        .post("/company/application/finish")
                         .attach("logo", "test/data/logo-niaefeup.png")
                         .field("contacts", contacts)
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);

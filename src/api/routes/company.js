@@ -15,26 +15,25 @@ module.exports = (app) => {
     /**
      * Creates a new Company Application
      */
-    router.post("/finish",
+    router.post("/application/finish",
         authRequired,
         companyMiddleware.isCompanyRep,
         companyMiddleware.profileNotComplete,
         fileMiddleware.single("logo"),
         validators.finish,
-        fileMiddleware.save,
+        fileMiddleware.localSave,
         fileMiddleware.cloudSave,
         async (req, res, next) => {
 
             try {
                 const companyService = new CompanyService();
                 const { bio, contacts } = req.body;
-                let logo = `static/${req.file.filename}`;
-                if (req.file.url)
-                    logo = req.file.url;
+                const logo = req?.file?.url || `static/${req.file.filename}`;
                 const company_id = req.user.company;
-                await companyService.changeAttributes(company_id, { bio, contacts, logo, finished: true });
+                await companyService.changeAttributes(company_id, { bio, contacts, logo, hasFinishedRegistration: true });
                 return res.json({});
             } catch (err) {
+                console.error(err);
                 return next(err);
             }
         });

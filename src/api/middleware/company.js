@@ -21,7 +21,7 @@ const verifyMaxConcurrentOffers = async (req, res, next) => {
 
 const profileNotComplete = async (req, res, next) => {
     const company = await (new CompanyService()).findById(req.user.company);
-    if (company.finished) {
+    if (company.hasFinishedRegistration) {
         return res
             .status(HTTPStatus.FORBIDDEN)
             .json({
