@@ -61,10 +61,36 @@ const isObjectId = (id) => {
  */
 const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, publishEndDate) => {
     // We need to pass the offer model in case we're inside an Offer instance
-    const concurrentOffers = await (new CompanyService())
+    const offersInTimePeriod = await (new CompanyService())
         .getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel);
 
-    return concurrentOffers.length < CompanyConstants.offers.max_concurrent;
+    const offerNumber = offersInTimePeriod.length;
+    if (offerNumber < CompanyConstants.offers.max_concurrent) return true;
+    // otherwise, let's check how many are concurrent
+
+    const startDates = offersInTimePeriod.map((offer) => offer.publishDate);
+    const endDates = offersInTimePeriod.map((offer) => offer.publishEndDate);
+    startDates.sort();
+    endDates.sort();
+
+    let counter = 0, maxConcurrent = 0;
+    let startIndex = 0, endIndex = 0;
+    while (startIndex < offerNumber || endIndex < offerNumber) {
+        if (startIndex < offerNumber) {
+            if (endIndex >= offerNumber || startDates[startIndex] <= endDates[endIndex]) {
+                counter++;
+                startIndex++;
+                if (counter > maxConcurrent) maxConcurrent = counter;
+            } else {
+                counter--;
+                endIndex++;
+            }
+        } else {
+            counter--;
+            endIndex++;
+        }
+    }
+    return maxConcurrent < CompanyConstants.offers.max_concurrent;
 };
 
 module.exports = {
