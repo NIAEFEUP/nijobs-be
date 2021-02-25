@@ -645,9 +645,36 @@ describe("Offer endpoint tests", () => {
                 });
 
 
-                test("should provide only current offer info (no expired or future offers)", async () => {
+                test("should provide only current offer info (no expired or future offers with no value query)", async () => {
                     const res = await request()
                         .get("/offers");
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveLength(1);
+                    // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
+                    const extracted_data = res.body.map((elem) => {
+                        delete elem["_id"];
+                        delete elem["__v"];
+                        delete elem["createdAt"];
+                        delete elem["updatedAt"];
+                        delete elem["score"];
+                        return elem;
+                    });
+                    const prepared_test_offer = {
+                        ...test_offer,
+                        isHidden: false,
+                        owner: test_offer.owner.toString()
+                    };
+
+                    expect(extracted_data).toContainEqual(prepared_test_offer);
+                });
+
+                test("should provide only current offer info (no expired or future offers with some value query)", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({
+                            value: "test",
+                        });
 
                     expect(res.status).toBe(HTTPStatus.OK);
                     expect(res.body).toHaveLength(1);
