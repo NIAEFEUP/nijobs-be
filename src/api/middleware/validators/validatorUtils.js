@@ -72,5 +72,5 @@ module.exports = {
     checkDuplicatedEmail,
     ensureArray,
     isObjectId,
-    concurrentOffersNotExceeded
+    concurrentOffersNotExceeded,
 };

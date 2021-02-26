@@ -16,7 +16,6 @@ const ValidationReasons = require("../../src/api/middleware/validators/validatio
 const { Types } = require("mongoose");
 const CompanyConstants = require("../../src/models/constants/Company");
 const { OFFER_EDIT_GRACE_PERIOD_HOURS, HOUR_IN_MS  } = require("../../src/models/constants/TimeConstants");
-const { ensureArray } = require("../../src/api/middleware/validators/validatorUtils");
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -146,7 +145,7 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("errors");
-                    expect(res.body.errors).toContainEqual(ValidationReasons.BAD_GOD_TOKEN);
+                    expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
                 });
 
                 test("should fail when god token is correct but owner doesn't exist", async () => {
@@ -325,8 +324,6 @@ describe("Offer endpoint tests", () => {
                 "publishDate": (new Date(Date.now() - (3 * DAY_TO_MS))).toISOString(),
                 "publishEndDate": (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString()
             }));
-
-            console.info("TEST OFFERS: ", ensureArray(testOffers));
 
             beforeAll(async () => {
                 await Offer.deleteMany({});

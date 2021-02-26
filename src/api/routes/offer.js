@@ -5,8 +5,9 @@ const companyMiddleware = require("../middleware/company");
 const validators = require("../middleware/validators/offer");
 const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
-const { buildErrorResponse, ErrorTypes } = require("../middleware/errorHandler");
+const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
+const { or } = require("../middleware/utils");
 
 const router = Router();
 
@@ -40,12 +41,11 @@ module.exports = (app) => {
             const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
 
             if (!offer) {
-                return res.status(HTTPStatus.NOT_FOUND).json(
-                    buildErrorResponse(
-                        ErrorTypes.FORBIDDEN,
-                        [ValidationReasons.OFFER_NOT_FOUND(req.params.offerId)]
-                    )
-                );
+                return next(new APIError(
+                    HTTPStatus.NOT_FOUND,
+                    ErrorTypes.FORBIDDEN,
+                    ValidationReasons.OFFER_NOT_FOUND(req.params.offerId)
+                ));
             }
 
             return res.json(offer);
@@ -59,7 +59,11 @@ module.exports = (app) => {
      * Creates a new Offer
      */
     router.post("/new",
-        authMiddleware.isCompanyOrAdminOrGod,
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isAdmin,
+            authMiddleware.isGod
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.create,
         companyMiddleware.verifyMaxConcurrentOffers,
         validators.offersDateSanitizers,
@@ -81,7 +85,11 @@ module.exports = (app) => {
 
     router.post(
         "/edit/:offerId",
-        authMiddleware.isCompanyOrAdminOrGod,
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isAdmin,
+            authMiddleware.isGod
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.isExistingOffer,
         validators.isEditable,
         validators.edit,
