@@ -122,9 +122,9 @@ class OfferService {
      */
     get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false, ...filters }) {
 
-        const offers = value ? Offer.find(
+        const offers = (value ? Offer.find(
             { "$and": [this._buildFilterQuery(filters), { "$text": { "$search": value } }] }, { score: { "$meta": "textScore" } }
-        ) : Offer.find(this._buildFilterQuery(filters)).current();
+        ) : Offer.find(this._buildFilterQuery(filters))).current();
 
         if (!showHidden) offers.withoutHidden();
 
