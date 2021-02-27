@@ -1153,6 +1153,8 @@ describe("Offer endpoint tests", () => {
 
                 test("should return porto offers with min duration of 2 and max duration of 4", async () => {
 
+                    // This test should include the 3-6 offer as well, since [3,6] intersects [2,4]
+
                     const res = await request()
                         .get("/offers")
                         .query({
@@ -1161,7 +1163,7 @@ describe("Offer endpoint tests", () => {
                             jobMaxDuration: 4
                         });
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(1);
+                    expect(res.body).toHaveLength(2);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
@@ -1169,13 +1171,16 @@ describe("Offer endpoint tests", () => {
                         return elem;
                     });
 
-                    const prepared_test_offer = {
-                        ...portoBackend,
+                    // eslint-disable-next-line no-unused-vars
+                    const expected_offers = [portoBackend, portoFrontend].map(({ owner, ...offer }) => ({
+                        ...offer,
                         isHidden: false,
-                        owner: portoBackend.owner.toString()
-                    };
+                        owner: owner.toString()
+                    }));
 
-                    expect(extracted_data).toContainEqual(prepared_test_offer);
+                    expected_offers.forEach((expected) => {
+                        expect(extracted_data).toContainEqual(expected);
+                    });
                 });
             });
 
