@@ -15,7 +15,12 @@ const hash = require("../../src/lib/passwordHashing");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 const { Types } = require("mongoose");
 const CompanyConstants = require("../../src/models/constants/Company");
-const { OFFER_EDIT_GRACE_PERIOD_HOURS, HOUR_IN_MS  } = require("../../src/models/constants/TimeConstants");
+const {
+    OFFER_EDIT_GRACE_PERIOD_HOURS,
+    HOUR_IN_MS,
+    MONTH_IN_MS,
+    OFFER_MAX_LIFETIME_MONTHS
+} = require("../../src/models/constants/TimeConstants");
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -283,6 +288,37 @@ describe("Offer endpoint tests", () => {
         describe("Without pre-existing offers", () => {
             beforeAll(async () => {
                 await Offer.deleteMany({});
+            });
+
+            beforeEach(async () => {
+                await Offer.deleteMany({});
+            });
+
+            test("Should fail to create an offer due to publish end date being after publish date more than the limit", async () => {
+                const offer = generateTestOffer();
+                const publishDate = new Date(Date.now() - (DAY_TO_MS));
+                const offer_params = {
+                    ...offer,
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                    publishDate: publishDate.toISOString(),
+                    publishEndDate: (new Date(publishDate.getTime() + (MONTH_IN_MS * OFFER_MAX_LIFETIME_MONTHS) + DAY_TO_MS)).toISOString(),
+                };
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
+                expect(res.body.errors[0]).toHaveProperty("location", "body");
+                expect(res.body.errors[0].msg).toEqual(
+                    ValidationReasons.MUST_BE_BEFORE(
+                        new Date(publishDate.getTime() + (MONTH_IN_MS * OFFER_MAX_LIFETIME_MONTHS)).toISOString()
+                    ));
             });
 
             // TODO: This test should be 'with minimum requirements'
@@ -1394,8 +1430,8 @@ describe("Offer endpoint tests", () => {
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
                         .send(withGodToken({
                             "publishDate":
-                            (new Date(new Date(future_test_offer.publishEndDate).getTime() + DAY_TO_MS))
-                                .toISOString()
+                                (new Date(new Date(future_test_offer.publishEndDate).getTime() + DAY_TO_MS))
+                                    .toISOString()
                         }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body.errors[0]).toHaveProperty("param", "publishDate");
@@ -1407,12 +1443,33 @@ describe("Offer endpoint tests", () => {
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
                         .send(withGodToken({
                             "publishEndDate":
-                            (new Date(new Date(future_test_offer.publishDate).getTime() - DAY_TO_MS))
-                                .toISOString()
+                                (new Date(new Date(future_test_offer.publishDate).getTime() - DAY_TO_MS))
+                                    .toISOString()
                         }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("publishDate"));
+                });
+
+                test("should fail to edit if publishEndDate is after publishDate more than the time limit", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({
+                            "publishEndDate":
+                                (new Date(
+                                    new Date(future_test_offer.publishDate).getTime() +
+                                    (MONTH_IN_MS * OFFER_MAX_LIFETIME_MONTHS) +
+                                    DAY_TO_MS)
+                                ).toISOString()
+                        }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_BEFORE(
+                        new Date(
+                            new Date(future_test_offer.publishDate).getTime() +
+                            (MONTH_IN_MS * OFFER_MAX_LIFETIME_MONTHS)
+                        ).toISOString()
+                    ));
                 });
 
                 test("should fail if sending invalid date combination in request", async () => {
