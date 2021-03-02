@@ -68,18 +68,19 @@ const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, p
     if (offerNumber < CompanyConstants.offers.max_concurrent) return true;
     // otherwise, let's check how many are concurrent
 
-    const startDates = offersInTimePeriod.map((offer) => offer.publishDate);
-    const endDates = offersInTimePeriod.map((offer) => offer.publishEndDate);
-    startDates.sort();
-    endDates.sort();
+    // This algorithm is explained in https://github.com/NIAEFEUP/nijobs-be/issues/123#issuecomment-782272539
 
-    /**
-     * This algorithm is explained in https://github.com/NIAEFEUP/nijobs-be/issues/123#issuecomment-782272539
-     */
+    const offersByStart = offersInTimePeriod; // we won't need this array unmodified
+    const offersByEnd = [...offersInTimePeriod];
+    offersByStart.sort((offer1, offer2) => Date.parse(offer1.publishDate) - Date.parse(offer2.publishDate));
+    offersByEnd.sort((offer1, offer2) => Date.parse(offer1.publishEndDate) - Date.parse(offer2.publishEndDate));
+
     let counter = 0, maxConcurrent = 0;
     let startIndex = 0, endIndex = 0;
     while (startIndex < offerNumber || endIndex < offerNumber) {
-        if (startIndex < offerNumber && (endIndex >= offerNumber || startDates[startIndex] <= endDates[endIndex])) {
+        if (startIndex < offerNumber &&
+            (endIndex >= offerNumber || offersByStart[startIndex].publishDate <= offersByEnd[endIndex].publishEndDate)) {
+
             counter++;
             startIndex++;
             if (counter > maxConcurrent) maxConcurrent = counter;
