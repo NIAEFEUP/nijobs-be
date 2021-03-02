@@ -480,7 +480,8 @@ describe("Offer endpoint tests", () => {
             });
         });
 
-        describe("Creating an offer in a time period with nonoverlapping offers", () => {
+        describe("Creating an offer in a time period with more than `max_concurrent` overlapping offers, \
+                    without exceeding the limit at any point", () => {
             const testOffers = Array(CompanyConstants.offers.max_concurrent - 2)
                 .fill(generateTestOffer({
                     "publishDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
@@ -506,10 +507,6 @@ describe("Offer endpoint tests", () => {
                 });
 
                 await Offer.create(testOffers);
-            });
-
-            afterAll(async () => {
-                await Offer.deleteMany({});
             });
 
             test("should succeed to create an offer (the offers limit is never reached at any moment)", async () => {

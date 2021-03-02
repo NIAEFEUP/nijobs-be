@@ -73,18 +73,16 @@ const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, p
     startDates.sort();
     endDates.sort();
 
+    /**
+     * This algorithm is explained in https://github.com/NIAEFEUP/nijobs-be/issues/123#issuecomment-782272539
+     */
     let counter = 0, maxConcurrent = 0;
     let startIndex = 0, endIndex = 0;
     while (startIndex < offerNumber || endIndex < offerNumber) {
-        if (startIndex < offerNumber) {
-            if (endIndex >= offerNumber || startDates[startIndex] <= endDates[endIndex]) {
-                counter++;
-                startIndex++;
-                if (counter > maxConcurrent) maxConcurrent = counter;
-            } else {
-                counter--;
-                endIndex++;
-            }
+        if (startIndex < offerNumber && (endIndex >= offerNumber || startDates[startIndex] <= endDates[endIndex])) {
+            counter++;
+            startIndex++;
+            if (counter > maxConcurrent) maxConcurrent = counter;
         } else {
             counter--;
             endIndex++;
