@@ -52,7 +52,7 @@ class CompanyService {
      * @param {*} attributes object containing the attributes to change in company
      */
     changeAttributes(company_id, attributes) {
-        return Company.updateOne({ _id: company_id }, attributes);
+        return Company.findOneAndUpdate({ _id: company_id }, attributes);
     }
 
 }
