@@ -86,7 +86,7 @@ describe("Company application endpoint", () => {
                 expect([...test_company.contacts]).toEqual(["contact1", "contact2"]);
                 expect(test_company.hasFinishedRegistration).toBe(true);
                 expect(test_company.bio).toBe("A very interesting and compelling bio");
-                const filename = path.join(__dirname, `../../${test_company.logo.replace("static", "public")}`);
+                const filename = path.join(__dirname, `../../${test_company.logo}`);
                 expect(fs.existsSync(filename)).toBe(true);
 
                 await test_agent

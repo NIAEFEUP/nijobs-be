@@ -32,5 +32,5 @@ module.exports = Object.freeze({
 
     // File upload
     cloudinary_url: process.env.CLOUDINARY_URL,
-    upload_folder: path.join(path.join(__dirname, "../.."), process.env.UPLOAD_FOLDER || "public")
+    upload_folder: path.join(path.join(__dirname, "../.."), process.env.UPLOAD_FOLDER || "static")
 });
