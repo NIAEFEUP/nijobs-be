@@ -120,7 +120,7 @@ module.exports = (app) => {
         validators.canHide,
         async (req, res, next) => {
             try {
-                const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.company);
+                const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
                 return res.json(offer);
             } catch (err) {
                 return next(err);
@@ -140,7 +140,7 @@ module.exports = (app) => {
         validators.canDisable,
         async (req, res, next) => {
             try {
-                const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.admin);
+                const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
                 return res.json(offer);
             } catch (err) {
                 return next(err);
@@ -150,13 +150,13 @@ module.exports = (app) => {
     /**
      * Enables an hidden/disabled offer
      */
-    router.post(
+    router.put(
         "/:offerId/enable",
         authMiddleware.isCompanyOrAdminOrGod, // Change to OR method
         validators.validOfferId,
         validators.isExistingOffer,
         (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
-        validators.canEnable,
+        validators.canBeEnabled,
         validators.canBeManaged,
         (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.user.company || req.owner)(req, res, next),
         async (req, res, next) => {

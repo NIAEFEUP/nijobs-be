@@ -502,7 +502,7 @@ const canBeManaged = async (req, res, next) => {
 
     // Admin or gods can enable even if it was blocked by another admin
     if (req.user?.company &&
-         offer.hiddenReason === OfferConstants.HiddenOfferReasons.admin) {
+         offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
         return res.status(HTTPStatus.FORBIDDEN).json(
             buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
     }
@@ -510,14 +510,8 @@ const canBeManaged = async (req, res, next) => {
     return next();
 };
 
-const canEnable = async (req, res, next) => {
+const canBeEnabled = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
-
-    // Admin or gods can enable even if it was blocked by another admin
-    if (!offer.isHidden) {
-        return res.status(HTTPStatus.FORBIDDEN).json(
-            buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_VISIBLE));
-    }
 
     return companyMiddleware.verifyMaxConcurrentOffers(offer.owner, offer.publishDate, offer.publishEndDate)(req, res, next);
 };
@@ -538,7 +532,7 @@ const canHide = async (req, res, next) => {
 const canDisable = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
-    if (offer.isHidden && offer.hiddenReason === OfferConstants.HiddenOfferReasons.admin) {
+    if (offer.isHidden && offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
         return res.status(HTTPStatus.FORBIDDEN).json(
             buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
     }
@@ -555,7 +549,7 @@ module.exports = {
     offersDateSanitizers,
     isEditable,
     canBeManaged,
-    canEnable,
+    canBeEnabled,
     canHide,
     canDisable,
 };

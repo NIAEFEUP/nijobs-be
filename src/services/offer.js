@@ -95,9 +95,8 @@ class OfferService {
             coordinates,
             requirements,
         };
-        const query = { _id };
         const offer = await Offer.findOneAndUpdate(
-            query,
+            { _id },
             edits,
             { new: true, omitUndefined: true },
             (err) => {
@@ -114,9 +113,8 @@ class OfferService {
         _id,
         hiddenReason
     ) {
-        const query = { _id };
         const offer = await Offer.findOneAndUpdate(
-            query,
+            { _id },
             {
                 isHidden: true,
                 hiddenReason

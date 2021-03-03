@@ -6,7 +6,7 @@ module.exports = Object.freeze({
         max_length: 1500,
     },
     HiddenOfferReasons: {
-        admin: "ADMIN_REQUEST",
-        company: "COMPANY_REQUEST",
+        ADMIN_BLOCK: "ADMIN_REQUEST",
+        COMPANY_REQUEST: "COMPANY_REQUEST",
     },
 });

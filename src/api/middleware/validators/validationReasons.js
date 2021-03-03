@@ -38,8 +38,7 @@ const ValidationReasons = Object.freeze({
     FAILED_SAVE: "failed-save",
     IMAGE_FORMAT: "formats-supported-png-jpeg-jpg",
     OFFER_BLOCKED_ADMIN: "offer-blocked-by-admin",
-    OFFER_HIDDEN: "offer-is-already-hidden",
-    OFFER_VISIBLE: "offer-is-already-visible",
+    OFFER_HIDDEN: "offer-is-hidden",
 });
 
 module.exports = ValidationReasons;
