@@ -11,7 +11,7 @@ const ValidationReasons = require("./validators/validationReasons");
 
 const parseError = (message) => message.toLowerCase().replace(" ", "-");
 
-const single = (field_name) => (req, res, next) => {
+const parseSingleFile = (field_name) => (req, res, next) => {
     const upload = multerConfig.single(field_name);
     upload(req, res, (error) => {
         if (error || !req.file) {
@@ -103,4 +103,4 @@ const cloudSave = async (req, res, next) => {
 };
 
 
-module.exports = { single, localSave, cloudSave };
+module.exports = { parseSingleFile, localSave, cloudSave };

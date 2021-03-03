@@ -19,7 +19,7 @@ module.exports = (app) => {
         authRequired,
         companyMiddleware.isCompanyRep,
         companyMiddleware.profileNotComplete,
-        fileMiddleware.single("logo"),
+        fileMiddleware.parseSingleFile("logo"),
         validators.finish,
         fileMiddleware.localSave,
         fileMiddleware.cloudSave,
