@@ -22,12 +22,11 @@ const verifyMaxConcurrentOffers = async (req, res, next) => {
 const profileNotComplete = async (req, res, next) => {
     const company = await (new CompanyService()).findById(req.user.company);
     if (company.hasFinishedRegistration) {
-        return res
-            .status(HTTPStatus.FORBIDDEN)
-            .json({
-                reason: ValidationReasons.REGISTRATION_FINISHED,
-                error_code: ErrorTypes.FORBIDDEN
-            });
+        return next(new APIError(
+            HTTPStatus.FORBIDDEN,
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.REGISTRATION_FINISHED
+        ));
     }
     return next();
 

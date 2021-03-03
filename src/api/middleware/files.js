@@ -4,7 +4,7 @@ const path = require("path");
 const util = require("util");
 const { MulterError } = require("multer");
 const multerConfig = require("../../config/multer");
-const { ErrorTypes } = require("./errorHandler");
+const { ErrorTypes, APIError } = require("./errorHandler");
 const cloudinary = require("cloudinary").v2;
 const config = require("../../config/env");
 const ValidationReasons = require("./validators/validationReasons");
@@ -22,17 +22,16 @@ const parseSingleFile = (field_name) => (req, res, next) => {
                     parseError(error.message) : error.message;
                 param = error.field ? error.field : param;
             }
-            return res
-                .status(HTTPStatus.UNPROCESSABLE_ENTITY)
-                .json({
-                    error_code: ErrorTypes.VALIDATION_ERROR,
-                    errors: [
-                        {
-                            location: "body",
-                            param,
-                            msg: message
-                        }]
-                });
+            return next(new APIError(
+                HTTPStatus.UNPROCESSABLE_ENTITY,
+                ErrorTypes.VALIDATION_ERROR,
+                [{
+                    location: "body",
+                    param,
+                    msg: message
+                }]
+
+            ));
         } else {
             return next();
         }
@@ -50,18 +49,14 @@ const localSave = async (req, res, next) => {
         await fs.promises.writeFile(file_path, buffer);
     } catch (error) {
         console.error(error);
-        return res
-            .status(HTTPStatus.UNPROCESSABLE_ENTITY)
-            .json({
-                error_code: ErrorTypes.FILE_ERROR,
-                errors: [
-                    {
-                        location: "body",
-                        param: req.file.fieldname,
-                        msg: ValidationReasons.FAILED_SAVE
-                    }
-                ]
-            });
+        return next(new APIError(
+            HTTPStatus.UNPROCESSABLE_ENTITY,
+            ErrorTypes.FILE_ERROR,
+            [{
+                location: "body",
+                param: req.file.fieldname,
+                msg: ValidationReasons.FAILED_SAVE
+            }]));
     }
     return next();
 };
@@ -84,18 +79,14 @@ const cloudSave = async (req, res, next) => {
             req.file.url = resp.secure_url;
         }
     } catch (err) {
-        return res
-            .status(HTTPStatus.UNPROCESSABLE_ENTITY)
-            .json({
-                error_code: ErrorTypes.FILE_ERROR,
-                errors: [
-                    {
-                        location: "body",
-                        param: req.file.fieldname,
-                        msg: ValidationReasons.FAILED_SAVE
-                    }
-                ]
-            });
+        return next(new APIError(
+            HTTPStatus.UNPROCESSABLE_ENTITY,
+            ErrorTypes.FILE_ERROR,
+            [{
+                location: "body",
+                param: req.file.fieldname,
+                msg: ValidationReasons.FAILED_SAVE
+            }]));
     }
 
     return next();

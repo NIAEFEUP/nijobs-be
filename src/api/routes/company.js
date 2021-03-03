@@ -2,6 +2,7 @@ const { Router } = require("express");
 
 const validators = require("../middleware/validators/company");
 const companyMiddleware = require("../middleware/company");
+const authMiddleware = require("../middleware/auth");
 const CompanyService = require("../../services/company");
 
 const router = Router();
@@ -17,7 +18,7 @@ module.exports = (app) => {
      */
     router.post("/application/finish",
         authRequired,
-        companyMiddleware.isCompanyRep,
+        authMiddleware.isCompany,
         companyMiddleware.profileNotComplete,
         fileMiddleware.parseSingleFile("logo"),
         validators.finish,
