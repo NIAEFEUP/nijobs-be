@@ -53,7 +53,8 @@ const isObjectId = (id) => {
 };
 
 /**
- * Checks if the concurrent offers of a given owner have not exceeded the defined limit
+ * Checks if the concurrent offers of a given owner have not exceeded the defined limit.
+ * If the offers in the timed period exceed the limit, checks how many are concurrent.
  * @param {*} OfferModel Either the default Offer model or an instance's constructor
  * @param {*} owner Owner of the offer
  * @param {*} publishDate Publish date of the
@@ -66,20 +67,19 @@ const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, p
 
     const offerNumber = offersInTimePeriod.length;
     if (offerNumber < CompanyConstants.offers.max_concurrent) return true;
-    // otherwise, let's check how many are concurrent
 
     // This algorithm is explained in https://github.com/NIAEFEUP/nijobs-be/issues/123#issuecomment-782272539
 
-    const offersByStart = offersInTimePeriod; // we won't need this array unmodified
-    const offersByEnd = [...offersInTimePeriod];
-    offersByStart.sort((offer1, offer2) => Date.parse(offer1.publishDate) - Date.parse(offer2.publishDate));
-    offersByEnd.sort((offer1, offer2) => Date.parse(offer1.publishEndDate) - Date.parse(offer2.publishEndDate));
+    const offersSortedByStart = offersInTimePeriod; // we won't need this array unmodified
+    const offersSortedByEnd = [...offersInTimePeriod];
+    offersSortedByStart.sort((offer1, offer2) => Date.parse(offer1.publishDate) - Date.parse(offer2.publishDate));
+    offersSortedByEnd.sort((offer1, offer2) => Date.parse(offer1.publishEndDate) - Date.parse(offer2.publishEndDate));
 
     let counter = 0, maxConcurrent = 0;
     let startIndex = 0, endIndex = 0;
     while (startIndex < offerNumber || endIndex < offerNumber) {
         if (startIndex < offerNumber &&
-            (endIndex >= offerNumber || offersByStart[startIndex].publishDate <= offersByEnd[endIndex].publishEndDate)) {
+            (endIndex >= offerNumber || offersSortedByStart[startIndex].publishDate <= offersSortedByEnd[endIndex].publishEndDate)) {
 
             counter++;
             startIndex++;
