@@ -52,6 +52,8 @@ const isObjectId = (id) => {
     return true;
 };
 
+const sortOffersByFieldAscending = (field) => (offer1, offer2) => Date.parse(offer1[field]) - Date.parse(offer2[field]);
+
 /**
  * Checks if the concurrent offers of a given owner have not exceeded the defined limit.
  * If the offers in the timed period exceed the limit, checks how many are concurrent.
@@ -72,8 +74,8 @@ const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, p
 
     const offersSortedByStart = offersInTimePeriod; // we won't need this array unmodified
     const offersSortedByEnd = [...offersInTimePeriod];
-    offersSortedByStart.sort((offer1, offer2) => Date.parse(offer1.publishDate) - Date.parse(offer2.publishDate));
-    offersSortedByEnd.sort((offer1, offer2) => Date.parse(offer1.publishEndDate) - Date.parse(offer2.publishEndDate));
+    offersSortedByStart.sort(sortOffersByFieldAscending("publishDate"));
+    offersSortedByEnd.sort(sortOffersByFieldAscending("publishEndDate"));
 
     let counter = 0, maxConcurrent = 0;
     let startIndex = 0, endIndex = 0;
