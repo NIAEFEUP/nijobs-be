@@ -503,8 +503,7 @@ const canBeManaged = async (req, res, next) => {
     // Admin or gods can enable even if it was blocked by another admin
     if (req.user?.company &&
          offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
-        return res.status(HTTPStatus.FORBIDDEN).json(
-            buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
     }
 
     return next();
@@ -521,8 +520,7 @@ const canHide = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     if (offer.isHidden) {
-        return res.status(HTTPStatus.FORBIDDEN).json(
-            buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
     }
 
     return next();
@@ -533,8 +531,7 @@ const canDisable = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     if (offer.isHidden && offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
-        return res.status(HTTPStatus.FORBIDDEN).json(
-            buildErrorResponse(ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
     }
 
     return next();

@@ -12,7 +12,7 @@ const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate) => async 
         publishDate || req.body.publishDate,
         publishEndDate || req.body.publishEndDate
     );
-    if (!req.body.isHidden && !limitNotReached) {
+    if (!limitNotReached) {
         return next(new APIError(
             HTTPStatus.CONFLICT,
             ErrorTypes.VALIDATION_ERROR,

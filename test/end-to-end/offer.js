@@ -21,7 +21,6 @@ const {
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
 } = require("../../src/models/constants/TimeConstants");
-const { ensureArray } = require("../../src/api/middleware/validators/validatorUtils");
 const OfferService = require("../../src/services/offer");
 
 //----------------------------------------------------------------
