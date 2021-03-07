@@ -480,6 +480,53 @@ describe("Offer endpoint tests", () => {
             });
         });
 
+        describe("Creating an offer in a time period with more than `max_concurrent` overlapping offers, \
+                    without exceeding the limit at any point", () => {
+            const testOffers = Array(CompanyConstants.offers.max_concurrent - 2)
+                .fill(generateTestOffer({
+                    "publishDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (10 * DAY_TO_MS))).toISOString()
+                }));
+
+            testOffers.push(generateTestOffer({
+                "publishDate": (new Date(Date.now())).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (5 * DAY_TO_MS))).toISOString()
+            }));
+
+            testOffers.push(generateTestOffer({
+                "publishDate": (new Date(Date.now() + (8 * DAY_TO_MS))).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (12 * DAY_TO_MS))).toISOString()
+            }));
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                testOffers.forEach((offer) => {
+                    offer.owner = test_company._id;
+                    offer.ownerName = test_company.name;
+                });
+
+                await Offer.create(testOffers);
+            });
+
+            test("should succeed to create an offer (the offers limit is never reached at any moment)", async () => {
+                const offer_params = generateTestOffer({
+                    "publishDate": (new Date(Date.now() + (4 * DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (9 * DAY_TO_MS))).toISOString(),
+                    owner: test_company._id,
+                    ownerName: test_company.name
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.OK);
+                expect(res.body.publishDate).toBe(offer_params.publishDate);
+                expect(res.body.publishEndDate).toBe(offer_params.publishEndDate);
+            });
+        });
+
         describe("Default values", () => {
             test("publishDate defaults to the current time if not provided", async () => {
                 const offer = {
