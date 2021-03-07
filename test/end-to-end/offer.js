@@ -1733,8 +1733,9 @@ describe("Offer endpoint tests", () => {
                     const res = await test_agent
                         .post(`/offers/edit/${future_test_offer._id}`)
                         .expect(HTTPStatus.FORBIDDEN);
-                    expect(res.body).toHaveProperty("errors");
-                    expect(res.body.errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(future_test_offer._id));
+                    expect(res.body).toHaveProperty("or");
+                    expect(res.body.or[0]).toHaveProperty("errors");
+                    expect(res.body.or[0].errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(future_test_offer._id));
                 });
 
             });
@@ -1974,8 +1975,9 @@ describe("Offer endpoint tests", () => {
             const res = await test_agent
                 .post(`/offers/${test_offer_2._id}/hide`)
                 .expect(HTTPStatus.FORBIDDEN);
-            expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(test_offer_2._id));
+            expect(res.body).toHaveProperty("or");
+            expect(res.body.or[0]).toHaveProperty("errors");
+            expect(res.body.or[0].errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(test_offer_2._id));
         });
 
         test("should hide successfully if logged in as the owner company", async () => {

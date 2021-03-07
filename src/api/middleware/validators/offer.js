@@ -21,6 +21,7 @@ const {
     OFFER_MAX_LIFETIME_MONTHS
 } = require("../../../models/constants/TimeConstants");
 const companyMiddleware = require("../company");
+const config = require("../../../config/env");
 
 const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
 
@@ -501,7 +502,7 @@ const canBeManaged = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     // Admin or gods can enable even if it was blocked by another admin
-    if (req.user?.company &&
+    if ((!req.user?.isAdmin && req.body.god_token !== config.god_token) &&
          offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
         return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
     }

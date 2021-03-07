@@ -97,7 +97,7 @@ module.exports = (app) => {
         validators.isEditable,
         validators.canBeManaged,
         validators.edit,
-        (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
@@ -122,7 +122,7 @@ module.exports = (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.validOfferId,
         validators.isExistingOffer,
-        (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
         validators.canHide,
         async (req, res, next) => {
             try {
@@ -169,7 +169,7 @@ module.exports = (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.validOfferId,
         validators.isExistingOffer,
-        (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
         validators.canBeEnabled,
         validators.canBeManaged,
         async (req, res, next) => {

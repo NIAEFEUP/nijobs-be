@@ -3,6 +3,7 @@ const config = require("../../config/env");
 const HTTPStatus = require("http-status-codes");
 const OfferService = require("../../services/offer");
 const ValidationReasons = require("./validators/validationReasons");
+const { or } = require("./utils");
 
 // Middleware to require login in an endpoint
 const authRequired = (req, res, next) => {
@@ -37,14 +38,19 @@ const isAdmin = (req, res, next) => {
     return next();
 };
 
+const hasOwnershipRights = (offerId) => (req, res, next) => or([
+    isOfferOwner(offerId),
+    isGod,
+    isAdmin],
+{ status_code: HTTPStatus.FORBIDDEN, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }
+)(req, res, next);
+
 const isOfferOwner = (offerId) => async (req, res, next) => {
 
     try {
         const offer = await (new OfferService()).getOfferById(offerId, req.user);
 
-        if (offer.owner.toString() !== req.user?.company?._id.toString() &&
-                req.body.god_token !== config.god_token &&
-                !req.user?.isAdmin) {
+        if (offer.owner.toString() !== req.user?.company?._id.toString()) {
             return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.NOT_OFFER_OWNER(offerId)));
         }
         return next();
@@ -60,4 +66,5 @@ module.exports = {
     isAdmin,
     isCompany,
     isOfferOwner,
+    hasOwnershipRights,
 };
