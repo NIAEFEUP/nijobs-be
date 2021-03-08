@@ -51,7 +51,7 @@ const or = (
  * Util to allow running conditionally a middleware
  *
  *
- * @param {Function} verify: Function that returns a boolean indicating if the validator should be ran
+ * @param verify: Function that returns a boolean or a boolean itself indicating if the validator should be ran
  * @param {Function} middleware: Express middleware to be run
  * @param {object} Options:
  *  - error_code: error code in case of error (default: ErrorTypes.VALIDATION_ERROR)
@@ -67,10 +67,14 @@ const when = (
         status_code = DEFAULT_STATUS_CODE
     } = {}
 ) => async (req, res, next) => {
-    if (verify(req)) {
+    if ((typeof verify !== "function" && verify) ||
+            (typeof verify === "function" && verify(req))) {
         try {
             return await middleware(req, res, next);
         } catch (error) {
+            if (error instanceof APIError) {
+                return next(error);
+            }
             return next(new APIError(status_code, error_code, msg, hideInsecureError(error).toObject()));
         }
     }
