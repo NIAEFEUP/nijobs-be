@@ -14,7 +14,7 @@ module.exports = (app) => {
     app.use("/company", router);
 
     /**
-     * Creates a new Company Application
+     * Finishes the profile of a Company
      */
     router.post("/application/finish",
         authRequired,
