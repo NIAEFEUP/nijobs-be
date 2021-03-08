@@ -142,8 +142,40 @@ class OfferService {
         const constraints = [];
 
         if (jobType) constraints.push({ jobType: { "$in": jobType } });
-        if (jobMinDuration) constraints.push({ jobMinDuration: { "$gte": jobMinDuration } });
-        if (jobMaxDuration) constraints.push({ jobMaxDuration: { "$lte": jobMaxDuration } });
+        if (jobMinDuration) {
+            constraints.push({
+                "$or": [
+                    { jobMinDuration: { "$exists": false } },
+                    { jobMinDuration: { "$gte": jobMinDuration } },
+                    {
+                        "$and": [
+                            { jobMinDuration: { "$lt": jobMinDuration } },
+                            { "$or": [
+                                { jobMaxDuration: { "$exists": false } },
+                                { jobMaxDuration: { "$gte": jobMinDuration } },
+                            ] }
+                        ]
+                    },
+                ]
+            });
+        }
+        if (jobMaxDuration) {
+            constraints.push({
+                "$or": [
+                    { jobMaxDuration: { "$exists": false } },
+                    { jobMaxDuration: { "$lte": jobMaxDuration } },
+                    {
+                        "$and": [
+                            { jobMaxDuration: { "$gt": jobMaxDuration } },
+                            { "$or": [
+                                { jobMinDuration: { "$exists": false } },
+                                { jobMinDuration: { "$lte": jobMaxDuration } },
+                            ] }
+                        ]
+                    },
+                ]
+            });
+        }
         if (fields?.length) constraints.push({ fields: {  "$elemMatch": { "$in": fields } } });
         if (technologies?.length) constraints.push({ technologies: {  "$elemMatch": { "$in": technologies } } });
 
