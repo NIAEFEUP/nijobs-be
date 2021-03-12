@@ -33,10 +33,13 @@ module.exports = (app) => {
 
         // Set to true only in prod. Necessary due to reverse proxy setup
         // Check https://github.com/expressjs/session/issues/281 for more details
-        proxy: process.env.NODE_ENV === "production",
+        // proxy: process.env.NODE_ENV === "production",
+        proxy: true,
 
         cookie: {
-            secure: process.env.NODE_ENV === "production",
+            // secure: process.env.NODE_ENV === "production",
+            secure: process.env.NODE_ENV !== "test",
+            sameSite: process.env.NODE_ENV === "production" ? "lax" : "none"
         },
     }));
 
