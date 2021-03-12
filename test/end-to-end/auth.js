@@ -200,4 +200,16 @@ describe("Login endpoint test", () => {
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
         });
     });
+
+    describe("Using logged out user", () => {
+        const logged_out_agent = agent();
+
+        test("should return OK since the logout is idempotent", async () => {
+            const res = await logged_out_agent
+                .delete("/auth/login")
+                .send();
+
+            expect(res.status).toBe(HTTPStatus.OK);
+        });
+    });
 });

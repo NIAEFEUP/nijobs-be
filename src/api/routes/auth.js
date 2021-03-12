@@ -39,8 +39,9 @@ module.exports = (app) => {
     router.post("/login", validators.login, passport.authenticate("local"), (req, res) => res.status(HTTPStatus.OK).json({}));
 
     // Logout endpoint
-    router.delete("/login", authRequired, (req, res) => {
-        req.logout();
+    router.delete("/login", (req, res) => {
+        if (req.isAuthenticated()) req.logout();
+
         return res.status(HTTPStatus.OK).json({});
     });
 
