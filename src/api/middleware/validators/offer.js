@@ -527,6 +527,13 @@ const canHide = async (req, res, next) => {
     return next();
 };
 
+const disable = useExpressValidators([
+    body("adminReason")
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .trim(),
+]);
+
 // Validator to check if the offer is not already disabled by admin
 const canDisable = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
@@ -550,4 +557,5 @@ module.exports = {
     canBeEnabled,
     canHide,
     canDisable,
+    disable,
 };

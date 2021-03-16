@@ -111,13 +111,15 @@ class OfferService {
 
     async disable(
         _id,
-        hiddenReason
+        hiddenReason,
+        adminReason
     ) {
         const offer = await Offer.findOneAndUpdate(
             { _id },
             {
                 isHidden: true,
-                hiddenReason
+                hiddenReason,
+                adminReason
             },
             { new: true },
             (err) => {
@@ -137,7 +139,7 @@ class OfferService {
             query,
             {
                 isHidden: false,
-                $unset: { hiddenReason: undefined } // Removing property from document.
+                $unset: { hiddenReason: undefined, adminReason: undefined }, // Removing property from document.
             },
             { new: true },
             (err) => {

@@ -73,6 +73,9 @@ const OfferSchema = new Schema({
         type: String,
         enum: OfferConstants.HiddenOfferReasons,
     },
+    adminReason: {
+        type: String,
+    },
     isHidden: {
         type: Boolean,
         default: false

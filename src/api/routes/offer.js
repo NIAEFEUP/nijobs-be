@@ -145,11 +145,16 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.validOfferId,
+        validators.disable,
         validators.isExistingOffer,
         validators.canDisable,
         async (req, res, next) => {
             try {
-                const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+                const offer = await (new OfferService())
+                    .disable(
+                        req.params.offerId,
+                        OfferConstants.HiddenOfferReasons.ADMIN_BLOCK,
+                        req.body.adminReason);
                 return res.json(offer);
             } catch (err) {
                 return next(err);

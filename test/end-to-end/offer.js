@@ -1815,12 +1815,48 @@ describe("Offer endpoint tests", () => {
             await (new OfferService()).disable(hidden_user_test_offer._id, OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
         });
 
+        test("should fail to disable if no admin reason sent", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .post(`/offers/${test_offer._id}/disable`)
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0]).toHaveProperty("param", "adminReason");
+            expect(res.body.errors[0]).toHaveProperty("location", "body");
+            expect(res.body.errors[0].msg).toEqual(ValidationReasons.REQUIRED);
+        });
+
+        test("should fail to disable if admin reason not string", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .post(`/offers/${test_offer._id}/disable`)
+                .send({
+                    "adminReason": 5
+                })
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0]).toHaveProperty("param", "adminReason");
+            expect(res.body.errors[0]).toHaveProperty("location", "body");
+            expect(res.body.errors[0].msg).toEqual(ValidationReasons.STRING);
+        });
+
         test("should fail to disable if not logged in", async () => {
             await test_agent
                 .del("/auth/login");
 
             const res = await test_agent
                 .post(`/offers/${test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                })
                 .expect(HTTPStatus.UNAUTHORIZED);
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
@@ -1835,6 +1871,9 @@ describe("Offer endpoint tests", () => {
                 .expect(HTTPStatus.OK);
             const res = await test_agent
                 .post(`/offers/${test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                })
                 .expect(HTTPStatus.UNAUTHORIZED);
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
@@ -1847,9 +1886,12 @@ describe("Offer endpoint tests", () => {
                 .del("/auth/login");
             const res = await test_agent
                 .post(`/offers/${test_offer_2._id}/disable`)
-                .send(withGodToken());
+                .send(withGodToken({
+                    "adminReason": "Sample admin response"
+                }));
             expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
             expect(res.body).toHaveProperty("isHidden", true);
+            expect(res.body).toHaveProperty("adminReason", "Sample admin response");
         });
 
         test("should allow disabing offer if logged in as admin", async () => {
@@ -1858,7 +1900,10 @@ describe("Offer endpoint tests", () => {
                 .send(test_user_admin)
                 .expect(HTTPStatus.OK);
             const res = await test_agent
-                .post(`/offers/${test_offer._id}/disable`);
+                .post(`/offers/${test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                });
             expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
             expect(res.body).toHaveProperty("isHidden", true);
         });
@@ -1866,6 +1911,9 @@ describe("Offer endpoint tests", () => {
         test("should fail if offer already disabled", async () => {
             const res = await test_agent
                 .post(`/offers/${test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                })
                 .expect(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
@@ -1875,16 +1923,24 @@ describe("Offer endpoint tests", () => {
         test("should allow disabling if offer hidden by default", async () => {
             const res = await test_agent
                 .post(`/offers/${hidden_default_test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                })
                 .expect(HTTPStatus.OK);
             expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
             expect(res.body).toHaveProperty("isHidden", true);
+            expect(res.body).toHaveProperty("adminReason", "Sample admin response");
         });
 
         test("should allow disabling if offer hidden by company/admin", async () => {
             const res = await test_agent
-                .post(`/offers/${hidden_user_test_offer._id}/disable`);
+                .post(`/offers/${hidden_user_test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                });
             expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
             expect(res.body).toHaveProperty("isHidden", true);
+            expect(res.body).toHaveProperty("adminReason", "Sample admin response");
         });
     });
 

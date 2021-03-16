@@ -38,12 +38,12 @@ const isAdmin = (req, res, next) => {
     return next();
 };
 
-const hasOwnershipRights = (offerId) => (req, res, next) => or([
+const hasOwnershipRights = (offerId) => or([
     isOfferOwner(offerId),
     isGod,
     isAdmin],
 { status_code: HTTPStatus.FORBIDDEN, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }
-)(req, res, next);
+);
 
 const isOfferOwner = (offerId) => async (req, res, next) => {
 
