@@ -37,7 +37,7 @@ module.exports = (app) => {
 
         cookie: {
             secure: process.env.NODE_ENV !== "test",
-            sameSite: process.env.NODE_ENV === "production" ? "lax" : "none"
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "none"
         },
     }));
 

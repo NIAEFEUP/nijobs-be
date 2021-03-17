@@ -13,10 +13,12 @@ const startServer = async () => {
 
         let server = app;
         if (process.env.NODE_ENV !== "production") {
-            const fs = require("fs");
+            const fs = require("fs").promises;
             const path = require("path");
-            const key = fs.readFileSync(path.join(__dirname, "../certs/key.pem"));
-            const cert = fs.readFileSync(path.join(__dirname, "../certs/cert.pem"));
+            const [key, cert] = await Promise.all([
+                fs.readFile(path.join(__dirname, "../certs/key.pem")),
+                fs.readFile(path.join(__dirname, "../certs/cert.pem"))
+            ]);
             server = https.createServer({ key: key, cert: cert }, app);
         }
 
