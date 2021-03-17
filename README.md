@@ -109,6 +109,13 @@ So, you can run:
 
 This approach might be the least straightforward to set up but is the most flexible as you can freely and directly interact with the runtime of the application.
 
+#### HTTPS details
+In order for Cookies to work correctly, we need to use HTTPS in development, so that we can use local servers to test frontend changes in netlify.
+
+If you use Docker, the certs will be automatically generated and used. If you are running npm directly, you should run `./certs/certgen.sh` so that it generates the required files.
+
+On the first usage, you might get security alerts due to it being self-signed, you just need to go to some endpoint (like https://localhost:8087) and allow your browser to visit it.
+
 ## Project Details
 
 This project uses [`Node.js`](https://nodejs.org/en/) with [`Express.js`](https://expressjs.com/) for the API routing and request-response logic. The DBMS used is [`MongoDB`](https://www.mongodb.com/), along with [`Mongoose`](https://mongoosejs.com/) for integrating it with Node.

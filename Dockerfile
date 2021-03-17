@@ -9,6 +9,12 @@ COPY package.json package-lock.json ./
 # Install Node Packages
 RUN npm install
 
+# Copying self-signed cert-generation script
+COPY certs/certgen.sh certs/certgen.sh
+
+# Generate certs
+RUN cd certs && ./certgen.sh
+
 # Copying app source
 COPY src/ src/
 

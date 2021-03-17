@@ -31,12 +31,13 @@ module.exports = (app) => {
         resave: true,
         saveUninitialized: true,
 
-        // Set to true only in prod. Necessary due to reverse proxy setup
+        // Necessary due to reverse proxy setup, but it won't affect anything if there is no proxy.
         // Check https://github.com/expressjs/session/issues/281 for more details
-        proxy: process.env.NODE_ENV === "production",
+        proxy: true,
 
         cookie: {
-            secure: process.env.NODE_ENV === "production",
+            secure: process.env.NODE_ENV !== "test",
+            sameSite: process.env.NODE_ENV === "production" ? "strict" : "none"
         },
     }));
 
