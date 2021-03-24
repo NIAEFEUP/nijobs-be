@@ -34,6 +34,9 @@ const ValidationReasons = Object.freeze({
     NOT_OFFER_OWNER: (id) => `not-offer-owner:${id}`,
     OFFER_EDIT_PERIOD_OVER: (value) => `offer-edit-period-over:${value}-hours`,
     JOB_MIN_DURATION_NOT_SPECIFIED: "job-max-duration-requires-job-min-duration",
+    REGISTRATION_FINISHED: "registration-already-hasFinishedRegistration",
+    FAILED_SAVE: "failed-save",
+    IMAGE_FORMAT: "formats-supported-png-jpeg-jpg",
 });
 
 module.exports = ValidationReasons;

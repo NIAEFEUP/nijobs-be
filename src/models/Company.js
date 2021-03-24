@@ -12,11 +12,20 @@ const CompanySchema = new Schema({
     },
     contacts: {
         type: [String],
+        minlength: CompanyConstants.contacts.min_length,
+        maxlength: CompanyConstants.contacts.max_length,
     },
     bio: {
         type: String,
         maxlength: CompanyConstants.bio.max_length,
     },
+    hasFinishedRegistration: {
+        type: Boolean,
+        default: false
+    },
+    logo: {
+        type: String,
+    }
 });
 
 // Update offers from this company on name change

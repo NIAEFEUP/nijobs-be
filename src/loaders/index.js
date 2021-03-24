@@ -1,6 +1,7 @@
 const mongooseLoader = require("./mongoose");
 const expressLoader = require("./express");
 const emailServiceLoader = require("./emailService");
+const staticFilesLoader = require("./static");
 
 const setupLoaders = async ({ expressApp }) => {
     await mongooseLoader();
@@ -11,6 +12,8 @@ const setupLoaders = async ({ expressApp }) => {
     console.info("Nodemailer initialized");
     require("../config/passport");
     console.info("Passport configurations loaded");
+    staticFilesLoader(expressApp);
+    console.info("Static files being served at /static");
 };
 
 module.exports = setupLoaders;

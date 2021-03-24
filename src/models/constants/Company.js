@@ -9,4 +9,8 @@ module.exports = Object.freeze({
     offers: {
         max_concurrent: 5,
     },
+    contacts: {
+        min_length: 1,
+        max_length: 10
+    }
 });
