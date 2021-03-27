@@ -69,6 +69,7 @@ module.exports = (app) => {
         when(
             (req) => !req.body?.isHidden,
             (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.user?.company || req.body.owner)(req, res, next)),
+        companyMiddleware.profileComplete,
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {

@@ -35,6 +35,7 @@ const ValidationReasons = Object.freeze({
     OFFER_EDIT_PERIOD_OVER: (value) => `offer-edit-period-over:${value}-hours`,
     JOB_MIN_DURATION_NOT_SPECIFIED: "job-max-duration-requires-job-min-duration",
     REGISTRATION_FINISHED: "registration-already-hasFinishedRegistration",
+    REGISTRATION_NOT_FINISHED: "registration-not-finished-yet",
     FAILED_SAVE: "failed-save",
     IMAGE_FORMAT: "formats-supported-png-jpeg-jpg",
     OFFER_BLOCKED_ADMIN: "offer-blocked-by-admin",

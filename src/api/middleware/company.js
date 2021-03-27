@@ -32,11 +32,23 @@ const profileNotComplete = async (req, res, next) => {
         ));
     }
     return next();
+};
 
+const profileComplete = async (req, res, next) => {
+    const company = await (new CompanyService()).findById(req.body.owner);
+    if (!company.hasFinishedRegistration) {
+        return next(new APIError(
+            HTTPStatus.FORBIDDEN,
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.REGISTRATION_NOT_FINISHED
+        ));
+    }
+    return next();
 };
 
 
 module.exports = {
     verifyMaxConcurrentOffers,
-    profileNotComplete
+    profileNotComplete,
+    profileComplete
 };
