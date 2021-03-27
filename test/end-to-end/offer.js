@@ -629,6 +629,34 @@ describe("Offer endpoint tests", () => {
                 expect(res.status).toBe(HTTPStatus.OK);
             });
         });
+
+        describe("Incomplete registration of the offer's company", () => {
+            beforeAll(async () => {
+                await Company.findOneAndUpdate({ name: test_company.name }, { hasFinishedRegistration: false });
+            });
+
+            afterAll(async () => {
+                await Company.findOneAndUpdate({ name: test_company.name }, { hasFinishedRegistration: true });
+            });
+
+            test("should fail to create offer if the company is not fully registered", async () => {
+                const offer_params = {
+                    ...generateTestOffer(),
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                };
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(
+                    ValidationReasons.REGISTRATION_NOT_FINISHED);
+            });
+        });
     });
 
     describe("GET /offers", () => {
