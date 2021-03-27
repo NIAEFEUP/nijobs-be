@@ -59,7 +59,8 @@ describe("Offer endpoint tests", () => {
         test_company = await Company.create({
             name: "test company",
             bio: "a bio",
-            contacts: ["a contact"]
+            contacts: ["a contact"],
+            hasFinishedRegistration: true
         });
         await Account.deleteMany({});
         await Account.create({
@@ -111,7 +112,7 @@ describe("Offer endpoint tests", () => {
                 test("should create offer if logged in to company account", async () => {
 
                     // Login
-                    const offer = generateTestOffer();
+                    const offer = { ...generateTestOffer(), owner: test_company._id };
                     await test_agent
                         .post("/auth/login")
                         .send(test_user_company)
