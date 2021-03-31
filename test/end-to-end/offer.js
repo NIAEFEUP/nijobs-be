@@ -21,6 +21,7 @@ const {
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
 } = require("../../src/models/constants/TimeConstants");
+const OfferService = require("../../src/services/offer");
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -1314,7 +1315,8 @@ describe("Offer endpoint tests", () => {
             grace_period_valid_test_offer,
             future_test_offer,
             valid_test_offer_1,
-            valid_test_offer_2;
+            valid_test_offer_2,
+            disabled_test_offer;
 
         beforeAll(async () => {
             await Offer.deleteMany({});
@@ -1376,6 +1378,12 @@ describe("Offer endpoint tests", () => {
                 "jobMaxDuration": 5,
             }
             ));
+
+            disabled_test_offer = await createOffer(
+                generateTestOffer()
+            );
+
+            await (new OfferService()).disable(disabled_test_offer._id, OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
         });
 
         test("should fail not logged in", async () => {
@@ -1561,6 +1569,20 @@ describe("Offer endpoint tests", () => {
             });
 
             describe("testing other validations", () => {
+
+                test("should fail if company tries to edit offer disabled by admins", async () => {
+                    await test_agent
+                        .post("/auth/login")
+                        .send(test_user_company)
+                        .expect(HTTPStatus.OK);
+                    const res = await test_agent
+                        .post(`/offers/edit/${disabled_test_offer._id}`)
+                        .expect(HTTPStatus.FORBIDDEN);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_BLOCKED_ADMIN);
+                });
+
                 test("should fail if minDuration bigger than offer's maxDuration", async () => {
                     const res = await test_agent
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
@@ -1711,8 +1733,9 @@ describe("Offer endpoint tests", () => {
                     const res = await test_agent
                         .post(`/offers/edit/${future_test_offer._id}`)
                         .expect(HTTPStatus.FORBIDDEN);
-                    expect(res.body).toHaveProperty("errors");
-                    expect(res.body.errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(future_test_offer._id));
+                    expect(res.body).toHaveProperty("or");
+                    expect(res.body.or[0]).toHaveProperty("errors");
+                    expect(res.body.or[0].errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(future_test_offer._id));
                 });
 
             });
@@ -1754,6 +1777,436 @@ describe("Offer endpoint tests", () => {
                 });
             });
 
+        });
+
+    });
+
+    describe("POST /offers/:offerId/disable", () => {
+        let test_offer, test_offer_2, hidden_default_test_offer, hidden_user_test_offer;
+        beforeAll(async () => {
+            test_offer = await Offer.create({
+                ...generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+            test_offer_2 = await Offer.create({
+                ...generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+            hidden_default_test_offer = await Offer.create({
+                ...generateTestOffer({
+                    isHidden: true,
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+            hidden_user_test_offer = await Offer.create({
+                ...generateTestOffer(),
+                owner: test_company._id.toString(),
+                ownerName: test_company.name,
+            });
+
+            await (new OfferService()).disable(hidden_user_test_offer._id, OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
+        });
+
+        test("should fail to disable if no admin reason sent", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .post(`/offers/${test_offer._id}/disable`)
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0]).toHaveProperty("param", "adminReason");
+            expect(res.body.errors[0]).toHaveProperty("location", "body");
+            expect(res.body.errors[0].msg).toEqual(ValidationReasons.REQUIRED);
+        });
+
+        test("should fail to disable if admin reason not string", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .post(`/offers/${test_offer._id}/disable`)
+                .send({
+                    "adminReason": 5
+                })
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body.errors).toHaveLength(1);
+            expect(res.body.errors[0]).toHaveProperty("param", "adminReason");
+            expect(res.body.errors[0]).toHaveProperty("location", "body");
+            expect(res.body.errors[0].msg).toEqual(ValidationReasons.STRING);
+        });
+
+        test("should fail to disable if not logged in", async () => {
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .post(`/offers/${test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                })
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+        test("should fail to disable offer if logged in as company", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company)
+                .expect(HTTPStatus.OK);
+            const res = await test_agent
+                .post(`/offers/${test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                })
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+        test("should allow disabing offer if logged in as god", async () => {
+            await test_agent
+                .del("/auth/login");
+            const res = await test_agent
+                .post(`/offers/${test_offer_2._id}/disable`)
+                .send(withGodToken({
+                    "adminReason": "Sample admin response"
+                }));
+            expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+            expect(res.body).toHaveProperty("isHidden", true);
+            expect(res.body).toHaveProperty("adminReason", "Sample admin response");
+        });
+
+        test("should allow disabing offer if logged in as admin", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+            const res = await test_agent
+                .post(`/offers/${test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                });
+            expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+            expect(res.body).toHaveProperty("isHidden", true);
+        });
+
+        test("should fail if offer already disabled", async () => {
+            const res = await test_agent
+                .post(`/offers/${test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                })
+                .expect(HTTPStatus.FORBIDDEN);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_HIDDEN);
+        });
+
+        test("should allow disabling if offer hidden by default", async () => {
+            const res = await test_agent
+                .post(`/offers/${hidden_default_test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                })
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+            expect(res.body).toHaveProperty("isHidden", true);
+            expect(res.body).toHaveProperty("adminReason", "Sample admin response");
+        });
+
+        test("should allow disabling if offer hidden by company/admin", async () => {
+            const res = await test_agent
+                .post(`/offers/${hidden_user_test_offer._id}/disable`)
+                .send({
+                    "adminReason": "Sample admin response"
+                });
+            expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+            expect(res.body).toHaveProperty("isHidden", true);
+            expect(res.body).toHaveProperty("adminReason", "Sample admin response");
+        });
+    });
+
+    describe("POST /offers/:offerId/hide", () => {
+        const test_user_company_2 = {
+            email: "company3@email.com",
+            password: "password123",
+        };
+        let test_company_2;
+        let test_offer_1, test_offer_2, hidden_default_test_offer, disabled_test_offer;
+        beforeAll(async () => {
+            test_company_2 = await Company.create({
+                name: "test company",
+                bio: "a bio",
+                contacts: ["a contact"]
+            });
+            await Account.create({
+                email: test_user_company_2.email,
+                password: await hash(test_user_company.password),
+                company: test_company_2._id
+            });
+
+            test_offer_1 = await Offer.create({
+                ...generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+            test_offer_2 = await Offer.create({
+                ...generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+
+            hidden_default_test_offer = await Offer.create({
+                ...generateTestOffer({
+                    isHidden: true,
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+            disabled_test_offer = await Offer.create({
+                ...generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+            await (new OfferService()).disable(disabled_test_offer._id, OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+        });
+
+        test("should fail to hide if not logged in", async () => {
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .post(`/offers/${test_offer_1._id}/hide`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+        test("should hide successfully if admin", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .post(`/offers/${test_offer_1._id}/hide`)
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
+            expect(res.body).toHaveProperty("isHidden", true);
+        });
+
+        test("should fail to hide if not logged in as owner company", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company_2)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .post(`/offers/${test_offer_2._id}/hide`)
+                .expect(HTTPStatus.FORBIDDEN);
+            expect(res.body).toHaveProperty("or");
+            expect(res.body.or[0]).toHaveProperty("errors");
+            expect(res.body.or[0].errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(test_offer_2._id));
+        });
+
+        test("should hide successfully if logged in as the owner company", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .post(`/offers/${test_offer_2._id}/hide`)
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
+            expect(res.body).toHaveProperty("isHidden", true);
+        });
+
+        test("should fail to hide if already hidden offer by default", async () => {
+            const res = await test_agent
+                .post(`/offers/${hidden_default_test_offer._id}/hide`)
+                .expect(HTTPStatus.FORBIDDEN);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_HIDDEN);
+        });
+
+        test("should fail if already hidden offer by user", async () => {
+            const res = await test_agent
+                .post(`/offers/${test_offer_1._id}/hide`)
+                .expect(HTTPStatus.FORBIDDEN);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_HIDDEN);
+        });
+
+        test("should fail to hide if already disabled by admin", async () => {
+            const res = await test_agent
+                .post(`/offers/${disabled_test_offer._id}/hide`)
+                .expect(HTTPStatus.FORBIDDEN);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_HIDDEN);
+        });
+    });
+
+    describe("PUT /offers/:offerId/enable", () => {
+
+        let test_offer,
+            hidden_user_test_offer,
+            hidden_default_test_offer,
+            disabled_test_offer;
+
+        beforeAll(async () => {
+
+            test_offer = await Offer.create({
+                ...generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+            hidden_default_test_offer = await Offer.create({
+                ...generateTestOffer({
+                    isHidden: true,
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+            hidden_user_test_offer = await Offer.create({
+                ...generateTestOffer({
+                    isHidden: true,
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+            await (new OfferService()).disable(hidden_user_test_offer._id, OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
+
+            disabled_test_offer = await Offer.create({
+                ...generateTestOffer({
+                    "publishDate": (new Date(Date.now() + (10 * DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() + (20 * DAY_TO_MS))).toISOString(),
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                }),
+            });
+
+            await (new OfferService()).disable(disabled_test_offer._id, OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+        });
+
+        test("should fail to enable if not logged in", async () => {
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .put(`/offers/${test_offer._id}/enable`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+        test("should enable successfully if admin and offer hidden by default as an admin", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/offers/${hidden_default_test_offer._id}/enable`)
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("isHidden", false);
+        });
+
+        test("should enable successfully if logged in company and hidden by user/admin", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/offers/${hidden_user_test_offer._id}/enable`)
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("isHidden", false);
+        });
+
+
+        test("should fail to enable if offer disabled by admins logged in as a company", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company)
+                .expect(HTTPStatus.OK);
+            const res = await test_agent
+                .put(`/offers/${disabled_test_offer._id}/enable`)
+                .expect(HTTPStatus.FORBIDDEN);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_BLOCKED_ADMIN);
+        });
+
+        describe("testing concurrent offers", () => {
+            const test_offers = Array(CompanyConstants.offers.max_concurrent)
+                .fill(generateTestOffer());
+
+            let test_offer;
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                test_offers.forEach((offer) => {
+                    offer.owner = test_company._id;
+                    offer.ownerName = test_company.name;
+                });
+
+                test_offer = await Offer.create({
+                    ...generateTestOffer({
+                        isHidden: true,
+                        owner: test_company._id,
+                        ownerName: test_company.name,
+                    }),
+                });
+
+                await Offer.create(test_offers);
+            });
+
+            test("should fail to enable if max concurrent offers reached", async () => {
+                const res = await test_agent
+                    .put(`/offers/${test_offer._id}/enable`)
+                    .expect(HTTPStatus.CONFLICT);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors)
+                    .toContainEqual(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+            });
         });
 
     });

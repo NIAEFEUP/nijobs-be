@@ -20,6 +20,8 @@ const {
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
 } = require("../../../models/constants/TimeConstants");
+const companyMiddleware = require("../company");
+const config = require("../../../config/env");
 
 const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
 
@@ -271,7 +273,6 @@ const publishEndDateEditableAfterPublishDate = async (publishEndDateCandidate, {
         console.error(err);
         throw err;
     }
-    // Returning truthy value to indicate no error ocurred
     return true;
 };
 
@@ -490,18 +491,71 @@ const get = useExpressValidators([
         .custom(valuesInSet((TechnologyTypes))),
 ]);
 
-const getOfferById = useExpressValidators([
+const validOfferId = useExpressValidators([
     param("offerId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED)
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID),
 ]);
 
+// Validator to check if the offer can be managed, checking hiddenOffer flag
+const canBeManaged = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+
+    // Admin or gods can enable even if it was blocked by another admin
+    if ((!req.user?.isAdmin && req.body.god_token !== config.god_token) &&
+         offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
+    }
+
+    return next();
+};
+
+const canBeEnabled = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+
+    return companyMiddleware.verifyMaxConcurrentOffers(offer.owner, offer.publishDate, offer.publishEndDate)(req, res, next);
+};
+
+// Validator to check if the offer is not already hidden
+const canHide = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+
+    if (offer.isHidden) {
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
+    }
+
+    return next();
+};
+
+const disable = useExpressValidators([
+    body("adminReason")
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .trim(),
+]);
+
+// Validator to check if the offer is not already disabled by admin
+const canDisable = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+
+    if (offer.isHidden && offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
+    }
+
+    return next();
+};
+
 module.exports = {
     create,
     get,
-    getOfferById,
+    validOfferId,
     isExistingOffer,
     edit,
     offersDateSanitizers,
     isEditable,
+    canBeManaged,
+    canBeEnabled,
+    canHide,
+    canDisable,
+    disable,
 };

@@ -7,7 +7,8 @@ const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
 const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
-const { or } = require("../middleware/utils");
+const { or, when } = require("../middleware/utils");
+const OfferConstants = require("../../models/constants/Offer");
 
 const router = Router();
 
@@ -36,7 +37,7 @@ module.exports = (app) => {
     /**
      * Gets an offer from the database with its id
     */
-    router.get("/:offerId", validators.getOfferById, async (req, res, next) => {
+    router.get("/:offerId", validators.validOfferId, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
 
@@ -65,7 +66,9 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.create,
-        companyMiddleware.verifyMaxConcurrentOffers,
+        when(
+            (req) => !req.body?.isHidden,
+            (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.user?.company || req.body.owner)(req, res, next)),
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
@@ -92,12 +95,91 @@ module.exports = (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.isExistingOffer,
         validators.isEditable,
+        validators.canBeManaged,
         validators.edit,
-        (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
+        (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).edit(req.params.offerId, req.body);
+                return res.json(offer);
+            } catch (err) {
+                return next(err);
+            }
+        });
+
+    /**
+     * Hides an offer.
+     * Used by companies or admins to hide an offer
+     * Offer can be later enabled by owner or admins
+     */
+    router.post(
+        "/:offerId/hide",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isAdmin,
+            authMiddleware.isGod
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.validOfferId,
+        validators.isExistingOffer,
+        (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
+        validators.canHide,
+        async (req, res, next) => {
+            try {
+                const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
+                return res.json(offer);
+            } catch (err) {
+                return next(err);
+            }
+        });
+
+    /**
+     * Disables an offer.
+     * Used by admins or gods to disable an offer.
+     * Leaves the offer in a state that only admins and gods can enable it again
+     */
+    router.post(
+        "/:offerId/disable",
+        or([
+            authMiddleware.isAdmin,
+            authMiddleware.isGod
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.validOfferId,
+        validators.disable,
+        validators.isExistingOffer,
+        validators.canDisable,
+        async (req, res, next) => {
+            try {
+                const offer = await (new OfferService())
+                    .disable(
+                        req.params.offerId,
+                        OfferConstants.HiddenOfferReasons.ADMIN_BLOCK,
+                        req.body.adminReason);
+                return res.json(offer);
+            } catch (err) {
+                return next(err);
+            }
+        });
+
+    /**
+     * Enables an hidden/disabled offer
+     * If hidden, can be enabled by anyone. If disabled, only an admin can enable it
+     */
+    router.put(
+        "/:offerId/enable",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isAdmin,
+            authMiddleware.isGod,
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.validOfferId,
+        validators.isExistingOffer,
+        (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
+        validators.canBeEnabled,
+        validators.canBeManaged,
+        async (req, res, next) => {
+            try {
+                const offer = await (new OfferService()).enable(req.params.offerId);
                 return res.json(offer);
             } catch (err) {
                 return next(err);
