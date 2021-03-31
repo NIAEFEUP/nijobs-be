@@ -9,6 +9,7 @@ const CompanyService = require("../../services/company");
 const router = Router();
 
 const fileMiddleware  = require("../middleware/files");
+const { or } = require("../middleware/utils");
 const { authRequired } = require("../middleware/auth");
 
 module.exports = (app) => {
@@ -58,4 +59,16 @@ module.exports = (app) => {
         }
 
     });
+
+    router.post(
+        "/:companyId/block",
+        or([
+            authMiddleware.isGod,
+            authMiddleware.isAdmin
+        ]),
+        validators.manage,
+        validators.canBlock,
+        (req, res, next) => {
+            console.info(req, res, next);
+        });
 };

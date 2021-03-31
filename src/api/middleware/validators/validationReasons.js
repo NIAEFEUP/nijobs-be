@@ -6,6 +6,8 @@ const ValidationReasons = Object.freeze({
     MUST_BE_LOGGED_IN: "login-required",
     MUST_BE_ADMIN: "must-be-admin",
     MUST_BE_COMPANY: "must-be-company",
+    COMPANY_BLOCKED: "company-blocked",
+    COMPANY_ALREADY_BLOCKED: "company-already-blocked",
     MUST_BE_GOD: "must-be-god",
     BAD_GOD_TOKEN: "invalid-god-token",
     MIN: (val) => `must-be-greater-than-${val}`,
