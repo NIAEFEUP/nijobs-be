@@ -631,19 +631,25 @@ describe("Offer endpoint tests", () => {
         });
 
         describe("Incomplete registration of the offer's company", () => {
+            let incomplete_test_company;
             beforeAll(async () => {
-                await Company.findOneAndUpdate({ name: test_company.name }, { hasFinishedRegistration: false });
+                incomplete_test_company = await Company.create({
+                    name: "incomplete test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    hasFinishedRegistration: false
+                });
             });
 
             afterAll(async () => {
-                await Company.findOneAndUpdate({ name: test_company.name }, { hasFinishedRegistration: true });
+                await Company.deleteOne({ _id: incomplete_test_company._id });
             });
 
             test("should fail to create offer if the company is not fully registered", async () => {
                 const offer_params = {
                     ...generateTestOffer(),
-                    owner: test_company._id,
-                    ownerName: test_company.name,
+                    owner: incomplete_test_company._id,
+                    ownerName: incomplete_test_company.name,
                 };
 
                 const res = await request()
