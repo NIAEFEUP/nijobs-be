@@ -151,7 +151,10 @@ module.exports = (app) => {
         validators.canDisable,
         async (req, res, next) => {
             try {
-                const offer = await (new OfferService())
+                const offerService = new OfferService();
+
+                await offerService.sendOfferDisabledNotification(req.params.offerId);
+                const offer = await offerService
                     .disable(
                         req.params.offerId,
                         OfferConstants.HiddenOfferReasons.ADMIN_BLOCK,
