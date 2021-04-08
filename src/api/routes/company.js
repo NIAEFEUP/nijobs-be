@@ -11,6 +11,10 @@ const router = Router();
 const fileMiddleware  = require("../middleware/files");
 const { or } = require("../middleware/utils");
 const { authRequired } = require("../middleware/auth");
+const Company = require("../../models/Company");
+const HTTPStatus = require("http-status-codes");
+const { ErrorTypes } = require("../middleware/errorHandler");
+const ValidationReasons = require("../middleware/validators/validationReasons");
 
 module.exports = (app) => {
     app.use("/company", router);
@@ -65,10 +69,12 @@ module.exports = (app) => {
         or([
             authMiddleware.isGod,
             authMiddleware.isAdmin
-        ]),
+        ],
+        { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.manage,
         validators.canBlock,
-        (req, res, next) => {
-            console.info(req, res, next);
+        async (req, res, _next) => {
+            const company = await Company.findById(req.params.companyId);
+            return res.json(company);
         });
 };
