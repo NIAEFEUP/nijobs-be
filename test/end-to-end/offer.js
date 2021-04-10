@@ -59,7 +59,8 @@ describe("Offer endpoint tests", () => {
         test_company = await Company.create({
             name: "test company",
             bio: "a bio",
-            contacts: ["a contact"]
+            contacts: ["a contact"],
+            hasFinishedRegistration: true
         });
         await Account.deleteMany({});
         await Account.create({
@@ -111,7 +112,7 @@ describe("Offer endpoint tests", () => {
                 test("should create offer if logged in to company account", async () => {
 
                     // Login
-                    const offer = generateTestOffer();
+                    const offer = { ...generateTestOffer(), owner: test_company._id };
                     await test_agent
                         .post("/auth/login")
                         .send(test_user_company)
@@ -626,6 +627,40 @@ describe("Offer endpoint tests", () => {
                     .send(withGodToken(offer_params));
 
                 expect(res.status).toBe(HTTPStatus.OK);
+            });
+        });
+
+        describe("Incomplete registration of the offer's company", () => {
+            let incomplete_test_company;
+            beforeAll(async () => {
+                incomplete_test_company = await Company.create({
+                    name: "incomplete test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    hasFinishedRegistration: false
+                });
+            });
+
+            afterAll(async () => {
+                await Company.deleteOne({ _id: incomplete_test_company._id });
+            });
+
+            test("should fail to create offer if the company is not fully registered", async () => {
+                const offer_params = {
+                    ...generateTestOffer(),
+                    owner: incomplete_test_company._id,
+                    ownerName: incomplete_test_company.name,
+                };
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(
+                    ValidationReasons.REGISTRATION_NOT_FINISHED);
             });
         });
     });

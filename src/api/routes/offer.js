@@ -66,6 +66,7 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.create,
+        companyMiddleware.profileComplete,
         when(
             (req) => !req.body?.isHidden,
             (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.user?.company || req.body.owner)(req, res, next)),
