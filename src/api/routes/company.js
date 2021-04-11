@@ -11,7 +11,6 @@ const router = Router();
 const fileMiddleware  = require("../middleware/files");
 const { or } = require("../middleware/utils");
 const { authRequired } = require("../middleware/auth");
-const Company = require("../../models/Company");
 const HTTPStatus = require("http-status-codes");
 const { ErrorTypes } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
@@ -74,7 +73,7 @@ module.exports = (app) => {
         validators.manage,
         validators.canBlock,
         async (req, res, _next) => {
-            const company = await Company.findById(req.params.companyId);
+            const company = await new CompanyService().block(req.companyId);
             return res.json(company);
         });
 };

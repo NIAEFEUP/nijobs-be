@@ -45,6 +45,22 @@ class CompanyService {
         return Company.findById(company_id);
     }
 
+    /**
+     * @param {@param} companyId Id of the company
+     */
+    block(companyId) {
+        return Company.findOneAndUpdate({
+            companyId
+        },
+        { isBlocked: true },
+        { new: true },
+        (err) => {
+            if (err) {
+                throw err;
+            }
+        });
+    }
+
 
     /**
      * Changes the attributes of a company
