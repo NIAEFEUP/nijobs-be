@@ -153,12 +153,12 @@ module.exports = (app) => {
             try {
                 const offerService = new OfferService();
 
-                await offerService.sendOfferDisabledNotification(req.params.offerId);
                 const offer = await offerService
                     .disable(
                         req.params.offerId,
                         OfferConstants.HiddenOfferReasons.ADMIN_BLOCK,
                         req.body.adminReason);
+                await offerService.sendOfferDisabledNotification(req.params.offerId);
                 return res.json(offer);
             } catch (err) {
                 return next(err);
