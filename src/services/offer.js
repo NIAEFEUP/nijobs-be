@@ -1,5 +1,8 @@
 const Company = require("../models/Company");
 const Offer = require("../models/Offer");
+const Account = require("../models/Account");
+const EmailService = require("../lib/emailService");
+const { OFFER_DISABLED_NOTIFICATION } = require("../email-templates/companyOfferDisabled");
 
 class OfferService {
     // TODO: Use typedi or similar
@@ -227,6 +230,20 @@ class OfferService {
         if (offer?.isHidden && !(user?.isAdmin || offer.owner.toString() === user?.company?._id.toString())) return null;
 
         return offer;
+    }
+
+    async sendOfferDisabledNotification(offerId) {
+        const offer = await Offer.findById(offerId);
+        if (!offer) return;  // validation of offerId should be done before with an error
+
+        const companyAccount = await Account.findOne({
+            company: await Company.findOne({ _id: offer.owner })
+        });
+
+        await EmailService.sendMail({
+            to: companyAccount.email,
+            ...OFFER_DISABLED_NOTIFICATION(offer.ownerName, offer.title, offer.description),
+        });
     }
 
 }

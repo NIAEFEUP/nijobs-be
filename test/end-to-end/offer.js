@@ -22,6 +22,8 @@ const {
     OFFER_MAX_LIFETIME_MONTHS
 } = require("../../src/models/constants/TimeConstants");
 const OfferService = require("../../src/services/offer");
+const EmailService = require("../../src/lib/emailService");
+const { OFFER_DISABLED_NOTIFICATION } = require("../../src/email-templates/companyOfferDisabled");
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -1817,7 +1819,7 @@ describe("Offer endpoint tests", () => {
     });
 
     describe("POST /offers/:offerId/disable", () => {
-        let test_offer, test_offer_2, hidden_default_test_offer, hidden_user_test_offer;
+        let test_offer, test_offer_2, hidden_default_test_offer, hidden_user_test_offer, email_test_offer;
         beforeAll(async () => {
             test_offer = await Offer.create({
                 ...generateTestOffer({
@@ -1842,6 +1844,12 @@ describe("Offer endpoint tests", () => {
             });
 
             hidden_user_test_offer = await Offer.create({
+                ...generateTestOffer(),
+                owner: test_company._id.toString(),
+                ownerName: test_company.name,
+            });
+
+            email_test_offer = await Offer.create({
                 ...generateTestOffer(),
                 owner: test_company._id.toString(),
                 ownerName: test_company.name,
@@ -1976,6 +1984,31 @@ describe("Offer endpoint tests", () => {
             expect(res.body).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
             expect(res.body).toHaveProperty("isHidden", true);
             expect(res.body).toHaveProperty("adminReason", "Sample admin response");
+        });
+
+        test("should send an email to the company user when offer is disabled", async () => {
+            await test_agent
+                .del("/auth/login");
+            const res = await test_agent
+                .post(`/offers/${email_test_offer._id}/disable`)
+                .send(withGodToken({
+                    "adminReason": "Sample admin response"
+                }));
+
+            expect(res.status).toBe(HTTPStatus.OK);
+
+            const emailOptions = OFFER_DISABLED_NOTIFICATION(
+                email_test_offer.ownerName,
+                email_test_offer.title,
+                email_test_offer.description
+            );
+
+            expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+                subject: emailOptions.subject,
+                to: test_user_company.email,
+                template: emailOptions.template,
+                context: emailOptions.context,
+            }));
         });
     });
 
