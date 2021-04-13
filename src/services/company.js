@@ -61,6 +61,21 @@ class CompanyService {
         });
     }
 
+    /**
+     * @param {@param} companyId Id of the company
+     */
+    unblock(companyId) {
+        return Company.findOneAndUpdate({
+            companyId
+        },
+        { isBlocked: false },
+        { new: true },
+        (err) => {
+            if (err) {
+                throw err;
+            }
+        });
+    }
 
     /**
      * Changes the attributes of a company

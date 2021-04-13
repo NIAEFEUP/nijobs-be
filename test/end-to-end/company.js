@@ -373,4 +373,116 @@ describe("Company application endpoint", () => {
         });
     });
 
+
+    describe("PUT /company/:companyId/unblock", () => {
+        const test_agent = agent();
+
+        const company_data = {
+            name: "Company Ltd"
+        };
+        const test_user = {
+            email: "user@email.com",
+            password: "password123",
+        };
+        const test_user_admin = {
+            email: "admin@email.com",
+            password: "password123",
+        };
+
+        let test_company_1, test_company_2;
+
+        beforeAll(async () => {
+            await Company.deleteMany({});
+            test_company_1 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
+            test_company_2 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
+            await Account.deleteMany({});
+            await Account.create({ email: test_user.email, password: await hash(test_user.password), company: test_company_1._id });
+            await Account.create({
+                email: test_user_admin.email,
+                password: await hash(test_user_admin.password),
+                isAdmin: true
+            });
+        });
+
+
+        test("should fail if not logged in", async () => {
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .put(`/company/${test_company_1.id}/unblock`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+        test("should fail if logged in as company", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/company/${test_company_1.id}/unblock`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+        test("should allow if logged in as admin", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/company/${test_company_1.id}/unblock`)
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("isBlocked", false);
+        });
+
+        test("should fail if not a valid id", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/123/unblock")
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+        });
+
+        test("should fail if company does not exist", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const id = "111111111111111111111111";
+            const res = await test_agent
+                .put(`/company/${id}/unblock`)
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
+        });
+
+        test("should allow with god token", async () => {
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .put(`/company/${test_company_2.id}/unblock`)
+                .send(withGodToken())
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("isBlocked", false);
+        });
+    });
 });

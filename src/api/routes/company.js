@@ -76,4 +76,17 @@ module.exports = (app) => {
             const company = await new CompanyService().block(req.companyId);
             return res.json(company);
         });
+
+    router.put(
+        "/:companyId/unblock",
+        or([
+            authMiddleware.isGod,
+            authMiddleware.isAdmin
+        ],
+        { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.manage,
+        async (req, res, _next) => {
+            const company = await new CompanyService().unblock(req.companyId);
+            return res.json(company);
+        });
 };
