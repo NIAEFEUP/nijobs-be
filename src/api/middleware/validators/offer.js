@@ -8,7 +8,9 @@ const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("../../../models/constant
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../../models/constants/TechnologyTypes");
 const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
+const CompanyConstants = require("../../../models/constants/Company");
 const Company = require("../../../models/Company");
+const { isObjectId, concurrentOffersNotExceeded } = require("../validators/validatorUtils");
 const Offer = require("../../../models/Offer");
 const { validatePublishEndDateLimit } = require("../../../models/Offer");
 const { ErrorTypes } = require("../errorHandler");
@@ -233,12 +235,22 @@ const publishDateEditable = async (publishDateCandidate, { req }) => {
         const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, req.hasAdminPrivileges);
         const { publishEndDate: publishEndDateCandidate } = req.body;
 
-        // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
-        if (publishDateCandidate >= offer.publishEndDate.toISOString() &&
-            !publishEndDateCandidate) {
+        if (!publishEndDateCandidate) { // only make checks if we are just editing the publish date
 
-            // end date is earlier than publish date, error!
-            throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
+            // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
+            if (publishDateCandidate >= offer.publishEndDate.toISOString()) {
+
+                // end date is earlier than publish date, error!
+                throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
+            }
+
+            if (!offer.isHidden &&
+                !(await concurrentOffersNotExceeded(Offer)(offer.owner, publishDateCandidate, offer.publishEndDate.toISOString()))) {
+
+                throw new Error(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+
+            }
+
         }
 
     } catch (err) {
@@ -271,6 +283,14 @@ const publishEndDateEditableAfterPublishDate = async (publishEndDateCandidate, {
         if (publishEndDateCandidate <= publishDate) {
             throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
         }
+
+        if (!offer.isHidden &&
+            !(await concurrentOffersNotExceeded(Offer)(offer.owner, offer.publishDate.toISOString(), publishEndDateCandidate))) {
+
+            throw new Error(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+
+        }
+
     } catch (err) {
         console.error(err);
         throw err;
@@ -513,7 +533,7 @@ const canBeManaged = async (req, res, next) => {
 
     // Admin or gods can enable even if it was blocked by another admin
     if ((!req.user?.isAdmin && req.body.god_token !== config.god_token) &&
-         offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
+        offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
         return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
     }
 
