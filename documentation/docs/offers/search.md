@@ -16,7 +16,7 @@ import Highlight from "../../src/highlight.js"
 
 This endpoint returns offers based on search criteria. It allows for _Full-Text Search_ as well as results filtering. Perfect for a search component!
 
-**URL** : `/offer/search`
+**URL** : `/offers/search`
 
 **Method** : <Highlight level="info" inline>GET</Highlight>
 
