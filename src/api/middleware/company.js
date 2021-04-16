@@ -5,7 +5,6 @@ const ValidationReasons = require("./validators/validationReasons");
 const CompanyConstants = require("../../models/constants/Company");
 const Offer = require("../../models/Offer");
 const CompanyService = require("../../services/company");
-const Company = require("../../models/constants/Company");
 
 const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate) => async (req, res, next) => {
     const limitNotReached = await concurrentOffersNotExceeded(Offer)(
@@ -47,9 +46,8 @@ const profileComplete = async (req, res, next) => {
     return next();
 };
 
-const isNotBlocked = async (req, res, next) => {
-    const company = await Company.findById(req.params.companyId);
-
+const isNotBlocked = (owner) => async (req, res, next) => {
+    const company = await (new CompanyService()).findById(owner);
     if (company.isBlocked) {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,

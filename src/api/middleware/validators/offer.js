@@ -550,6 +550,12 @@ const canDisable = async (req, res, next) => {
     return next();
 };
 
+const offerOwnerNotBlocked = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+
+    return companyMiddleware.isNotBlocked(offer.owner)(req, res, next);
+};
+
 module.exports = {
     create,
     get,
@@ -564,4 +570,5 @@ module.exports = {
     canHide,
     canDisable,
     disable,
+    offerOwnerNotBlocked,
 };

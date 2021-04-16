@@ -70,6 +70,7 @@ module.exports = (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.create,
         companyMiddleware.profileComplete,
+        (req, res, next) => companyMiddleware.isNotBlocked(req.user?.company || req.body.owner)(req, res, next),
         when(
             (req) => !req.body?.isHidden,
             (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.user?.company || req.body.owner)(req, res, next)),
@@ -98,6 +99,7 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.isExistingOffer,
+        validators.offerOwnerNotBlocked,
         validators.isEditable,
         validators.canBeManaged,
         validators.edit,
@@ -184,6 +186,7 @@ module.exports = (app) => {
         (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
         validators.canBeEnabled,
         validators.canBeManaged,
+        validators.offerOwnerNotBlocked,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).enable(req.params.offerId);
