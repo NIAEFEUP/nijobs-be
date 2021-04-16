@@ -14,13 +14,13 @@ import Highlight from "../../src/highlight.js"
 
 ## Details 
 
-This endpoint is used to create offers. Both Admins and Companies will use it.
+This endpoint is used to create offers. Both Admins and Companies can use it.
 
 :::info
-If the logged in user is a Company, that account will be the Offer owner. Otherwise, the creation will be done in admin/god mode, which requires permissions.
+If the logged-in user is a Company, that account will be the Offer owner. Otherwise, the creation will be done in admin/god mode, which requires permissions.
 :::
 
-**URL** : `/offer/new`
+**URL** : `/offers/new`
 
 **Method** : <Highlight level="info" inline>POST</Highlight>
 
@@ -76,6 +76,7 @@ The date when the offer will be "hidden" from the application (will be invisible
 
 * Must be after `now`.
 * Must be after the [publishDate](#publishDate-body-parameter), if present.
+* Must not exceed 6 months after [publishDate](#publishDate-body-parameter)
 
 ### jobMinDuration <Highlight level="info" inline>Body Parameter</Highlight>
 
@@ -216,4 +217,231 @@ An array of strings containing job requirements in list form. Useful to list the
 
 ## Request examples
 
-> TBD
+### Example 1 - Valid Request (Logged-in as Company)
+
+**Code** : <Highlight level="success" inline>200 OK</Highlight>
+
+<Tabs
+    defaultValue="request"
+    values={[
+        {label: 'Request', value: 'request'},
+        {label: 'Response', value: 'response'},
+    ]}
+>
+  
+<TabItem value="request">
+
+```json
+{
+    "contacts": ["contact@company.com"],
+	"location": "Porto",
+	"jobStartDate": "2020-06",
+    "jobMinDuration": "2",
+    "jobMaxDuration": "4",
+    "publishEndDate": "2021-02-20T00:00:00+01:00",
+	"title": "Software fixer",
+    "description": "A nice description for this offer",
+	"jobType": "SUMMER INTERNSHIP",
+	"fields": ["DEVOPS", "MACHINE LEARNING"],
+	"technologies": ["Java", "C#"],
+    "requirements": ["A good hammer"]
+}
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+    "contacts": [
+        "contact@company.com"
+    ],
+    "fields": [
+        "DEVOPS",
+        "MACHINE LEARNING"
+    ],
+    "technologies": [
+        "Java",
+        "C#"
+    ],
+    "isHidden": false,
+    "_id": "600eb922c6fd54ac97a9b18c",
+    "title": "Software fixer",
+    "publishDate": "2021-01-25T12:27:14.112Z",
+    "publishEndDate": "2021-02-19T23:00:00.000Z",
+    "jobMinDuration": 2,
+    "jobMaxDuration": 4,
+    "jobStartDate": "2020-06-01T00:00:00.000Z",
+    "jobType": "SUMMER INTERNSHIP",
+    "description": "A nice description for this offer",
+    "owner": "5ff38a150188759f34e69723", // This is automatically inferred from the logged-in account
+    "ownerName": "Company Ltd.", // This is automatically inferred from the logged-in account
+    "location": "Porto",
+    "requirements": ["A good hammer"]
+    "__v": 0
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example 2 - Publish Date in the Past
+
+**Condition** : If `publishDate` is in the past.
+
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
+
+<Tabs
+    defaultValue="request"
+    values={[
+        {label: 'Request', value: 'request'},
+        {label: 'Response', value: 'response'},
+    ]}
+>
+  
+<TabItem value="request">
+
+```json
+{
+    "contacts": ["contact@company.com"],
+	"location": "Porto",
+	"jobStartDate": "2020-06",
+    "jobMinDuration": "2",
+    "jobMaxDuration": "4",
+    "publishDate": "2020-02-20T00:00:00+01:00",
+    "publishEndDate": "2020-05-20T00:00:00+01:00",
+	"title": "Software fixer",
+    "description": "A nice description for this offer",
+	"jobType": "SUMMER INTERNSHIP",
+	"fields": ["DEVOPS", "MACHINE LEARNING"],
+	"technologies": ["Java", "C#"],
+    "requirements": ["A good hammer"]
+}
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+    "error_code": 1,
+    "errors": [
+        {
+            "value": "2020-02-20T00:00:00+01:00",
+            "msg": "date-already-past",
+            "param": "publishDate",
+            "location": "body"
+        }
+    ]
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example 3 - Publish time over 6 month limit
+
+**Condition** : If `publishEndDate` is more than 6 months after `publishDate`.
+
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
+
+<Tabs
+    defaultValue="request"
+    values={[
+        {label: 'Request', value: 'request'},
+        {label: 'Response', value: 'response'},
+    ]}
+>
+  
+<TabItem value="request">
+
+```json
+{
+    "contacts": ["contact@company.com"],
+	"location": "Porto",
+	"jobStartDate": "2020-06",
+    "jobMinDuration": "2",
+    "jobMaxDuration": "4",
+    "publishDate": "2021-05-20T00:00:00+01:00",
+    "publishEndDate": "2021-12-20T00:00:00+01:00",
+	"title": "Software fixer",
+    "description": "A nice description for this offer",
+	"jobType": "SUMMER INTERNSHIP",
+	"fields": ["DEVOPS", "MACHINE LEARNING"],
+	"technologies": ["Java", "C#"],
+    "requirements": ["A good hammer"]
+}
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+    "error_code": 1,
+    "errors": [
+        {
+            "value": "2021-12-20T00:00:00+01:00",
+            "msg": "must-be-before:2021-11-18T11:28:48.000Z",
+            "param": "publishEndDate",
+            "location": "body"
+        }
+    ]
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example 4 - Maximum number of concurrent offers exceeded
+
+**Condition** : If the owner has more than 5 offers active (published and non-hidden) at a same point in time.
+
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
+
+<Tabs
+    defaultValue="request"
+    values={[
+        {label: 'Request', value: 'request'},
+        {label: 'Response', value: 'response'},
+    ]}
+>
+  
+<TabItem value="request">
+
+```json
+{
+    "contacts": ["contact@company.com"],
+	"location": "Porto",
+	"jobStartDate": "2020-06",
+    "jobMinDuration": "2",
+    "jobMaxDuration": "4",
+    "publishDate": "2021-05-20T00:00:00+01:00",
+    "publishEndDate": "2021-12-20T00:00:00+01:00",
+	"title": "Software fixer",
+    "description": "A nice description for this offer",
+	"jobType": "SUMMER INTERNSHIP",
+	"fields": ["DEVOPS", "MACHINE LEARNING"],
+	"technologies": ["Java", "C#"],
+    "requirements": ["A good hammer"]
+}
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+    "error_code": 1,
+    "errors": [
+        "max-concurrent-offers-reached:5"
+    ]
+}
+```
+
+</TabItem>
+</Tabs>

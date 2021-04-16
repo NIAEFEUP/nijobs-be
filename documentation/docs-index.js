@@ -11,7 +11,8 @@ module.exports = {
         ],
         Offers: [
             "offers/search",
-            "offers/create"
+            "offers/create",
+            "offers/edit"
         ],
     },
 };
