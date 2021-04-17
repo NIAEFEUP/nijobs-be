@@ -235,21 +235,23 @@ const publishDateEditable = async (publishDateCandidate, { req }) => {
         const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, req.hasAdminPrivileges);
         const { publishEndDate: publishEndDateCandidate } = req.body;
 
-        if (!publishEndDateCandidate) { // only make checks if we are just editing the publish date
+        // only make checks if we are just editing the publish date
+        if (!publishEndDateCandidate || publishEndDateCandidate === offer.publishEndDate.toISOString()) {
 
-            // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
-            if (publishDateCandidate >= offer.publishEndDate.toISOString()) {
+            // not changing date makes it impossible to exceed max concurrent offers
+            if (offer.publishDate.toISOString() !== publishDateCandidate) {
 
-                // end date is earlier than publish date, error!
-                throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
-            }
+                // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
+                if (publishDateCandidate >= offer.publishEndDate.toISOString()) {
 
-            if (offer.publishDate.toISOString() !== publishDateCandidate) { // not changing date, impossible to exceed max concurrent offers
+                    // end date is earlier than publish date, error!
+                    throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
+                }
+
                 if (!offer.isHidden &&
                 !(await concurrentOffersNotExceeded(Offer)(offer.owner, publishDateCandidate, offer.publishEndDate.toISOString()))) {
 
                     throw new Error(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
-
                 }
             }
         }
@@ -281,15 +283,17 @@ const publishEndDateEditableAfterPublishDate = async (publishEndDateCandidate, {
         }
         publishDate = publishDate || offer.publishDate.toISOString();
 
-        if (publishEndDateCandidate <= publishDate) {
-            throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
-        }
+        if (offer.publishEndDate.toISOString() !== publishEndDateCandidate) {
+            if (publishEndDateCandidate <= publishDate) {
+                throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
+            }
 
-        if (!offer.isHidden &&
-            !(await concurrentOffersNotExceeded(Offer)(offer.owner, publishDate, publishEndDateCandidate))) {
+            if (!offer.isHidden &&
+                !(await concurrentOffersNotExceeded(Offer)(offer.owner, publishDate, publishEndDateCandidate))) {
 
-            throw new Error(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+                throw new Error(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
 
+            }
         }
 
     } catch (err) {
