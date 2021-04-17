@@ -447,6 +447,11 @@ const offersDateSanitizers = useExpressValidators([
         .toDate(),
 ]);
 
+const setDefaultValuesCreate = (req, res, next) => {
+    if (!req.body?.publishDate) req.body.publishDate = new Date(Date.now()).toISOString();
+    return next();
+};
+
 const get = useExpressValidators([
     query("offset", ValidationReasons.DEFAULT)
         .optional()
@@ -552,6 +557,7 @@ module.exports = {
     isExistingOffer,
     edit,
     offersDateSanitizers,
+    setDefaultValuesCreate,
     isEditable,
     canBeManaged,
     canBeEnabled,

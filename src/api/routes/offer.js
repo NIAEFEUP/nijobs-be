@@ -60,6 +60,7 @@ module.exports = (app) => {
      * Creates a new Offer
      */
     router.post("/new",
+        validators.setDefaultValuesCreate,
         or([
             authMiddleware.isCompany,
             authMiddleware.isAdmin,
