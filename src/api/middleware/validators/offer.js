@@ -244,13 +244,14 @@ const publishDateEditable = async (publishDateCandidate, { req }) => {
                 throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
             }
 
-            if (!offer.isHidden &&
+            if (offer.publishDate.toISOString() !== publishDateCandidate) { // not changing date, impossible to exceed max concurrent offers
+                if (!offer.isHidden &&
                 !(await concurrentOffersNotExceeded(Offer)(offer.owner, publishDateCandidate, offer.publishEndDate.toISOString()))) {
 
-                throw new Error(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+                    throw new Error(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
 
+                }
             }
-
         }
 
     } catch (err) {
@@ -285,7 +286,7 @@ const publishEndDateEditableAfterPublishDate = async (publishEndDateCandidate, {
         }
 
         if (!offer.isHidden &&
-            !(await concurrentOffersNotExceeded(Offer)(offer.owner, offer.publishDate.toISOString(), publishEndDateCandidate))) {
+            !(await concurrentOffersNotExceeded(Offer)(offer.owner, publishDate, publishEndDateCandidate))) {
 
             throw new Error(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
 

@@ -93,7 +93,7 @@ const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, p
             endIndex++;
         }
     }
-    return maxConcurrent <= CompanyConstants.offers.max_concurrent;
+    return maxConcurrent < CompanyConstants.offers.max_concurrent;
 };
 
 const maxHTMLContentLength = (max) => (text) => {
