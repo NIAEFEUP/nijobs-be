@@ -438,6 +438,25 @@ describe("Offer endpoint tests", () => {
                 expect(res.body.errors).toContainEqual(
                     ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
             });
+
+            test("should fail to create a new offer (with default publishDate)", async () => {
+                const offer_params = {
+                    ...generateTestOffer(),
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                };
+                delete offer_params.publishDate;
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.CONFLICT);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(
+                    ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+            });
         });
 
         describe("Trying to schedule an offer in a time period which reached the offers limit", () => {
