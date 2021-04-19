@@ -73,7 +73,9 @@ module.exports = (app) => {
         validators.manage,
         validators.canBlock,
         async (req, res, _next) => {
-            const company = await new CompanyService().block(req.companyId);
+            const service = new CompanyService();
+            const company = await service.block(req.params.companyId);
+            await service.sendCompanyBlockedNotification(req.params.companyId);
             return res.json(company);
         });
 
@@ -86,7 +88,9 @@ module.exports = (app) => {
         { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.manage,
         async (req, res, _next) => {
-            const company = await new CompanyService().unblock(req.companyId);
+            const service = new CompanyService();
+            const company = await service.unblock(req.params.companyId);
+            await service.sendCompanyUnblockedNotification(req.params.companyId);
             return res.json(company);
         });
 };

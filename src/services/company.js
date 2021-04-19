@@ -1,3 +1,6 @@
+const { COMPANY_BLOCKED_NOTIFICATION, COMPANY_UNBLOCKED_NOTIFICATION } = require("../email-templates/companyManagement");
+const EmailService = require("../lib/emailService");
+const Account = require("../models/Account");
 const Company = require("../models/Company");
 
 class CompanyService {
@@ -49,32 +52,30 @@ class CompanyService {
      * @param {@param} companyId Id of the company
      */
     block(companyId) {
-        return Company.findOneAndUpdate({
-            companyId
-        },
-        { isBlocked: true },
-        { new: true },
-        (err) => {
-            if (err) {
-                throw err;
-            }
-        });
+        return Company.findByIdAndUpdate(
+            companyId,
+            { isBlocked: true },
+            { new: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            });
     }
 
     /**
      * @param {@param} companyId Id of the company
      */
     unblock(companyId) {
-        return Company.findOneAndUpdate({
-            companyId
-        },
-        { isBlocked: false },
-        { new: true },
-        (err) => {
-            if (err) {
-                throw err;
-            }
-        });
+        return Company.findByIdAndUpdate(
+            companyId,
+            { isBlocked: false },
+            { new: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            });
     }
 
     /**
@@ -86,6 +87,35 @@ class CompanyService {
         return Company.findOneAndUpdate({ _id: company_id }, attributes);
     }
 
+    async sendCompanyBlockedNotification(companyId) {
+        try {
+            const company = await Company.findById(companyId);
+            const companyAccount = await Account.findOne({
+                company
+            });
+            await EmailService.sendMail({
+                to: companyAccount.email,
+                ...COMPANY_BLOCKED_NOTIFICATION(company.name),
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async sendCompanyUnblockedNotification(companyId) {
+        try {
+            const company = await Company.findById(companyId);
+            const companyAccount = await Account.findOne({
+                company
+            });
+            await EmailService.sendMail({
+                to: companyAccount.email,
+                ...COMPANY_UNBLOCKED_NOTIFICATION(company.name),
+            });
+        } catch (err) {
+            console.error(err);
+        }
+    }
 }
 
 module.exports = CompanyService;
