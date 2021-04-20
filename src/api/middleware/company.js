@@ -6,11 +6,13 @@ const CompanyConstants = require("../../models/constants/Company");
 const Offer = require("../../models/Offer");
 const CompanyService = require("../../services/company");
 
-const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate) => async (req, res, next) => {
+const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate, offerId) => async (req, res, next) => {
+
     const limitNotReached = await concurrentOffersNotExceeded(Offer)(
         owner,
-        publishDate || req.body.publishDate,
-        publishEndDate || req.body.publishEndDate
+        publishDate,
+        publishEndDate,
+        offerId
     );
     if (!limitNotReached) {
         return next(new APIError(
@@ -20,6 +22,32 @@ const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate) => async 
         ));
     }
     return next();
+};
+
+const verifyMaxConcurrentOffersOnCreate = (req, res, next) => {
+
+    if (req.body?.isHidden) return next();
+
+    const owner = req.user?.company || req.body.owner;
+    const publishDate = req.body.publishDate;
+    const publishEndDate = req.body.publishEndDate;
+
+    return verifyMaxConcurrentOffers(owner, publishDate, publishEndDate)(req, res, next);
+
+};
+
+const verifyMaxConcurrentOffersOnEdit = async (req, res, next) => {
+
+    if (req.body?.isHidden) return next();
+
+    const offer = await Offer.findById(req.params.offerId);
+
+    const owner = offer?.owner;
+    const publishDate =  req.body.publishDate || offer?.publishDate;
+    const publishEndDate = req.body.publishEndDate || offer?.publishEndDate;
+
+    return verifyMaxConcurrentOffers(owner, publishDate, publishEndDate, offer._id)(req, res, next);
+
 };
 
 const profileNotComplete = async (req, res, next) => {
@@ -61,6 +89,8 @@ const isNotBlocked = (owner) => async (req, res, next) => {
 
 module.exports = {
     verifyMaxConcurrentOffers,
+    verifyMaxConcurrentOffersOnCreate,
+    verifyMaxConcurrentOffersOnEdit,
     profileNotComplete,
     profileComplete,
     isNotBlocked,

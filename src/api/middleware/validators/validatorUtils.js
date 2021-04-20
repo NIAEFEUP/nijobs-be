@@ -62,12 +62,13 @@ const sortOffersByFieldAscending = (field) => (offer1, offer2) => Date.parse(off
  * @param {*} owner Owner of the offer
  * @param {*} publishDate Publish date of the
  * @param {*} publishEndDate Date in which the offer will end
+ * @param {*} offerId the id of the offer to exclude from the count, if defined
  */
-const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, publishEndDate) => {
+const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, publishEndDate, offerId) => {
     // We need to pass the offer model in case we're inside an Offer instance
     const offersInTimePeriod = await (new CompanyService())
         .getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel)
-        .withoutHidden();
+        .withoutHidden().find(offerId ? { _id: { $ne: offerId } } : {});
 
     const offerNumber = offersInTimePeriod.length;
     if (offerNumber < CompanyConstants.offers.max_concurrent) return true;

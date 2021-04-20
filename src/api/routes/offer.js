@@ -7,7 +7,7 @@ const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
 const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
-const { or, when } = require("../middleware/utils");
+const { or } = require("../middleware/utils");
 const OfferConstants = require("../../models/constants/Offer");
 
 const router = Router();
@@ -70,10 +70,8 @@ module.exports = (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.create,
         companyMiddleware.profileComplete,
-        (req, res, next) => companyMiddleware.isNotBlocked(req.targetOwner)(req, res, next),
-        when(
-            (req) => !req.body?.isHidden,
-            (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.targetOwner)(req, res, next)),
+        (req, res, next) => companyMiddleware.isNotBlocked(req.user?.company || req.body.owner)(req, res, next),
+        companyMiddleware.verifyMaxConcurrentOffersOnCreate,
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
@@ -104,6 +102,7 @@ module.exports = (app) => {
         validators.canBeManaged,
         validators.edit,
         (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
+        companyMiddleware.verifyMaxConcurrentOffersOnEdit,
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {

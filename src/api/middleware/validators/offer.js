@@ -8,9 +8,8 @@ const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("../../../models/constant
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../../models/constants/TechnologyTypes");
 const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
-const CompanyConstants = require("../../../models/constants/Company");
 const Company = require("../../../models/Company");
-const { isObjectId, concurrentOffersNotExceeded } = require("../validators/validatorUtils");
+const { isObjectId } = require("../validators/validatorUtils");
 const Offer = require("../../../models/Offer");
 const { validatePublishEndDateLimit } = require("../../../models/Offer");
 const { ErrorTypes } = require("../errorHandler");
@@ -235,25 +234,12 @@ const publishDateEditable = async (publishDateCandidate, { req }) => {
         const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, req.hasAdminPrivileges);
         const { publishEndDate: publishEndDateCandidate } = req.body;
 
-        // only make checks if we are just editing the publish date
-        if (!publishEndDateCandidate || publishEndDateCandidate === offer.publishEndDate.toISOString()) {
+        // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
+        if (publishDateCandidate >= offer.publishEndDate.toISOString() &&
+            !publishEndDateCandidate) {
 
-            // not changing date makes it impossible to exceed max concurrent offers
-            if (offer.publishDate.toISOString() !== publishDateCandidate) {
-
-                // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
-                if (publishDateCandidate >= offer.publishEndDate.toISOString()) {
-
-                    // end date is earlier than publish date, error!
-                    throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
-                }
-
-                if (!offer.isHidden &&
-                !(await concurrentOffersNotExceeded(Offer)(offer.owner, publishDateCandidate, offer.publishEndDate.toISOString()))) {
-
-                    throw new Error(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
-                }
-            }
+            // end date is earlier than publish date, error!
+            throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
         }
 
     } catch (err) {
@@ -283,19 +269,9 @@ const publishEndDateEditableAfterPublishDate = async (publishEndDateCandidate, {
         }
         publishDate = publishDate || offer.publishDate.toISOString();
 
-        if (offer.publishEndDate.toISOString() !== publishEndDateCandidate) {
-            if (publishEndDateCandidate <= publishDate) {
-                throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
-            }
-
-            if (!offer.isHidden &&
-                !(await concurrentOffersNotExceeded(Offer)(offer.owner, publishDate, publishEndDateCandidate))) {
-
-                throw new Error(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
-
-            }
+        if (publishEndDateCandidate <= publishDate) {
+            throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
         }
-
     } catch (err) {
         console.error(err);
         throw err;
@@ -545,6 +521,7 @@ const canBeManaged = async (req, res, next) => {
     return next();
 };
 
+// Validator to check if the offer can be enabled
 const canBeEnabled = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
