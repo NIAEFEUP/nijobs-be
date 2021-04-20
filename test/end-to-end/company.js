@@ -9,6 +9,8 @@ const fs = require("fs");
 const path = require("path");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const withGodToken = require("../utils/GodToken");
+const EmailService = require("../../src/lib/emailService");
+const { COMPANY_UNBLOCKED_NOTIFICATION, COMPANY_BLOCKED_NOTIFICATION } = require("../../src/email-templates/companyManagement");
 
 const getCompanies = async (options) =>
     [...(await Company.find(options))]
@@ -248,25 +250,35 @@ describe("Company application endpoint", () => {
         const company_data = {
             name: "Company Ltd"
         };
-        const test_user = {
-            email: "user@email.com",
+
+        const test_users = Array(5).fill({}).map((_c, idx) => ({
+            email: `test_email_${idx}@email.com`,
             password: "password123",
-        };
+        }));
+
         const test_user_admin = {
             email: "admin@email.com",
             password: "password123",
         };
 
-        let test_company_1, test_company_2, blocked_test_company_1, blocked_test_company_2;
+        let test_company_1, test_company_2, blocked_test_company_1, blocked_test_company_2, test_email_company;
 
         beforeAll(async () => {
             await Company.deleteMany({});
             test_company_1 = await Company.create({ name: company_data.name, hasFinishedRegistration: true });
             test_company_2 = await Company.create({ name: company_data.name, hasFinishedRegistration: true });
+            test_email_company = await Company.create({ name: company_data.name, hasFinishedRegistration: true });
             blocked_test_company_1 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
             blocked_test_company_2 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
             await Account.deleteMany({});
-            await Account.create({ email: test_user.email, password: await hash(test_user.password), company: blocked_test_company_2._id });
+            [test_email_company, test_company_1, test_company_2, blocked_test_company_1, blocked_test_company_2]
+                .forEach(async (company, idx) => {
+                    await Account.create({
+                        email: test_users[idx].email,
+                        password: await hash(test_users[idx].password),
+                        company: company._id });
+                });
+
             await Account.create({
                 email: test_user_admin.email,
                 password: await hash(test_user_admin.password),
@@ -290,7 +302,7 @@ describe("Company application endpoint", () => {
         test("should fail if logged in as company", async () => {
             await test_agent
                 .post("/auth/login")
-                .send(test_user)
+                .send(test_users[1])
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
@@ -371,6 +383,26 @@ describe("Company application endpoint", () => {
             expect(res.body.errors).toContainEqual(ValidationReasons.COMPANY_ALREADY_BLOCKED);
 
         });
+
+        test("should send an email to the company user when it is blocked", async () => {
+            await test_agent
+                .del("/auth/login");
+            await test_agent
+                .post(`/company/${test_email_company._id}/block`)
+                .send(withGodToken())
+                .expect(HTTPStatus.OK);
+
+            const emailOptions = COMPANY_BLOCKED_NOTIFICATION(
+                test_email_company.name
+            );
+
+            expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+                subject: emailOptions.subject,
+                to: test_users[0].email,
+                template: emailOptions.template,
+                context: emailOptions.context,
+            }));
+        });
     });
 
 
@@ -380,8 +412,16 @@ describe("Company application endpoint", () => {
         const company_data = {
             name: "Company Ltd"
         };
-        const test_user = {
-            email: "user@email.com",
+        const test_user_1 = {
+            email: "user1@email.com",
+            password: "password123",
+        };
+        const test_user_2 = {
+            email: "user2@email.com",
+            password: "password123",
+        };
+        const test_user_email = {
+            email: "test_email@email.com",
             password: "password123",
         };
         const test_user_admin = {
@@ -389,14 +429,19 @@ describe("Company application endpoint", () => {
             password: "password123",
         };
 
-        let test_company_1, test_company_2;
+        let test_company_1, test_company_2, test_company_email;
 
         beforeAll(async () => {
             await Company.deleteMany({});
             test_company_1 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
             test_company_2 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
+            test_company_email = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
             await Account.deleteMany({});
-            await Account.create({ email: test_user.email, password: await hash(test_user.password), company: test_company_1._id });
+            await Account.create({ email: test_user_1.email, password: await hash(test_user_1.password), company: test_company_1._id });
+            await Account.create({ email: test_user_2.email, password: await hash(test_user_2.password), company: test_company_2._id });
+            await Account.create({ email: test_user_email.email,
+                password: await hash(test_user_email.password),
+                company: test_company_email._id });
             await Account.create({
                 email: test_user_admin.email,
                 password: await hash(test_user_admin.password),
@@ -420,7 +465,7 @@ describe("Company application endpoint", () => {
         test("should fail if logged in as company", async () => {
             await test_agent
                 .post("/auth/login")
-                .send(test_user)
+                .send(test_user_1)
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
@@ -484,5 +529,26 @@ describe("Company application endpoint", () => {
                 .expect(HTTPStatus.OK);
             expect(res.body).toHaveProperty("isBlocked", false);
         });
+
+        test("should send an email to the company user when it is unblocked", async () => {
+            await test_agent
+                .del("/auth/login");
+            await test_agent
+                .put(`/company/${test_company_email._id}/unblock`)
+                .send(withGodToken())
+                .expect(HTTPStatus.OK);
+
+            const emailOptions = COMPANY_UNBLOCKED_NOTIFICATION(
+                test_company_email.name
+            );
+
+            expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+                subject: emailOptions.subject,
+                to: test_user_email.email,
+                template: emailOptions.template,
+                context: emailOptions.context,
+            }));
+        });
+
     });
 });

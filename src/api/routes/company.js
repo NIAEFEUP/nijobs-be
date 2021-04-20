@@ -88,9 +88,14 @@ module.exports = (app) => {
         { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.manage,
         async (req, res, _next) => {
-            const service = new CompanyService();
-            const company = await service.unblock(req.params.companyId);
-            await service.sendCompanyUnblockedNotification(req.params.companyId);
-            return res.json(company);
+            try {
+                const service = new CompanyService();
+                const company = await service.unblock(req.params.companyId);
+                await service.sendCompanyUnblockedNotification(req.params.companyId);
+                return res.json(company);
+            } catch (err) {
+                console.error(err);
+                throw err;
+            }
         });
 };

@@ -99,6 +99,7 @@ class CompanyService {
             });
         } catch (err) {
             console.error(err);
+            throw err;
         }
     }
 
@@ -114,6 +115,7 @@ class CompanyService {
             });
         } catch (err) {
             console.error(err);
+            throw err;
         }
     }
 }
