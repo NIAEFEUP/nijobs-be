@@ -9,6 +9,7 @@ const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
 const { or, when } = require("../middleware/utils");
 const OfferConstants = require("../../models/constants/Offer");
+const config = require("../../config/env");
 
 const router = Router();
 
@@ -39,7 +40,8 @@ module.exports = (app) => {
     */
     router.get("/:offerId", validators.validOfferId, async (req, res, next) => {
         try {
-            const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
+            const offer = await (new OfferService()).getOfferById(
+                req.params.offerId, req.user, req.user?.isAdmin || req.body.god_token === config.god_token);
 
             if (!offer) {
                 return next(new APIError(

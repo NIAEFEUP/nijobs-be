@@ -225,8 +225,10 @@ class OfferService {
         return constraints.length ? { "$and": constraints } : {};
     }
 
-    async getOfferById(offerId, user) {
+    async getOfferById(offerId, user, showAdminReason = false) {
         const offer = await Offer.findById(offerId);
+
+        if (!showAdminReason) offer.adminReason = undefined; // adminReason appears to be non-configurable, since 'delete' had no effect
 
         if (offer?.isHidden && !(user?.isAdmin || offer.owner.toString() === user?.company?._id.toString())) return null;
 
