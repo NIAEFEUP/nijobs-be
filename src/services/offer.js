@@ -228,10 +228,11 @@ class OfferService {
     async getOfferById(offerId, user, showAdminReason = false) {
         const offer = await Offer.findById(offerId);
 
-        // adminReason appears to be non-configurable, since 'delete' had no effect
+        // adminReason appears to be non-configurable, since 'delete' had no effect, set the field to 'undefined' instead
         if (offer && !showAdminReason) offer.adminReason = undefined;
 
-        if (offer?.isHidden && !(user?.isAdmin || offer.owner.toString() === user?.company?._id.toString())) return null;
+        // this is a god fix for now but should be changed later
+        if (offer?.isHidden && !(user?.isAdmin || showAdminReason || offer.owner.toString() === user?.company?._id.toString())) return null;
 
         return offer;
     }

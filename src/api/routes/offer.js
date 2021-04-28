@@ -7,9 +7,8 @@ const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
 const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
-const { or, when } = require("../middleware/utils");
+const { or, when, godMode } = require("../middleware/utils");
 const OfferConstants = require("../../models/constants/Offer");
-const config = require("../../config/env");
 
 const router = Router();
 
@@ -38,10 +37,10 @@ module.exports = (app) => {
     /**
      * Gets an offer from the database with its id
     */
-    router.get("/:offerId", validators.validOfferId, async (req, res, next) => {
+    router.get("/:offerId", godMode, validators.validOfferId, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferById(
-                req.params.offerId, req.user, req.user?.isAdmin || req.body.god_token === config.god_token);
+                req.params.offerId, req.user, req.user?.isAdmin || req?.godMode);
 
             if (!offer) {
                 return next(new APIError(
