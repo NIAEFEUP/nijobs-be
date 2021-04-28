@@ -18,10 +18,17 @@ const lengthBetweenValidator = (val, min, max) => {
     return true;
 };
 
+const validImageURL = (val) => {
+    const regex = /^(https?:\/\/)(?:[a-z0-9-]+\.)+[a-z]{2,6}(?:\/[^/#?]+)+\.(?:jpe?g|png)$/;
+
+    return regex.test(val);
+};
+
 module.exports = {
     hasDuplicates,
     lengthBetween,
 
     noDuplicatesValidator,
     lengthBetweenValidator,
+    validImageURL,
 };

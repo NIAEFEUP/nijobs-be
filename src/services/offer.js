@@ -35,7 +35,9 @@ class OfferService {
         requirements,
     }) {
 
-        const ownerName = (await Company.findById(owner)).name;
+        const company = await Company.findById(owner);
+        const ownerName = company.name;
+        const ownerLogo = company.logo;
         const offer = await Offer.create({
             title,
             publishDate,
@@ -53,6 +55,7 @@ class OfferService {
             isHidden,
             owner,
             ownerName,
+            ownerLogo,
             location,
             coordinates,
             requirements

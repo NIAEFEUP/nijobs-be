@@ -6,7 +6,7 @@ const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./constants/FieldTypes")
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./constants/TechnologyTypes");
 const PointSchema = require("./Point");
 const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./constants/TimeConstants");
-const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
+const { noDuplicatesValidator, lengthBetweenValidator, validImageURL } = require("./modelUtils");
 const OfferConstants = require("./constants/Offer");
 const { concurrentOffersNotExceeded } = require("../api/middleware/validators/validatorUtils");
 
@@ -95,7 +95,7 @@ const OfferSchema = new Schema({
         ],
     },
     ownerName: { type: String, required: true },
-
+    ownerLogo: { type: String, required: true, validate: (val) => validImageURL(val) },
     location: { type: String, required: true },
     coordinates: { type: PointSchema, required: false },
 });
@@ -103,8 +103,8 @@ const OfferSchema = new Schema({
 OfferSchema.set("timestamps", true);
 
 OfferSchema.index(
-    { title: "text", ownerName: "text", jobType: "text", fields: "text", technologies: "text", location: "text" },
-    { name: "Search index", weights: { title: 10, ownerName: 5, jobType: 5, location: 5, fields: 5, technologies: 5 } }
+    { title: "text", ownerName: "text", jobType: "text", fields: "text", technologies: "text", location: "text", ownerLogo: "text" },
+    { name: "Search index", weights: { title: 10, ownerName: 5, jobType: 5, location: 5, fields: 5, technologies: 5, ownerLogo: 5 } }
 );
 
 // Checking if the publication date is less than or equal than the end date.

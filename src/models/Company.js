@@ -30,7 +30,7 @@ const CompanySchema = new Schema({
 
 // Update offers from this company on name change
 CompanySchema.post("findOneAndUpdate", async function(doc) {
-    await Offer.updateMany({ owner: doc._id }, { ownerName: doc.name });
+    await Offer.updateMany({ owner: doc._id }, { ownerName: doc.name, ownerLogo: doc.logo });
 });
 
 // Delete Offers from the deleted Company (maybe we want to archive them instead?,
