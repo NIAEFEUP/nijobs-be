@@ -1295,7 +1295,7 @@ describe("Offer endpoint tests", () => {
         });
 
         describe("Get offer by Id", () => {
-            const test_offers = [{}, {}, {}];
+            const test_offers = [{}, {}, {}, {}];
 
             const test_agent = agent();
 
@@ -1324,6 +1324,22 @@ describe("Offer endpoint tests", () => {
                     .forEach((elem, i) => {
                         test_offers[i] = elem;
                     });
+
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                await test_agent
+                    .post(`/offers/${test_offers[3]._id}/disable`)
+                    .send({
+                        "adminReason": "my_reason"
+                    })
+                    .expect(HTTPStatus.OK);
+
+                await test_agent
+                    .del("/auth/login")
+                    .expect(HTTPStatus.OK);
             });
 
             test("should return offer", async () => {
@@ -1371,6 +1387,54 @@ describe("Offer endpoint tests", () => {
                 const extracted_data = res.body;
 
                 expect(extracted_data).toMatchObject(hiddenOffer);
+            });
+
+            describe("adminReason", () => {
+
+                afterEach(async () => {
+                    await test_agent
+                        .del("/auth/login")
+                        .expect(HTTPStatus.OK);
+                });
+
+                test("should return adminReason if logged as admin", async () => {
+                    await test_agent
+                        .post("/auth/login")
+                        .send(test_user_admin)
+                        .expect(HTTPStatus.OK);
+
+                    const res = await test_agent
+                        .get(`/offers/${test_offers[3]._id}`);
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("adminReason", "my_reason");
+
+                });
+
+                test("should return adminReason if logged as god", async () => {
+
+                    const res = await test_agent
+                        .get(`/offers/${test_offers[3]._id}`)
+                        .send(withGodToken());
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("adminReason", "my_reason");
+
+                });
+
+                test("should not return adminReason if logged as company", async () => {
+                    await test_agent
+                        .post("/auth/login")
+                        .send(test_user_company)
+                        .expect(HTTPStatus.OK);
+
+                    const res = await test_agent
+                        .get(`/offers/${test_offers[3]._id}`);
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body).not.toHaveProperty("adminReason");
+
+                });
             });
         });
     });
