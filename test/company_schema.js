@@ -27,7 +27,8 @@ describe("# Company Schema tests", () => {
 
             beforeAll(async () => {
                 company = await Company.create({
-                    name: "first name"
+                    name: "first name",
+                    logo: "http://awebsite.com/alogo.jpg",
                 });
                 const offer = {
                     title: "Test Offer",
@@ -41,7 +42,8 @@ describe("# Company Schema tests", () => {
                     location: "Testing Street, Test City, 123",
                     requirements: ["The candidate must be tested", "Fluent in testJS"],
                     owner: company._id,
-                    ownerName: company.name
+                    ownerName: company.name,
+                    ownerLogo: company.logo,
                 };
 
                 await Offer.create([offer, offer]);

@@ -62,7 +62,8 @@ describe("Offer endpoint tests", () => {
             name: "test company",
             bio: "a bio",
             contacts: ["a contact"],
-            hasFinishedRegistration: true
+            hasFinishedRegistration: true,
+            logo: "http://awebsite.com/alogo.jpg",
         });
         await Account.deleteMany({});
         await Account.create({
@@ -305,6 +306,7 @@ describe("Offer endpoint tests", () => {
                     ...offer,
                     owner: test_company._id,
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                     publishDate: publishDate.toISOString(),
                     publishEndDate: (new Date(publishDate.getTime() + (MONTH_IN_MS * OFFER_MAX_LIFETIME_MONTHS) + DAY_TO_MS)).toISOString(),
                 };
@@ -332,7 +334,8 @@ describe("Offer endpoint tests", () => {
                 const offer_params = {
                     ...offer,
                     owner: test_company._id,
-                    ownerName: test_company.name
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 };
 
                 const res = await request()
@@ -371,6 +374,7 @@ describe("Offer endpoint tests", () => {
                 testOffers.forEach((offer) => {
                     offer.owner = test_company._id;
                     offer.ownerName = test_company.name;
+                    offer.ownerLogo = test_company.logo;
                 });
 
                 await Offer.create(testOffers);
@@ -385,6 +389,7 @@ describe("Offer endpoint tests", () => {
                     ...generateTestOffer(),
                     owner: test_company._id,
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 };
 
                 const res = await request()
@@ -411,6 +416,7 @@ describe("Offer endpoint tests", () => {
                 testOffers.forEach((offer) => {
                     offer.owner = test_company._id;
                     offer.ownerName = test_company.name;
+                    offer.ownerLogo = test_company.logo;
                 });
 
                 await Offer.create(testOffers);
@@ -426,6 +432,7 @@ describe("Offer endpoint tests", () => {
                     ...generateTestOffer(),
                     owner: test_company._id,
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 };
 
                 const res = await request()
@@ -444,6 +451,7 @@ describe("Offer endpoint tests", () => {
                     ...generateTestOffer(),
                     owner: test_company._id,
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 };
                 delete offer_params.publishDate;
 
@@ -472,6 +480,7 @@ describe("Offer endpoint tests", () => {
                 testOffers.forEach((offer) => {
                     offer.owner = test_company._id;
                     offer.ownerName = test_company.name;
+                    offer.ownerLogo = test_company.logo;
                 });
 
                 await Offer.create(testOffers);
@@ -488,7 +497,8 @@ describe("Offer endpoint tests", () => {
                         "publishEndDate": (new Date(Date.now() + (5 * DAY_TO_MS))).toISOString()
                     }),
                     owner: test_company._id,
-                    ownerName: test_company.name
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 };
 
                 const res = await request()
@@ -527,6 +537,7 @@ describe("Offer endpoint tests", () => {
                 testOffers.forEach((offer) => {
                     offer.owner = test_company._id;
                     offer.ownerName = test_company.name;
+                    offer.ownerLogo = test_company.logo;
                 });
 
                 await Offer.create(testOffers);
@@ -537,7 +548,8 @@ describe("Offer endpoint tests", () => {
                     "publishDate": (new Date(Date.now() + (4 * DAY_TO_MS))).toISOString(),
                     "publishEndDate": (new Date(Date.now() + (9 * DAY_TO_MS))).toISOString(),
                     owner: test_company._id,
-                    ownerName: test_company.name
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 });
 
                 const res = await request()
@@ -562,6 +574,7 @@ describe("Offer endpoint tests", () => {
                     technologies: ["React", "CSS"],
                     owner: test_company._id,
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                     location: "Testing Street, Test City, 123",
                     requirements: ["The candidate must be tested", "Fluent in testJS"],
                 };
@@ -590,6 +603,7 @@ describe("Offer endpoint tests", () => {
                     jobMaxDuration: 8,
                     owner: test_company._id,
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 });
 
                 const res = await request()
@@ -609,6 +623,7 @@ describe("Offer endpoint tests", () => {
                     jobMaxDuration: 10,
                     owner: test_company._id,
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 });
 
                 const res = await request()
@@ -623,6 +638,7 @@ describe("Offer endpoint tests", () => {
                     jobMaxDuration: 8,
                     owner: test_company._id,
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 });
 
                 const res = await request()
@@ -641,6 +657,7 @@ describe("Offer endpoint tests", () => {
                     jobMinDuration: 8,
                     owner: test_company._id,
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 });
 
                 const res = await request()
@@ -658,7 +675,8 @@ describe("Offer endpoint tests", () => {
                     name: "incomplete test company",
                     bio: "a bio",
                     contacts: ["a contact"],
-                    hasFinishedRegistration: false
+                    hasFinishedRegistration: false,
+                    logo: "http://awebsite.com/alogo.jpg",
                 });
             });
 
@@ -671,6 +689,7 @@ describe("Offer endpoint tests", () => {
                     ...generateTestOffer(),
                     owner: incomplete_test_company._id,
                     ownerName: incomplete_test_company.name,
+                    ownerLogo: test_company.logo,
                 };
 
                 const res = await request()
@@ -735,7 +754,8 @@ describe("Offer endpoint tests", () => {
                 test_company = await Company.create({
                     name: "test company",
                     bio: "a bio",
-                    contacts: ["a contact"]
+                    contacts: ["a contact"],
+                    logo: "http://awebsite.com/alogo.jpg",
                 });
 
                 test_offer = {
@@ -745,6 +765,7 @@ describe("Offer endpoint tests", () => {
                     }),
                     owner: test_company._id,
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 };
 
                 await Offer.deleteMany({});
@@ -779,6 +800,7 @@ describe("Offer endpoint tests", () => {
                         .forEach((offer) => {
                             offer.owner = test_company._id;
                             offer.ownerName = test_company.name;
+                            offer.ownerLogo = test_company.logo;
                         });
 
                     await Offer.create([expired_test_offer, future_test_offer]);
@@ -1295,15 +1317,17 @@ describe("Offer endpoint tests", () => {
                 await Offer.deleteMany({});
 
                 const createOffer = async (offer) => {
-                    const { _id, owner, ownerName } = await Offer.create({
+                    const { _id, owner, ownerName, ownerLogo } = await Offer.create({
                         ...offer,
                         owner: test_company._id.toString(),
                         ownerName: test_company.name,
+                        ownerLogo: test_company.logo,
                     });
                     return {
                         ...offer,
                         owner: owner.toString(),
                         ownerName,
+                        ownerLogo,
                         _id: _id.toString()
                     };
                 };
@@ -1378,15 +1402,17 @@ describe("Offer endpoint tests", () => {
             await Offer.deleteMany({});
             await test_agent.del("/auth/login");
             createOffer = async (offer) => {
-                const { _id, owner, ownerName, jobMinDuration, jobMaxDuration, createdAt } = await Offer.create({
+                const { _id, owner, ownerName, ownerLogo, jobMinDuration, jobMaxDuration, createdAt } = await Offer.create({
                     ...offer,
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 });
                 return {
                     ...offer,
                     owner: owner.toString(),
                     ownerName,
+                    ownerLogo,
                     _id: _id.toString(),
                     jobMinDuration,
                     jobMaxDuration,
@@ -1844,6 +1870,7 @@ describe("Offer endpoint tests", () => {
                 ...generateTestOffer({
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -1851,6 +1878,7 @@ describe("Offer endpoint tests", () => {
                 ...generateTestOffer({
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -1859,6 +1887,7 @@ describe("Offer endpoint tests", () => {
                     isHidden: true,
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -1866,12 +1895,14 @@ describe("Offer endpoint tests", () => {
                 ...generateTestOffer(),
                 owner: test_company._id.toString(),
                 ownerName: test_company.name,
+                ownerLogo: test_company.logo,
             });
 
             email_test_offer = await Offer.create({
                 ...generateTestOffer(),
                 owner: test_company._id.toString(),
                 ownerName: test_company.name,
+                ownerLogo: test_company.logo,
             });
 
             await (new OfferService()).disable(hidden_user_test_offer._id, OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
@@ -2042,7 +2073,8 @@ describe("Offer endpoint tests", () => {
             test_company_2 = await Company.create({
                 name: "test company",
                 bio: "a bio",
-                contacts: ["a contact"]
+                contacts: ["a contact"],
+                logo: "http://awebsite.com/alogo.jpg",
             });
             await Account.create({
                 email: test_user_company_2.email,
@@ -2054,6 +2086,7 @@ describe("Offer endpoint tests", () => {
                 ...generateTestOffer({
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -2061,6 +2094,7 @@ describe("Offer endpoint tests", () => {
                 ...generateTestOffer({
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -2070,6 +2104,7 @@ describe("Offer endpoint tests", () => {
                     isHidden: true,
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -2077,6 +2112,7 @@ describe("Offer endpoint tests", () => {
                 ...generateTestOffer({
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -2177,6 +2213,7 @@ describe("Offer endpoint tests", () => {
                 ...generateTestOffer({
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -2185,6 +2222,7 @@ describe("Offer endpoint tests", () => {
                     isHidden: true,
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -2193,6 +2231,7 @@ describe("Offer endpoint tests", () => {
                     isHidden: true,
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -2204,6 +2243,7 @@ describe("Offer endpoint tests", () => {
                     "publishEndDate": (new Date(Date.now() + (20 * DAY_TO_MS))).toISOString(),
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
                 }),
             });
 
@@ -2272,6 +2312,7 @@ describe("Offer endpoint tests", () => {
                 test_offers.forEach((offer) => {
                     offer.owner = test_company._id;
                     offer.ownerName = test_company.name;
+                    offer.ownerLogo = test_company.logo;
                 });
 
                 test_offer = await Offer.create({
@@ -2279,6 +2320,7 @@ describe("Offer endpoint tests", () => {
                         isHidden: true,
                         owner: test_company._id,
                         ownerName: test_company.name,
+                        ownerLogo: test_company.logo,
                     }),
                 });
 

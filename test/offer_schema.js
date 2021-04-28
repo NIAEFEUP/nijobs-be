@@ -95,6 +95,17 @@ describe("# Offer Schema tests", () => {
                 }
             });
 
+            test("'ownerLogo' is required", async () => {
+                const offer = new Offer({});
+                try {
+                    await offer.validate();
+                } catch (err) {
+                    expect(err.errors.ownerLogo).toBeDefined();
+                    expect(err.errors.ownerLogo).toHaveProperty("kind", "required");
+                    expect(err.errors.ownerLogo).toHaveProperty("message", "Path `ownerLogo` is required.");
+                }
+            });
+
             test("'location' is required", async () => {
                 const offer = new Offer({});
                 try {

@@ -1,3 +1,4 @@
+const config = require("../../src/config/env");
 const HTTPStatus = require("http-status-codes");
 const Account = require("../../src/models/Account");
 const Company = require("../../src/models/Company");
@@ -58,7 +59,7 @@ describe("Company application endpoint", () => {
             };
 
             const company_data = {
-                name: "Company Ltd"
+                name: "Company Ltd",
             };
 
             beforeEach(async () => {
@@ -86,7 +87,7 @@ describe("Company application endpoint", () => {
                 expect([...test_company.contacts]).toEqual(["contact1", "contact2"]);
                 expect(test_company.hasFinishedRegistration).toBe(true);
                 expect(test_company.bio).toBe("A very interesting and compelling bio");
-                const filename = path.join(__dirname, `../../${test_company.logo}`);
+                const filename = path.join(`${config.upload_folder}/${test_company.id}.png`);
                 expect(fs.existsSync(filename)).toBe(true);
 
                 await test_agent
