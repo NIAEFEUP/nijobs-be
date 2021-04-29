@@ -103,8 +103,8 @@ const OfferSchema = new Schema({
 OfferSchema.set("timestamps", true);
 
 OfferSchema.index(
-    { title: "text", ownerName: "text", jobType: "text", fields: "text", technologies: "text", location: "text", ownerLogo: "text" },
-    { name: "Search index", weights: { title: 10, ownerName: 5, jobType: 5, location: 5, fields: 5, technologies: 5, ownerLogo: 5 } }
+    { title: "text", ownerName: "text", jobType: "text", fields: "text", technologies: "text", location: "text" },
+    { name: "Search index", weights: { title: 10, ownerName: 5, jobType: 5, location: 5, fields: 5, technologies: 5 } }
 );
 
 // Checking if the publication date is less than or equal than the end date.

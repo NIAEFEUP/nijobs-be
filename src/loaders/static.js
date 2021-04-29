@@ -4,8 +4,7 @@ const fs = require("fs");
 
 const setupStatic = (expressApp) => {
     if (!(config.webserver_host)) {
-        console.error(`'WEBSERVER_HOST' must be specified in the env file! 
-        See README.md for details.`);
+        console.error("'WEBSERVER_HOST' must be specified in the env file!");
         process.exit(125);
     }
 

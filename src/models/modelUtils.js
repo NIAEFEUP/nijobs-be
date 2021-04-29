@@ -19,7 +19,7 @@ const lengthBetweenValidator = (val, min, max) => {
 };
 
 const validImageURL = (val) => {
-    const regex = /^(https?:\/\/)(?:[a-z0-9-]+\.)+[a-z]{2,6}(?:\/[^/#?]+)+\.(?:jpe?g|png)$/;
+    const regex = /^(https?:\/\/)(?:[a-z0-9-]+\.)+[a-z]{2,6}(?:\/[^/#?]+)+/;
 
     return regex.test(val);
 };

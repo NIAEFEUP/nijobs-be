@@ -130,7 +130,8 @@ describe("Offer endpoint tests", () => {
                     expect(res.body).toHaveProperty("description", offer.description);
                     expect(res.body).toHaveProperty("location", offer.location);
                     expect(res.body).toHaveProperty("owner", test_company._id.toString());
-                    // TODO: When ownerName is a thing -> expect(res.body).toHaveProperty("ownerName", test_company.name);
+                    expect(res.body).toHaveProperty("ownerName", test_company.name);
+                    expect(res.body).toHaveProperty("ownerLogo", test_company.logo);
                 });
             });
 
@@ -334,8 +335,6 @@ describe("Offer endpoint tests", () => {
                 const offer_params = {
                     ...offer,
                     owner: test_company._id,
-                    ownerName: test_company.name,
-                    ownerLogo: test_company.logo,
                 };
 
                 const res = await request()
@@ -353,6 +352,8 @@ describe("Offer endpoint tests", () => {
                 expect(created_offer).toHaveProperty("title", offer.title);
                 expect(created_offer).toHaveProperty("description", offer.description);
                 expect(created_offer).toHaveProperty("location", offer.location);
+                expect(created_offer).toHaveProperty("ownerName", test_company.name);
+                expect(created_offer).toHaveProperty("ownerLogo", test_company.logo);
             });
         });
 
@@ -388,8 +389,6 @@ describe("Offer endpoint tests", () => {
                 const offer_params = {
                     ...generateTestOffer(),
                     owner: test_company._id,
-                    ownerName: test_company.name,
-                    ownerLogo: test_company.logo,
                 };
 
                 const res = await request()
@@ -400,6 +399,8 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("title", offer_params.title);
                 expect(res.body).toHaveProperty("description", offer_params.description);
                 expect(res.body).toHaveProperty("location", offer_params.location);
+                expect(res.body).toHaveProperty("ownerName", test_company.name);
+                expect(res.body).toHaveProperty("ownerLogo", test_company.logo);
             });
         });
 
@@ -431,8 +432,6 @@ describe("Offer endpoint tests", () => {
                 const offer_params = {
                     ...generateTestOffer(),
                     owner: test_company._id,
-                    ownerName: test_company.name,
-                    ownerLogo: test_company.logo,
                 };
 
                 const res = await request()
@@ -450,8 +449,6 @@ describe("Offer endpoint tests", () => {
                 const offer_params = {
                     ...generateTestOffer(),
                     owner: test_company._id,
-                    ownerName: test_company.name,
-                    ownerLogo: test_company.logo,
                 };
                 delete offer_params.publishDate;
 
@@ -497,8 +494,6 @@ describe("Offer endpoint tests", () => {
                         "publishEndDate": (new Date(Date.now() + (5 * DAY_TO_MS))).toISOString()
                     }),
                     owner: test_company._id,
-                    ownerName: test_company.name,
-                    ownerLogo: test_company.logo,
                 };
 
                 const res = await request()
@@ -548,8 +543,6 @@ describe("Offer endpoint tests", () => {
                     "publishDate": (new Date(Date.now() + (4 * DAY_TO_MS))).toISOString(),
                     "publishEndDate": (new Date(Date.now() + (9 * DAY_TO_MS))).toISOString(),
                     owner: test_company._id,
-                    ownerName: test_company.name,
-                    ownerLogo: test_company.logo,
                 });
 
                 const res = await request()
@@ -593,6 +586,8 @@ describe("Offer endpoint tests", () => {
                 expect(created_offer).toHaveProperty("description", offer.description);
                 expect(created_offer).toHaveProperty("location", offer.location);
                 expect(created_offer).toHaveProperty("publishDate");
+                expect(created_offer).toHaveProperty("ownerName", test_company.name);
+                expect(created_offer).toHaveProperty("ownerLogo", test_company.logo);
             });
         });
 
@@ -602,8 +597,6 @@ describe("Offer endpoint tests", () => {
                     jobMinDuration: 10,
                     jobMaxDuration: 8,
                     owner: test_company._id,
-                    ownerName: test_company.name,
-                    ownerLogo: test_company.logo,
                 });
 
                 const res = await request()
@@ -622,8 +615,6 @@ describe("Offer endpoint tests", () => {
                     jobMinDuration: 8,
                     jobMaxDuration: 10,
                     owner: test_company._id,
-                    ownerName: test_company.name,
-                    ownerLogo: test_company.logo,
                 });
 
                 const res = await request()
@@ -637,8 +628,6 @@ describe("Offer endpoint tests", () => {
                 const offer_params = generateTestOffer({
                     jobMaxDuration: 8,
                     owner: test_company._id,
-                    ownerName: test_company.name,
-                    ownerLogo: test_company.logo,
                 });
 
                 const res = await request()
@@ -656,8 +645,6 @@ describe("Offer endpoint tests", () => {
                 const offer_params = generateTestOffer({
                     jobMinDuration: 8,
                     owner: test_company._id,
-                    ownerName: test_company.name,
-                    ownerLogo: test_company.logo,
                 });
 
                 const res = await request()
@@ -689,7 +676,7 @@ describe("Offer endpoint tests", () => {
                     ...generateTestOffer(),
                     owner: incomplete_test_company._id,
                     ownerName: incomplete_test_company.name,
-                    ownerLogo: test_company.logo,
+                    ownerLogo: incomplete_test_company.logo,
                 };
 
                 const res = await request()
