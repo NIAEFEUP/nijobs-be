@@ -6,7 +6,7 @@ const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./constants/FieldTypes")
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./constants/TechnologyTypes");
 const PointSchema = require("./Point");
 const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./constants/TimeConstants");
-const { noDuplicatesValidator, lengthBetweenValidator } = require("./modelUtils");
+const { noDuplicatesValidator, lengthBetweenValidator, validImageURL } = require("./modelUtils");
 const OfferConstants = require("./constants/Offer");
 const { concurrentOffersNotExceeded } = require("../api/middleware/validators/validatorUtils");
 
@@ -95,7 +95,7 @@ const OfferSchema = new Schema({
         ],
     },
     ownerName: { type: String, required: true },
-
+    ownerLogo: { type: String, required: true, validate: (val) => validImageURL(val) },
     location: { type: String, required: true },
     coordinates: { type: PointSchema, required: false },
 });
