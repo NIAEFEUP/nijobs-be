@@ -6,6 +6,7 @@ const { ensureArray } = require("./validatorUtils");
 const Company = require("../../../models/Company");
 const HTTPStatus = require("http-status-codes");
 const { isObjectId } = require("./validatorUtils");
+const CompanyService = require("../../../services/company");
 
 const MAX_LIMIT_RESULTS = 100;
 
@@ -35,7 +36,7 @@ const list = useExpressValidators([
 
 const companyExists = async (companyId) => {
     try {
-        const company = await Company.findById(companyId);
+        const company = await new CompanyService().findById(companyId);
         if (!company) throw new Error(ValidationReasons.COMPANY_NOT_FOUND(companyId));
     } catch (err) {
         console.error(err);
@@ -45,7 +46,7 @@ const companyExists = async (companyId) => {
     return true;
 };
 
-const manage = useExpressValidators([
+const block = useExpressValidators([
     param("companyId")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
@@ -69,7 +70,7 @@ const canBlock = async (req, res, next) => {
 module.exports = {
     finish,
     list,
-    manage,
+    block,
     canBlock,
     companyExists,
     MAX_LIMIT_RESULTS,

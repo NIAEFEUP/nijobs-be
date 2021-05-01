@@ -63,14 +63,14 @@ module.exports = (app) => {
 
     });
 
-    router.post(
+    router.put(
         "/:companyId/block",
         or([
             authMiddleware.isGod,
             authMiddleware.isAdmin
         ],
         { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
-        validators.manage,
+        validators.block,
         validators.canBlock,
         async (req, res, _next) => {
             const service = new CompanyService();
@@ -86,7 +86,7 @@ module.exports = (app) => {
             authMiddleware.isAdmin
         ],
         { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
-        validators.manage,
+        validators.block,
         async (req, res, _next) => {
             try {
                 const service = new CompanyService();

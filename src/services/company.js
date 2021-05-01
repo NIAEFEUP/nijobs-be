@@ -58,6 +58,7 @@ class CompanyService {
             { new: true },
             (err) => {
                 if (err) {
+                    console.error(err);
                     throw err;
                 }
             });
@@ -73,6 +74,7 @@ class CompanyService {
             { new: true },
             (err) => {
                 if (err) {
+                    console.error(err);
                     throw err;
                 }
             });

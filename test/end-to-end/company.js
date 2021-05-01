@@ -244,14 +244,14 @@ describe("Company application endpoint", () => {
         });
     });
 
-    describe("POST /company/:companyId/block", () => {
+    describe("PUT /company/:companyId/block", () => {
         const test_agent = agent();
 
         const company_data = {
             name: "Company Ltd"
         };
 
-        const test_users = Array(5).fill({}).map((_c, idx) => ({
+        const test_users = Array(4).fill({}).map((_c, idx) => ({
             email: `test_email_${idx}@email.com`,
             password: "password123",
         }));
@@ -261,17 +261,16 @@ describe("Company application endpoint", () => {
             password: "password123",
         };
 
-        let test_company_1, test_company_2, blocked_test_company_1, blocked_test_company_2, test_email_company;
+        let test_company_1, test_company_2, blocked_test_company_2, test_email_company;
 
         beforeAll(async () => {
             await Company.deleteMany({});
             test_company_1 = await Company.create({ name: company_data.name, hasFinishedRegistration: true });
             test_company_2 = await Company.create({ name: company_data.name, hasFinishedRegistration: true });
             test_email_company = await Company.create({ name: company_data.name, hasFinishedRegistration: true });
-            blocked_test_company_1 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
             blocked_test_company_2 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
             await Account.deleteMany({});
-            [test_email_company, test_company_1, test_company_2, blocked_test_company_1, blocked_test_company_2]
+            [test_email_company, test_company_1, test_company_2, blocked_test_company_2]
                 .forEach(async (company, idx) => {
                     await Account.create({
                         email: test_users[idx].email,
@@ -292,7 +291,7 @@ describe("Company application endpoint", () => {
                 .del("/auth/login");
 
             const res = await test_agent
-                .post(`/company/${test_company_1.id}/block`)
+                .put(`/company/${test_company_1.id}/block`)
                 .expect(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
@@ -306,7 +305,7 @@ describe("Company application endpoint", () => {
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .post(`/company/${test_company_1.id}/block`)
+                .put(`/company/${test_company_1.id}/block`)
                 .expect(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
@@ -320,7 +319,7 @@ describe("Company application endpoint", () => {
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .post(`/company/${test_company_1.id}/block`)
+                .put(`/company/${test_company_1.id}/block`)
                 .expect(HTTPStatus.OK);
             expect(res.body).toHaveProperty("isBlocked", true);
         });
@@ -332,7 +331,7 @@ describe("Company application endpoint", () => {
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .post("/company/123/block")
+                .put("/company/123/block")
                 .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
@@ -348,7 +347,7 @@ describe("Company application endpoint", () => {
 
             const id = "111111111111111111111111";
             const res = await test_agent
-                .post(`/company/${id}/block`)
+                .put(`/company/${id}/block`)
                 .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
@@ -361,34 +360,17 @@ describe("Company application endpoint", () => {
                 .del("/auth/login");
 
             const res = await test_agent
-                .post(`/company/${test_company_2.id}/block`)
+                .put(`/company/${test_company_2.id}/block`)
                 .send(withGodToken())
                 .expect(HTTPStatus.OK);
             expect(res.body).toHaveProperty("isBlocked", true);
-        });
-
-        test("should fail to block the account if already blocked", async () => {
-            await test_agent
-                .post("/auth/login")
-                .send(test_user_admin)
-                .expect(HTTPStatus.OK);
-
-            const res = await test_agent
-                .post(`/company/${blocked_test_company_1.id}/block`)
-                .send()
-                .expect(HTTPStatus.FORBIDDEN);
-
-            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-            expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.COMPANY_ALREADY_BLOCKED);
-
         });
 
         test("should send an email to the company user when it is blocked", async () => {
             await test_agent
                 .del("/auth/login");
             await test_agent
-                .post(`/company/${test_email_company._id}/block`)
+                .put(`/company/${test_email_company._id}/block`)
                 .send(withGodToken())
                 .expect(HTTPStatus.OK);
 

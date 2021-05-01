@@ -2059,7 +2059,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should fail to edit offer if company blocked", async () => {
                     const res = await request()
-                        .post(`/offers/${test_offer.id}`)
+                        .post(`/offers/edit/${test_offer.id}`)
                         .send(withGodToken());
 
                     expect(res.status).toBe(HTTPStatus.FORBIDDEN);
