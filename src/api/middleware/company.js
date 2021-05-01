@@ -5,6 +5,7 @@ const ValidationReasons = require("./validators/validationReasons");
 const CompanyConstants = require("../../models/constants/Company");
 const Offer = require("../../models/Offer");
 const CompanyService = require("../../services/company");
+const OfferService = require("../../services/offer");
 
 const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate, offerId) => async (req, res, next) => {
 
@@ -28,7 +29,7 @@ const verifyMaxConcurrentOffersOnCreate = (req, res, next) => {
 
     if (req.body?.isHidden) return next();
 
-    const owner = req.user?.company || req.body.owner;
+    const owner = req.targetOwner;
     const publishDate = req.body.publishDate;
     const publishEndDate = req.body.publishEndDate;
 
@@ -40,13 +41,23 @@ const verifyMaxConcurrentOffersOnEdit = async (req, res, next) => {
 
     if (req.body?.isHidden) return next();
 
-    const offer = await Offer.findById(req.params.offerId);
+    try {
 
-    const owner = offer?.owner;
-    const publishDate =  req.body.publishDate || offer?.publishDate;
-    const publishEndDate = req.body.publishEndDate || offer?.publishEndDate;
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
 
-    return verifyMaxConcurrentOffers(owner, publishDate, publishEndDate, offer._id)(req, res, next);
+        if (!offer)
+            throw new APIError(HTTPStatus.NOT_FOUND, ErrorTypes.VALIDATION_ERROR, ValidationReasons.OFFER_NOT_FOUND(req.params.offerId));
+
+        const owner = offer.owner;
+        const publishDate =  req.body.publishDate || offer.publishDate;
+        const publishEndDate = req.body.publishEndDate || offer.publishEndDate;
+
+        return verifyMaxConcurrentOffers(owner, publishDate, publishEndDate, offer._id)(req, res, next);
+
+    } catch (err) {
+        console.error(err);
+        return next(err);
+    }
 
 };
 

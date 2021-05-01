@@ -9,7 +9,6 @@ const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../.
 const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
 const Company = require("../../../models/Company");
-const { isObjectId } = require("../validators/validatorUtils");
 const Offer = require("../../../models/Offer");
 const { validatePublishEndDateLimit } = require("../../../models/Offer");
 const { ErrorTypes } = require("../errorHandler");
@@ -521,7 +520,6 @@ const canBeManaged = async (req, res, next) => {
     return next();
 };
 
-// Validator to check if the offer can be enabled
 const canBeEnabled = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 

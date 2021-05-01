@@ -70,7 +70,7 @@ module.exports = (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.create,
         companyMiddleware.profileComplete,
-        (req, res, next) => companyMiddleware.isNotBlocked(req.user?.company || req.body.owner)(req, res, next),
+        (req, res, next) => companyMiddleware.isNotBlocked(req.targetOwner)(req, res, next),
         companyMiddleware.verifyMaxConcurrentOffersOnCreate,
         validators.offersDateSanitizers,
         async (req, res, next) => {
