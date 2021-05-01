@@ -163,7 +163,7 @@ class OfferService {
      * limit: How many offers to show
      * jobType: Array of jobTypes allowed
      */
-    get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false, ...filters }) {
+    get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false, showAdminReason = false, ...filters }) {
 
         const offers = (value ? Offer.find(
             { "$and": [this._buildFilterQuery(filters), { "$text": { "$search": value } }] }, { score: { "$meta": "textScore" } }
@@ -171,11 +171,13 @@ class OfferService {
 
         if (!showHidden) offers.withoutHidden();
 
-        return offers
+        const offersQuery = offers
             .sort(value ? { score: { "$meta": "textScore" } } : undefined)
             .skip(offset)
             .limit(limit)
         ;
+
+        return showAdminReason ? offersQuery : offers.select("-adminReason");
 
     }
     _buildFilterQuery(filters) {
@@ -226,12 +228,13 @@ class OfferService {
     }
 
     async getOfferById(offerId, user, showAdminReason = false) {
-        const offer = await Offer.findById(offerId);
+        const offerQuery = Offer.findById(offerId);
 
-        // adminReason appears to be non-configurable, since 'delete' had no effect, set the field to 'undefined' instead
-        if (offer && !showAdminReason) offer.adminReason = undefined;
+        if (!showAdminReason) offerQuery.select("-adminReason");
 
-        // this is a god fix for now but should be changed later
+        const offer = await offerQuery;
+
+        // this is a good fix for now but should be changed later
         if (offer?.isHidden && !(user?.isAdmin || showAdminReason || offer.owner.toString() === user?.company?._id.toString())) return null;
 
         return offer;

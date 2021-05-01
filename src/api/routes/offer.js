@@ -19,12 +19,13 @@ module.exports = (app) => {
      * Gets all currently active offers (without filtering, for now)
      * supports offset and limit as query params
      */
-    router.get("/", validators.get, async (req, res, next) => {
+    router.get("/", godMode, validators.get, async (req, res, next) => {
         try {
             const offers = await (new OfferService()).get(
                 {
                     ...req.query,
-                    showHidden: req?.query?.showHidden && req?.user?.isAdmin
+                    showHidden: req?.query?.showHidden && (req?.godMode || req?.user?.isAdmin),
+                    showAdminReason: req?.godMode || req?.user?.isAdmin
                 }
             );
 
@@ -40,7 +41,7 @@ module.exports = (app) => {
     router.get("/:offerId", godMode, validators.validOfferId, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferById(
-                req.params.offerId, req.user, req.user?.isAdmin || req?.godMode);
+                req.params.offerId, req.user, req?.godMode || req?.user?.isAdmin);
 
             if (!offer) {
                 return next(new APIError(
