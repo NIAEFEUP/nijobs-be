@@ -1,5 +1,6 @@
 const { APIError, UnknownAPIError } = require("../../src/api/middleware/errorHandler");
-const { or, DEFAULT_ERROR_CODE, DEFAULT_STATUS_CODE, DEFAULT_ERROR_MSG, when } = require("../../src/api/middleware/utils");
+const { or, DEFAULT_ERROR_CODE, DEFAULT_STATUS_CODE, DEFAULT_ERROR_MSG, when, godMode } = require("../../src/api/middleware/utils");
+const withGodToken = require("../utils/GodToken");
 
 describe("Middleware utils", () => {
     describe("or util", () => {
@@ -222,6 +223,33 @@ describe("Middleware utils", () => {
             expect(nextMock.mock.calls[0][0].status_code).toBe(401);
             expect(nextMock.mock.calls[0][0].error_code).toBe(3);
             expect(nextMock.mock.calls[0][0].message).toBe("error");
+        });
+    });
+
+    describe("godMode util", () => {
+
+        test("request should have property godMode if god_token is sent", async () => {
+
+            const reqBody = withGodToken();
+
+            const req = { body: reqBody };
+
+            await godMode(req, {}, () => { });
+
+            expect(req).toHaveProperty("godMode", true);
+
+        });
+
+        test("request should not have property godMode if god_token is not sent", async () => {
+
+            const reqBody = {};
+
+            const req = { body: reqBody };
+
+            await godMode(req, {}, () => { });
+
+            expect(req).not.toHaveProperty("godMode");
+
         });
     });
 });
