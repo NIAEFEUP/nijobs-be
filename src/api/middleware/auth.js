@@ -60,6 +60,22 @@ const isOfferOwner = (offerId) => async (req, res, next) => {
     }
 };
 
+const hasAdminPrivileges = async (req, res, next) => {
+
+    let unprivileged = false;
+
+    await or([
+        isGod,
+        isAdmin
+    ])(req, res, (errors) => {
+        if (errors) unprivileged = true;
+    });
+
+    req.hasAdminPrivileges = !unprivileged;
+
+    return next();
+};
+
 module.exports = {
     authRequired,
     isGod,
@@ -67,4 +83,5 @@ module.exports = {
     isCompany,
     isOfferOwner,
     hasOwnershipRights,
+    hasAdminPrivileges,
 };
