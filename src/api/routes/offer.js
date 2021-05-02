@@ -7,7 +7,7 @@ const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
 const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
-const { or, when, godMode } = require("../middleware/utils");
+const { or, when } = require("../middleware/utils");
 const OfferConstants = require("../../models/constants/Offer");
 
 const router = Router();
@@ -19,7 +19,7 @@ module.exports = (app) => {
      * Gets all currently active offers (without filtering, for now)
      * supports offset and limit as query params
      */
-    router.get("/", godMode, validators.get, async (req, res, next) => {
+    router.get("/", validators.get, async (req, res, next) => {
         try {
             const offers = await (new OfferService()).get(
                 {
@@ -38,7 +38,7 @@ module.exports = (app) => {
     /**
      * Gets an offer from the database with its id
     */
-    router.get("/:offerId", godMode, validators.validOfferId, async (req, res, next) => {
+    router.get("/:offerId", validators.validOfferId, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferById(
                 req.params.offerId, req.user, req?.godMode || req?.user?.isAdmin);

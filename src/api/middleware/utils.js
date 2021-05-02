@@ -2,7 +2,6 @@ const HTTPStatus = require("http-status-codes");
 const { APIError, ErrorTypes, hideInsecureError } = require("./errorHandler");
 const ValidationReasons = require("./validators/validationReasons");
 const lodash = require("lodash");
-const config = require("../../config/env");
 
 const DEFAULT_ERROR_CODE = ErrorTypes.VALIDATION_ERROR;
 const DEFAULT_ERROR_MSG = ValidationReasons.UNKNOWN;
@@ -82,19 +81,9 @@ const when = (
     return next();
 };
 
-/**
- * Checks if a god token was sent in the request, indicating that the user might be in god mode.
- */
-const godMode = (req, _, next) => {
-    if (req.body?.god_token === config.god_token) req.godMode = true;
-
-    return next();
-};
-
 module.exports = {
     or,
     when,
-    godMode,
     DEFAULT_ERROR_CODE,
     DEFAULT_ERROR_MSG,
     DEFAULT_STATUS_CODE
