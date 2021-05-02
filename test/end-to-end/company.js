@@ -12,6 +12,9 @@ const withGodToken = require("../utils/GodToken");
 const EmailService = require("../../src/lib/emailService");
 const { COMPANY_UNBLOCKED_NOTIFICATION, COMPANY_BLOCKED_NOTIFICATION } = require("../../src/email-templates/companyManagement");
 const { MAX_FILE_SIZE_MB } = require("../../src/api/middleware/utils");
+const { DAY_TO_MS } = require("../utils/TimeConstants");
+const Offer = require("../../src/models/Offer");
+const OfferConstants = require("../../src/models/constants/Offer");
 
 const getCompanies = async (options) =>
     [...(await Company.find(options))]
@@ -20,7 +23,24 @@ const getCompanies = async (options) =>
             _id: company._id.toString(),
         }));
 
-describe("Company application endpoint", () => {
+describe("Company endpoint", () => {
+
+    const generateTestOffer = (params) => ({
+        title: "Test Offer",
+        publishDate: (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+        publishEndDate: (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+        description: "For Testing Purposes",
+        contacts: ["geral@niaefeup.pt", "229417766"],
+        jobType: "SUMMER INTERNSHIP",
+        fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+        technologies: ["React", "CSS"],
+        location: "Testing Street, Test City, 123",
+        isHidden: false,
+        requirements: ["The candidate must be tested", "Fluent in testJS"],
+        ...params,
+    });
+
+
     describe("GET /company", () => {
         beforeAll(async () => {
             await Company.deleteMany({});
@@ -469,6 +489,98 @@ describe("Company application endpoint", () => {
                 context: emailOptions.context,
             }));
         });
+
+        describe("testing with offers", () => {
+            let test_company;
+
+            beforeEach(async () => {
+                const company = {
+                    email: "test_company_email_@email.com",
+                    password: "password123",
+                };
+
+                await Company.deleteMany({});
+                test_company = await Company.create({
+                    name: company_data.name,
+                    hasFinishedRegistration: true,
+                    logo: "http://awebsite.com/alogo.jpg"
+                });
+
+
+                await Account.deleteMany({});
+                await Account.create({
+                    email: company.email,
+                    password: await hash(company.password),
+                    company: test_company._id });
+
+                await Account.create({
+                    email: test_user_admin.email,
+                    password: await hash(test_user_admin.password),
+                    isAdmin: true
+                });
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should block active offers", async () => {
+
+                const offers = Array(3).fill(await Offer.create({
+                    ...generateTestOffer({
+                        "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                        "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                    }),
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo
+                }));
+
+                const res = await test_agent
+                    .put(`/company/${test_company.id}/block`)
+                    .send({ adminReason })
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("isBlocked", true);
+                expect(res.body).toHaveProperty("adminReason", adminReason);
+
+
+                for (const offer of offers) {
+                    const updated_offer = await Offer.findById(offer._id);
+
+                    expect(updated_offer).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.COMPANY_BLOCKED);
+                    expect(updated_offer).toHaveProperty("isHidden", true);
+                }
+            });
+
+            test("should not override offers already hidden", async () => {
+
+                const offer = await Offer.create({
+                    ...generateTestOffer({
+                        "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                        "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                    }),
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                    isHidden: true,
+                    hiddenReason: OfferConstants.HiddenOfferReasons.ADMIN_BLOCK
+                });
+
+                const res = await test_agent
+                    .put(`/company/${test_company.id}/block`)
+                    .send({ adminReason })
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("isBlocked", true);
+                expect(res.body).toHaveProperty("adminReason", adminReason);
+
+
+                const updated_offer = await Offer.findById(offer._id);
+
+                expect(updated_offer).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+                expect(updated_offer).toHaveProperty("isHidden", true);
+
+            });
+        });
     });
 
 
@@ -616,6 +728,123 @@ describe("Company application endpoint", () => {
                 context: emailOptions.context,
             }));
         });
+
+
+        describe("testing with offers", () => {
+            let test_company;
+
+            beforeEach(async () => {
+                const company = {
+                    email: "test_company_email_@email.com",
+                    password: "password123",
+                };
+
+                await Company.deleteMany({});
+                test_company = await Company.create({
+                    name: company_data.name,
+                    hasFinishedRegistration: true,
+                    logo: "http://awebsite.com/alogo.jpg"
+                });
+
+
+                await Account.deleteMany({});
+                await Account.create({
+                    email: company.email,
+                    password: await hash(company.password),
+                    company: test_company._id });
+
+                await Account.create({
+                    email: test_user_admin.email,
+                    password: await hash(test_user_admin.password),
+                    isAdmin: true
+                });
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should unblock offers blocked by company block", async () => {
+
+                const offers = Array(3).fill(await Offer.create({
+                    ...generateTestOffer({
+                        "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                        "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                    }),
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                    isHidden: true,
+                    hiddenReason: OfferConstants.HiddenOfferReasons.COMPANY_BLOCKED
+                }));
+
+                const res = await test_agent
+                    .put(`/company/${test_company.id}/unblock`)
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("isBlocked", false);
+
+
+                for (const offer of offers) {
+                    expect(await Offer.findById(offer._id)).toHaveProperty("isHidden", false);
+                }
+            });
+
+            test("should not unblock offers hidden by company request", async () => {
+
+                const offer = await Offer.create({
+                    ...generateTestOffer({
+                        "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                        "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                    }),
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                    isHidden: true,
+                    hiddenReason: OfferConstants.HiddenOfferReasons.COMPANY_REQUEST
+                });
+
+                const res = await test_agent
+                    .put(`/company/${test_company.id}/unblock`)
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("isBlocked", false);
+
+
+                const updated_offer = await Offer.findById(offer._id);
+
+                expect(updated_offer).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
+                expect(updated_offer).toHaveProperty("isHidden", true);
+
+            });
+
+            test("should not unblock offers hidden by admin request", async () => {
+
+                const offer = await Offer.create({
+                    ...generateTestOffer({
+                        "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                        "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                    }),
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                    isHidden: true,
+                    hiddenReason: OfferConstants.HiddenOfferReasons.ADMIN_BLOCK
+                });
+
+                const res = await test_agent
+                    .put(`/company/${test_company.id}/unblock`)
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("isBlocked", false);
+
+
+                const updated_offer = await Offer.findById(offer._id);
+
+                expect(updated_offer).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+                expect(updated_offer).toHaveProperty("isHidden", true);
+
+            });
+
+        });
+
 
     });
 });
