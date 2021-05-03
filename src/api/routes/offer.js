@@ -24,8 +24,8 @@ module.exports = (app) => {
             const offers = await (new OfferService()).get(
                 {
                     ...req.query,
-                    showHidden: req?.query?.showHidden && (req?.godMode || req?.user?.isAdmin),
-                    showAdminReason: req?.godMode || req?.user?.isAdmin
+                    showHidden: req?.query?.showHidden && req.hasAdminPrivileges,
+                    showAdminReason: req.hasAdminPrivileges
                 }
             );
 
@@ -41,7 +41,7 @@ module.exports = (app) => {
     router.get("/:offerId", validators.validOfferId, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferById(
-                req.params.offerId, req.user, req?.godMode || req?.user?.isAdmin);
+                req.params.offerId, req.user, req.hasAdminPrivileges);
 
             if (!offer) {
                 return next(new APIError(
