@@ -48,7 +48,7 @@ const hasOwnershipRights = (offerId) => or([
 const isOfferOwner = (offerId) => async (req, res, next) => {
 
     try {
-        const offer = await (new OfferService()).getOfferById(offerId, req.user);
+        const offer = await (new OfferService()).getOfferById(offerId, req.user, req.hasAdminPrivileges);
 
         if (offer.owner.toString() !== req.user?.company?._id.toString()) {
             return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.NOT_OFFER_OWNER(offerId)));

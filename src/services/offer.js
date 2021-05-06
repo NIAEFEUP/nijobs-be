@@ -227,7 +227,7 @@ class OfferService {
         return constraints.length ? { "$and": constraints } : {};
     }
 
-    async getOfferById(offerId, user, showAdminReason = false) {
+    async getOfferById(offerId, user, hasAdminPrivileges, showAdminReason = false) {
         const offerQuery = Offer.findById(offerId);
 
         if (!showAdminReason) offerQuery.select("-adminReason");
@@ -235,7 +235,7 @@ class OfferService {
         const offer = await offerQuery;
 
         // this is a good fix for now but should be changed later
-        if (offer?.isHidden && !(user?.isAdmin || showAdminReason || offer.owner.toString() === user?.company?._id.toString())) return null;
+        if (offer?.isHidden && !(hasAdminPrivileges || offer.owner.toString() === user?.company?._id.toString())) return null;
 
         return offer;
     }

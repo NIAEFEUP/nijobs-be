@@ -10,7 +10,7 @@ describe("Auth middleware tests", () => {
     };
 
     const test_user = {
-        email: "admin@email.com",
+        email: "user@email.com",
         password: "password123",
     };
 

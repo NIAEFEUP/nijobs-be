@@ -41,7 +41,7 @@ module.exports = (app) => {
     router.get("/:offerId", validators.validOfferId, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferById(
-                req.params.offerId, req.user, req.hasAdminPrivileges);
+                req.params.offerId, req.user, req.hasAdminPrivileges, req.hasAdminPrivileges);
 
             if (!offer) {
                 return next(new APIError(
