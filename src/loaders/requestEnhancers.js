@@ -2,7 +2,7 @@ const { hasAdminPrivileges } = require("../api/middleware/auth");
 
 module.exports = (app) => {
 
-    // check if user is god or admin
+    // Populates req.hasAdminPrivileges accordingly
     app.use(hasAdminPrivileges);
 
 };

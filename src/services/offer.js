@@ -234,7 +234,6 @@ class OfferService {
 
         const offer = await offerQuery;
 
-        // this is a good fix for now but should be changed later
         if (offer?.isHidden && !(hasAdminPrivileges || offer.owner.toString() === user?.company?._id.toString())) return null;
 
         return offer;

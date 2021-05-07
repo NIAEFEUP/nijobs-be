@@ -3,70 +3,65 @@ const withGodToken = require("../utils/GodToken");
 
 describe("Auth middleware tests", () => {
 
-    const test_user_admin = {
-        email: "admin@email.com",
-        password: "password123",
-        isAdmin: true,
-    };
+    describe("hasAdminPrivileges", () => {
 
-    const test_user = {
-        email: "user@email.com",
-        password: "password123",
-    };
-
-    test("req body should have hasAdminPrivileges set to 'true' if god_token is sent", async () => {
-
-        const reqBody = withGodToken();
-
-        const req = { body: reqBody };
-
-        await hasAdminPrivileges(req, {}, () => {});
-
-        expect(req).toHaveProperty("hasAdminPrivileges", true);
-
-    });
-
-    test("req body should have hasAdminPrivileges set to 'true' if admin user is sent", async () => {
-
-        const reqBody = {};
-
-        const req = {
-            body: reqBody,
-            user: test_user_admin
+        const test_user_admin = {
+            email: "admin@email.com",
+            password: "password123",
+            isAdmin: true,
         };
 
-        await hasAdminPrivileges(req, {}, () => {});
-
-        expect(req).toHaveProperty("hasAdminPrivileges", true);
-
-    });
-
-    test("req body should have hasAdminPrivileges set to 'false' if non-admin/god user is sent", async () => {
-
-        const reqBody = {};
-
-        const req = {
-            body: reqBody,
-            user: test_user
+        const test_user = {
+            email: "user@email.com",
+            password: "password123",
         };
 
-        await hasAdminPrivileges(req, {}, () => {});
+        test("req body should have hasAdminPrivileges set to 'true' if god_token is sent", async () => {
 
-        expect(req).toHaveProperty("hasAdminPrivileges", false);
+            const req = { body: withGodToken() };
 
-    });
+            await hasAdminPrivileges(req, {}, () => {});
 
-    test("req body should have hasAdminPrivileges set to 'false' if no user is sent", async () => {
+            expect(req).toHaveProperty("hasAdminPrivileges", true);
 
-        const reqBody = {};
+        });
 
-        const req = {
-            body: reqBody
-        };
+        test("req body should have hasAdminPrivileges set to 'true' if admin user is sent", async () => {
 
-        await hasAdminPrivileges(req, {}, () => {});
+            const req = {
+                body: {},
+                user: test_user_admin
+            };
 
-        expect(req).toHaveProperty("hasAdminPrivileges", false);
+            await hasAdminPrivileges(req, {}, () => {});
 
+            expect(req).toHaveProperty("hasAdminPrivileges", true);
+
+        });
+
+        test("req body should have hasAdminPrivileges set to 'false' if non-admin/god user is sent", async () => {
+
+            const req = {
+                body: {},
+                user: test_user
+            };
+
+            await hasAdminPrivileges(req, {}, () => {});
+
+            expect(req).toHaveProperty("hasAdminPrivileges", false);
+
+        });
+
+        test("req body should have hasAdminPrivileges set to 'false' if no user is sent", async () => {
+
+            const req = {
+                body: {}
+            };
+
+            await hasAdminPrivileges(req, {}, () => {});
+
+            expect(req).toHaveProperty("hasAdminPrivileges", false);
+
+        });
     });
 });
