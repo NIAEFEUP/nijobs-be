@@ -83,19 +83,53 @@ describe("Company application endpoint", () => {
                     .field("contacts", ["contact1", "contact2"])
                     .expect(HTTPStatus.OK);
 
-                const test_company = [... await Company.find({}).exec()][0];
+                const test_company = [... await Company.find({})][0];
                 expect([...test_company.contacts]).toEqual(["contact1", "contact2"]);
                 expect(test_company.hasFinishedRegistration).toBe(true);
                 expect(test_company.bio).toBe("A very interesting and compelling bio");
                 const filename = path.join(`${config.upload_folder}/${test_company.id}.png`);
                 expect(fs.existsSync(filename)).toBe(true);
 
-                await test_agent
+                const res = await test_agent
                     .post("/company/application/finish")
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", ["contact1", "contact2"])
                     .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body.errors).toContainEqual(
+                    ValidationReasons.REGISTRATION_FINISHED
+                );
+
+                // clean up file created
+                fs.unlinkSync(filename);
+            });
+
+            test("should finish the application with single contact", async () => {
+                await test_agent
+                    .post("/company/application/finish")
+                    .attach("logo", "test/data/logo-niaefeup.png")
+                    .field("bio", "A very interesting and compelling bio")
+                    .field("contacts", "contact1")
+                    .expect(HTTPStatus.OK);
+
+                const test_company = [... await Company.find({})][0];
+                expect([...test_company.contacts]).toEqual(["contact1"]);
+                expect(test_company.hasFinishedRegistration).toBe(true);
+                expect(test_company.bio).toBe("A very interesting and compelling bio");
+                const filename = path.join(`${config.upload_folder}/${test_company.id}.png`);
+                expect(fs.existsSync(filename)).toBe(true);
+
+                const res = await test_agent
+                    .post("/company/application/finish")
+                    .attach("logo", "test/data/logo-niaefeup.png")
+                    .field("bio", "A very interesting and compelling bio")
+                    .field("contacts", "contact2")
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body.errors).toContainEqual(
+                    ValidationReasons.REGISTRATION_FINISHED
+                );
 
                 // clean up file created
                 fs.unlinkSync(filename);

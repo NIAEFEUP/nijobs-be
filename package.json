@@ -10,7 +10,7 @@
     "lint-fix": "npm run lint -- --fix",
     "test": "NODE_ENV=test jest --runInBand --coverage --verbose false",
     "ci": "npm run lint && npm test",
-    "audit": "npm audit --audit-level=high --json | npm-audit-helper"
+    "audit": "npm audit --audit-level=high --json | npm-audit-helper --prod-only"
   },
   "repository": {
     "type": "git",

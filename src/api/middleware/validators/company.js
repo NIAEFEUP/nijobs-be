@@ -2,6 +2,7 @@ const { body, query } = require("express-validator");
 const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
 const CompanyConstants = require("../../../models/constants/Company");
+const { ensureArray } = require("./validatorUtils");
 
 const MAX_LIMIT_RESULTS = 100;
 
@@ -13,6 +14,7 @@ const finish = useExpressValidators([
         .withMessage(ValidationReasons.TOO_LONG(CompanyConstants.bio.max_length)),
     body("contacts", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .customSanitizer(ensureArray)
         .isArray({ min: CompanyConstants.contacts.min_length, max: CompanyConstants.contacts.max_length })
         .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length))
 ]);
