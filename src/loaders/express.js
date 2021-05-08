@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const HTTPStatus = require("http-status-codes");
 
 const apiRoutes = require("../api");
+const enhanceRequests = require("./requestEnhancers");
 const config = require("../config/env");
 const { defaultErrorHandler } = require("../api/middleware/errorHandler");
 
@@ -93,6 +94,9 @@ module.exports = (app) => {
 
     // Health check endpoint
     app.get("/", (_, res) => res.status(HTTPStatus.OK).json({ "online": true }));
+
+    // enhance endpoint requests with common parameters like having admin privileges
+    enhanceRequests(app);
 
     // Registering the application's routes
     // Using no prefix as the app will be mapped to /api anyway in the production server
