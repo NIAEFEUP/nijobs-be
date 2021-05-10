@@ -50,7 +50,18 @@ const block = useExpressValidators([
     param("companyId")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
-        .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND)
+        .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
+    body("adminReason")
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .trim(),
+]);
+
+const disable = useExpressValidators([
+    param("companyId")
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
+        .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
 ]);
 
 const canBlock = async (req, res, next) => {
@@ -71,6 +82,7 @@ module.exports = {
     finish,
     list,
     block,
+    disable,
     canBlock,
     companyExists,
     MAX_LIMIT_RESULTS,

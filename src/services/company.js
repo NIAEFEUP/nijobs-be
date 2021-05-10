@@ -51,10 +51,13 @@ class CompanyService {
     /**
      * @param {@param} companyId Id of the company
      */
-    block(companyId) {
+    block(companyId, adminReason) {
         return Company.findByIdAndUpdate(
             companyId,
-            { isBlocked: true },
+            {
+                isBlocked: true,
+                adminReason
+            },
             { new: true },
             (err) => {
                 if (err) {

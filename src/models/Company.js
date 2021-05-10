@@ -27,6 +27,9 @@ const CompanySchema = new Schema({
         type: Boolean,
         default: false
     },
+    adminReason: {
+        type: String,
+    },
     logo: {
         type: String,
     }
