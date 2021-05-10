@@ -36,7 +36,7 @@ const list = useExpressValidators([
 
 const companyExists = async (companyId) => {
     try {
-        const company = await new CompanyService().findById(companyId);
+        const company = await new CompanyService().findById(companyId, true);
         if (!company) throw new Error(ValidationReasons.COMPANY_NOT_FOUND(companyId));
     } catch (err) {
         console.error(err);

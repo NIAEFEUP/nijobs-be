@@ -491,6 +491,7 @@ describe("Company application endpoint", () => {
                 .put(`/company/${test_company_1.id}/unblock`)
                 .expect(HTTPStatus.OK);
             expect(res.body).toHaveProperty("isBlocked", false);
+            expect(res.body).not.toHaveProperty("adminReason");
         });
 
         test("should fail if not a valid id", async () => {

@@ -40,6 +40,14 @@ CompanySchema.post("findOneAndUpdate", async function(doc) {
     await Offer.updateMany({ owner: doc._id }, { ownerName: doc.name, ownerLogo: doc.logo });
 });
 
+CompanySchema.query.withoutBlocked = function() {
+    return this.where({ isBlocked: false });
+};
+
+CompanySchema.query.hideAdminReason = function() {
+    return this.select("-adminReason");
+};
+
 // Delete Offers from the deleted Company (maybe we want to archive them instead?,
 // also maybe we want other hooks as well such as deleteOne)
 // CompanySchema.post("findOneAndDelete", async function(doc) {

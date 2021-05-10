@@ -23,14 +23,19 @@ class CompanyService {
      *
      * @returns {companies, totalDocCount}
      */
-    async findAll(limit, offset) {
+    async findAll(limit, offset, showBlocked = false, showAdminReason = false) {
 
         const totalDocCount = await Company.estimatedDocumentCount();
+
+        const companyQuery = Company.find({});
+
+        if (!showBlocked) companyQuery.withoutBlocked();
+        if (!showAdminReason) companyQuery.hideAdminReason();
 
         return {
             totalDocCount,
             companies:
-                [...(await Company.find({})
+                [...(await companyQuery
                     .sort({ name: "asc" })
                     .skip(offset)
                     .limit(limit)
@@ -44,8 +49,11 @@ class CompanyService {
     /**
      * @param {*} company_id Id of the company
      */
-    findById(company_id) {
-        return Company.findById(company_id);
+    findById(company_id, showBlocked = false, showAdminReason = false) {
+        const query = Company.findById(company_id);
+        if (!showBlocked) query.withoutBlocked();
+        if (!showAdminReason) query.hideAdminReason();
+        return query;
     }
 
     /**
@@ -73,7 +81,10 @@ class CompanyService {
     unblock(companyId) {
         return Company.findByIdAndUpdate(
             companyId,
-            { isBlocked: false },
+            {
+                isBlocked: false,
+                $unset: { adminReason: undefined },
+            },
             { new: true },
             (err) => {
                 if (err) {

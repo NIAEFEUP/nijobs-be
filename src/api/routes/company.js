@@ -55,7 +55,8 @@ module.exports = (app) => {
         const computedOffset = parseInt(offset || 0, 10);
 
         try {
-            const { companies, totalDocCount } = await new CompanyService().findAll(computedLimit, computedOffset);
+            const { companies, totalDocCount } =
+                await new CompanyService().findAll(computedLimit, computedOffset, req.hasAdminPrivileges, req.hasAdminPrivileges);
             return res.json({ companies, totalDocCount });
         } catch (error) {
             return next(error);
