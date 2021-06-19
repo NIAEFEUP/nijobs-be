@@ -9,7 +9,7 @@ const cloudinary = require("cloudinary").v2;
 const config = require("../../config/env");
 const ValidationReasons = require("./validators/validationReasons");
 
-const parseError = (message) => message.toLowerCase().replace(" ", "-");
+const parseError = (message) => message.toLowerCase().replaceAll(" ", "-");
 
 const parseSingleFile = (field_name) => (req, res, next) => {
     const upload = multerConfig.single(field_name);
