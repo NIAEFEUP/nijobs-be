@@ -213,6 +213,19 @@ describe("Company application endpoint", () => {
                     });
                 });
 
+                test("should return an error when the image size is greater than the max size", async () => {
+                    const res = await test_agent
+                        .post("/company/application/finish")
+                        .attach("logo", "test/data/logo-niaefeup-10mb.png")
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                    expect(res.body.errors).toContainEqual({
+                        "location": "body",
+                        "msg": "file-too-large",
+                        "param": "logo",
+                    });
+                });
+
             });
 
             describe("bio", () => {
