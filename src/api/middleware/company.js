@@ -70,10 +70,23 @@ const canDisable = async (req, res, next) => {
     return next();
 };
 
+const canEnable = async (req, res, next) => {
+    const company = await (new CompanyService()).findById(req.body.owner);
+    if (!company.isDisabled) {
+        return next(new APIError(
+            HTTPStatus.FORBIDDEN,
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.COMPANY_ENABLED
+        ));
+    }
+    return next();
+};
+
 module.exports = {
     verifyMaxConcurrentOffers,
     profileNotComplete,
     profileComplete,
     isNotBlocked,
-    canDisable
+    canDisable,
+    canEnable,
 };
