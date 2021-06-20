@@ -104,7 +104,20 @@ module.exports = (app) => {
             }
         });
 
-    router.put("/enable");
+    router.put("/enable",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isGod
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        companyMiddleware.canEnable,
+        async (req, res, next) => {
+            try {
+                const company = await (new CompanyService()).changeAttributes(req.body.owner, { isDisabled: false });
+                return res.json({ company });
+            } catch (err) {
+                return next(err);
+            }
+        });
 
     router.put("/disable",
         or([
