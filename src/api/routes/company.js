@@ -1,19 +1,20 @@
 const config = require("../../config/env");
 const { Router } = require("express");
+const HTTPStatus = require("http-status-codes");
 
 const validators = require("../middleware/validators/company");
 const companyMiddleware = require("../middleware/company");
 const authMiddleware = require("../middleware/auth");
 const CompanyService = require("../../services/company");
+const { ErrorTypes } = require("../middleware/errorHandler");
+const ValidationReasons = require("../middleware/validators/validationReasons");
+
+const { or } = require("../middleware/utils");
 
 const router = Router();
 
 const fileMiddleware  = require("../middleware/files");
-const { or } = require("../middleware/utils");
 const { authRequired } = require("../middleware/auth");
-const HTTPStatus = require("http-status-codes");
-const { ErrorTypes } = require("../middleware/errorHandler");
-const ValidationReasons = require("../middleware/validators/validationReasons");
 const OfferService = require("../../services/offer");
 
 module.exports = (app) => {
@@ -100,6 +101,23 @@ module.exports = (app) => {
             } catch (err) {
                 console.error(err);
                 throw err;
+            }
+        });
+
+    router.put("/enable");
+
+    router.put("/disable",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isGod
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        companyMiddleware.canDisable,
+        async (req, res, next) => {
+            try {
+                const company = await (new CompanyService()).changeAttributes(req.body.owner, { isDisabled: true });
+                return res.json({ company });
+            } catch (err) {
+                return next(err);
             }
         });
 };

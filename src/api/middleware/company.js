@@ -94,7 +94,18 @@ const isNotBlocked = (owner) => async (req, res, next) => {
             ValidationReasons.COMPANY_BLOCKED
         ));
     }
+    return next();
+};
 
+const canDisable = async (req, res, next) => {
+    const company = await (new CompanyService()).findById(req.body.owner);
+    if (company.isDisabled) {
+        return next(new APIError(
+            HTTPStatus.FORBIDDEN,
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.COMPANY_DISABLED
+        ));
+    }
     return next();
 };
 
@@ -105,4 +116,5 @@ module.exports = {
     profileNotComplete,
     profileComplete,
     isNotBlocked,
+    canDisable
 };
