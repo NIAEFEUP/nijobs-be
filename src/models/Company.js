@@ -32,6 +32,10 @@ const CompanySchema = new Schema({
     },
     logo: {
         type: String,
+    },
+    isDisabled: {
+        type: Boolean,
+        default: false
     }
 });
 
