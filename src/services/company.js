@@ -2,6 +2,8 @@ const { COMPANY_BLOCKED_NOTIFICATION, COMPANY_UNBLOCKED_NOTIFICATION } = require
 const EmailService = require("../lib/emailService");
 const Account = require("../models/Account");
 const Company = require("../models/Company");
+const Offer = require("../models/Offer");
+const OfferConstants = require("../models/constants/Offer");
 
 class CompanyService {
     getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel) {
@@ -20,6 +22,7 @@ class CompanyService {
      *
      * @param {*} limit - Number of documents to return
      * @param {*} offset - where to start the query (pagination - how many documents to skip, NOT how many pages to skip)
+     * @param {*} showHidden - weather to show the hidden companies or not, defaults to 'false'
      *
      * @returns {companies, totalDocCount}
      */
@@ -99,7 +102,10 @@ class CompanyService {
      * @param {*} attributes object containing the attributes to change in company
      */
     changeAttributes(company_id, attributes) {
-        return Company.findOneAndUpdate({ _id: company_id }, attributes);
+        return Company.findOneAndUpdate(
+            { _id: company_id },
+            attributes,
+            { new: true, omitUndefined: true });
     }
 
     async sendCompanyBlockedNotification(companyId) {
@@ -132,6 +138,46 @@ class CompanyService {
             console.error(err);
             throw err;
         }
+    }
+
+    async disable(company_id) {
+        const company = this.changeAttributes(company_id, { isDisabled: true });
+
+        await Offer.updateMany(
+            { owner: company_id },
+            {
+                isHidden: true,
+                hiddenReason: OfferConstants.HiddenOfferReasons.COMPANY_DISABLED,
+            },
+            { new: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            }
+        );
+
+        return company;
+    }
+
+    async enable(company_id) {
+        const company = this.changeAttributes(company_id, { isDisabled: false });
+
+        await Offer.updateMany(
+            { owner: company_id },
+            {
+                isHidden: false,
+                $unset: { hiddenReason: undefined, adminReason: undefined },
+            },
+            { new: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            }
+        );
+
+        return company;
     }
 }
 
