@@ -149,7 +149,7 @@ describe("Company application endpoint", () => {
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual(
-                    ValidationReasons.REGISTRATION_FINISHED
+                    { msg: ValidationReasons.REGISTRATION_FINISHED }
                 );
 
                 // clean up file created
@@ -179,7 +179,7 @@ describe("Company application endpoint", () => {
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual(
-                    ValidationReasons.REGISTRATION_FINISHED
+                    { msg: ValidationReasons.REGISTRATION_FINISHED }
                 );
 
                 // clean up file created

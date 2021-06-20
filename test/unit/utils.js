@@ -59,17 +59,17 @@ describe("Middleware utils", () => {
                 or: [
                     {
                         error_code: 1,
-                        errors: ["error_message1"],
+                        errors: [{ msg: "error_message1" }],
                         test: 1
                     },
                     {
                         error_code: 2,
-                        errors: ["error_message2"],
+                        errors: [{ msg: "error_message2" }],
                         test: 2
                     },
                     {
                         error_code: 3,
-                        errors: ["error_message3"],
+                        errors: [{ msg: "error_message3" }],
                         test: 3
                     },
                 ]
@@ -96,17 +96,17 @@ describe("Middleware utils", () => {
                 or: [
                     {
                         error_code: 1,
-                        errors: ["error_message1"],
+                        errors: [{ msg: "error_message1" }],
                         test: 1
                     },
                     {
                         error_code: 2,
-                        errors: ["error_message2"],
+                        errors: [{ msg: "error_message2" }],
                         test: 2
                     },
                     {
                         error_code: 3,
-                        errors: ["error_message3"],
+                        errors: [{ msg: "error_message3" }],
                         test: 3
                     },
                 ]
