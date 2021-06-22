@@ -5,10 +5,11 @@ const Company = require("../../src/models/Company");
 const hash = require("../../src/lib/passwordHashing");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 const CompanyConstants = require("../../src/models/constants/Company");
+const { HiddenOfferReasons } = require("../../src/models/constants/Offer");
+const withGodToken = require("../utils/GodToken");
 const fs = require("fs");
 const path = require("path");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
-const withGodToken = require("../utils/GodToken");
 const EmailService = require("../../src/lib/emailService");
 const { COMPANY_UNBLOCKED_NOTIFICATION, COMPANY_BLOCKED_NOTIFICATION } = require("../../src/email-templates/companyManagement");
 const { MAX_FILE_SIZE_MB } = require("../../src/api/middleware/utils");
@@ -17,7 +18,9 @@ const Offer = require("../../src/models/Offer");
 const OfferConstants = require("../../src/models/constants/Offer");
 
 const getCompanies = async (options) =>
-    [...(await Company.find(options))]
+    [...(await Company.find(options)
+        .sort({ name: "asc" })
+        .exec())]
         .map((company) => ({
             ...company.toObject(),
             _id: company._id.toString(),
@@ -108,6 +111,116 @@ describe("Company endpoint", () => {
                 expect(res.body.totalDocCount).toEqual(1);
             });
 
+        });
+
+        describe("Disabled companies", () => {
+            let test_company, disabled_test_company;
+            const test_user_admin = {
+                email: "admin@email.com",
+                password: "password123",
+            };
+            const test_user_company = {
+                email: "company@email.com",
+                password: "password123",
+            };
+
+            const test_agent = agent();
+
+            beforeAll(async () => {
+
+                await test_agent
+                    .delete("/auth/login")
+                    .expect(HTTPStatus.OK);
+
+                await Company.deleteMany({});
+
+                test_company = {
+                    name: "test-company"
+                };
+
+                disabled_test_company = {
+                    name: "disabled-test-company",
+                    isDisabled: true
+                };
+
+                const companies = await Company.create([test_company, disabled_test_company]);
+
+                await Account.deleteMany({});
+                await Account.create({
+                    email: test_user_admin.email,
+                    password: await hash(test_user_admin.password),
+                    isAdmin: true
+                });
+                await Account.create({
+                    email: test_user_company.email,
+                    password: await hash(test_user_company.password),
+                    company: companies[0]._id
+                });
+            });
+
+            afterEach(async () => {
+                await test_agent
+                    .delete("/auth/login")
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should return both companies if god token is sent", async () => {
+
+                const res = await test_agent
+                    .get("/company")
+                    .send(withGodToken());
+
+                const companies = await getCompanies({});
+
+                expect(res.status).toBe(HTTPStatus.OK);
+                expect(res.body.companies).toEqual(companies);
+                expect(res.body.totalDocCount).toEqual(2);
+
+            });
+
+            test("should return both companies if logged as admin", async () => {
+
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .get("/company");
+
+                const companies = await getCompanies({});
+                expect(res.status).toBe(HTTPStatus.OK);
+                expect(res.body.companies).toEqual(companies);
+                expect(res.body.totalDocCount).toEqual(2);
+
+            });
+
+            test("should return only the enabled company if logged as unprivileged user", async () => {
+
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .get("/company");
+
+                const companies = await getCompanies({ isDisabled: { $ne: true } });
+                expect(res.status).toBe(HTTPStatus.OK);
+                expect(res.body.companies).toEqual(companies);
+                expect(res.body.totalDocCount).toEqual(1);
+            });
+
+            test("should return only the enabled company if not logged", async () => {
+
+                const res = await test_agent
+                    .get("/company");
+
+                const companies = await getCompanies({ isDisabled: { $ne: true } });
+                expect(res.status).toBe(HTTPStatus.OK);
+                expect(res.body.companies).toEqual(companies);
+                expect(res.body.totalDocCount).toEqual(1);
+            });
         });
 
     });
@@ -583,7 +696,6 @@ describe("Company endpoint", () => {
         });
     });
 
-
     describe("PUT /company/:companyId/unblock", () => {
         const test_agent = agent();
 
@@ -846,5 +958,459 @@ describe("Company endpoint", () => {
         });
 
 
+    });
+
+    describe("PUT /company/enable", () => {
+
+        let test_company, disabled_test_company_1, disabled_test_company_2, disabled_test_company_3, disabled_test_company_4;
+        const test_user_admin = {
+            email: "admin@email.com",
+            password: "password123",
+        };
+        const test_user_company_1 = {
+            email: "company1@email.com",
+            password: "password123",
+        };
+        const test_user_company_2 = {
+            email: "company2@email.com",
+            password: "password123",
+        };
+
+        const test_agent = agent();
+
+        beforeAll(async () => {
+            await test_agent
+                .delete("/auth/login")
+                .expect(HTTPStatus.OK);
+
+            await Company.deleteMany({});
+
+            [
+                test_company,
+                disabled_test_company_1,
+                disabled_test_company_2,
+                disabled_test_company_3,
+                disabled_test_company_4
+            ] = await Company.create([
+                {
+                    name: "test-company"
+                }, {
+                    name: "disabled-test-company-1",
+                    isDisabled: true
+                }, {
+                    name: "disabled-test-company-2",
+                    isDisabled: true
+                }, {
+                    name: "disabled-test-company-3",
+                    isDisabled: true
+                }, {
+                    name: "disabled-test-company-4",
+                    logo: "http://awebsite.com/alogo.jpg",
+                    isDisabled: true
+                }
+            ]);
+
+            await Account.deleteMany({});
+            await Account.create({
+                email: test_user_admin.email,
+                password: await hash(test_user_admin.password),
+                isAdmin: true
+            });
+            await Account.create({
+                email: test_user_company_1.email,
+                password: await hash(test_user_company_1.password),
+                company: test_company._id
+            });
+            await Account.create({
+                email: test_user_company_2.email,
+                password: await hash(test_user_company_2.password),
+                company: disabled_test_company_1._id
+            });
+
+            const offer = {
+                title: "Test Offer",
+                publishDate: new Date(Date.now() - (DAY_TO_MS)),
+                publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
+                description: "For Testing Purposes",
+                contacts: ["geral@niaefeup.pt", "229417766"],
+                jobType: "SUMMER INTERNSHIP",
+                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                technologies: ["React", "CSS"],
+                location: "Testing Street, Test City, 123",
+                requirements: ["The candidate must be tested", "Fluent in testJS"],
+                owner: disabled_test_company_4._id,
+                ownerName: disabled_test_company_4.name,
+                ownerLogo: disabled_test_company_4.logo,
+                isHidden: true,
+                hiddenReason: HiddenOfferReasons.COMPANY_DISABLED,
+            };
+
+            await Offer.create([offer, offer]);
+
+        });
+
+        afterEach(async () => {
+            await test_agent
+                .delete("/auth/login")
+                .expect(HTTPStatus.OK);
+        });
+
+        afterAll(async () => {
+            await Account.deleteMany({});
+            await Company.deleteMany({});
+        });
+
+        test("should fail to enable already enabled company if god token is sent", async () => {
+
+            const res = await test_agent
+                .put("/company/enable")
+                .send(withGodToken({ owner: test_company._id }));
+
+            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_ENABLED]);
+        });
+
+        test("should fail to enable already enabled company if logged as admin", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/enable")
+                .send({ owner: test_company._id });
+
+            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_ENABLED]);
+        });
+
+        test("should fail to enable already enabled company if logged as same company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company_1)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/enable")
+                .send({ owner: test_company._id });
+
+            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_ENABLED]);
+        });
+
+        test("should fail to enable already enabled company if logged as different company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company_2)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/enable")
+                .send({ owner: test_company._id });
+
+            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_ENABLED]);
+        });
+
+        test("should fail to enable already enabled company if not logged in", async () => {
+
+            const res = await test_agent
+                .put("/company/enable")
+                .send({ owner: test_company._id });
+
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.INSUFFICIENT_PERMISSIONS]);
+        });
+
+        test("should fail to enable disabled company if logged as different company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company_1)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/enable")
+                .send({ owner: disabled_test_company_1._id });
+
+            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.INVALID_COMPANY]);
+
+        });
+
+        test("Should enable company if god token is sent", async () => {
+
+            const res = await test_agent
+                .put("/company/enable")
+                .send(withGodToken({ owner: disabled_test_company_3._id }));
+
+            expect(res.status).toBe(HTTPStatus.OK);
+            expect(res.body.company.isDisabled).toBe(false);
+        });
+
+        test("Should enable company if logged as admin", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/enable")
+                .send({ owner: disabled_test_company_2._id });
+
+            expect(res.status).toBe(HTTPStatus.OK);
+            expect(res.body.company.isDisabled).toBe(false);
+        });
+
+        test("Should enable company if logged as same company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company_2)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/enable")
+                .send({ owner: disabled_test_company_1._id });
+
+            expect(res.status).toBe(HTTPStatus.OK);
+            expect(res.body.company.isDisabled).toBe(false);
+        });
+
+        test("should change offers isHidden on company enable", async () => {
+
+            const offersBefore = await Offer.find({ owner: disabled_test_company_4._id });
+
+            expect(offersBefore.every(({ isHidden }) => isHidden === true)).toBe(true);
+            expect(offersBefore.every(({ hiddenReason }) => hiddenReason === HiddenOfferReasons.COMPANY_DISABLED)).toBe(true);
+
+            const res = await test_agent
+                .put("/company/enable")
+                .send(withGodToken({ owner: disabled_test_company_4._id }));
+
+            expect(res.status).toBe(HTTPStatus.OK);
+            expect(res.body.company.isDisabled).toBe(false);
+
+            const offersAfter = await Offer.find({ owner: disabled_test_company_4._id });
+
+            expect(offersAfter.every(({ isHidden }) => isHidden === false)).toBe(true);
+            expect(offersAfter.every(({ hiddenReason }) => hiddenReason === undefined)).toBe(true);
+        });
+    });
+
+    describe("PUT /company/disable", () => {
+
+        let test_company_1, test_company_2, test_company_3, disabled_test_company;
+        const test_user_admin = {
+            email: "admin@email.com",
+            password: "password123",
+        };
+        const test_user_company_1 = {
+            email: "company1@email.com",
+            password: "password123",
+        };
+        const test_user_company_2 = {
+            email: "company2@email.com",
+            password: "password123",
+        };
+
+        const test_agent = agent();
+
+        beforeAll(async () => {
+
+            await test_agent
+                .delete("/auth/login")
+                .expect(HTTPStatus.OK);
+
+            await Company.deleteMany({});
+
+            [test_company_1, test_company_2, test_company_3, disabled_test_company] = await Company.create([
+                {
+                    name: "test-company-1"
+                }, {
+                    name: "test-company-2",
+                }, {
+                    name: "test-company-3",
+                    logo: "http://awebsite.com/alogo.jpg",
+                }, {
+                    name: "disabled-test-company",
+                    isDisabled: true
+                }
+            ]);
+
+            await Account.deleteMany({});
+            await Account.create({
+                email: test_user_admin.email,
+                password: await hash(test_user_admin.password),
+                isAdmin: true
+            });
+            await Account.create({
+                email: test_user_company_1.email,
+                password: await hash(test_user_company_1.password),
+                company: disabled_test_company._id
+            });
+            await Account.create({
+                email: test_user_company_2.email,
+                password: await hash(test_user_company_2.password),
+                company: test_company_1._id
+            });
+
+            const offer = {
+                title: "Test Offer",
+                publishDate: new Date(Date.now() - (DAY_TO_MS)),
+                publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
+                description: "For Testing Purposes",
+                contacts: ["geral@niaefeup.pt", "229417766"],
+                jobType: "SUMMER INTERNSHIP",
+                fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                technologies: ["React", "CSS"],
+                location: "Testing Street, Test City, 123",
+                requirements: ["The candidate must be tested", "Fluent in testJS"],
+                owner: test_company_3._id,
+                ownerName: test_company_3.name,
+                ownerLogo: test_company_3.logo,
+            };
+
+            await Offer.create([offer, offer]);
+        });
+
+        afterEach(async () => {
+            await test_agent
+                .delete("/auth/login")
+                .expect(HTTPStatus.OK);
+        });
+
+        afterAll(async () => {
+            await Account.deleteMany({});
+            await Company.deleteMany({});
+        });
+
+        test("should fail to disable already disabled company if god token is sent", async () => {
+
+            const res = await test_agent
+                .put("/company/disable")
+                .send(withGodToken({ owner: disabled_test_company._id }));
+
+            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_DISABLED]);
+        });
+
+        test("should fail to disable already disabled company if logged as same company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company_1)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/disable")
+                .send({ owner: disabled_test_company._id });
+
+            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_DISABLED]);
+
+        });
+
+        test("should fail to disable company if logged as admin", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/disable")
+                .send({ owner: test_company_1._id });
+
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.INSUFFICIENT_PERMISSIONS]);
+
+        });
+
+        test("should fail to disable company if logged as different company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company_1)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/disable")
+                .send({ owner: test_company_1._id });
+
+            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.INVALID_COMPANY]);
+        });
+
+        test("should fail to disable company if not logged in", async () => {
+
+            const res = await test_agent
+                .put("/company/disable")
+                .send({ owner: test_company_1._id });
+
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
+            expect(res.body.errors).toEqual([ValidationReasons.INSUFFICIENT_PERMISSIONS]);
+
+        });
+
+        test("Should disable company if god token is sent", async () => {
+
+            const res = await test_agent
+                .put("/company/disable")
+                .send(withGodToken({ owner: test_company_2._id }));
+
+            expect(res.status).toBe(HTTPStatus.OK);
+            expect(res.body.company.isDisabled).toBe(true);
+        });
+
+        test("Should disable company if logged as same company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company_2)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/disable")
+                .send({ owner: test_company_1._id });
+
+            expect(res.status).toBe(HTTPStatus.OK);
+            expect(res.body.company.isDisabled).toBe(true);
+        });
+
+        test("should change offers isHidden on company disable", async () => {
+
+            const offersBefore = await Offer.find({ owner: test_company_3._id });
+
+            expect(offersBefore.every(({ isHidden }) => isHidden === false)).toBe(true);
+            expect(offersBefore.every(({ hiddenReason }) => hiddenReason === undefined)).toBe(true);
+
+            const res = await test_agent
+                .put("/company/disable")
+                .send(withGodToken({ owner: test_company_3._id }));
+
+            expect(res.status).toBe(HTTPStatus.OK);
+            expect(res.body.company.isDisabled).toBe(true);
+
+            const offersAfter = await Offer.find({ owner: test_company_3._id });
+
+            expect(offersAfter.every(({ isHidden }) => isHidden === true)).toBe(true);
+            expect(offersAfter.every(({ hiddenReason }) => hiddenReason === HiddenOfferReasons.COMPANY_DISABLED)).toBe(true);
+        });
     });
 });
