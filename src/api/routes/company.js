@@ -107,6 +107,7 @@ module.exports = (app) => {
     router.put("/enable",
         or([
             authMiddleware.isCompany,
+            authMiddleware.isAdmin,
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         companyMiddleware.canEnable,
