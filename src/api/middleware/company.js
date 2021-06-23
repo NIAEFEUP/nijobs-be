@@ -121,6 +121,18 @@ const canEnable = async (req, res, next) => {
     return next();
 };
 
+const validCompany = async (req, res, next) => {
+    const company = await (new CompanyService()).findById(req.body.owner);
+    if (!req.hasAdminPrivileges && company._id.toString() !== req.user?.company?._id.toString()) {
+        return next(new APIError(
+            HTTPStatus.FORBIDDEN,
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.INVALID_COMPANY
+        ));
+    }
+    return next();
+};
+
 module.exports = {
     verifyMaxConcurrentOffers,
     verifyMaxConcurrentOffersOnCreate,
@@ -130,4 +142,5 @@ module.exports = {
     isNotBlocked,
     canDisable,
     canEnable,
+    validCompany,
 };

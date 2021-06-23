@@ -104,6 +104,9 @@ module.exports = (app) => {
             }
         });
 
+    /**
+     * Enables a previously disabled company
+     */
     router.put("/enable",
         or([
             authMiddleware.isCompany,
@@ -111,6 +114,7 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         companyMiddleware.canEnable,
+        companyMiddleware.validCompany,
         async (req, res, next) => {
             try {
                 const company = await (new CompanyService()).changeAttributes(req.body.owner, { isDisabled: false });
@@ -120,12 +124,16 @@ module.exports = (app) => {
             }
         });
 
+    /**
+     * Disables a previously enabled company
+     */
     router.put("/disable",
         or([
             authMiddleware.isCompany,
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         companyMiddleware.canDisable,
+        companyMiddleware.validCompany,
         async (req, res, next) => {
             try {
                 const company = await (new CompanyService()).changeAttributes(req.body.owner, { isDisabled: true });
