@@ -17,7 +17,7 @@ const { DAY_TO_MS } = require("../utils/TimeConstants");
 
 const getCompanies = async (options) =>
     [...(await Company.find(options)
-        .sort({ name: "asc" })
+        .sort({ name: "asc" }) // sort them to match what gets returned by the service
         .exec())]
         .map((company) => ({
             ...company.toObject(),
