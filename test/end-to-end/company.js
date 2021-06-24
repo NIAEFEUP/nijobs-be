@@ -19,7 +19,7 @@ const OfferConstants = require("../../src/models/constants/Offer");
 
 const getCompanies = async (options) =>
     [...(await Company.find(options)
-        .sort({ name: "asc" })
+        .sort({ name: "asc" }) // sort them to match what gets returned by the service
         .exec())]
         .map((company) => ({
             ...company.toObject(),
