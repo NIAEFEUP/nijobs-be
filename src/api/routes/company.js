@@ -117,7 +117,7 @@ module.exports = (app) => {
         companyMiddleware.validCompany,
         async (req, res, next) => {
             try {
-                const company = await (new CompanyService()).changeAttributes(req.body.owner, { isDisabled: false });
+                const company = await (new CompanyService()).enable(req.body.owner);
                 return res.json({ company });
             } catch (err) {
                 return next(err);
@@ -136,7 +136,7 @@ module.exports = (app) => {
         companyMiddleware.validCompany,
         async (req, res, next) => {
             try {
-                const company = await (new CompanyService()).changeAttributes(req.body.owner, { isDisabled: true });
+                const company = await (new CompanyService()).disable(req.body.owner);
                 return res.json({ company });
             } catch (err) {
                 return next(err);
