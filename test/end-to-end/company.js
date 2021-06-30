@@ -2,19 +2,19 @@ const config = require("../../src/config/env");
 const HTTPStatus = require("http-status-codes");
 const Account = require("../../src/models/Account");
 const Company = require("../../src/models/Company");
+const Offer = require("../../src/models/Offer");
 const hash = require("../../src/lib/passwordHashing");
 const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
 const CompanyConstants = require("../../src/models/constants/Company");
 const { HiddenOfferReasons } = require("../../src/models/constants/Offer");
 const withGodToken = require("../utils/GodToken");
+const { DAY_TO_MS } = require("../utils/TimeConstants");
 const fs = require("fs");
 const path = require("path");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const EmailService = require("../../src/lib/emailService");
 const { COMPANY_UNBLOCKED_NOTIFICATION, COMPANY_BLOCKED_NOTIFICATION } = require("../../src/email-templates/companyManagement");
 const { MAX_FILE_SIZE_MB } = require("../../src/api/middleware/utils");
-const { DAY_TO_MS } = require("../utils/TimeConstants");
-const Offer = require("../../src/models/Offer");
 const OfferConstants = require("../../src/models/constants/Offer");
 
 const getCompanies = async (options) =>
