@@ -42,6 +42,53 @@ describe("Company application endpoint", () => {
             expect(res.body.companies).toEqual(companies);
             expect(res.body.totalDocCount).toEqual(1);
         });
+
+        test("should not return blocked created company if not logged in", async () => {
+            await Company.deleteMany({});
+            await Company.create({ name: "Company", isBlocked: true });
+            const res = await request()
+                .get("/company");
+            expect(res.status).toBe(HTTPStatus.OK);
+            expect(res.body.companies).toEqual([]);
+            expect(res.body.totalDocCount).toEqual(0);
+        });
+
+
+        describe("With Auth", () => {
+            const test_agent = agent();
+
+            const test_user_admin = {
+                email: "admin@email.com",
+                password: "password123",
+            };
+
+            beforeEach(async () => {
+                await Company.deleteMany({});
+                await Account.deleteMany({});
+                await Account.create({
+                    email: test_user_admin.email,
+                    password: await hash(test_user_admin.password),
+                    isAdmin: true
+                });
+            });
+
+            test("should return blocked created company logged in as admin", async () => {
+                await Company.create({ name: "Company", isBlocked: true });
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(200);
+
+                const res = await test_agent
+                    .get("/company");
+                const companies = await getCompanies({});
+                expect(res.status).toBe(HTTPStatus.OK);
+                expect(res.body.companies).toEqual(companies);
+                expect(res.body.totalDocCount).toEqual(1);
+            });
+
+        });
+
     });
 
     describe("POST /company/application/finish", () => {
@@ -261,7 +308,7 @@ describe("Company application endpoint", () => {
             password: "password123",
         };
 
-        const blockReason = "An admin reason!";
+        const adminReason = "An admin reason!";
 
         let test_company_1, test_company_2, blocked_test_company_2, test_email_company;
 
@@ -326,7 +373,7 @@ describe("Company application endpoint", () => {
                 .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors[0]).toHaveProperty("param", "blockReason");
+            expect(res.body.errors[0]).toHaveProperty("param", "adminReason");
             expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.REQUIRED);
         });
 
@@ -338,10 +385,10 @@ describe("Company application endpoint", () => {
 
             const res = await test_agent
                 .put(`/company/${test_company_1.id}/block`)
-                .send({ blockReason })
+                .send({ adminReason })
                 .expect(HTTPStatus.OK);
             expect(res.body).toHaveProperty("isBlocked", true);
-            expect(res.body).toHaveProperty("blockReason", blockReason);
+            expect(res.body).toHaveProperty("adminReason", adminReason);
         });
 
         test("should fail if not a valid id", async () => {
@@ -352,7 +399,7 @@ describe("Company application endpoint", () => {
 
             const res = await test_agent
                 .put("/company/123/block")
-                .send({ blockReason })
+                .send({ adminReason })
                 .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
@@ -369,7 +416,7 @@ describe("Company application endpoint", () => {
             const id = "111111111111111111111111";
             const res = await test_agent
                 .put(`/company/${id}/block`)
-                .send({ blockReason })
+                .send({ adminReason })
                 .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
@@ -383,10 +430,10 @@ describe("Company application endpoint", () => {
 
             const res = await test_agent
                 .put(`/company/${test_company_2.id}/block`)
-                .send(withGodToken({ blockReason }))
+                .send(withGodToken({ adminReason }))
                 .expect(HTTPStatus.OK);
             expect(res.body).toHaveProperty("isBlocked", true);
-            expect(res.body).toHaveProperty("blockReason", blockReason);
+            expect(res.body).toHaveProperty("adminReason", adminReason);
         });
 
         test("should send an email to the company user when it is blocked", async () => {
@@ -394,7 +441,7 @@ describe("Company application endpoint", () => {
                 .del("/auth/login");
             await test_agent
                 .put(`/company/${test_email_company._id}/block`)
-                .send(withGodToken({ blockReason }))
+                .send(withGodToken({ adminReason }))
                 .expect(HTTPStatus.OK);
 
             const emailOptions = COMPANY_BLOCKED_NOTIFICATION(
@@ -491,7 +538,7 @@ describe("Company application endpoint", () => {
                 .put(`/company/${test_company_1.id}/unblock`)
                 .expect(HTTPStatus.OK);
             expect(res.body).toHaveProperty("isBlocked", false);
-            expect(res.body).not.toHaveProperty("blockReason");
+            expect(res.body).not.toHaveProperty("adminReason");
         });
 
         test("should fail if not a valid id", async () => {
