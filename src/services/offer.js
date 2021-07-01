@@ -274,6 +274,12 @@ class OfferService {
         return offer;
     }
 
+    async getOfferByCompanyID(companyID) {
+        const offers = await Offer.find({ owner: companyID });
+
+        return offers;
+    }
+
     async sendOfferDisabledNotification(offerId) {
         const offer = await Offer.findById(offerId);
         if (!offer) return;  // validation of offerId should be done before with an error
