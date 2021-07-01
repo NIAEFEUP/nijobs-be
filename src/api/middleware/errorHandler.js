@@ -12,7 +12,7 @@ class APIError extends Error {
     constructor(status_code, error_code, info, payload) {
         super(info);
         // info: array of errors or error message
-        this.errors = Array.isArray(info) ? info : ensureArray({ msg: info });
+        this.errors = Array.isArray(info) ? info : [{ msg: info }];
         this.status_code = status_code;
         this.error_code = error_code;
         this.payload = payload;
