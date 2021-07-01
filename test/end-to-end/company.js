@@ -221,7 +221,7 @@ describe("Company application endpoint", () => {
 
                     expect(res.body.errors).toContainEqual({
                         "location": "body",
-                        "msg": "file-too-large",
+                        "msg": "file-cant-be-larger-than-10mb",
                         "param": "logo",
                     });
                 });
