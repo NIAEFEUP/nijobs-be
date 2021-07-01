@@ -1,7 +1,7 @@
 const HTTPStatus = require("http-status-codes");
 const { Router } = require("express");
 
-const { ErrorTypes, APIError } = require("../middleware/errorHandler");
+const { ErrorTypes, APIError, buildErrorResponse } = require("../middleware/errorHandler");
 const ExampleUser = require("../../models/ExampleUser");
 const { or } = require("../middleware/utils");
 
@@ -46,10 +46,9 @@ module.exports = (app) => {
             });
 
         } catch (err) {
-            return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({
-                "reason": "dunno",
-                "error_code": ErrorTypes.DB_ERROR,
-            });
+            return res
+                .status(HTTPStatus.INTERNAL_SERVER_ERROR)
+                .json(buildErrorResponse(ErrorTypes.DB_ERROR, ["dunno"]));
         }
     });
 
@@ -58,10 +57,9 @@ module.exports = (app) => {
      */
     router.post("/", async (req, res) => {
         if (!req.body.username) {
-            return res.status(HTTPStatus.BAD_REQUEST).json({
-                "reason": "No username specified",
-                "error_code": ErrorTypes.MISSING_FIELD,
-            });
+            return res
+                .status(HTTPStatus.BAD_REQUEST)
+                .json(buildErrorResponse(ErrorTypes.MISSING_FIELD, ["No username specified"]));
         }
 
         // Inserting user into db and replying with success or not
@@ -74,10 +72,9 @@ module.exports = (app) => {
 
             return res.status(HTTPStatus.OK).json({});
         } catch (err) {
-            return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({
-                "reason": "dunno2",
-                "error_code": ErrorTypes.DB_ERROR,
-            });
+            return res
+                .status(HTTPStatus.INTERNAL_SERVER_ERROR)
+                .json(buildErrorResponse(ErrorTypes.DB_ERROR, ["dunno2"]));
         }
     });
 };
