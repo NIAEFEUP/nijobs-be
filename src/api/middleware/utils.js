@@ -6,6 +6,7 @@ const lodash = require("lodash");
 const DEFAULT_ERROR_CODE = ErrorTypes.VALIDATION_ERROR;
 const DEFAULT_ERROR_MSG = ValidationReasons.UNKNOWN;
 const DEFAULT_STATUS_CODE = HTTPStatus.BAD_REQUEST;
+const MAX_FILE_SIZE = 10; // MB
 
 /**
  * Combines array of middleware using OR logic. Only fails if ALL functions fail (either by throwing or calling next(error))
@@ -86,5 +87,6 @@ module.exports = {
     when,
     DEFAULT_ERROR_CODE,
     DEFAULT_ERROR_MSG,
-    DEFAULT_STATUS_CODE
+    DEFAULT_STATUS_CODE,
+    MAX_FILE_SIZE
 };
