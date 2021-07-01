@@ -25,23 +25,22 @@ class CompanyService {
      */
     async findAll(limit, offset, showBlocked = false, showAdminReason = false) {
 
-        const totalDocCount = await Company.estimatedDocumentCount();
 
         const companyQuery = Company.find({});
 
         if (!showBlocked) companyQuery.withoutBlocked();
         if (!showAdminReason) companyQuery.hideAdminReason();
 
+        const companies = [...(await companyQuery
+            .sort({ name: "asc" })
+            .skip(offset)
+            .limit(limit)
+            .exec())]
+            .map((company) => company.toObject());
+
         return {
-            totalDocCount,
-            companies:
-                [...(await companyQuery
-                    .sort({ name: "asc" })
-                    .skip(offset)
-                    .limit(limit)
-                    .exec()
-                )]
-                    .map((company) => company.toObject()),
+            totalDocCount: companies.length,
+            companies,
 
         };
     }

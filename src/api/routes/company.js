@@ -72,7 +72,6 @@ module.exports = (app) => {
         ],
         { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.block,
-        validators.canBlock,
         async (req, res, _next) => {
             const service = new CompanyService();
             const company = await service.block(req.params.companyId, req.body.adminReason);
@@ -87,7 +86,7 @@ module.exports = (app) => {
             authMiddleware.isAdmin
         ],
         { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
-        validators.disable,
+        validators.unblock,
         async (req, res, _next) => {
             try {
                 const service = new CompanyService();

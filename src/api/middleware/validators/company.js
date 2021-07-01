@@ -1,10 +1,8 @@
 const { body, query, param } = require("express-validator");
-const { useExpressValidators, APIError, ErrorTypes } = require("../errorHandler");
+const { useExpressValidators } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
 const CompanyConstants = require("../../../models/constants/Company");
 const { ensureArray } = require("./validatorUtils");
-const Company = require("../../../models/Company");
-const HTTPStatus = require("http-status-codes");
 const { isObjectId } = require("./validatorUtils");
 const CompanyService = require("../../../services/company");
 
@@ -57,33 +55,18 @@ const block = useExpressValidators([
         .trim(),
 ]);
 
-const disable = useExpressValidators([
+const unblock = useExpressValidators([
     param("companyId")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
         .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
 ]);
 
-const canBlock = async (req, res, next) => {
-    const company = await Company.findById(req.params.companyId);
-
-    if (company.isBlocked) {
-        return next(new APIError(
-            HTTPStatus.FORBIDDEN,
-            ErrorTypes.FORBIDDEN,
-            ValidationReasons.COMPANY_ALREADY_BLOCKED
-        ));
-    }
-
-    return next();
-};
-
 module.exports = {
     finish,
     list,
     block,
-    disable,
-    canBlock,
+    unblock,
     companyExists,
     MAX_LIMIT_RESULTS,
 };
