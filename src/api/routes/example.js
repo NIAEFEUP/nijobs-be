@@ -48,7 +48,7 @@ module.exports = (app) => {
         } catch (err) {
             return res
                 .status(HTTPStatus.INTERNAL_SERVER_ERROR)
-                .json(buildErrorResponse(ErrorTypes.DB_ERROR, ["dunno"]));
+                .json(buildErrorResponse(ErrorTypes.DB_ERROR, [{ msg: "dunno" }]));
         }
     });
 
@@ -59,7 +59,7 @@ module.exports = (app) => {
         if (!req.body.username) {
             return res
                 .status(HTTPStatus.BAD_REQUEST)
-                .json(buildErrorResponse(ErrorTypes.MISSING_FIELD, ["No username specified"]));
+                .json(buildErrorResponse(ErrorTypes.MISSING_FIELD, [{ msg: "No username specified" }]));
         }
 
         // Inserting user into db and replying with success or not
@@ -74,7 +74,7 @@ module.exports = (app) => {
         } catch (err) {
             return res
                 .status(HTTPStatus.INTERNAL_SERVER_ERROR)
-                .json(buildErrorResponse(ErrorTypes.DB_ERROR, ["dunno2"]));
+                .json(buildErrorResponse(ErrorTypes.DB_ERROR, [{ msg: "dunno2" }]));
         }
     });
 };

@@ -84,14 +84,14 @@ module.exports = (app) => {
                 if (err instanceof ApplicationService.CompanyApplicationNotFound) {
                     return res
                         .status(HTTPStatus.NOT_FOUND)
-                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
+                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
                 } else if (
                     err instanceof ApplicationService.CompanyApplicationAlreadyReiewed ||
                     err instanceof ApplicationService.CompanyApplicationEmailAlreadyInUse
                 ) {
                     return res
                         .status(HTTPStatus.CONFLICT)
-                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
+                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
                 } else {
                     return next(err);
                 }
@@ -114,11 +114,11 @@ module.exports = (app) => {
                 if (err instanceof ApplicationService.CompanyApplicationNotFound) {
                     return res
                         .status(HTTPStatus.NOT_FOUND)
-                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
+                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
                 } else if (err instanceof ApplicationService.CompanyApplicationAlreadyReiewed) {
                     return res
                         .status(HTTPStatus.CONFLICT)
-                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [err.message]));
+                        .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
                 } else {
                     return next(err);
                 }
