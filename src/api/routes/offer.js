@@ -64,15 +64,15 @@ module.exports = (app) => {
     /**
      * Gets all the offers of a certain company from the db
      */
-    router.get("/:companyID", async (req, res, next) => {
+    router.get("/company/:companyID", async (req, res, next) => {
         try {
-            const offers = await (new OfferService()).getOfferByCompanyID(req.params.companyID);
+            const offers = await (new OfferService()).getOfferByCompanyID(req.params.companyID, req.user, req.hasAdminPrivileges);
 
             if (!offers) {
                 return next(new APIError(
                     HTTPStatus.NOT_FOUND,
                     ErrorTypes.FORBIDDEN,
-                    ValidationReasons.OFFER_NOT_FOUND(req.params.companyID) // This is not the offerId
+                    ValidationReasons.COMPANY_OFFER_NOT_FOUND(req.params.companyID) // This is not the offerId
                 ));
             }
 

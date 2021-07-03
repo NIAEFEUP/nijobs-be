@@ -274,8 +274,12 @@ class OfferService {
         return offer;
     }
 
-    async getOfferByCompanyID(companyID) {
-        const offers = await Offer.find({ owner: companyID });
+    async getOfferByCompanyID(companyID, user, hasAdminPrivileges) {
+        let offers = await Offer.find({ owner: companyID });
+
+        offers = offers.filter((offer) =>
+            !(offer.isHidden && !(hasAdminPrivileges || offer.owner.toString() === user?.company?._id.toString()))
+        );
 
         return offers;
     }
