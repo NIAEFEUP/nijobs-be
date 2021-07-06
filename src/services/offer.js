@@ -3,6 +3,7 @@ const Offer = require("../models/Offer");
 const Account = require("../models/Account");
 const EmailService = require("../lib/emailService");
 const { OFFER_DISABLED_NOTIFICATION } = require("../email-templates/companyOfferDisabled");
+const { HiddenOfferReasons } = require("../models/constants/Offer");
 
 class OfferService {
     // TODO: Use typedi or similar
@@ -155,6 +156,35 @@ class OfferService {
         return offer;
     }
 
+    blockByCompany(owner) {
+        return Offer.updateMany(
+            { owner, isHidden: false },
+            {
+                isHidden: true,
+                hiddenReason: HiddenOfferReasons.COMPANY_BLOCKED,
+            },
+            { new: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            });
+    }
+
+    unblockByCompany(owner) {
+        return Offer.updateMany(
+            { owner, isHidden: true, hiddenReason: HiddenOfferReasons.COMPANY_BLOCKED },
+            {
+                isHidden: false,
+                $unset: { hiddenReason: undefined, adminReason: undefined },
+            },
+            { new: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            });
+    }
     /**
      * Fetches offers according to specified options
      * @param {*} options

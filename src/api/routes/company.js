@@ -14,6 +14,7 @@ const { authRequired } = require("../middleware/auth");
 const HTTPStatus = require("http-status-codes");
 const { ErrorTypes } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
+const OfferService = require("../../services/offer");
 
 module.exports = (app) => {
     app.use("/company", router);
@@ -74,6 +75,7 @@ module.exports = (app) => {
         validators.block,
         async (req, res, _next) => {
             const service = new CompanyService();
+            await new OfferService().blockByCompany(req.params.companyId);
             const company = await service.block(req.params.companyId, req.body.adminReason);
             await service.sendCompanyBlockedNotification(req.params.companyId);
             return res.json(company);
@@ -90,6 +92,7 @@ module.exports = (app) => {
         async (req, res, _next) => {
             try {
                 const service = new CompanyService();
+                await new OfferService().unblockByCompany(req.params.companyId);
                 const company = await service.unblock(req.params.companyId);
                 await service.sendCompanyUnblockedNotification(req.params.companyId);
                 return res.json(company);
