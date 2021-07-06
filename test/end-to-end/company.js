@@ -7,6 +7,10 @@ const ValidationReasons = require("../../src/api/middleware/validators/validatio
 const CompanyConstants = require("../../src/models/constants/Company");
 const fs = require("fs");
 const path = require("path");
+const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
+const withGodToken = require("../utils/GodToken");
+const EmailService = require("../../src/lib/emailService");
+const { COMPANY_UNBLOCKED_NOTIFICATION, COMPANY_BLOCKED_NOTIFICATION } = require("../../src/email-templates/companyManagement");
 
 const getCompanies = async (options) =>
     [...(await Company.find(options))]
@@ -38,6 +42,53 @@ describe("Company application endpoint", () => {
             expect(res.body.companies).toEqual(companies);
             expect(res.body.totalDocCount).toEqual(1);
         });
+
+        test("should not return blocked created company if not logged in", async () => {
+            await Company.deleteMany({});
+            await Company.create({ name: "Company", isBlocked: true });
+            const res = await request()
+                .get("/company");
+            expect(res.status).toBe(HTTPStatus.OK);
+            expect(res.body.companies).toEqual([]);
+            expect(res.body.totalDocCount).toEqual(0);
+        });
+
+
+        describe("With Auth", () => {
+            const test_agent = agent();
+
+            const test_user_admin = {
+                email: "admin@email.com",
+                password: "password123",
+            };
+
+            beforeEach(async () => {
+                await Company.deleteMany({});
+                await Account.deleteMany({});
+                await Account.create({
+                    email: test_user_admin.email,
+                    password: await hash(test_user_admin.password),
+                    isAdmin: true
+                });
+            });
+
+            test("should return blocked created company logged in as admin", async () => {
+                await Company.create({ name: "Company", isBlocked: true });
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(200);
+
+                const res = await test_agent
+                    .get("/company");
+                const companies = await getCompanies({});
+                expect(res.status).toBe(HTTPStatus.OK);
+                expect(res.body.companies).toEqual(companies);
+                expect(res.body.totalDocCount).toEqual(1);
+            });
+
+        });
+
     });
 
     describe("POST /company/application/finish", () => {
@@ -238,5 +289,319 @@ describe("Company application endpoint", () => {
 
 
         });
+    });
+
+    describe("PUT /company/:companyId/block", () => {
+        const test_agent = agent();
+
+        const company_data = {
+            name: "Company Ltd"
+        };
+
+        const test_users = Array(4).fill({}).map((_c, idx) => ({
+            email: `test_email_${idx}@email.com`,
+            password: "password123",
+        }));
+
+        const test_user_admin = {
+            email: "admin@email.com",
+            password: "password123",
+        };
+
+        const adminReason = "An admin reason!";
+
+        let test_company_1, test_company_2, blocked_test_company_2, test_email_company;
+
+        beforeAll(async () => {
+            await Company.deleteMany({});
+            test_company_1 = await Company.create({ name: company_data.name, hasFinishedRegistration: true });
+            test_company_2 = await Company.create({ name: company_data.name, hasFinishedRegistration: true });
+            test_email_company = await Company.create({ name: company_data.name, hasFinishedRegistration: true });
+            blocked_test_company_2 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
+            await Account.deleteMany({});
+            [test_email_company, test_company_1, test_company_2, blocked_test_company_2]
+                .forEach(async (company, idx) => {
+                    await Account.create({
+                        email: test_users[idx].email,
+                        password: await hash(test_users[idx].password),
+                        company: company._id });
+                });
+
+            await Account.create({
+                email: test_user_admin.email,
+                password: await hash(test_user_admin.password),
+                isAdmin: true
+            });
+        });
+
+
+        test("should fail if not logged in", async () => {
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .put(`/company/${test_company_1.id}/block`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+        test("should fail if logged in as company", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_users[1])
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/company/${test_company_1.id}/block`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+
+        test("should fail if admin reason not provided", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/company/${test_company_1.id}/block`)
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "adminReason");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.REQUIRED);
+        });
+
+        test("should allow if logged in as admin", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/company/${test_company_1.id}/block`)
+                .send({ adminReason })
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("isBlocked", true);
+            expect(res.body).toHaveProperty("adminReason", adminReason);
+        });
+
+        test("should fail if not a valid id", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/123/block")
+                .send({ adminReason })
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+        });
+
+        test("should fail if company does not exist", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const id = "111111111111111111111111";
+            const res = await test_agent
+                .put(`/company/${id}/block`)
+                .send({ adminReason })
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
+        });
+
+        test("should allow with god token", async () => {
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .put(`/company/${test_company_2.id}/block`)
+                .send(withGodToken({ adminReason }))
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("isBlocked", true);
+            expect(res.body).toHaveProperty("adminReason", adminReason);
+        });
+
+        test("should send an email to the company user when it is blocked", async () => {
+            await test_agent
+                .del("/auth/login");
+            await test_agent
+                .put(`/company/${test_email_company._id}/block`)
+                .send(withGodToken({ adminReason }))
+                .expect(HTTPStatus.OK);
+
+            const emailOptions = COMPANY_BLOCKED_NOTIFICATION(
+                test_email_company.name
+            );
+
+            expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+                subject: emailOptions.subject,
+                to: test_users[0].email,
+                template: emailOptions.template,
+                context: emailOptions.context,
+            }));
+        });
+    });
+
+
+    describe("PUT /company/:companyId/unblock", () => {
+        const test_agent = agent();
+
+        const company_data = {
+            name: "Company Ltd"
+        };
+        const test_user_1 = {
+            email: "user1@email.com",
+            password: "password123",
+        };
+        const test_user_2 = {
+            email: "user2@email.com",
+            password: "password123",
+        };
+        const test_user_email = {
+            email: "test_email@email.com",
+            password: "password123",
+        };
+        const test_user_admin = {
+            email: "admin@email.com",
+            password: "password123",
+        };
+
+        let test_company_1, test_company_2, test_company_email;
+
+        beforeAll(async () => {
+            await Company.deleteMany({});
+            test_company_1 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
+            test_company_2 = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
+            test_company_email = await Company.create({ name: company_data.name, hasFinishedRegistration: true, isBlocked: true });
+            await Account.deleteMany({});
+            await Account.create({ email: test_user_1.email, password: await hash(test_user_1.password), company: test_company_1._id });
+            await Account.create({ email: test_user_2.email, password: await hash(test_user_2.password), company: test_company_2._id });
+            await Account.create({ email: test_user_email.email,
+                password: await hash(test_user_email.password),
+                company: test_company_email._id });
+            await Account.create({
+                email: test_user_admin.email,
+                password: await hash(test_user_admin.password),
+                isAdmin: true
+            });
+        });
+
+
+        test("should fail if not logged in", async () => {
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .put(`/company/${test_company_1.id}/unblock`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+        test("should fail if logged in as company", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_1)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/company/${test_company_1.id}/unblock`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+        });
+
+        test("should allow if logged in as admin", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/company/${test_company_1.id}/unblock`)
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("isBlocked", false);
+            expect(res.body).not.toHaveProperty("adminReason");
+        });
+
+        test("should fail if not a valid id", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put("/company/123/unblock")
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+        });
+
+        test("should fail if company does not exist", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const id = "111111111111111111111111";
+            const res = await test_agent
+                .put(`/company/${id}/unblock`)
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
+        });
+
+        test("should allow with god token", async () => {
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .put(`/company/${test_company_2.id}/unblock`)
+                .send(withGodToken())
+                .expect(HTTPStatus.OK);
+            expect(res.body).toHaveProperty("isBlocked", false);
+        });
+
+        test("should send an email to the company user when it is unblocked", async () => {
+            await test_agent
+                .del("/auth/login");
+            await test_agent
+                .put(`/company/${test_company_email._id}/unblock`)
+                .send(withGodToken())
+                .expect(HTTPStatus.OK);
+
+            const emailOptions = COMPANY_UNBLOCKED_NOTIFICATION(
+                test_company_email.name
+            );
+
+            expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+                subject: emailOptions.subject,
+                to: test_user_email.email,
+                template: emailOptions.template,
+                context: emailOptions.context,
+            }));
+        });
+
     });
 });

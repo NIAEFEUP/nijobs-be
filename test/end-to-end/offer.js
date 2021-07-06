@@ -690,6 +690,37 @@ describe("Offer endpoint tests", () => {
                     ValidationReasons.REGISTRATION_NOT_FINISHED);
             });
         });
+
+        describe("Blocked company", () => {
+
+            let blocked_test_company;
+            beforeAll(async () => {
+                blocked_test_company = await Company.create({
+                    name: "blocked test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    isBlocked: true,
+                    hasFinishedRegistration: true
+                });
+            });
+
+            test("should fail to create offer if company blocked", async () => {
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(generateTestOffer({
+                        owner: blocked_test_company._id,
+                        ownerName: blocked_test_company.name,
+                    })));
+
+                expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(
+                    ValidationReasons.COMPANY_BLOCKED);
+            });
+
+        });
+
     });
 
     describe("GET /offers", () => {
@@ -2008,6 +2039,37 @@ describe("Offer endpoint tests", () => {
 
         });
 
+        describe("Blocked company", () => {
+
+            let blocked_test_company, test_offer;
+            beforeAll(async () => {
+                blocked_test_company = await Company.create({
+                    name: "blocked test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    isBlocked: true,
+                    hasFinishedRegistration: true
+                });
+                test_offer = await Offer.create(
+                    generateTestOffer({
+                        owner: blocked_test_company._id,
+                        ownerName: blocked_test_company.name,
+                    })
+                );
+
+                test("should fail to edit offer if company blocked", async () => {
+                    const res = await request()
+                        .post(`/offers/edit/${test_offer.id}`)
+                        .send(withGodToken());
+
+                    expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(
+                        ValidationReasons.COMPANY_BLOCKED);
+                });
+            });
+        });
     });
 
     describe("POST /offers/:offerId/disable", () => {
@@ -2485,5 +2547,38 @@ describe("Offer endpoint tests", () => {
             });
         });
 
+        describe("Blocked company", () => {
+
+            let blocked_test_company, test_offer;
+            beforeAll(async () => {
+                blocked_test_company = await Company.create({
+                    name: "blocked test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    isBlocked: true,
+                    hasFinishedRegistration: true
+                });
+                test_offer = await Offer.create(
+                    generateTestOffer({
+                        owner: blocked_test_company._id,
+                        ownerName: blocked_test_company.name,
+                        hiddenReason: OfferConstants.HiddenOfferReasons.ADMIN_BLOCK,
+                        isHidden: true
+                    })
+                );
+
+                test("should fail to enable offer if company blocked", async () => {
+                    const res = await request()
+                        .post(`/offers/${test_offer.id}`)
+                        .send(withGodToken());
+
+                    expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual(
+                        ValidationReasons.COMPANY_BLOCKED);
+                });
+            });
+        });
     });
 });

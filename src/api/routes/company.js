@@ -9,7 +9,11 @@ const CompanyService = require("../../services/company");
 const router = Router();
 
 const fileMiddleware  = require("../middleware/files");
+const { or } = require("../middleware/utils");
 const { authRequired } = require("../middleware/auth");
+const HTTPStatus = require("http-status-codes");
+const { ErrorTypes } = require("../middleware/errorHandler");
+const ValidationReasons = require("../middleware/validators/validationReasons");
 
 module.exports = (app) => {
     app.use("/company", router);
@@ -51,11 +55,47 @@ module.exports = (app) => {
         const computedOffset = parseInt(offset || 0, 10);
 
         try {
-            const { companies, totalDocCount } = await new CompanyService().findAll(computedLimit, computedOffset);
+            const { companies, totalDocCount } =
+                await new CompanyService().findAll(computedLimit, computedOffset, req.hasAdminPrivileges, req.hasAdminPrivileges);
             return res.json({ companies, totalDocCount });
         } catch (error) {
             return next(error);
         }
 
     });
+
+    router.put(
+        "/:companyId/block",
+        or([
+            authMiddleware.isGod,
+            authMiddleware.isAdmin
+        ],
+        { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.block,
+        async (req, res, _next) => {
+            const service = new CompanyService();
+            const company = await service.block(req.params.companyId, req.body.adminReason);
+            await service.sendCompanyBlockedNotification(req.params.companyId);
+            return res.json(company);
+        });
+
+    router.put(
+        "/:companyId/unblock",
+        or([
+            authMiddleware.isGod,
+            authMiddleware.isAdmin
+        ],
+        { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.unblock,
+        async (req, res, _next) => {
+            try {
+                const service = new CompanyService();
+                const company = await service.unblock(req.params.companyId);
+                await service.sendCompanyUnblockedNotification(req.params.companyId);
+                return res.json(company);
+            } catch (err) {
+                console.error(err);
+                throw err;
+            }
+        });
 };

@@ -23,7 +23,7 @@ const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate) => async 
 };
 
 const profileNotComplete = async (req, res, next) => {
-    const company = await (new CompanyService()).findById(req.user.company);
+    const company = await (new CompanyService()).findById(req.user.company, true);
     if (company.hasFinishedRegistration) {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,
@@ -35,7 +35,7 @@ const profileNotComplete = async (req, res, next) => {
 };
 
 const profileComplete = async (req, res, next) => {
-    const company = await (new CompanyService()).findById(req.body.owner);
+    const company = await (new CompanyService()).findById(req.body.owner, true);
     if (!company.hasFinishedRegistration) {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,
@@ -46,9 +46,22 @@ const profileComplete = async (req, res, next) => {
     return next();
 };
 
+const isNotBlocked = (owner) => async (req, res, next) => {
+    const company = await (new CompanyService()).findById(owner, true);
+    if (company.isBlocked) {
+        return next(new APIError(
+            HTTPStatus.FORBIDDEN,
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.COMPANY_BLOCKED
+        ));
+    }
+
+    return next();
+};
 
 module.exports = {
     verifyMaxConcurrentOffers,
     profileNotComplete,
-    profileComplete
+    profileComplete,
+    isNotBlocked,
 };
