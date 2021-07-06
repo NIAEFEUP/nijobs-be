@@ -156,9 +156,9 @@ class OfferService {
         return offer;
     }
 
-    async blockByCompany(owner) {
-        const offers = await Offer.updateMany(
-            { owner },
+    blockByCompany(owner) {
+        return Offer.updateMany(
+            { owner, isHidden: false },
             {
                 isHidden: true,
                 hiddenReason: HiddenOfferReasons.COMPANY_BLOCKED,
@@ -169,12 +169,11 @@ class OfferService {
                     throw err;
                 }
             });
-        return offers;
     }
 
-    async unblockByCompany(owner) {
-        const offers = await Offer.updateMany(
-            { owner },
+    unblockByCompany(owner) {
+        return Offer.updateMany(
+            { owner, isHidden: true, hiddenReason: HiddenOfferReasons.COMPANY_BLOCKED },
             {
                 isHidden: false,
                 $unset: { hiddenReason: undefined, adminReason: undefined },
@@ -185,7 +184,6 @@ class OfferService {
                     throw err;
                 }
             });
-        return offers;
     }
     /**
      * Fetches offers according to specified options
