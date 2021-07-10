@@ -149,7 +149,7 @@ describe("Company application endpoint", () => {
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual(
-                    ValidationReasons.REGISTRATION_FINISHED
+                    { msg: ValidationReasons.REGISTRATION_FINISHED }
                 );
 
                 // clean up file created
@@ -179,7 +179,7 @@ describe("Company application endpoint", () => {
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual(
-                    ValidationReasons.REGISTRATION_FINISHED
+                    { msg: ValidationReasons.REGISTRATION_FINISHED }
                 );
 
                 // clean up file created
@@ -344,7 +344,7 @@ describe("Company application endpoint", () => {
                 .expect(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
         });
 
         test("should fail if logged in as company", async () => {
@@ -358,7 +358,7 @@ describe("Company application endpoint", () => {
                 .expect(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
         });
 
 
@@ -511,7 +511,7 @@ describe("Company application endpoint", () => {
                 .expect(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
         });
 
         test("should fail if logged in as company", async () => {
@@ -525,7 +525,7 @@ describe("Company application endpoint", () => {
                 .expect(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
         });
 
         test("should allow if logged in as admin", async () => {

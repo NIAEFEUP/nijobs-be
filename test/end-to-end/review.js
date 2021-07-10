@@ -361,7 +361,7 @@ describe("Company application review endpoint test", () => {
 
                         expect(res.status).toBe(HTTPStatus.CONFLICT);
                         expect(res.body.error_code).toBe(ErrorTypes.VALIDATION_ERROR);
-                        expect(res.body.errors[0]).toBe(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
+                        expect(res.body.errors[0].msg).toBe(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
 
                         const result_application = await CompanyApplication.findById(application._id);
                         expect(result_application.state).toBe(ApplicationStatus.PENDING);
