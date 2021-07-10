@@ -715,8 +715,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.status).toBe(HTTPStatus.FORBIDDEN);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                 expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual(
-                    ValidationReasons.COMPANY_BLOCKED);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
             });
 
         });
