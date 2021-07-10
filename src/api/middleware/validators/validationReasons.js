@@ -42,7 +42,7 @@ const ValidationReasons = Object.freeze({
     IMAGE_FORMAT: "formats-supported-png-jpeg-jpg",
     OFFER_BLOCKED_ADMIN: "offer-blocked-by-admin",
     OFFER_HIDDEN: "offer-is-hidden",
-    FILE_TOO_LARGE: (max) => `file-cant-be-larger-than-${max}mb`,
+    FILE_TOO_LARGE: (max) => `file-cant-be-larger-than-${max}MB`,
 });
 
 module.exports = ValidationReasons;

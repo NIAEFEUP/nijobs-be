@@ -9,7 +9,7 @@ const cloudinary = require("cloudinary").v2;
 const config = require("../../config/env");
 const ValidationReasons = require("./validators/validationReasons");
 
-const { MAX_FILE_SIZE } = require("./utils");
+const { MAX_FILE_SIZE_MB } = require("./utils");
 const parseError = (message) => message.toLowerCase().replace(/ /g, "-");
 
 const parseSingleFile = (field_name) => (req, res, next) => {
@@ -23,7 +23,7 @@ const parseSingleFile = (field_name) => (req, res, next) => {
                     parseError(error.message) : error.message;
 
                 if (error.code === "LIMIT_FILE_SIZE")
-                    message = ValidationReasons.FILE_TOO_LARGE(MAX_FILE_SIZE);
+                    message = ValidationReasons.FILE_TOO_LARGE(MAX_FILE_SIZE_MB);
 
                 param = error.field ? error.field : param;
             }

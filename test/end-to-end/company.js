@@ -11,6 +11,7 @@ const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const withGodToken = require("../utils/GodToken");
 const EmailService = require("../../src/lib/emailService");
 const { COMPANY_UNBLOCKED_NOTIFICATION, COMPANY_BLOCKED_NOTIFICATION } = require("../../src/email-templates/companyManagement");
+const { MAX_FILE_SIZE_MB } = require("../../src/api/middleware/utils");
 
 const getCompanies = async (options) =>
     [...(await Company.find(options))]
@@ -221,7 +222,7 @@ describe("Company application endpoint", () => {
 
                     expect(res.body.errors).toContainEqual({
                         "location": "body",
-                        "msg": "file-cant-be-larger-than-10mb",
+                        "msg": ValidationReasons.FILE_TOO_LARGE(MAX_FILE_SIZE_MB),
                         "param": "logo",
                     });
                 });
