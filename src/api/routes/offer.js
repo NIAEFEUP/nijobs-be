@@ -59,6 +59,19 @@ module.exports = (app) => {
     });
 
     /**
+     * Gets all the offers of a certain company from the db
+     */
+    router.get("/company/:companyId", async (req, res, next) => {
+        try {
+            const offers = await (new OfferService()).getOffersByCompanyId(req.params.companyId, req.user, req.hasAdminPrivileges);
+
+            return res.json(offers);
+        } catch (err) {
+            return next(err);
+        }
+    });
+
+    /**
      * Creates a new Offer
      */
     router.post("/new",
