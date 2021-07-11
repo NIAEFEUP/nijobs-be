@@ -32,7 +32,6 @@ const ValidationReasons = Object.freeze({
     COMPANY_NOT_FOUND: (id) => `no-company-found-with-id:${id}`,
     MAX_CONCURRENT_OFFERS_EXCEEDED: (max) => `max-concurrent-offers-reached:${max}`,
     OFFER_NOT_FOUND: (id) => `no-offer-found-with-id:${id}`,
-    COMPANY_OFFER_NOT_FOUND: (companyId) => `no-offer-found-with-owner-id:${companyId}`,
     OFFER_EXPIRED: (id) => `offer-expired:${id}`,
     NOT_OFFER_OWNER: (id) => `not-offer-owner:${id}`,
     OFFER_EDIT_PERIOD_OVER: (value) => `offer-edit-period-over:${value}-hours`,
