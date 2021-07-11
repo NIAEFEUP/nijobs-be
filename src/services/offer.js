@@ -279,11 +279,10 @@ class OfferService {
     }
 
     async getOffersByCompanyId(companyId, user, hasAdminPrivileges) {
-        let offers = await Offer.find({ owner: companyId });
-
-        offers = offers.filter((offer) => this.isVisibleOffer(offer, hasAdminPrivileges, user));
-
-        return offers;
+        return (await Offer.find({ owner: companyId }))
+            .filter((offer) =>
+                this.isVisibleOffer(offer, hasAdminPrivileges, user)
+            );
     }
 
     async sendOfferDisabledNotification(offerId) {

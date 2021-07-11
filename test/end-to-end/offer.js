@@ -1520,6 +1520,113 @@ describe("Offer endpoint tests", () => {
         });
     });
 
+    describe("GET /offers/:companyId", () => {
+        beforeAll(async () => {
+            await Offer.deleteMany({});
+        });
+
+        describe("Id Validation", () => {
+            test("should fail if requested an invalid companyId", async () => {
+                const res = await request()
+                    .get("/offers/123");
+
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+            });
+
+            test("should return an empty array if there isn't a company with that id", async () => {
+                const res = await request().get("/offers/company/60ddb0bb2849830020883f91");
+
+                expect(res.body).toEqual([]);
+            });
+        });
+
+        describe("Get offer by companyId", () => {
+            const test_offers = [{}, {}, {}, {}];
+            const test_agent = agent();
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                const createOffer = async (offer) => {
+                    const { _id, owner, ownerName, ownerLogo } = await Offer.create({
+                        ...offer,
+                        owner: test_company._id.toString(),
+                        ownerName: test_company.name,
+                        ownerLogo: test_company.logo,
+                    });
+                    return {
+                        ...offer,
+                        owner: owner.toString(),
+                        ownerName,
+                        ownerLogo,
+                        _id: _id.toString()
+                    };
+                };
+
+                (await Promise.all(test_offers
+                    .map((_, i) => createOffer({ ...generateTestOffer(), isHidden: i === 2 }))))
+                    .forEach((elem, i) => {
+                        test_offers[i] = elem;
+                    });
+            });
+
+            test("should return hidden company offers as company", async () => {
+                // Login wiht test_user_company
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent.get(`/offers/company/${test_company._id}`);
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extractedData = res.body;
+                expect(extractedData.map((offer) => offer._id).sort())
+                    .toMatchObject(
+                        test_offers.map((offer) => offer._id).sort()
+                    );
+
+                // Logout
+                await test_agent
+                    .del("/auth/login")
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should return non-hidden offers", async () => {
+                const res = await test_agent.get(`/offers/company/${test_company._id}`);
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extractedData = res.body;
+                expect(extractedData.map((offer) => offer._id).sort())
+                    .toMatchObject(
+                        test_offers.filter((offer) => offer.isHidden === false).map((offer) => offer._id).sort()
+                    );
+            });
+
+            test("should return hidden company offers as admin", async () => {
+                // Login wiht test_user_company
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent.get(`/offers/company/${test_company._id}`);
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extractedData = res.body;
+                expect(extractedData.map((offer) => offer._id).sort())
+                    .toMatchObject(
+                        test_offers.map((offer) => offer._id).sort()
+                    );
+
+                // Logout
+                await test_agent
+                    .del("/auth/login")
+                    .expect(HTTPStatus.OK);
+            });
+        });
+    });
+
     describe("GET /offers/:offerId", () => {
 
         beforeAll(async () => {
