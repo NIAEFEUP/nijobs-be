@@ -48,6 +48,10 @@ CompanySchema.query.withoutBlocked = function() {
     return this.where({ isBlocked: false });
 };
 
+CompanySchema.query.withoutDisabled = function() {
+    return this.where({ isDisabled: false });
+};
+
 CompanySchema.query.hideAdminReason = function() {
     return this.select("-adminReason");
 };

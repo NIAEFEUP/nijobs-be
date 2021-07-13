@@ -26,12 +26,12 @@ class CompanyService {
      *
      * @returns {companies, totalDocCount}
      */
-    async findAll(limit, offset, showBlocked = false, showAdminReason = false) {
+    async findAll(limit, offset, showHidden = false, showAdminReason = false) {
 
 
         const companyQuery = Company.find({});
 
-        if (!showBlocked) companyQuery.withoutBlocked();
+        if (!showHidden) companyQuery.withoutBlocked().withoutDisabled();
         if (!showAdminReason) companyQuery.hideAdminReason();
 
         const companies = [...(await companyQuery
@@ -51,9 +51,9 @@ class CompanyService {
     /**
      * @param {*} company_id Id of the company
      */
-    findById(company_id, showBlocked = false, showAdminReason = false) {
+    findById(company_id, showHidden = false, showAdminReason = false) {
         const query = Company.findById(company_id);
-        if (!showBlocked) query.withoutBlocked();
+        if (!showHidden) query.withoutBlocked().withoutDisabled();
         if (!showAdminReason) query.hideAdminReason();
         return query;
     }
@@ -140,8 +140,13 @@ class CompanyService {
         }
     }
 
-    async disable(company_id) {
-        const company = this.changeAttributes(company_id, { isDisabled: true });
+    async disable(company_id, adminReason) {
+        const company = this.changeAttributes(company_id,
+            {
+                isDisabled: true,
+                adminReason: adminReason
+            }
+        );
 
         await Offer.updateMany(
             { owner: company_id },

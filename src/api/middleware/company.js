@@ -98,7 +98,7 @@ const isNotBlocked = (owner) => async (req, res, next) => {
 };
 
 const canDisable = async (req, res, next) => {
-    const company = await (new CompanyService()).findById(req.body.owner);
+    const company = await (new CompanyService()).findById(req.body.owner, true);
     if (company.isDisabled) {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,
@@ -110,7 +110,7 @@ const canDisable = async (req, res, next) => {
 };
 
 const canEnable = async (req, res, next) => {
-    const company = await (new CompanyService()).findById(req.body.owner);
+    const company = await (new CompanyService()).findById(req.body.owner, true);
     if (!company.isDisabled) {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,
@@ -122,7 +122,7 @@ const canEnable = async (req, res, next) => {
 };
 
 const validCompany = async (req, res, next) => {
-    const company = await (new CompanyService()).findById(req.body.owner);
+    const company = await (new CompanyService()).findById(req.body.owner, true);
     if (!req.hasAdminPrivileges && company._id.toString() !== req.user?.company?._id.toString()) {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,
