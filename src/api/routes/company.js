@@ -107,18 +107,18 @@ module.exports = (app) => {
     /**
      * Enables a previously disabled company
      */
-    router.put("/enable",
+    router.put("/:companyId/enable",
         or([
             authMiddleware.isCompany,
             authMiddleware.isAdmin,
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
-        companyMiddleware.canEnable,
         companyMiddleware.validCompany,
+        companyMiddleware.canEnable,
         async (req, res, next) => {
             try {
-                const company = await (new CompanyService()).enable(req.body.owner);
-                return res.json({ company });
+                const company = await (new CompanyService()).enable(req.params.companyId);
+                return res.json(company);
             } catch (err) {
                 return next(err);
             }
@@ -127,17 +127,17 @@ module.exports = (app) => {
     /**
      * Disables a previously enabled company
      */
-    router.put("/disable",
+    router.put("/:companyId/disable",
         or([
             authMiddleware.isCompany,
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
-        companyMiddleware.canDisable,
         companyMiddleware.validCompany,
+        companyMiddleware.canDisable,
         async (req, res, next) => {
             try {
-                const company = await (new CompanyService()).disable(req.body.owner);
-                return res.json({ company });
+                const company = await (new CompanyService()).disable(req.params.companyId);
+                return res.json(company);
             } catch (err) {
                 return next(err);
             }
