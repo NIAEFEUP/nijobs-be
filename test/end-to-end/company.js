@@ -822,8 +822,8 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
         test("should fail to enable already enabled company if god token is sent", async () => {
 
             const res = await test_agent
-                .put("/company/enable")
-                .send(withGodToken({ owner: test_company._id }));
+                .put(`/company/${test_company._id}/enable`)
+                .send(withGodToken());
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
@@ -838,8 +838,7 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put("/company/enable")
-                .send({ owner: test_company._id });
+                .put(`/company/${test_company._id}/enable`);
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
@@ -854,8 +853,7 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put("/company/enable")
-                .send({ owner: test_company._id });
+                .put(`/company/${test_company._id}/enable`);
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
@@ -870,19 +868,17 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put("/company/enable")
-                .send({ owner: test_company._id });
+                .put(`/company/${test_company._id}/enable`);
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_ENABLED]);
+            expect(res.body.errors).toEqual([ValidationReasons.INVALID_COMPANY]);
         });
 
         test("should fail to enable already enabled company if not logged in", async () => {
 
             const res = await test_agent
-                .put("/company/enable")
-                .send({ owner: test_company._id });
+                .put(`/company/${test_company._id}/enable`);
 
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
@@ -897,8 +893,7 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put("/company/enable")
-                .send({ owner: disabled_test_company_1._id });
+                .put(`/company/${disabled_test_company_1._id}/enable`);
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
@@ -909,11 +904,11 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
         test("Should enable company if god token is sent", async () => {
 
             const res = await test_agent
-                .put("/company/enable")
-                .send(withGodToken({ owner: disabled_test_company_3._id }));
+                .put(`/company/${disabled_test_company_3._id}/enable`)
+                .send(withGodToken());
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(res.body.company.isDisabled).toBe(false);
+            expect(res.body.isDisabled).toBe(false);
         });
 
         test("Should enable company if logged as admin", async () => {
@@ -924,11 +919,10 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put("/company/enable")
-                .send({ owner: disabled_test_company_2._id });
+                .put(`/company/${disabled_test_company_2._id}/enable`);
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(res.body.company.isDisabled).toBe(false);
+            expect(res.body.isDisabled).toBe(false);
         });
 
         test("Should enable company if logged as same company", async () => {
@@ -939,11 +933,10 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put("/company/enable")
-                .send({ owner: disabled_test_company_1._id });
+                .put(`/company/${disabled_test_company_1._id}/enable`);
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(res.body.company.isDisabled).toBe(false);
+            expect(res.body.isDisabled).toBe(false);
         });
 
         test("should change offers isHidden on company enable", async () => {
@@ -954,11 +947,11 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
             expect(offersBefore.every(({ hiddenReason }) => hiddenReason === HiddenOfferReasons.COMPANY_DISABLED)).toBe(true);
 
             const res = await test_agent
-                .put("/company/enable")
-                .send(withGodToken({ owner: disabled_test_company_4._id }));
+                .put(`/company/${disabled_test_company_4._id}/enable`)
+                .send(withGodToken());
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(res.body.company.isDisabled).toBe(false);
+            expect(res.body.isDisabled).toBe(false);
 
             const offersAfter = await Offer.find({ owner: disabled_test_company_4._id });
 
@@ -1057,8 +1050,8 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
         test("should fail to disable already disabled company if god token is sent", async () => {
 
             const res = await test_agent
-                .put("/company/disable")
-                .send(withGodToken({ owner: disabled_test_company._id }));
+                .put(`/company/${disabled_test_company._id}/disable`)
+                .send(withGodToken());
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
@@ -1073,8 +1066,7 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put("/company/disable")
-                .send({ owner: disabled_test_company._id });
+                .put(`/company/${disabled_test_company._id}/disable`);
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
@@ -1090,8 +1082,7 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put("/company/disable")
-                .send({ owner: test_company_1._id });
+                .put(`/company/${test_company_1._id}/disable`);
 
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
@@ -1107,8 +1098,7 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put("/company/disable")
-                .send({ owner: test_company_1._id });
+                .put(`/company/${test_company_1._id}/disable`);
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
@@ -1118,8 +1108,7 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
         test("should fail to disable company if not logged in", async () => {
 
             const res = await test_agent
-                .put("/company/disable")
-                .send({ owner: test_company_1._id });
+                .put(`/company/${test_company_1._id}/disable`);
 
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
@@ -1130,11 +1119,11 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
         test("Should disable company if god token is sent", async () => {
 
             const res = await test_agent
-                .put("/company/disable")
-                .send(withGodToken({ owner: test_company_2._id }));
+                .put(`/company/${test_company_2._id}/disable`)
+                .send(withGodToken());
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(res.body.company.isDisabled).toBe(true);
+            expect(res.body.isDisabled).toBe(true);
         });
 
         test("Should disable company if logged as same company", async () => {
@@ -1145,11 +1134,10 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put("/company/disable")
-                .send({ owner: test_company_1._id });
+                .put(`/company/${test_company_1._id}/disable`);
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(res.body.company.isDisabled).toBe(true);
+            expect(res.body.isDisabled).toBe(true);
         });
 
         test("should change offers isHidden on company disable", async () => {
@@ -1160,11 +1148,11 @@ describe("Company application endpoint", () => { // TODO: add tests for other ty
             expect(offersBefore.every(({ hiddenReason }) => hiddenReason === undefined)).toBe(true);
 
             const res = await test_agent
-                .put("/company/disable")
-                .send(withGodToken({ owner: test_company_3._id }));
+                .put(`/company/${test_company_3._id}/disable`)
+                .send(withGodToken());
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(res.body.company.isDisabled).toBe(true);
+            expect(res.body.isDisabled).toBe(true);
 
             const offersAfter = await Offer.find({ owner: test_company_3._id });
 
