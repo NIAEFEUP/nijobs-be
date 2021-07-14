@@ -44,13 +44,24 @@ const companyExists = async (companyId) => {
     return true;
 };
 
-const hide = useExpressValidators([
+const block = useExpressValidators([
     param("companyId")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
         .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
     body("adminReason")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .trim(),
+]);
+
+const disable = useExpressValidators([
+    param("companyId")
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
+        .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
+    body("adminReason")
+        .if((reason, { req }) => req.hasAdminPrivileges).exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING).bail()
         .trim(),
 ]);
@@ -62,11 +73,17 @@ const unhide = useExpressValidators([
         .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
 ]);
 
+/* Since their logic is the same, create a common validator and export it with a more meaningfull name.
+ * Not done with block/disable because the validation chain is slightly different
+ */
 module.exports = {
     finish,
     list,
-    hide,
+    block,
     unhide,
+    unblock: unhide,
+    enable: unhide,
+    disable,
     companyExists,
     MAX_LIMIT_RESULTS,
 };
