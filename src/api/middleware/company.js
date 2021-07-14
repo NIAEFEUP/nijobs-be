@@ -97,30 +97,6 @@ const isNotBlocked = (owner) => async (req, res, next) => {
     return next();
 };
 
-const canDisable = async (req, res, next) => {
-    const company = await (new CompanyService()).findById(req.params.companyId, true);
-    if (company.isDisabled) {
-        return next(new APIError(
-            HTTPStatus.FORBIDDEN,
-            ErrorTypes.FORBIDDEN,
-            ValidationReasons.COMPANY_DISABLED
-        ));
-    }
-    return next();
-};
-
-const canEnable = async (req, res, next) => {
-    const company = await (new CompanyService()).findById(req.params.companyId, true);
-    if (!company.isDisabled) {
-        return next(new APIError(
-            HTTPStatus.FORBIDDEN,
-            ErrorTypes.FORBIDDEN,
-            ValidationReasons.COMPANY_ENABLED
-        ));
-    }
-    return next();
-};
-
 const validCompany = async (req, res, next) => {
     const company = await (new CompanyService()).findById(req.params.companyId, true);
 
@@ -141,7 +117,5 @@ module.exports = {
     profileNotComplete,
     profileComplete,
     isNotBlocked,
-    canDisable,
-    canEnable,
     validCompany,
 };

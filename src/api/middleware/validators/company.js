@@ -44,7 +44,7 @@ const companyExists = async (companyId) => {
     return true;
 };
 
-const block = useExpressValidators([
+const hide = useExpressValidators([
     param("companyId")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
@@ -55,7 +55,7 @@ const block = useExpressValidators([
         .trim(),
 ]);
 
-const unblock = useExpressValidators([
+const unhide = useExpressValidators([
     param("companyId")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
@@ -65,8 +65,8 @@ const unblock = useExpressValidators([
 module.exports = {
     finish,
     list,
-    block,
-    unblock,
+    hide,
+    unhide,
     companyExists,
     MAX_LIMIT_RESULTS,
 };

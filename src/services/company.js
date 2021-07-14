@@ -50,6 +50,8 @@ class CompanyService {
 
     /**
      * @param {*} company_id Id of the company
+     * @param {*} showHidden weather to show the company if it is hidden, defaults to false
+     * @param {*} showAdminReason weahter to show the admin reason given to hide this company, defaults to false
      */
     findById(company_id, showHidden = false, showAdminReason = false) {
         const query = Company.findById(company_id);
@@ -140,16 +142,23 @@ class CompanyService {
         }
     }
 
-    async disable(company_id, adminReason) {
-        const company = this.changeAttributes(company_id,
+    async disable(companyId, adminReason) {
+        const company = Company.findByIdAndUpdate(
+            companyId,
             {
                 isDisabled: true,
-                adminReason: adminReason
-            }
-        );
+                adminReason,
+            },
+            { new: true },
+            (err) => {
+                if (err) {
+                    console.error(err);
+                    throw err;
+                }
+            });
 
         await Offer.updateMany(
-            { owner: company_id },
+            { owner: companyId },
             {
                 isHidden: true,
                 hiddenReason: OfferConstants.HiddenOfferReasons.COMPANY_DISABLED,
@@ -165,11 +174,23 @@ class CompanyService {
         return company;
     }
 
-    async enable(company_id) {
-        const company = this.changeAttributes(company_id, { isDisabled: false });
+    async enable(companyId) {
+        const company = Company.findByIdAndUpdate(
+            companyId,
+            {
+                isDisabled: false,
+                $unset: { adminReason: undefined },
+            },
+            { new: true },
+            (err) => {
+                if (err) {
+                    console.error(err);
+                    throw err;
+                }
+            });
 
         await Offer.updateMany(
-            { owner: company_id },
+            { owner: companyId },
             {
                 isHidden: false,
                 $unset: { hiddenReason: undefined, adminReason: undefined },

@@ -962,7 +962,7 @@ describe("Company endpoint", () => {
 
     describe("PUT /company/enable", () => {
 
-        let test_company, disabled_test_company_1, disabled_test_company_2, disabled_test_company_3, disabled_test_company_4;
+        let disabled_test_company_1, disabled_test_company_2, disabled_test_company_3, disabled_test_company_4;
         const test_user_admin = {
             email: "admin@email.com",
             password: "password123",
@@ -986,15 +986,12 @@ describe("Company endpoint", () => {
             await Company.deleteMany({});
 
             [
-                test_company,
                 disabled_test_company_1,
                 disabled_test_company_2,
                 disabled_test_company_3,
                 disabled_test_company_4
             ] = await Company.create([
                 {
-                    name: "test-company"
-                }, {
                     name: "disabled-test-company-1",
                     isDisabled: true
                 }, {
@@ -1019,12 +1016,12 @@ describe("Company endpoint", () => {
             await Account.create({
                 email: test_user_company_1.email,
                 password: await hash(test_user_company_1.password),
-                company: test_company._id
+                company: disabled_test_company_1._id
             });
             await Account.create({
                 email: test_user_company_2.email,
                 password: await hash(test_user_company_2.password),
-                company: disabled_test_company_1._id
+                company: disabled_test_company_2._id
             });
 
             const offer = {
@@ -1060,77 +1057,37 @@ describe("Company endpoint", () => {
             await Company.deleteMany({});
         });
 
-        test("should fail to enable already enabled company if god token is sent", async () => {
+        test("Should fail if using invalid id", async () => {
 
             const res = await test_agent
-                .put(`/company/${test_company._id}/enable`)
-                .send(withGodToken());
-
-            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
-            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_ENABLED]);
+                .put("/company/123/enable")
+                .send(withGodToken())
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
         });
 
-        test("should fail to enable already enabled company if logged as admin", async () => {
+        test("Should fail if company does not exist", async () => {
 
-            await test_agent
-                .post("/auth/login")
-                .send(test_user_admin)
-                .expect(HTTPStatus.OK);
-
+            const id = "111111111111111111111111";
             const res = await test_agent
-                .put(`/company/${test_company._id}/enable`);
+                .put(`/company/${id}/enable`)
+                .send(withGodToken())
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
-            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
-            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_ENABLED]);
-        });
-
-        test("should fail to enable already enabled company if logged as same company", async () => {
-
-            await test_agent
-                .post("/auth/login")
-                .send(test_user_company_1)
-                .expect(HTTPStatus.OK);
-
-            const res = await test_agent
-                .put(`/company/${test_company._id}/enable`);
-
-            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
-            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_ENABLED]);
-        });
-
-        test("should fail to enable already enabled company if logged as different company", async () => {
-
-            await test_agent
-                .post("/auth/login")
-                .send(test_user_company_2)
-                .expect(HTTPStatus.OK);
-
-            const res = await test_agent
-                .put(`/company/${test_company._id}/enable`);
-
-            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
-            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toEqual([ValidationReasons.INVALID_COMPANY]);
-        });
-
-        test("should fail to enable already enabled company if not logged in", async () => {
-
-            const res = await test_agent
-                .put(`/company/${test_company._id}/enable`);
-
-            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toEqual([ValidationReasons.INSUFFICIENT_PERMISSIONS]);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
         });
 
         test("should fail to enable disabled company if logged as different company", async () => {
 
             await test_agent
                 .post("/auth/login")
-                .send(test_user_company_1)
+                .send(test_user_company_2)
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
@@ -1170,7 +1127,7 @@ describe("Company endpoint", () => {
 
             await test_agent
                 .post("/auth/login")
-                .send(test_user_company_2)
+                .send(test_user_company_1)
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
@@ -1203,7 +1160,7 @@ describe("Company endpoint", () => {
 
     describe("PUT /company/disable", () => {
 
-        let test_company_1, test_company_2, test_company_3, disabled_test_company;
+        let test_company_1, test_company_2, test_company_3;
         const test_user_admin = {
             email: "admin@email.com",
             password: "password123",
@@ -1219,6 +1176,8 @@ describe("Company endpoint", () => {
 
         const test_agent = agent();
 
+        const adminReason = "An admin reason!";
+
         beforeAll(async () => {
 
             await test_agent
@@ -1227,7 +1186,7 @@ describe("Company endpoint", () => {
 
             await Company.deleteMany({});
 
-            [test_company_1, test_company_2, test_company_3, disabled_test_company] = await Company.create([
+            [test_company_1, test_company_2, test_company_3] = await Company.create([
                 {
                     name: "test-company-1"
                 }, {
@@ -1235,9 +1194,6 @@ describe("Company endpoint", () => {
                 }, {
                     name: "test-company-3",
                     logo: "http://awebsite.com/alogo.jpg",
-                }, {
-                    name: "disabled-test-company",
-                    isDisabled: true
                 }
             ]);
 
@@ -1250,12 +1206,12 @@ describe("Company endpoint", () => {
             await Account.create({
                 email: test_user_company_1.email,
                 password: await hash(test_user_company_1.password),
-                company: disabled_test_company._id
+                company: test_company_1._id
             });
             await Account.create({
                 email: test_user_company_2.email,
                 password: await hash(test_user_company_2.password),
-                company: test_company_1._id
+                company: test_company_2._id
             });
 
             const offer = {
@@ -1288,80 +1244,54 @@ describe("Company endpoint", () => {
             await Company.deleteMany({});
         });
 
-        test("should fail to disable already disabled company if god token is sent", async () => {
+        test("Should fail if using invalid id", async () => {
 
             const res = await test_agent
-                .put(`/company/${disabled_test_company._id}/disable`)
-                .send(withGodToken());
+                .put("/company/123/disable")
+                .send(withGodToken({ adminReason }))
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
-            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
-            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_DISABLED]);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
         });
 
-        test("should fail to disable already disabled company if logged as same company", async () => {
+        test("Should fail if company does not exist", async () => {
 
-            await test_agent
-                .post("/auth/login")
-                .send(test_user_company_1)
-                .expect(HTTPStatus.OK);
-
+            const id = "111111111111111111111111";
             const res = await test_agent
-                .put(`/company/${disabled_test_company._id}/disable`);
+                .put(`/company/${id}/disable`)
+                .send(withGodToken({ adminReason }))
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
-            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
-            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toEqual([ValidationReasons.COMPANY_DISABLED]);
-
-        });
-
-        test("should fail to disable company if logged as admin", async () => {
-
-            await test_agent
-                .post("/auth/login")
-                .send(test_user_admin)
-                .expect(HTTPStatus.OK);
-
-            const res = await test_agent
-                .put(`/company/${test_company_1._id}/disable`);
-
-            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toEqual([ValidationReasons.INSUFFICIENT_PERMISSIONS]);
-
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
         });
 
         test("should fail to disable company if logged as different company", async () => {
 
             await test_agent
                 .post("/auth/login")
-                .send(test_user_company_1)
+                .send(test_user_company_2)
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put(`/company/${test_company_1._id}/disable`);
+                .put(`/company/${test_company_1._id}/disable`)
+                .send({ adminReason });
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
             expect(res.body.errors).toEqual([ValidationReasons.INVALID_COMPANY]);
         });
 
-        test("should fail to disable company if not logged in", async () => {
-
-            const res = await test_agent
-                .put(`/company/${test_company_1._id}/disable`);
-
-            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
-            expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toEqual([ValidationReasons.INSUFFICIENT_PERMISSIONS]);
-
-        });
-
         test("Should disable company if god token is sent", async () => {
 
             const res = await test_agent
                 .put(`/company/${test_company_2._id}/disable`)
-                .send(withGodToken());
+                .send(withGodToken({ adminReason }));
 
             expect(res.status).toBe(HTTPStatus.OK);
             expect(res.body.isDisabled).toBe(true);
@@ -1371,11 +1301,12 @@ describe("Company endpoint", () => {
 
             await test_agent
                 .post("/auth/login")
-                .send(test_user_company_2)
+                .send(test_user_company_1)
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .put(`/company/${test_company_1._id}/disable`);
+                .put(`/company/${test_company_1._id}/disable`)
+                .send({ adminReason });
 
             expect(res.status).toBe(HTTPStatus.OK);
             expect(res.body.isDisabled).toBe(true);
@@ -1390,7 +1321,7 @@ describe("Company endpoint", () => {
 
             const res = await test_agent
                 .put(`/company/${test_company_3._id}/disable`)
-                .send(withGodToken());
+                .send(withGodToken({ adminReason }));
 
             expect(res.status).toBe(HTTPStatus.OK);
             expect(res.body.isDisabled).toBe(true);

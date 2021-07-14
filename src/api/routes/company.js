@@ -74,7 +74,7 @@ module.exports = (app) => {
             authMiddleware.isAdmin
         ],
         { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
-        validators.block,
+        validators.hide,
         async (req, res, _next) => {
             const service = new CompanyService();
             await new OfferService().blockByCompany(req.params.companyId);
@@ -90,7 +90,7 @@ module.exports = (app) => {
             authMiddleware.isAdmin
         ],
         { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
-        validators.unblock,
+        validators.unhide,
         async (req, res, _next) => {
             try {
                 const service = new CompanyService();
@@ -113,8 +113,8 @@ module.exports = (app) => {
             authMiddleware.isAdmin,
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.unhide,
         companyMiddleware.validCompany,
-        companyMiddleware.canEnable,
         async (req, res, next) => {
             try {
                 const company = await (new CompanyService()).enable(req.params.companyId);
@@ -132,11 +132,11 @@ module.exports = (app) => {
             authMiddleware.isCompany,
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.hide,
         companyMiddleware.validCompany,
-        companyMiddleware.canDisable,
         async (req, res, next) => {
             try {
-                const company = await (new CompanyService()).disable(req.params.companyId);
+                const company = await (new CompanyService()).disable(req.params.companyId, req.body.adminReason);
                 return res.json(company);
             } catch (err) {
                 return next(err);
