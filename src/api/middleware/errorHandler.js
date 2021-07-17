@@ -9,9 +9,10 @@ const buildErrorResponse = (error_code, errors) => ({
 });
 
 class APIError extends Error {
-    constructor(status_code, error_code, msg, payload) {
-        super(msg);
-        this.errors = ensureArray(msg);
+    constructor(status_code, error_code, info, payload) {
+        super(info);
+        // info: array of errors or error message
+        this.errors = Array.isArray(info) ? info : [{ msg: info }];
         this.status_code = status_code;
         this.error_code = error_code;
         this.payload = payload;

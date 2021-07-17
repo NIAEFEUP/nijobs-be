@@ -90,7 +90,7 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("errors");
-                    expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                    expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
                 });
 
                 test("should succeed if logged to admin account", async () => {
@@ -144,7 +144,7 @@ describe("Offer endpoint tests", () => {
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                     expect(res.body).toHaveProperty("errors");
-                    expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                    expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
                 });
 
                 test("should fail when god token is incorrect", async () => {
@@ -156,7 +156,7 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
                     expect(res.body).toHaveProperty("errors");
-                    expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                    expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
                 });
 
                 test("should fail when god token is correct but owner doesn't exist", async () => {
@@ -442,7 +442,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual(
-                    ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+                    { msg: ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent) });
             });
 
             test("should fail to create a new offer (with default publishDate)", async () => {
@@ -460,7 +460,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual(
-                    ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+                    { msg: ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent) });
             });
         });
 
@@ -504,7 +504,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual(
-                    ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+                    { msg: ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent) });
             });
         });
 
@@ -687,7 +687,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual(
-                    ValidationReasons.REGISTRATION_NOT_FINISHED);
+                    { msg: ValidationReasons.REGISTRATION_NOT_FINISHED });
             });
         });
 
@@ -715,8 +715,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.status).toBe(HTTPStatus.FORBIDDEN);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                 expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual(
-                    ValidationReasons.COMPANY_BLOCKED);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
             });
 
         });
@@ -1417,7 +1416,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.status).toBe(HTTPStatus.NOT_FOUND);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                 expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_NOT_FOUND(id));
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_NOT_FOUND(id) });
             });
         });
 
@@ -1653,7 +1652,7 @@ describe("Offer endpoint tests", () => {
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
         });
 
         describe("testing validations with god token", () => {
@@ -1683,7 +1682,7 @@ describe("Offer endpoint tests", () => {
                     .send(withGodToken())
                     .expect(HTTPStatus.FORBIDDEN);
                 expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_EXPIRED(expired_test_offer._id.toString()));
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_EXPIRED(expired_test_offer._id.toString()) });
             });
 
             describe("should fail if offer with grace period over", () => {
@@ -1705,7 +1704,9 @@ describe("Offer endpoint tests", () => {
                         .send(withGodToken())
                         .expect(HTTPStatus.FORBIDDEN);
                     expect(res.body).toHaveProperty("errors");
-                    expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_EDIT_PERIOD_OVER(expired_over_hours.toFixed(2)));
+                    expect(res.body.errors).toContainEqual({
+                        msg: ValidationReasons.OFFER_EDIT_PERIOD_OVER(expired_over_hours.toFixed(2))
+                    });
                 });
 
             });
@@ -1840,7 +1841,7 @@ describe("Offer endpoint tests", () => {
                         .expect(HTTPStatus.FORBIDDEN);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                     expect(res.body).toHaveProperty("errors");
-                    expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_BLOCKED_ADMIN);
+                    expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_BLOCKED_ADMIN });
                 });
 
                 test("should fail if minDuration bigger than offer's maxDuration", async () => {
@@ -1995,7 +1996,7 @@ describe("Offer endpoint tests", () => {
                         .expect(HTTPStatus.FORBIDDEN);
                     expect(res.body).toHaveProperty("or");
                     expect(res.body.or[0]).toHaveProperty("errors");
-                    expect(res.body.or[0].errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(future_test_offer._id));
+                    expect(res.body.or[0].errors).toContainEqual({ msg: ValidationReasons.NOT_OFFER_OWNER(future_test_offer._id) });
                 });
 
             });
@@ -2163,7 +2164,7 @@ describe("Offer endpoint tests", () => {
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
         });
 
         test("should fail to disable offer if logged in as company", async () => {
@@ -2180,7 +2181,7 @@ describe("Offer endpoint tests", () => {
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
         });
 
         test("should allow disabing offer if logged in as god", async () => {
@@ -2219,7 +2220,7 @@ describe("Offer endpoint tests", () => {
                 .expect(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_HIDDEN);
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_HIDDEN });
         });
 
         test("should allow disabling if offer hidden by default", async () => {
@@ -2338,7 +2339,7 @@ describe("Offer endpoint tests", () => {
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
         });
 
         test("should hide successfully if admin", async () => {
@@ -2365,7 +2366,7 @@ describe("Offer endpoint tests", () => {
                 .expect(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("or");
             expect(res.body.or[0]).toHaveProperty("errors");
-            expect(res.body.or[0].errors).toContainEqual(ValidationReasons.NOT_OFFER_OWNER(test_offer_2._id));
+            expect(res.body.or[0].errors).toContainEqual({ msg: ValidationReasons.NOT_OFFER_OWNER(test_offer_2._id) });
         });
 
         test("should hide successfully if logged in as the owner company", async () => {
@@ -2387,7 +2388,7 @@ describe("Offer endpoint tests", () => {
                 .expect(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_HIDDEN);
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_HIDDEN });
         });
 
         test("should fail if already hidden offer by user", async () => {
@@ -2396,7 +2397,7 @@ describe("Offer endpoint tests", () => {
                 .expect(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_HIDDEN);
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_HIDDEN });
         });
 
         test("should fail to hide if already disabled by admin", async () => {
@@ -2405,7 +2406,7 @@ describe("Offer endpoint tests", () => {
                 .expect(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_HIDDEN);
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_HIDDEN });
         });
     });
 
@@ -2469,7 +2470,7 @@ describe("Offer endpoint tests", () => {
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
         });
 
         test("should enable successfully if admin and offer hidden by default as an admin", async () => {
@@ -2507,7 +2508,7 @@ describe("Offer endpoint tests", () => {
                 .expect(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual(ValidationReasons.OFFER_BLOCKED_ADMIN);
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_BLOCKED_ADMIN });
         });
 
         describe("testing concurrent offers", () => {
@@ -2543,7 +2544,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors)
-                    .toContainEqual(ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+                    .toContainEqual({ msg: ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent) });
             });
         });
 
