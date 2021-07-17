@@ -11,6 +11,7 @@ const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const withGodToken = require("../utils/GodToken");
 const EmailService = require("../../src/lib/emailService");
 const { COMPANY_UNBLOCKED_NOTIFICATION, COMPANY_BLOCKED_NOTIFICATION } = require("../../src/email-templates/companyManagement");
+const { MAX_FILE_SIZE_MB } = require("../../src/api/middleware/utils");
 
 const getCompanies = async (options) =>
     [...(await Company.find(options))]
@@ -209,6 +210,19 @@ describe("Company application endpoint", () => {
                     expect(res.body.errors).toContainEqual({
                         "location": "body",
                         "msg": ValidationReasons.IMAGE_FORMAT,
+                        "param": "logo",
+                    });
+                });
+
+                test("should return an error when the image size is greater than the max size", async () => {
+                    const res = await test_agent
+                        .post("/company/application/finish")
+                        .attach("logo", "test/data/logo-niaefeup-10mb.png")
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                    expect(res.body.errors).toContainEqual({
+                        "location": "body",
+                        "msg": ValidationReasons.FILE_TOO_LARGE(MAX_FILE_SIZE_MB),
                         "param": "logo",
                     });
                 });
