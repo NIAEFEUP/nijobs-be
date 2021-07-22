@@ -163,7 +163,6 @@ class OfferService {
                 isHidden: true,
                 hiddenReason: HiddenOfferReasons.COMPANY_BLOCKED,
             },
-            { new: true },
             (err) => {
                 if (err) {
                     throw err;
@@ -178,7 +177,6 @@ class OfferService {
                 isHidden: false,
                 $unset: { hiddenReason: undefined, adminReason: undefined },
             },
-            { new: true },
             (err) => {
                 if (err) {
                     throw err;
