@@ -2,14 +2,13 @@ const { body, query, param } = require("express-validator");
 
 const { useExpressValidators, APIError } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
-const { valuesInSet, ensureArray } = require("./validatorUtils");
+const { valuesInSet, ensureArray, isObjectId, charLimitWithHTML } = require("./validatorUtils");
 const JobTypes = require("../../../models/constants/JobTypes");
 const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("../../../models/constants/FieldTypes");
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../../models/constants/TechnologyTypes");
 const OfferService = require("../../../services/offer");
 const OfferConstants = require("../../../models/constants/Offer");
 const Company = require("../../../models/Company");
-const { isObjectId } = require("../validators/validatorUtils");
 const Offer = require("../../../models/Offer");
 const { validatePublishEndDateLimit } = require("../../../models/Offer");
 const { ErrorTypes } = require("../errorHandler");
@@ -107,7 +106,7 @@ const create = useExpressValidators([
     body("description", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
-        .isLength({ max: OfferConstants.description.max_length }).withMessage(ValidationReasons.TOO_LONG(1500))
+        .custom(charLimitWithHTML(OfferConstants.description.max_length))
         .trim(),
 
     body("contacts", ValidationReasons.DEFAULT)
@@ -364,7 +363,7 @@ const edit = useExpressValidators([
     body("description", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING)
-        .withMessage(ValidationReasons.TOO_LONG(OfferConstants.description.max_length))
+        .custom(charLimitWithHTML(OfferConstants.description.max_length))
         .trim(),
 
     body("contacts", ValidationReasons.DEFAULT)

@@ -38,6 +38,7 @@
     "express-validator": "^6.9.2",
     "helmet": "^3.21.2",
     "http-status-codes": "^1.4.0",
+    "linkedom": "^0.11.1",
     "lodash": "^4.17.20",
     "mongoose": "^5.12.0",
     "mongoose-unique-array": "^0.3.1",

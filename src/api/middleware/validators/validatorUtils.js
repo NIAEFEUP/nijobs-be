@@ -3,6 +3,7 @@ const Account = require("../../../models/Account");
 const { Types } = require("mongoose");
 const CompanyService = require("../../../services/company");
 const CompanyConstants = require("../../../models/constants/Company");
+const { parseHTML } = require("linkedom");
 
 /**
  * Returns a validator that checks whether all of the elements of an array belong to the provided set of values
@@ -95,10 +96,21 @@ const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, p
     return maxConcurrent < CompanyConstants.offers.max_concurrent;
 };
 
+const charLimitWithHTML = (max) => (text) => {
+    const { document } = parseHTML();
+    const node = document.createElement("pre");
+    node.innerHTML = text;
+    if (node.textContent.length > max) {
+        throw new Error(ValidationReasons.TOO_LONG(max));
+    }
+    return true;
+};
+
 module.exports = {
     valuesInSet,
     checkDuplicatedEmail,
     ensureArray,
     isObjectId,
     concurrentOffersNotExceeded,
+    charLimitWithHTML
 };
