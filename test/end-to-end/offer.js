@@ -377,6 +377,27 @@ describe("Offer endpoint tests", () => {
                 expect(created_offer).toBeDefined();
                 expect(created_offer).toHaveProperty("description", offer_params.description);
             });
+
+            test("Should fail to create an offer if the description's length is longer than the max\
+            without HTML tags", async () => {
+
+                const offer_params = {
+                    ...generateTestOffer(),
+                    description: `<h1>${"a".repeat(OfferConstants.description.max_length + 1)}</h1>`,
+                    owner: test_company._id,
+                };
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0]).toHaveProperty("param", "description");
+                expect(res.body.errors[0]).toHaveProperty("location", "body");
+                expect(res.body.errors[0].msg).toEqual(ValidationReasons.TOO_LONG(OfferConstants.description.max_length));
+            });
         });
 
         describe("Before reaching the offers limit while having past offers", () => {

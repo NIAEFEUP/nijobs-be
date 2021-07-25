@@ -96,7 +96,7 @@ const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, p
     return maxConcurrent < CompanyConstants.offers.max_concurrent;
 };
 
-const charLimitWithHTML = (max) => (text) => {
+const maxHTMLContentLength = (max) => (text) => {
     const { document } = parseHTML();
     const node = document.createElement("pre");
     node.innerHTML = text;
@@ -112,5 +112,5 @@ module.exports = {
     ensureArray,
     isObjectId,
     concurrentOffersNotExceeded,
-    charLimitWithHTML
+    maxHTMLContentLength
 };

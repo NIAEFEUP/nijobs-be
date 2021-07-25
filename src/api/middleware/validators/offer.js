@@ -2,7 +2,7 @@ const { body, query, param } = require("express-validator");
 
 const { useExpressValidators, APIError } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
-const { valuesInSet, ensureArray, isObjectId, charLimitWithHTML } = require("./validatorUtils");
+const { valuesInSet, ensureArray, isObjectId, maxHTMLContentLength } = require("./validatorUtils");
 const JobTypes = require("../../../models/constants/JobTypes");
 const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("../../../models/constants/FieldTypes");
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../../models/constants/TechnologyTypes");
@@ -106,7 +106,7 @@ const create = useExpressValidators([
     body("description", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
-        .custom(charLimitWithHTML(OfferConstants.description.max_length))
+        .custom(maxHTMLContentLength(OfferConstants.description.max_length))
         .trim(),
 
     body("contacts", ValidationReasons.DEFAULT)
@@ -363,7 +363,7 @@ const edit = useExpressValidators([
     body("description", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING)
-        .custom(charLimitWithHTML(OfferConstants.description.max_length))
+        .custom(maxHTMLContentLength(OfferConstants.description.max_length))
         .trim(),
 
     body("contacts", ValidationReasons.DEFAULT)

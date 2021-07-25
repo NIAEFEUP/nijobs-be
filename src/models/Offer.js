@@ -8,7 +8,7 @@ const PointSchema = require("./Point");
 const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./constants/TimeConstants");
 const { noDuplicatesValidator, lengthBetweenValidator, validImageURL } = require("./modelUtils");
 const OfferConstants = require("./constants/Offer");
-const { concurrentOffersNotExceeded, charLimitWithHTML } = require("../api/middleware/validators/validatorUtils");
+const { concurrentOffersNotExceeded, maxHTMLContentLength } = require("../api/middleware/validators/validatorUtils");
 
 const OfferSchema = new Schema({
     title: { type: String, maxlength: OfferConstants.title.max_length, required: true },
@@ -139,7 +139,7 @@ function validateOwnerConcurrentOffers(value) {
 }
 
 function validateDescription(value) {
-    return charLimitWithHTML(OfferConstants.description.max_length)(value);
+    return maxHTMLContentLength(OfferConstants.description.max_length)(value);
 }
 
 /**
