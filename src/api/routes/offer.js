@@ -10,6 +10,7 @@ const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
 const { or, when } = require("../middleware/utils");
 const OfferConstants = require("../../models/constants/Offer");
+const companyValidators = require("../middleware/validators/company");
 
 const router = Router();
 
@@ -64,7 +65,7 @@ module.exports = (app) => {
     /**
      * Gets all the offers of a certain company from the db
      */
-    router.get("/company/:companyId", async (req, res, next) => {
+    router.get("/company/:companyId", companyValidators.validCompanyId, async (req, res, next) => {
         try {
             const offers = await (new OfferService()).getOffersByCompanyId(req.params.companyId, req.user, req.hasAdminPrivileges);
 

@@ -69,6 +69,12 @@ const enable = useExpressValidators([
         .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
 ]);
 
+const validCompanyId = useExpressValidators([
+    param("companyId", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED)
+        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID),
+]);
+
 module.exports = {
     finish,
     list,
@@ -76,5 +82,6 @@ module.exports = {
     enable,
     disable,
     companyExists,
+    validCompanyId,
     MAX_LIMIT_RESULTS,
 };

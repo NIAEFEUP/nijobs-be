@@ -1520,15 +1520,16 @@ describe("Offer endpoint tests", () => {
         });
     });
 
-    describe("GET /offers/:companyId", () => {
+    describe("GET /offers/company/:companyId", () => {
         beforeAll(async () => {
             await Offer.deleteMany({});
         });
 
         describe("Id Validation", () => {
             test("should fail if requested an invalid companyId", async () => {
+                const companyId = "123";
                 const res = await request()
-                    .get("/offers/123");
+                    .get(`/offers/company/${companyId}`);
 
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
             });
