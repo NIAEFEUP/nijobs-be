@@ -1605,7 +1605,7 @@ describe("Offer endpoint tests", () => {
             });
 
             test("should return hidden company offers as admin", async () => {
-                // Login wiht test_user_company
+                // Login with test_user_company
                 await test_agent
                     .post("/auth/login")
                     .send(test_user_admin)
@@ -1624,6 +1624,21 @@ describe("Offer endpoint tests", () => {
                 await test_agent
                     .del("/auth/login")
                     .expect(HTTPStatus.OK);
+            });
+
+            test("should return hidden company offers with god token", async () => {
+                // Send request with god token
+                const res = await test_agent
+                    .get(`/offers/company/${test_company._id}`)
+                    .send(withGodToken());
+
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extractedData = res.body;
+                expect(extractedData.map((offer) => offer._id).sort())
+                    .toMatchObject(
+                        test_offers.map((offer) => offer._id).sort()
+                    );
             });
         });
     });
