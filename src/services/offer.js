@@ -263,7 +263,7 @@ class OfferService {
     }
 
     isVisibleOffer(offer, hasAdminPrivileges, user) {
-        return !(offer?.isHidden && !(hasAdminPrivileges || offer.owner.toString() === user?.company?._id.toString()));
+        return !offer?.isHidden || hasAdminPrivileges || (offer.owner.toString() === user?.company?._id.toString());
     }
 
     async getOfferById(offerId, user, hasAdminPrivileges, showAdminReason = false) {
