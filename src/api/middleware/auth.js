@@ -76,6 +76,12 @@ const hasAdminPrivileges = async (req, res, next) => {
     return next();
 };
 
+const setOwnerCompany = (req, res, next) => {
+
+    req.ownerCompany = req.user?.company || req.body.owner;
+    return next();
+};
+
 module.exports = {
     authRequired,
     isGod,
@@ -84,4 +90,5 @@ module.exports = {
     isOfferOwner,
     hasOwnershipRights,
     hasAdminPrivileges,
+    setOwnerCompany,
 };
