@@ -70,17 +70,17 @@ module.exports = (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.create,
         companyMiddleware.profileComplete,
-        (req, res, next) => companyMiddleware.isNotBlocked(req.user?.company || req.body.owner)(req, res, next),
+        (req, res, next) => companyMiddleware.isNotBlocked(req.ownerCompany)(req, res, next),
         when(
             (req) => !req.body?.isHidden,
-            (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.user?.company || req.body.owner)(req, res, next)),
+            (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.ownerCompany)(req, res, next)),
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
 
                 const params = {
                     ...req.body,
-                    owner: req?.user?.company || req.body.owner
+                    owner: req.ownerCompany
                 };
 
                 const offer = await (new OfferService()).create(params);
