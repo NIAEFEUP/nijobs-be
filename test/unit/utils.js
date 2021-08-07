@@ -1,5 +1,6 @@
 const { APIError, UnknownAPIError } = require("../../src/api/middleware/errorHandler");
 const { or, DEFAULT_ERROR_CODE, DEFAULT_STATUS_CODE, DEFAULT_ERROR_MSG, when } = require("../../src/api/middleware/utils");
+const { validImageURL } = require("../../src/models/modelUtils");
 
 describe("Middleware utils", () => {
     describe("or util", () => {
@@ -222,6 +223,24 @@ describe("Middleware utils", () => {
             expect(nextMock.mock.calls[0][0].status_code).toBe(401);
             expect(nextMock.mock.calls[0][0].error_code).toBe(3);
             expect(nextMock.mock.calls[0][0].message).toBe("error");
+        });
+    });
+
+    describe("model utils", () => {
+        test("Should validate the image urls", () => {
+            const url1 = "https://media.discordapp.net/attachments/371945/616170560/puzzle-game.jpg?width=960&height=600";
+            const url2 = "http://res.cloudinary.com/oz/image/upload/f3540_pv.jpg";
+            const url3 = "https://localhost:8000/test1.test2/test3.png";
+            const url4 = "https://res.cloudinary.com:8000/test1.test2/test3.png";
+            const url5 = "https://res.cloudinary.com/test1/test2/test3.png?";
+            const url6 = "https://res.cloudinary.com/test1/test2/test3.png/";
+
+            expect(validImageURL(url1)).toBe(true);
+            expect(validImageURL(url2)).toBe(true);
+            expect(validImageURL(url3)).toBe(true);
+            expect(validImageURL(url4)).toBe(false);
+            expect(validImageURL(url5)).toBe(false);
+            expect(validImageURL(url6)).toBe(true);
         });
     });
 });

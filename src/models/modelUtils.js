@@ -19,6 +19,7 @@ const lengthBetweenValidator = (val, min, max) => {
 };
 
 const validImageURL = (val) => {
+    // eslint-disable-next-line max-len
     const regex = /^(?:https?:\/\/)(?:(?:localhost:\d{1,5}\/(?:[^/#?\s[",><]+[/.])+[^/#?\s[",><]*)|(?:(?:[a-z0-9-]+\.)+[a-z]{2,6}(?:\/[^/#?\s[",><]+)+\/?))(?:\?[^\s[",><]+)?$/;
 
     return regex.test(val);
