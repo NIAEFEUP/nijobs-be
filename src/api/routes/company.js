@@ -114,7 +114,7 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.enable,
-        companyMiddleware.validCompany,
+        (req, res, next) => companyMiddleware.validCompany(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {
                 const company = await (new CompanyService()).enable(req.params.companyId);
@@ -133,7 +133,7 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.disable,
-        companyMiddleware.validCompany,
+        (req, res, next) => companyMiddleware.validCompany(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {
                 const company = await (new CompanyService()).disable(req.params.companyId, req.body.adminReason);
