@@ -1,8 +1,11 @@
-const { hasAdminPrivileges } = require("../api/middleware/auth");
+const { hasAdminPrivileges, setOwnerCompany } = require("../api/middleware/auth");
 
 module.exports = (app) => {
 
     // Populates req.hasAdminPrivileges accordingly
     app.use(hasAdminPrivileges);
+
+    // Populates req.ownerCompany accordingly
+    app.use(setOwnerCompany);
 
 };
