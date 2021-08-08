@@ -74,6 +74,10 @@ module.exports = (app) => {
         companyMiddleware.profileComplete,
         (req, res, next) => companyMiddleware.isNotBlocked(req.targetOwner)(req, res, next),
         companyMiddleware.verifyMaxConcurrentOffersOnCreate,
+        when(
+            // if we are a company creating an offer, we can't be disabled, but admins/gods can create offers in our name
+            (req) => !req.hasAdminPrivileges,
+            (req, res, next) => companyMiddleware.isNotDisabled(req.targetOwner)(req, res, next)),
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
@@ -101,6 +105,7 @@ module.exports = (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.isExistingOffer,
         validators.offerOwnerNotBlocked,
+        validators.offerOwnerNotDisabled,
         validators.isEditable,
         validators.canBeManaged,
         validators.edit,
@@ -132,6 +137,7 @@ module.exports = (app) => {
         validators.validOfferId,
         validators.isExistingOffer,
         (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
+        validators.offerOwnerNotDisabled,
         validators.canHide,
         async (req, res, next) => {
             try {
@@ -192,6 +198,7 @@ module.exports = (app) => {
         validators.canBeEnabled,
         validators.canBeManaged,
         validators.offerOwnerNotBlocked,
+        validators.offerOwnerNotDisabled,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).enable(req.params.offerId);
