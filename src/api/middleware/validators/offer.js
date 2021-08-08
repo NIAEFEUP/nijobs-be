@@ -184,7 +184,7 @@ const create = useExpressValidators([
 
 const jobMinDurationEditable = async (jobMinDurationCandidate, { req }) => {
     try {
-        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user, req.hasAdminPrivileges);
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, req.hasAdminPrivileges);
 
         const { jobMaxDuration: jobMaxDurationCandidate } = req.body;
 
@@ -204,7 +204,7 @@ const jobMinDurationEditable = async (jobMinDurationCandidate, { req }) => {
 
 const jobMaxDurationEditable = async (jobMaxDurationCandidate, { req }) => {
     try {
-        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user, req.hasAdminPrivileges);
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, req.hasAdminPrivileges);
 
         const { jobMinDuration: jobMinDurationCandidate } = req.body;
 
@@ -227,7 +227,7 @@ const jobMaxDurationEditable = async (jobMaxDurationCandidate, { req }) => {
 
 const publishDateEditable = async (publishDateCandidate, { req }) => {
     try {
-        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user, req.hasAdminPrivileges);
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, req.hasAdminPrivileges);
         const { publishEndDate: publishEndDateCandidate } = req.body;
 
         // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
@@ -249,7 +249,7 @@ const publishDateEditable = async (publishDateCandidate, { req }) => {
 const publishEndDateEditableAfterPublishDate = async (publishEndDateCandidate, { req }) => {
     try {
         // Default values and also handling if it is string or date object
-        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user, req.hasAdminPrivileges);
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, req.hasAdminPrivileges);
         const { publishDate: publishDateCandidate } = req.body;
 
         let publishDate;
@@ -278,7 +278,7 @@ const publishEndDateEditableAfterPublishDate = async (publishEndDateCandidate, {
 const publishEndDateEditableLimit = async (publishEndDateCandidate, { req }) => {
     try {
         // Default values and also handling if it is string or date object
-        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user, req.hasAdminPrivileges);
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, req.hasAdminPrivileges);
         const { publishDate: publishDateCandidate } = req.body;
 
         let publishDate;
@@ -314,7 +314,7 @@ const isExistingOffer = useExpressValidators([
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
         .custom(async (offerId, { req }) => {
             try {
-                const offer = await (new OfferService()).getOfferById(offerId, req.user, req.hasAdminPrivileges);
+                const offer = await (new OfferService()).getOfferById(offerId, req.targetOwner, req.hasAdminPrivileges);
                 if (!offer) throw new Error(ValidationReasons.OFFER_NOT_FOUND(offerId));
             } catch (err) {
                 console.error(err);

@@ -41,7 +41,7 @@ module.exports = (app) => {
     router.get("/:offerId", validators.validOfferId, async (req, res, next) => {
         try {
             const offer = await (new OfferService()).getOfferById(
-                req.params.offerId, req.user, req.hasAdminPrivileges, req.hasAdminPrivileges);
+                req.params.offerId, req.targetOwner, req.hasAdminPrivileges, req.hasAdminPrivileges);
 
             if (!offer) {
                 return next(new APIError(
@@ -70,17 +70,17 @@ module.exports = (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.create,
         companyMiddleware.profileComplete,
-        (req, res, next) => companyMiddleware.isNotBlocked(req.ownerCompany)(req, res, next),
+        (req, res, next) => companyMiddleware.isNotBlocked(req.targetOwner)(req, res, next),
         when(
             (req) => !req.body?.isHidden,
-            (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.ownerCompany)(req, res, next)),
+            (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.targetOwner)(req, res, next)),
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
 
                 const params = {
                     ...req.body,
-                    owner: req.ownerCompany
+                    owner: req.targetOwner
                 };
 
                 const offer = await (new OfferService()).create(params);
