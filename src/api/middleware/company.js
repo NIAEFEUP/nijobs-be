@@ -23,7 +23,7 @@ const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate) => async 
 };
 
 const profileNotComplete = async (req, res, next) => {
-    const company = await (new CompanyService()).findById(req.user.company, true);
+    const company = await (new CompanyService()).findById(req.targetOwner, true);
     if (company.hasFinishedRegistration) {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,
@@ -35,7 +35,7 @@ const profileNotComplete = async (req, res, next) => {
 };
 
 const profileComplete = async (req, res, next) => {
-    const company = await (new CompanyService()).findById(req.body.owner, true);
+    const company = await (new CompanyService()).findById(req.targetOwner, true);
     if (!company.hasFinishedRegistration) {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,

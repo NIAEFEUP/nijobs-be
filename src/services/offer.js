@@ -227,14 +227,14 @@ class OfferService {
         return constraints.length ? { "$and": constraints } : {};
     }
 
-    async getOfferById(offerId, user, hasAdminPrivileges, showAdminReason = false) {
+    async getOfferById(offerId, targetOwner, hasAdminPrivileges, showAdminReason = false) {
         const offerQuery = Offer.findById(offerId);
 
         if (!showAdminReason) offerQuery.select("-adminReason");
 
         const offer = await offerQuery;
 
-        if (offer?.isHidden && !(hasAdminPrivileges || offer.owner.toString() === user?.company?._id.toString())) return null;
+        if (offer?.isHidden && !(hasAdminPrivileges || offer.owner.toString() === targetOwner)) return null;
 
         return offer;
     }

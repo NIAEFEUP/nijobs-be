@@ -115,7 +115,7 @@ describe("Offer endpoint tests", () => {
                 test("should create offer if logged in to company account", async () => {
 
                     // Login
-                    const offer = { ...generateTestOffer(), owner: test_company._id };
+                    const offer = { ...generateTestOffer() };
                     await test_agent
                         .post("/auth/login")
                         .send(test_user_company)
