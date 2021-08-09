@@ -7,7 +7,7 @@ const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
 const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
-const { or } = require("../middleware/utils");
+const { or, when } = require("../middleware/utils");
 const OfferConstants = require("../../models/constants/Offer");
 
 const router = Router();

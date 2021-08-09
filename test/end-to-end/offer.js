@@ -798,6 +798,52 @@ describe("Offer endpoint tests", () => {
 
         });
 
+        describe("Disabled company", () => {
+
+            let disabled_company;
+
+            const disabled_company_user = {
+                email: "disabled_company@email.com",
+                password: "password123",
+            };
+
+            beforeAll(async () => {
+                // await Company.deleteMany({});
+                // await Offer.deleteMany({});
+
+                disabled_company = await Company.create({
+                    name: "test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    hasFinishedRegistration: true,
+                    logo: "http://awebsite.com/alogo.jpg",
+                    isDisabled: true,
+                });
+
+                await Account.create({
+                    email: disabled_company_user.email,
+                    password: await hash(disabled_company_user.password),
+                    company: disabled_company._id
+                });
+            });
+
+            test("Should not create offer if company is disabled, logged in as same company", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(disabled_company_user)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .post("/offers/new")
+                    .send(generateTestOffer());
+
+                expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
+            });
+        });
+
     });
 
     describe("GET /offers", () => {
@@ -2308,6 +2354,59 @@ describe("Offer endpoint tests", () => {
                         .expect(HTTPStatus.OK);
                 });
         });
+
+        describe("Disabled company", () => {
+
+            let disabled_company, test_offer;
+
+            const disabled_company_user = {
+                email: "disabled_company2@email.com",
+                password: "password123",
+            };
+
+            beforeAll(async () => {
+                // await Company.deleteMany({});
+                // await Offer.deleteMany({});
+
+                disabled_company = await Company.create({
+                    name: "test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    hasFinishedRegistration: true,
+                    logo: "http://awebsite.com/alogo.jpg",
+                    isDisabled: true,
+                });
+
+                await Account.create({
+                    email: disabled_company_user.email,
+                    password: await hash(disabled_company_user.password),
+                    company: disabled_company._id
+                });
+
+                test_offer = await Offer.create(
+                    generateTestOffer({
+                        owner: disabled_company._id,
+                        ownerName: disabled_company.name,
+                        ownerLogo: disabled_company.logo,
+                    })
+                );
+            });
+
+            test("Should not edit offer if company is disabled, logged in as same company", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(disabled_company_user)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .post(`/offers/edit/${test_offer._id}`);
+
+                expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
+            });
+        });
     });
 
     describe("POST /offers/:offerId/disable", () => {
@@ -2645,6 +2744,59 @@ describe("Offer endpoint tests", () => {
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_HIDDEN });
         });
+
+        describe("Disabled company", () => {
+
+            let disabled_company, test_offer;
+
+            const disabled_company_user = {
+                email: "disabled_company3@email.com",
+                password: "password123",
+            };
+
+            beforeAll(async () => {
+                // await Company.deleteMany({});
+                // await Offer.deleteMany({});
+
+                disabled_company = await Company.create({
+                    name: "test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    hasFinishedRegistration: true,
+                    logo: "http://awebsite.com/alogo.jpg",
+                    isDisabled: true,
+                });
+
+                await Account.create({
+                    email: disabled_company_user.email,
+                    password: await hash(disabled_company_user.password),
+                    company: disabled_company._id
+                });
+
+                test_offer = await Offer.create(
+                    generateTestOffer({
+                        owner: disabled_company._id,
+                        ownerName: disabled_company.name,
+                        ownerLogo: disabled_company.logo,
+                    })
+                );
+            });
+
+            test("Should not hide offer if company is disabled, logged in as same company", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(disabled_company_user)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .post(`/offers/${test_offer._id}/hide`);
+
+                expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
+            });
+        });
     });
 
     describe("PUT /offers/:offerId/enable", () => {
@@ -2816,6 +2968,61 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors).toContainEqual(
                         ValidationReasons.COMPANY_BLOCKED);
                 });
+            });
+        });
+
+        describe("Disabled company", () => {
+
+            let disabled_company, test_offer;
+
+            const disabled_company_user = {
+                email: "disabled_company4@email.com",
+                password: "password123",
+            };
+
+            beforeAll(async () => {
+                // await Company.deleteMany({});
+                // await Offer.deleteMany({});
+
+                disabled_company = await Company.create({
+                    name: "test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    hasFinishedRegistration: true,
+                    logo: "http://awebsite.com/alogo.jpg",
+                    isDisabled: true,
+                });
+
+                await Account.create({
+                    email: disabled_company_user.email,
+                    password: await hash(disabled_company_user.password),
+                    company: disabled_company._id
+                });
+
+                test_offer = await Offer.create(
+                    generateTestOffer({
+                        owner: disabled_company._id,
+                        ownerName: disabled_company.name,
+                        ownerLogo: disabled_company.logo,
+                        hiddenReason: OfferConstants.HiddenOfferReasons.COMPANY_REQUEST,
+                        isHidden: true
+                    })
+                );
+            });
+
+            test("Should not enable offer if company is disabled, logged in as same company", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(disabled_company_user)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/offers/${test_offer._id}/enable`);
+
+                expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
             });
         });
     });
