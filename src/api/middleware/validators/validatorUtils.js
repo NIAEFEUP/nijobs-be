@@ -106,11 +106,14 @@ const maxHTMLContentLength = (max) => (text) => {
     return true;
 };
 
+const normalizeDate = (date) => (new Date(Date.parse(date))).toISOString();
+
 module.exports = {
     valuesInSet,
     checkDuplicatedEmail,
     ensureArray,
     isObjectId,
     concurrentOffersNotExceeded,
-    maxHTMLContentLength
+    maxHTMLContentLength,
+    normalizeDate,
 };

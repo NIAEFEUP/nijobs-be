@@ -2,7 +2,7 @@ const { body, query, param } = require("express-validator");
 
 const { useExpressValidators, APIError } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
-const { valuesInSet, ensureArray, isObjectId, maxHTMLContentLength } = require("./validatorUtils");
+const { valuesInSet, ensureArray, isObjectId, maxHTMLContentLength, normalizeDate } = require("./validatorUtils");
 const JobTypes = require("../../../models/constants/JobTypes");
 const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("../../../models/constants/FieldTypes");
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../../models/constants/TechnologyTypes");
@@ -68,8 +68,6 @@ const publishEndDateLimit = (publishEndDateCandidate, { req }) => {
     // Returning truthy value to indicate no error ocurred
     return true;
 };
-
-const normalizeDate = (date, _context) => (new Date(Date.parse(date))).toISOString();
 
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
