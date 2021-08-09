@@ -69,6 +69,8 @@ const publishEndDateLimit = (publishEndDateCandidate, { req }) => {
     return true;
 };
 
+const normalizeDate = (date, _context) => (new Date(Date.parse(date))).toISOString();
+
 const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
@@ -78,12 +80,14 @@ const create = useExpressValidators([
 
     body("publishDate", ValidationReasons.DEFAULT)
         .optional()
-        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail(),
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
+        .customSanitizer(normalizeDate),
 
     body("publishEndDate", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
+        .customSanitizer(normalizeDate)
         .custom(publishEndDateAfterPublishDate)
         .custom(publishEndDateLimit),
 
@@ -101,6 +105,7 @@ const create = useExpressValidators([
     body("jobStartDate", ValidationReasons.DEFAULT)
         .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .customSanitizer(normalizeDate)
         .toDate(),
 
     body("description", ValidationReasons.DEFAULT)
@@ -336,12 +341,14 @@ const edit = useExpressValidators([
         .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
+        .customSanitizer(normalizeDate)
         .custom(publishDateEditable),
 
     body("publishEndDate", ValidationReasons.DEFAULT)
         .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
+        .customSanitizer(normalizeDate)
         .custom(publishEndDateEditableAfterPublishDate)
         .custom(publishEndDateEditableLimit),
 
@@ -358,6 +365,7 @@ const edit = useExpressValidators([
     body("jobStartDate", ValidationReasons.DEFAULT)
         .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .customSanitizer(normalizeDate)
         .toDate(),
 
     body("description", ValidationReasons.DEFAULT)
