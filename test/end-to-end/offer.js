@@ -698,6 +698,41 @@ describe("Offer endpoint tests", () => {
             });
         });
 
+        describe("Same 'publishDate' and 'publishEndDate'", () => {
+
+            const date = (new Date(Date.now() + (DAY_TO_MS))).toISOString();
+            let offer;
+
+            beforeAll(() => {
+                // await Offer.deleteMany({});
+
+                offer = generateTestOffer({
+                    publishDate: date,
+                    publishEndDate: date,
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                });
+            });
+
+            afterAll(async () => {
+                await Offer.deleteMany({ offer });
+            });
+
+            test("should fail if 'publishDate' and 'publishEndDate' have the same value", async () => {
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer));
+
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("publishDate"));
+                expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
+                expect(res.body.errors[0]).toHaveProperty("location", "body");
+            });
+        });
+
         describe("Incomplete registration of the offer's company", () => {
             let incomplete_test_company;
             beforeAll(async () => {
@@ -2004,6 +2039,48 @@ describe("Offer endpoint tests", () => {
             });
         });
 
+        describe("Same 'publishDate' and 'publishEndDate'", () => {
+
+            const dateNow = (new Date(Date.now() + (DAY_TO_MS * 5))).toISOString();
+            const dateAfter = (new Date(Date.now() + (DAY_TO_MS * 10))).toISOString();
+            let offer;
+
+            beforeAll(async () => {
+
+                // await Offer.deleteMany({});
+
+                offer = await Offer.create(generateTestOffer({
+                    publishDate: dateNow,
+                    publishEndDate: dateNow,
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                }));
+            });
+
+            afterAll(async () => {
+                await Offer.deleteMany({ offer });
+            });
+
+            test("should fail if 'publishDate' and 'publishEndDate' have the same value", async () => {
+
+                const edits = {
+                    publishDate: dateAfter,
+                    publishEndDate: dateAfter,
+                };
+
+                const res = await request()
+                    .post(`/offers/edit/${offer._id}`)
+                    .send(withGodToken(edits));
+
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("publishDate"));
+                expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
+                expect(res.body.errors[0]).toHaveProperty("location", "body");
+
+            });
+        });
 
         describe("testing as a company", () => {
 
