@@ -8,5 +8,6 @@ module.exports = Object.freeze({
     HiddenOfferReasons: {
         ADMIN_BLOCK: "ADMIN_REQUEST",
         COMPANY_REQUEST: "COMPANY_REQUEST",
+        COMPANY_BLOCKED: "COMPANY_BLOCKED",
     },
 });
