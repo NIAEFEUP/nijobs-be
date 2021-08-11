@@ -156,23 +156,40 @@ class OfferService {
         return offer;
     }
 
-    blockByCompany(owner) {
+    _hideByCompany(owner, reason) {
         return Offer.updateMany(
             { owner, isHidden: false },
             {
                 isHidden: true,
-                hiddenReason: HiddenOfferReasons.COMPANY_BLOCKED,
+                hiddenReason: reason,
             });
     }
 
-    unblockByCompany(owner) {
+    _unhideByCompany(owner, reason) {
         return Offer.updateMany(
-            { owner, isHidden: true, hiddenReason: HiddenOfferReasons.COMPANY_BLOCKED },
+            { owner, isHidden: true, hiddenReason: reason },
             {
                 isHidden: false,
                 $unset: { hiddenReason: undefined, adminReason: undefined },
             });
     }
+
+    blockByCompany(owner) {
+        return this._hideByCompany(owner, HiddenOfferReasons.COMPANY_BLOCKED);
+    }
+
+    unblockByCompany(owner) {
+        return this._unhideByCompany(owner, HiddenOfferReasons.COMPANY_BLOCKED);
+    }
+
+    disableByCompany(owner) {
+        return this._hideByCompany(owner, HiddenOfferReasons.COMPANY_DISABLED);
+    }
+
+    enableByCompany(owner) {
+        return this._unhideByCompany(owner, HiddenOfferReasons.COMPANY_DISABLED);
+    }
+
     /**
      * Fetches offers according to specified options
      * @param {*} options

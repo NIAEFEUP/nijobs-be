@@ -3024,6 +3024,33 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
             });
+
+            test("Should not enable offer if company is disabled, sending god token", async () => {
+                const res = await test_agent
+                    .put(`/offers/${test_offer._id}/enable`)
+                    .send(withGodToken());
+
+                expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
+            });
+
+            test("Should not enable offer if company is disabled, logged in as admin", async () => {
+
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/offers/${test_offer._id}/enable`);
+
+                expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
+            });
         });
     });
 });

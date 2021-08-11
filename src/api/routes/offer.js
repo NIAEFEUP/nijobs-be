@@ -198,7 +198,11 @@ module.exports = (app) => {
         validators.canBeEnabled,
         validators.canBeManaged,
         validators.offerOwnerNotBlocked,
-        validators.offerOwnerNotDisabled,
+        async (req, res, next) => {
+            const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, true);
+
+            return companyMiddleware.isNotDisabled(offer.owner)(req, res, next);
+        },
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).enable(req.params.offerId);

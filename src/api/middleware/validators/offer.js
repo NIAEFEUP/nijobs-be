@@ -566,8 +566,8 @@ const offerOwnerNotDisabled = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     return when(
-        // if we are a company modifying an offer, we can't be disabled, but admins/gods can create offers in our name
-        (req) => !req.hasAdminPrivileges,
+        // if we are a company editing/hiding an offer, we can't be disabled, but admins/gods can create offers in our name
+        !req.hasAdminPrivileges,
         (req, res, next) => companyMiddleware.isNotDisabled(offer.owner)(req, res, next))(req, res, next);
 };
 

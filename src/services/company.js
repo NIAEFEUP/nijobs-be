@@ -2,8 +2,6 @@ const { COMPANY_BLOCKED_NOTIFICATION, COMPANY_UNBLOCKED_NOTIFICATION } = require
 const EmailService = require("../lib/emailService");
 const Account = require("../models/Account");
 const Company = require("../models/Company");
-const Offer = require("../models/Offer");
-const OfferConstants = require("../models/constants/Offer");
 
 class CompanyService {
     getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel) {
@@ -107,7 +105,13 @@ class CompanyService {
         return Company.findOneAndUpdate(
             { _id: company_id },
             attributes,
-            { new: true, omitUndefined: true });
+            { new: true, omitUndefined: true },
+            (err) => {
+                if (err) {
+                    console.error(err);
+                    throw err;
+                }
+            });
     }
 
     async sendCompanyBlockedNotification(companyId) {
@@ -142,68 +146,34 @@ class CompanyService {
         }
     }
 
-    async disable(companyId, adminReason) {
-        const company = Company.findByIdAndUpdate(
-            companyId,
-            {
-                isDisabled: true,
-                adminReason,
-            },
-            { new: true },
-            (err) => {
-                if (err) {
-                    console.error(err);
-                    throw err;
-                }
-            });
+    disable(companyId) {
 
-        await Offer.updateMany(
-            { owner: companyId },
-            {
-                isHidden: true,
-                hiddenReason: OfferConstants.HiddenOfferReasons.COMPANY_DISABLED,
-            },
-            { new: true },
-            (err) => {
-                if (err) {
-                    throw err;
+        try {
+            return this.changeAttributes(
+                companyId,
+                {
+                    isDisabled: true,
                 }
-            }
-        );
-
-        return company;
+            );
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
 
-    async enable(companyId) {
-        const company = Company.findByIdAndUpdate(
-            companyId,
-            {
-                isDisabled: false,
-                $unset: { adminReason: undefined },
-            },
-            { new: true },
-            (err) => {
-                if (err) {
-                    console.error(err);
-                    throw err;
-                }
-            });
+    enable(companyId) {
 
-        await Offer.updateMany(
-            { owner: companyId },
-            {
-                isHidden: false,
-                $unset: { hiddenReason: undefined, adminReason: undefined },
-            },
-            { new: true },
-            (err) => {
-                if (err) {
-                    throw err;
+        try {
+            return this.changeAttributes(
+                companyId,
+                {
+                    isDisabled: false,
                 }
-            }
-        );
-
-        return company;
+            );
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
 
 }

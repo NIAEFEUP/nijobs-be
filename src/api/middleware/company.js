@@ -109,15 +109,15 @@ const isNotDisabled = (owner) => async (req, res, next) => {
     return next();
 };
 
-const validCompany = (companyId) => async (req, res, next) => {
+const canModify = (companyId) => async (req, res, next) => {
     const company = await (new CompanyService()).findById(companyId, true);
 
-    // only god, admin or the same company can disable a given company
+    // only god or the same company can disable a given company
     if (!req.hasAdminPrivileges && company._id.toString() !== req.targetOwner) {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,
             ErrorTypes.FORBIDDEN,
-            ValidationReasons.INVALID_COMPANY
+            ValidationReasons.COMPANY_NOT_MODIFIABLE
         ));
     }
     return next();
@@ -130,6 +130,6 @@ module.exports = {
     profileNotComplete,
     profileComplete,
     isNotBlocked,
-    validCompany,
+    canModify,
     isNotDisabled,
 };

@@ -1099,7 +1099,7 @@ describe("Company endpoint", () => {
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INVALID_COMPANY });
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_NOT_MODIFIABLE });
 
         });
 
@@ -1191,8 +1191,6 @@ describe("Company endpoint", () => {
 
         const test_agent = agent();
 
-        const adminReason = "An admin reason!";
-
         beforeAll(async () => {
 
             await test_agent
@@ -1264,7 +1262,7 @@ describe("Company endpoint", () => {
 
                 const res = await test_agent
                     .put("/company/123/disable")
-                    .send(withGodToken({ adminReason }))
+                    .send(withGodToken())
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
@@ -1278,7 +1276,7 @@ describe("Company endpoint", () => {
                 const id = "111111111111111111111111";
                 const res = await test_agent
                     .put(`/company/${id}/disable`)
-                    .send(withGodToken({ adminReason }))
+                    .send(withGodToken())
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
@@ -1300,7 +1298,7 @@ describe("Company endpoint", () => {
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INVALID_COMPANY });
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_NOT_MODIFIABLE });
         });
 
         test("should fail to disable company if logged as admin", async () => {
@@ -1332,7 +1330,7 @@ describe("Company endpoint", () => {
 
             const res = await test_agent
                 .put(`/company/${test_company_2._id}/disable`)
-                .send(withGodToken({ adminReason }));
+                .send(withGodToken());
 
             expect(res.status).toBe(HTTPStatus.OK);
             expect(res.body.isDisabled).toBe(true);
@@ -1361,7 +1359,7 @@ describe("Company endpoint", () => {
 
             const res = await test_agent
                 .put(`/company/${test_company_3._id}/disable`)
-                .send(withGodToken({ adminReason }));
+                .send(withGodToken());
 
             expect(res.status).toBe(HTTPStatus.OK);
             expect(res.body.isDisabled).toBe(true);
