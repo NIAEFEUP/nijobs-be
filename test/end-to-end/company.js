@@ -15,7 +15,6 @@ const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const EmailService = require("../../src/lib/emailService");
 const { COMPANY_UNBLOCKED_NOTIFICATION, COMPANY_BLOCKED_NOTIFICATION } = require("../../src/email-templates/companyManagement");
 const { MAX_FILE_SIZE_MB } = require("../../src/api/middleware/utils");
-const OfferConstants = require("../../src/models/constants/Offer");
 
 const getCompanies = async (options) =>
     [...(await Company.find(options)
@@ -661,7 +660,7 @@ describe("Company endpoint", () => {
                 for (const offer of offers) {
                     const updated_offer = await Offer.findById(offer._id);
 
-                    expect(updated_offer).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.COMPANY_BLOCKED);
+                    expect(updated_offer).toHaveProperty("hiddenReason", HiddenOfferReasons.COMPANY_BLOCKED);
                     expect(updated_offer).toHaveProperty("isHidden", true);
                 }
             });
@@ -677,7 +676,7 @@ describe("Company endpoint", () => {
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
                     isHidden: true,
-                    hiddenReason: OfferConstants.HiddenOfferReasons.ADMIN_BLOCK
+                    hiddenReason: HiddenOfferReasons.ADMIN_BLOCK
                 });
 
                 const res = await test_agent
@@ -690,7 +689,7 @@ describe("Company endpoint", () => {
 
                 const updated_offer = await Offer.findById(offer._id);
 
-                expect(updated_offer).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+                expect(updated_offer).toHaveProperty("hiddenReason", HiddenOfferReasons.ADMIN_BLOCK);
                 expect(updated_offer).toHaveProperty("isHidden", true);
 
             });
@@ -890,7 +889,7 @@ describe("Company endpoint", () => {
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
                     isHidden: true,
-                    hiddenReason: OfferConstants.HiddenOfferReasons.COMPANY_BLOCKED
+                    hiddenReason: HiddenOfferReasons.COMPANY_BLOCKED
                 }));
 
                 const res = await test_agent
@@ -915,7 +914,7 @@ describe("Company endpoint", () => {
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
                     isHidden: true,
-                    hiddenReason: OfferConstants.HiddenOfferReasons.COMPANY_REQUEST
+                    hiddenReason: HiddenOfferReasons.COMPANY_REQUEST
                 });
 
                 const res = await test_agent
@@ -926,7 +925,7 @@ describe("Company endpoint", () => {
 
                 const updated_offer = await Offer.findById(offer._id);
 
-                expect(updated_offer).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
+                expect(updated_offer).toHaveProperty("hiddenReason", HiddenOfferReasons.COMPANY_REQUEST);
                 expect(updated_offer).toHaveProperty("isHidden", true);
 
             });
@@ -942,7 +941,7 @@ describe("Company endpoint", () => {
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
                     isHidden: true,
-                    hiddenReason: OfferConstants.HiddenOfferReasons.ADMIN_BLOCK
+                    hiddenReason: HiddenOfferReasons.ADMIN_BLOCK
                 });
 
                 const res = await test_agent
@@ -953,7 +952,7 @@ describe("Company endpoint", () => {
 
                 const updated_offer = await Offer.findById(offer._id);
 
-                expect(updated_offer).toHaveProperty("hiddenReason", OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+                expect(updated_offer).toHaveProperty("hiddenReason", HiddenOfferReasons.ADMIN_BLOCK);
                 expect(updated_offer).toHaveProperty("isHidden", true);
 
             });
