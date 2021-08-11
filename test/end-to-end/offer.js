@@ -2191,6 +2191,123 @@ describe("Offer endpoint tests", () => {
                 });
             });
         });
+
+        describe("testing editing offer publish period exceeding concurrent offers", () => {
+
+            let test_offer_current, test_offer_before, test_offer_after;
+
+            const now = Date.now();
+
+            beforeAll(async () => {
+
+                await Offer.deleteMany({});
+
+                test_offer_before = await Offer.create({
+                    ...generateTestOffer({
+                        publishDate: (new Date(now + (3 * DAY_TO_MS))).toISOString(),
+                        publishEndDate: (new Date(now + (7 * DAY_TO_MS))).toISOString() }),
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                });
+
+                for (let i = 0; i < CompanyConstants.offers.max_concurrent - 1; i++)
+                    await Offer.create({
+                        ...generateTestOffer({
+                            publishDate: (new Date(now + (8 * DAY_TO_MS))).toISOString(),
+                            publishEndDate: (new Date(now + (12 * DAY_TO_MS))).toISOString() }),
+                        owner: test_company._id.toString(),
+                        ownerName: test_company.name,
+                        ownerLogo: test_company.logo,
+                    });
+
+                test_offer_current = await Offer.create({
+                    ...generateTestOffer({
+                        publishDate: (new Date(now + (8 * DAY_TO_MS))).toISOString(),
+                        publishEndDate: (new Date(now + (12 * DAY_TO_MS))).toISOString() }),
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                });
+
+                test_offer_after = await Offer.create({
+                    ...generateTestOffer({
+                        publishDate: (new Date(now + (13 * DAY_TO_MS))).toISOString(),
+                        publishEndDate: (new Date(now + (17 * DAY_TO_MS))).toISOString() }),
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                });
+
+                await test_agent.post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+            });
+
+            afterAll(async () => {
+                await Offer.deleteMany({});
+                await test_agent.del("/auth/login").expect(HTTPStatus.OK);
+            });
+
+            test("should fail when editing publishEndDate to timeperiod with max concurrent offers", async () => {
+                const edits = {
+                    publishEndDate: new Date(new Date(test_offer_before.publishEndDate).getTime() + (1 * DAY_TO_MS)).toISOString()
+                };
+
+                const res = await test_agent.post(`/offers/edit/${test_offer_before._id}`)
+                    .send(edits)
+                    .expect(HTTPStatus.CONFLICT);
+
+                expect(res.status).toEqual(HTTPStatus.CONFLICT);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(
+                    { msg: ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent) });
+            });
+
+            test("should fail when editing publishDate to timeperiod with max concurrent offers", async () => {
+                const edits = {
+                    publishDate: new Date(new Date(test_offer_after.publishDate).getTime() - (1 * DAY_TO_MS)).toISOString()
+                };
+                const res = await test_agent.post(`/offers/edit/${test_offer_after._id}`)
+                    .send(edits)
+                    .expect(HTTPStatus.CONFLICT);
+
+                expect(res.status).toEqual(HTTPStatus.CONFLICT);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual(
+                    { msg: ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent) });
+            });
+
+            test("should not fail when editing into same publishDate and publishEndDate", async () => {
+                const edits = {
+                    publishDate: test_offer_current.publishDate,
+                    publishEndDate: test_offer_current.publishEndDate
+                };
+                await test_agent.post(`/offers/edit/${test_offer_current._id}`)
+                    .send(edits)
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should not fail when editing publishDate of one of the concurrent offers into the 'concurrent' time period", async () => {
+                const edits = {
+                    publishDate: new Date(new Date(test_offer_current.publishDate).getTime() + (1 * DAY_TO_MS)).toISOString()
+                };
+                await test_agent.post(`/offers/edit/${test_offer_current._id}`)
+                    .send(edits)
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should not fail when editing publishEndDate of one of the concurrent offers into the 'concurrent' time period",
+                async () => {
+                    const edits = {
+                        publishEndDate: new Date(new Date(test_offer_current.publishEndDate).getTime() - (1 * DAY_TO_MS)).toISOString()
+                    };
+                    await test_agent.post(`/offers/edit/${test_offer_current._id}`)
+                        .send(edits)
+                        .expect(HTTPStatus.OK);
+                });
+        });
     });
 
     describe("POST /offers/:offerId/disable", () => {

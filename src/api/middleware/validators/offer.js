@@ -513,7 +513,7 @@ const canBeManaged = async (req, res, next) => {
 
     // Admin or gods can enable even if it was blocked by another admin
     if ((!req.user?.isAdmin && req.body.god_token !== config.god_token) &&
-         offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
+        offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
         return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
     }
 
