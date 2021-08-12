@@ -195,7 +195,7 @@ class OfferService {
             .limit(limit)
         ;
 
-        return showAdminReason ? offersQuery : offers.select("-adminReason");
+        return showAdminReason ? offersQuery : offersQuery.select("-adminReason");
 
     }
     _buildFilterQuery(filters) {
