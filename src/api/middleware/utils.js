@@ -40,6 +40,7 @@ const or = (
                 else success = true;
             });
         } catch (error) {
+            console.error(error);
             errors.push(hideInsecureError(error).toObject());
         }
         if (success) return next();
@@ -73,6 +74,7 @@ const when = (
         try {
             return await middleware(req, res, next);
         } catch (error) {
+            console.error(error);
             if (error instanceof APIError) {
                 return next(error);
             }

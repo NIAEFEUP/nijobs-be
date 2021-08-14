@@ -31,6 +31,7 @@ module.exports = (app) => {
 
             return res.json(offers);
         } catch (err) {
+            console.error(err);
             return next(err);
         }
     });
@@ -54,6 +55,7 @@ module.exports = (app) => {
             return res.json(offer);
 
         } catch (err) {
+            console.error(err);
             return next(err);
         }
     });
@@ -85,6 +87,7 @@ module.exports = (app) => {
 
                 return res.json(offer);
             } catch (err) {
+                console.error(err);
                 return next(err);
             }
         });
@@ -109,6 +112,7 @@ module.exports = (app) => {
                 const offer = await (new OfferService()).edit(req.params.offerId, req.body);
                 return res.json(offer);
             } catch (err) {
+                console.error(err);
                 return next(err);
             }
         });
@@ -134,6 +138,7 @@ module.exports = (app) => {
                 const offer = await (new OfferService()).disable(req.params.offerId, OfferConstants.HiddenOfferReasons.COMPANY_REQUEST);
                 return res.json(offer);
             } catch (err) {
+                console.error(err);
                 return next(err);
             }
         });
@@ -165,6 +170,7 @@ module.exports = (app) => {
                 await offerService.sendOfferDisabledNotification(req.params.offerId);
                 return res.json(offer);
             } catch (err) {
+                console.error(err);
                 return next(err);
             }
         });
@@ -191,6 +197,7 @@ module.exports = (app) => {
                 const offer = await (new OfferService()).enable(req.params.offerId);
                 return res.json(offer);
             } catch (err) {
+                console.error(err);
                 return next(err);
             }
         });

@@ -60,6 +60,7 @@ module.exports = (app) => {
                 await new CompanyService().findAll(computedLimit, computedOffset, req.hasAdminPrivileges, req.hasAdminPrivileges);
             return res.json({ companies, totalDocCount });
         } catch (error) {
+            console.error(error);
             return next(error);
         }
 
