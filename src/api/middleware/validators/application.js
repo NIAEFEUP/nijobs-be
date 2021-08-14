@@ -15,7 +15,7 @@ const MAX_LIMIT_RESULTS = 100;
 const create = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isEmail().normalizeEmail().withMessage(ValidationReasons.EMAIL)
+        .isEmail().withMessage(ValidationReasons.EMAIL)
         .bail()
         .custom(checkDuplicatedEmail).bail()
         .custom(applicationUniqueness)
