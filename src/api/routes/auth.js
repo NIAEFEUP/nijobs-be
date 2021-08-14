@@ -57,6 +57,7 @@ module.exports = (app) => {
                 data,
             });
         } catch (err) {
+            console.error(err);
             return next(err);
         }
     });

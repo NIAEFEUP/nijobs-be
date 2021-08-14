@@ -63,6 +63,7 @@ module.exports = (app) => {
                 );
                 return res.json({ applications, docCount });
             } catch (err) {
+                console.error(err);
                 return next(err);
             }
         }
@@ -81,12 +82,13 @@ module.exports = (app) => {
                 const { account } = await (new ApplicationService()).approve(mongoose.Types.ObjectId(req.params.id));
                 return res.json(account);
             } catch (err) {
+                console.error(err);
                 if (err instanceof ApplicationService.CompanyApplicationNotFound) {
                     return res
                         .status(HTTPStatus.NOT_FOUND)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
                 } else if (
-                    err instanceof ApplicationService.CompanyApplicationAlreadyReiewed ||
+                    err instanceof ApplicationService.CompanyApplicationAlreadyReviewed ||
                     err instanceof ApplicationService.CompanyApplicationEmailAlreadyInUse
                 ) {
                     return res
@@ -111,11 +113,12 @@ module.exports = (app) => {
                 const application = await (new ApplicationService()).reject(mongoose.Types.ObjectId(req.params.id), req.body.rejectReason);
                 return res.json(application);
             } catch (err) {
+                console.error(err);
                 if (err instanceof ApplicationService.CompanyApplicationNotFound) {
                     return res
                         .status(HTTPStatus.NOT_FOUND)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
-                } else if (err instanceof ApplicationService.CompanyApplicationAlreadyReiewed) {
+                } else if (err instanceof ApplicationService.CompanyApplicationAlreadyReviewed) {
                     return res
                         .status(HTTPStatus.CONFLICT)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));

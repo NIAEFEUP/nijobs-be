@@ -18,6 +18,7 @@ module.exports = (app) => {
             const application = await (new ApplicationService()).create(req.body);
             return res.json(application);
         } catch (err) {
+            console.error(err);
             return next(err);
         }
     });

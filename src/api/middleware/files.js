@@ -84,6 +84,7 @@ const cloudSave = async (req, res, next) => {
             req.file.url = resp.secure_url;
         }
     } catch (err) {
+        console.error(err);
         await fs.promises.unlink(file_path);
         return next(new APIError(
             HTTPStatus.UNPROCESSABLE_ENTITY,

@@ -17,7 +17,7 @@ class CompanyApplicationNotFound extends Error {
     }
 }
 
-class CompanyApplicationAlreadyReiewed extends Error {
+class CompanyApplicationAlreadyReviewed extends Error {
     constructor(msg) {
         super(msg);
     }
@@ -174,7 +174,8 @@ class CompanyApplicationService {
         try {
             application.approve();
         } catch (e) {
-            throw new CompanyApplicationAlreadyReiewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+            console.error(e);
+            throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
         }
 
         try {
@@ -188,7 +189,7 @@ class CompanyApplicationService {
             return { application, account };
 
         } catch (err) {
-            console.error(`Error creating account for approved Company Application, rolling back approval of ${application._id}`);
+            console.error(`Error creating account for approved Company Application, rolling back approval of ${application._id}`, err);
             application.undoApproval();
             if (err.name === "MongoError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.errmsg)) {
                 throw new CompanyApplicationEmailAlreadyInUse(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
@@ -211,12 +212,13 @@ class CompanyApplicationService {
 
             return application.toObject();
         } catch (e) {
-            throw new CompanyApplicationAlreadyReiewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+            console.error(e);
+            throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
         }
     }
 }
 
 module.exports = CompanyApplicationService;
-module.exports.CompanyApplicationAlreadyReiewed = CompanyApplicationAlreadyReiewed;
+module.exports.CompanyApplicationAlreadyReviewed = CompanyApplicationAlreadyReviewed;
 module.exports.CompanyApplicationNotFound = CompanyApplicationNotFound;
 module.exports.CompanyApplicationEmailAlreadyInUse = CompanyApplicationEmailAlreadyInUse;

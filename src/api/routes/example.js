@@ -46,6 +46,7 @@ module.exports = (app) => {
             });
 
         } catch (err) {
+            console.error(err);
             return res
                 .status(HTTPStatus.INTERNAL_SERVER_ERROR)
                 .json(buildErrorResponse(ErrorTypes.DB_ERROR, [{ msg: "dunno" }]));
@@ -72,6 +73,7 @@ module.exports = (app) => {
 
             return res.status(HTTPStatus.OK).json({});
         } catch (err) {
+            console.error(err);
             return res
                 .status(HTTPStatus.INTERNAL_SERVER_ERROR)
                 .json(buildErrorResponse(ErrorTypes.DB_ERROR, [{ msg: "dunno2" }]));
