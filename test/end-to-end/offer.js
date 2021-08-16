@@ -1534,10 +1534,11 @@ describe("Offer endpoint tests", () => {
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
             });
 
-            test("should return an empty array if there isn't a company with that id", async () => {
-                const res = await request().get("/offers/company/60ddb0bb2849830020883f91");
+            test("should fail if there isn't a company with that id", async () => {
+                const missingCompanyId = "60ddb0bb2849830020883f91";
+                const res = await request().get(`/offers/company/${missingCompanyId}`);
 
-                expect(res.body).toEqual([]);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(missingCompanyId));
             });
         });
 

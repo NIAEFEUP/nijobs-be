@@ -65,7 +65,7 @@ module.exports = (app) => {
     /**
      * Gets all the offers of a certain company from the db
      */
-    router.get("/company/:companyId", companyValidators.validCompanyId, async (req, res, next) => {
+    router.get("/company/:companyId", companyValidators.isExistingCompany, async (req, res, next) => {
         try {
             const offers = await (new OfferService()).getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges);
 

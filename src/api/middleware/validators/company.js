@@ -75,6 +75,23 @@ const validCompanyId = useExpressValidators([
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID),
 ]);
 
+const isExistingCompany = useExpressValidators([
+    param("companyId", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
+        .custom(async (companyId, { req }) => {
+            try {
+                // including blocked companies (2nd argument)
+                const company = await (new CompanyService()).findById(companyId, true, req.hasAdminPrivileges);
+                if (!company) throw new Error(ValidationReasons.COMPANY_NOT_FOUND(companyId));
+            } catch (err) {
+                console.error(err);
+                throw err;
+            }
+            return true;
+        })
+]);
+
 module.exports = {
     finish,
     list,
@@ -83,5 +100,6 @@ module.exports = {
     disable,
     companyExists,
     validCompanyId,
+    isExistingCompany,
     MAX_LIMIT_RESULTS,
 };
