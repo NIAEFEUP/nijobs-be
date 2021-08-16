@@ -262,26 +262,26 @@ class OfferService {
         return constraints.length ? { "$and": constraints } : {};
     }
 
-    isVisibleOffer(offer, hasAdminPrivileges, user) {
-        return !offer?.isHidden || hasAdminPrivileges || (offer.owner.toString() === user?.company?._id.toString());
+    isVisibleOffer(offer, hasAdminPrivileges, userCompanyId = "") {
+        return !offer?.isHidden || hasAdminPrivileges || (offer.owner.toString() === userCompanyId.toString());
     }
 
-    async getOfferById(offerId, user, hasAdminPrivileges, showAdminReason = false) {
+    async getOfferById(offerId, targetOwner, hasAdminPrivileges, showAdminReason = false) {
         const offerQuery = Offer.findById(offerId);
 
         if (!showAdminReason) offerQuery.select("-adminReason");
 
         const offer = await offerQuery;
 
-        if (!this.isVisibleOffer(offer, hasAdminPrivileges, user)) return null;
+        if (!this.isVisibleOffer(offer, hasAdminPrivileges, targetOwner)) return null;
 
         return offer;
     }
 
-    async getOffersByCompanyId(companyId, user, hasAdminPrivileges) {
+    async getOffersByCompanyId(companyId, userCompanyId, hasAdminPrivileges) {
         return (await Offer.find({ owner: companyId }))
             .filter((offer) =>
-                this.isVisibleOffer(offer, hasAdminPrivileges, user)
+                this.isVisibleOffer(offer, hasAdminPrivileges, userCompanyId)
             );
     }
 

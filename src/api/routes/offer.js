@@ -67,7 +67,7 @@ module.exports = (app) => {
      */
     router.get("/company/:companyId", companyValidators.validCompanyId, async (req, res, next) => {
         try {
-            const offers = await (new OfferService()).getOffersByCompanyId(req.params.companyId, req.user, req.hasAdminPrivileges);
+            const offers = await (new OfferService()).getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges);
 
             return res.json(offers);
         } catch (err) {
