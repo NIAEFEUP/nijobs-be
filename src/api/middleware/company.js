@@ -109,7 +109,7 @@ const isNotDisabled = (owner) => async (req, res, next) => {
     return next();
 };
 
-const canModify = (companyId) => async (req, res, next) => {
+const canToggleCompanyVisibility = (companyId) => async (req, res, next) => {
     const company = await (new CompanyService()).findById(companyId, true);
 
     // only god or the same company can disable a given company
@@ -117,7 +117,7 @@ const canModify = (companyId) => async (req, res, next) => {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,
             ErrorTypes.FORBIDDEN,
-            ValidationReasons.COMPANY_NOT_MODIFIABLE
+            ValidationReasons.INSUFFICIENT_PERMISSIONS_COMAPNY_VISIBILITY
         ));
     }
     return next();
@@ -130,6 +130,6 @@ module.exports = {
     profileNotComplete,
     profileComplete,
     isNotBlocked,
-    canModify,
+    canToggleCompanyVisibility,
     isNotDisabled,
 };

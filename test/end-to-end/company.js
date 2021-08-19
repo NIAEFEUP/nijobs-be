@@ -13,7 +13,10 @@ const fs = require("fs");
 const path = require("path");
 const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
 const EmailService = require("../../src/lib/emailService");
-const { COMPANY_UNBLOCKED_NOTIFICATION, COMPANY_BLOCKED_NOTIFICATION } = require("../../src/email-templates/companyManagement");
+const { COMPANY_UNBLOCKED_NOTIFICATION,
+    COMPANY_BLOCKED_NOTIFICATION,
+    COMPANY_ENABLED_NOTIFICATION,
+    COMPANY_DISABLED_NOTIFICATION } = require("../../src/email-templates/companyManagement");
 const { MAX_FILE_SIZE_MB } = require("../../src/api/middleware/utils");
 
 const getCompanies = async (options) =>
@@ -964,7 +967,7 @@ describe("Company endpoint", () => {
 
     describe("PUT /company/enable", () => {
 
-        let disabled_test_company_1, disabled_test_company_2, disabled_test_company_3, disabled_test_company_4;
+        let disabled_test_company_1, disabled_test_company_2, disabled_test_company_3, disabled_test_company_4, disabled_test_company_mail;
         const test_user_admin = {
             email: "admin@email.com",
             password: "password123",
@@ -975,6 +978,18 @@ describe("Company endpoint", () => {
         };
         const test_user_company_2 = {
             email: "company2@email.com",
+            password: "password123",
+        };
+        const test_user_company_3 = {
+            email: "company3@email.com",
+            password: "password123",
+        };
+        const test_user_company_4 = {
+            email: "company4@email.com",
+            password: "password123",
+        };
+        const test_user_mail = {
+            email: "company_mail@email.com",
             password: "password123",
         };
 
@@ -991,21 +1006,30 @@ describe("Company endpoint", () => {
                 disabled_test_company_1,
                 disabled_test_company_2,
                 disabled_test_company_3,
-                disabled_test_company_4
+                disabled_test_company_4,
+                disabled_test_company_mail
             ] = await Company.create([
                 {
                     name: "disabled-test-company-1",
-                    isDisabled: true
+                    isDisabled: true,
+                    hasFinishedRegistration: true
                 }, {
                     name: "disabled-test-company-2",
-                    isDisabled: true
+                    isDisabled: true,
+                    hasFinishedRegistration: true
                 }, {
                     name: "disabled-test-company-3",
-                    isDisabled: true
+                    isDisabled: true,
+                    hasFinishedRegistration: true
                 }, {
                     name: "disabled-test-company-4",
                     logo: "http://awebsite.com/alogo.jpg",
-                    isDisabled: true
+                    isDisabled: true,
+                    hasFinishedRegistration: true
+                }, {
+                    name: "disabled-test-company-mail",
+                    isDisabled: true,
+                    hasFinishedRegistration: true
                 }
             ]);
 
@@ -1024,6 +1048,21 @@ describe("Company endpoint", () => {
                 email: test_user_company_2.email,
                 password: await hash(test_user_company_2.password),
                 company: disabled_test_company_2._id
+            });
+            await Account.create({
+                email: test_user_company_3.email,
+                password: await hash(test_user_company_3.password),
+                company: disabled_test_company_3._id
+            });
+            await Account.create({
+                email: test_user_company_4.email,
+                password: await hash(test_user_company_4.password),
+                company: disabled_test_company_4._id
+            });
+            await Account.create({
+                email: test_user_mail.email,
+                password: await hash(test_user_mail.password),
+                company: disabled_test_company_mail._id
             });
 
             const offer = {
@@ -1099,7 +1138,7 @@ describe("Company endpoint", () => {
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_NOT_MODIFIABLE });
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS_COMAPNY_VISIBILITY });
 
         });
 
@@ -1152,7 +1191,7 @@ describe("Company endpoint", () => {
             expect(res.body.isDisabled).toBe(false);
         });
 
-        test("should change offers isHidden on company enable", async () => {
+        test("should change offers' 'isHidden' on company enable", async () => {
 
             const offersBefore = await Offer.find({ owner: disabled_test_company_4._id });
 
@@ -1171,11 +1210,29 @@ describe("Company endpoint", () => {
             expect(offersAfter.every(({ isHidden }) => isHidden === false)).toBe(true);
             expect(offersAfter.every(({ hiddenReason }) => hiddenReason === undefined)).toBe(true);
         });
+
+        test("should send an email to the company user when it is enabled", async () => {
+            await test_agent
+                .put(`/company/${disabled_test_company_mail._id}/enable`)
+                .send(withGodToken())
+                .expect(HTTPStatus.OK);
+
+            const emailOptions = COMPANY_ENABLED_NOTIFICATION(
+                disabled_test_company_mail.name
+            );
+
+            expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+                subject: emailOptions.subject,
+                to: test_user_mail.email,
+                template: emailOptions.template,
+                context: emailOptions.context,
+            }));
+        });
     });
 
     describe("PUT /company/disable", () => {
 
-        let test_company_1, test_company_2, test_company_3;
+        let test_company_1, test_company_2, test_company_3, test_company_mail;
         const test_user_admin = {
             email: "admin@email.com",
             password: "password123",
@@ -1186,6 +1243,14 @@ describe("Company endpoint", () => {
         };
         const test_user_company_2 = {
             email: "company2@email.com",
+            password: "password123",
+        };
+        const test_user_company_3 = {
+            email: "company3@email.com",
+            password: "password123",
+        };
+        const test_user_company_mail = {
+            email: "company_mail@email.com",
             password: "password123",
         };
 
@@ -1199,14 +1264,20 @@ describe("Company endpoint", () => {
 
             await Company.deleteMany({});
 
-            [test_company_1, test_company_2, test_company_3] = await Company.create([
+            [test_company_1, test_company_2, test_company_3, test_company_mail] = await Company.create([
                 {
-                    name: "test-company-1"
+                    name: "test-company-1",
+                    hasFinishedRegistration: true
                 }, {
                     name: "test-company-2",
+                    hasFinishedRegistration: true
                 }, {
                     name: "test-company-3",
                     logo: "http://awebsite.com/alogo.jpg",
+                    hasFinishedRegistration: true
+                }, {
+                    name: "test-company-mail",
+                    hasFinishedRegistration: true
                 }
             ]);
 
@@ -1225,6 +1296,16 @@ describe("Company endpoint", () => {
                 email: test_user_company_2.email,
                 password: await hash(test_user_company_2.password),
                 company: test_company_2._id
+            });
+            await Account.create({
+                email: test_user_company_3.email,
+                password: await hash(test_user_company_3.password),
+                company: test_company_3._id
+            });
+            await Account.create({
+                email: test_user_company_mail.email,
+                password: await hash(test_user_company_mail.password),
+                company: test_company_mail._id
             });
 
             const offer = {
@@ -1298,7 +1379,7 @@ describe("Company endpoint", () => {
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_NOT_MODIFIABLE });
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS_COMAPNY_VISIBILITY });
         });
 
         test("should fail to disable company if logged as admin", async () => {
@@ -1350,7 +1431,7 @@ describe("Company endpoint", () => {
             expect(res.body.isDisabled).toBe(true);
         });
 
-        test("should change offers isHidden on company disable", async () => {
+        test("should change offers' 'isHidden' on company disable", async () => {
 
             const offersBefore = await Offer.find({ owner: test_company_3._id });
 
@@ -1368,6 +1449,24 @@ describe("Company endpoint", () => {
 
             expect(offersAfter.every(({ isHidden }) => isHidden === true)).toBe(true);
             expect(offersAfter.every(({ hiddenReason }) => hiddenReason === HiddenOfferReasons.COMPANY_DISABLED)).toBe(true);
+        });
+
+        test("should send an email to the company user when it is disabled", async () => {
+            await test_agent
+                .put(`/company/${test_company_mail._id}/disable`)
+                .send(withGodToken())
+                .expect(HTTPStatus.OK);
+
+            const emailOptions = COMPANY_DISABLED_NOTIFICATION(
+                test_company_mail.name
+            );
+
+            expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
+                subject: emailOptions.subject,
+                to: test_user_company_mail.email,
+                template: emailOptions.template,
+                context: emailOptions.context,
+            }));
         });
     });
 });

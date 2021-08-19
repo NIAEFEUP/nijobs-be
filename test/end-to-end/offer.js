@@ -2606,6 +2606,57 @@ describe("Offer endpoint tests", () => {
                 context: emailOptions.context,
             }));
         });
+
+        describe("Disabled companies", () => {
+            let disabled_test_company, test_offer;
+
+            const disabled_test_user = {
+                email: "disabled_user@email.com",
+                password: "password123"
+            };
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                disabled_test_company = await Company.create({
+                    name: "disabled-company",
+                    isDisabled: true,
+                    hasFinishedRegistration: true,
+                    logo: "http://awebsite.com/alogo.jpg",
+                });
+
+                await Account.create({
+                    email: disabled_test_user.email,
+                    password: await hash(disabled_test_user.password),
+                    company: disabled_test_company._id
+                });
+
+                test_offer = await Offer.create({
+                    ...generateTestOffer({
+                        owner: disabled_test_company._id.toString(),
+                        ownerName: disabled_test_company.name,
+                        ownerLogo: disabled_test_company.logo,
+                    }),
+                });
+            });
+
+            afterAll(async () => {
+                await Offer.deleteMany({ test_offer });
+                await Company.deleteMany({ disabled_test_company });
+            });
+
+            test("Should fail to disable offer is company is already disabled", async () => {
+
+                const res = await test_agent
+                    .post(`/offers/${test_offer._id}/disable`)
+                    .send(withGodToken({ adminReason: "sample-admin-reason" }));
+
+                expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
+            });
+        });
     });
 
     describe("POST /offers/:offerId/hide", () => {

@@ -114,13 +114,13 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.enable,
-        (req, res, next) => companyMiddleware.canModify(req.params.companyId)(req, res, next),
+        (req, res, next) => companyMiddleware.canToggleCompanyVisibility(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {
                 const service = new CompanyService();
                 await new OfferService().enableByCompany(req.params.companyId);
                 const company = await service.enable(req.params.companyId);
-                service.sendCompanyEnabledNotification(req.params.companyId);
+                await service.sendCompanyEnabledNotification(req.params.companyId);
                 return res.json(company);
             } catch (err) {
                 return next(err);
@@ -136,7 +136,7 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.disable,
-        (req, res, next) => companyMiddleware.canModify(req.params.companyId)(req, res, next),
+        (req, res, next) => companyMiddleware.canToggleCompanyVisibility(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {
                 const service = new CompanyService();

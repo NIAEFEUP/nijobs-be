@@ -149,12 +149,7 @@ class CompanyService {
     disable(companyId) {
 
         try {
-            return this.changeAttributes(
-                companyId,
-                {
-                    isDisabled: true,
-                }
-            );
+            return this.changeAttributes(companyId, { isDisabled: true });
         } catch (err) {
             console.error(err);
             throw err;
@@ -164,12 +159,7 @@ class CompanyService {
     enable(companyId) {
 
         try {
-            return this.changeAttributes(
-                companyId,
-                {
-                    isDisabled: false,
-                }
-            );
+            return this.changeAttributes(companyId, { isDisabled: false });
         } catch (err) {
             console.error(err);
             throw err;
