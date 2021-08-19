@@ -117,8 +117,10 @@ module.exports = (app) => {
         (req, res, next) => companyMiddleware.canModify(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {
+                const service = new CompanyService();
                 await new OfferService().enableByCompany(req.params.companyId);
-                const company = await (new CompanyService()).enable(req.params.companyId);
+                const company = await service.enable(req.params.companyId);
+                service.sendCompanyEnabledNotification(req.params.companyId);
                 return res.json(company);
             } catch (err) {
                 return next(err);
@@ -137,8 +139,10 @@ module.exports = (app) => {
         (req, res, next) => companyMiddleware.canModify(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {
+                const service = new CompanyService();
                 await new OfferService().disableByCompany(req.params.companyId);
-                const company = await (new CompanyService()).disable(req.params.companyId);
+                const company = await service.disable(req.params.companyId);
+                await service.sendCompanyDisabledNotification(req.params.companyId);
                 return res.json(company);
             } catch (err) {
                 return next(err);

@@ -1,4 +1,7 @@
-const { COMPANY_BLOCKED_NOTIFICATION, COMPANY_UNBLOCKED_NOTIFICATION } = require("../email-templates/companyManagement");
+const { COMPANY_BLOCKED_NOTIFICATION,
+    COMPANY_UNBLOCKED_NOTIFICATION,
+    COMPANY_DISABLED_NOTIFICATION,
+    COMPANY_ENABLED_NOTIFICATION } = require("../email-templates/companyManagement");
 const EmailService = require("../lib/emailService");
 const Account = require("../models/Account");
 const Company = require("../models/Company");
@@ -114,7 +117,12 @@ class CompanyService {
             });
     }
 
-    async sendCompanyBlockedNotification(companyId) {
+    /**
+     * E-mails the given company using the provided notification template.
+     * @param {*} companyId the id of the company to whom the notifications is sent
+     * @param {*} notification the notification to send
+     */
+    async _sendCompanyNotification(companyId, notification) {
         try {
             const company = await Company.findById(companyId);
             const companyAccount = await Account.findOne({
@@ -122,7 +130,7 @@ class CompanyService {
             });
             await EmailService.sendMail({
                 to: companyAccount.email,
-                ...COMPANY_BLOCKED_NOTIFICATION(company.name),
+                ...notification(company.name),
             });
         } catch (err) {
             console.error(err);
@@ -130,20 +138,12 @@ class CompanyService {
         }
     }
 
+    async sendCompanyBlockedNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_BLOCKED_NOTIFICATION);
+    }
+
     async sendCompanyUnblockedNotification(companyId) {
-        try {
-            const company = await Company.findById(companyId);
-            const companyAccount = await Account.findOne({
-                company
-            });
-            await EmailService.sendMail({
-                to: companyAccount.email,
-                ...COMPANY_UNBLOCKED_NOTIFICATION(company.name),
-            });
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
+        await this._sendCompanyNotification(companyId, COMPANY_UNBLOCKED_NOTIFICATION);
     }
 
     disable(companyId) {
@@ -174,6 +174,15 @@ class CompanyService {
             console.error(err);
             throw err;
         }
+    }
+
+    async sendCompanyDisabledNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_DISABLED_NOTIFICATION);
+    }
+
+
+    async sendCompanyEnabledNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_ENABLED_NOTIFICATION);
     }
 
 }
