@@ -2,6 +2,7 @@ const { Router } = require("express");
 
 const authMiddleware = require("../middleware/auth");
 const companyMiddleware = require("../middleware/company");
+const offerMiddleware = require("../middleware/offer");
 const validators = require("../middleware/validators/offer");
 const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
@@ -164,11 +165,7 @@ module.exports = (app) => {
         validators.disable,
         validators.isExistingOffer,
         validators.canDisable,
-        async (req, res, next) => {
-            const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, true);
-
-            return companyMiddleware.isNotDisabled(offer.owner)(req, res, next);
-        },
+        offerMiddleware.isOwnerNotDisabled,
         async (req, res, next) => {
             try {
                 const offerService = new OfferService();
@@ -203,11 +200,7 @@ module.exports = (app) => {
         validators.canBeEnabled,
         validators.canBeManaged,
         validators.offerOwnerNotBlocked,
-        async (req, res, next) => {
-            const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, true);
-
-            return companyMiddleware.isNotDisabled(offer.owner)(req, res, next);
-        },
+        offerMiddleware.isOwnerNotDisabled,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).enable(req.params.offerId);

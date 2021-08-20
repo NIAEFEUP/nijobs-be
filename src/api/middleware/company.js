@@ -117,7 +117,7 @@ const canToggleCompanyVisibility = (companyId) => async (req, res, next) => {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,
             ErrorTypes.FORBIDDEN,
-            ValidationReasons.INSUFFICIENT_PERMISSIONS_COMAPNY_VISIBILITY
+            ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_VISIBILITY
         ));
     }
     return next();
