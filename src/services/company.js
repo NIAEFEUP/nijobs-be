@@ -1,4 +1,7 @@
-const { COMPANY_BLOCKED_NOTIFICATION, COMPANY_UNBLOCKED_NOTIFICATION } = require("../email-templates/companyManagement");
+const { COMPANY_BLOCKED_NOTIFICATION,
+    COMPANY_UNBLOCKED_NOTIFICATION,
+    COMPANY_DISABLED_NOTIFICATION,
+    COMPANY_ENABLED_NOTIFICATION } = require("../email-templates/companyManagement");
 const EmailService = require("../lib/emailService");
 const Account = require("../models/Account");
 const Company = require("../models/Company");
@@ -20,15 +23,16 @@ class CompanyService {
      *
      * @param {*} limit - Number of documents to return
      * @param {*} offset - where to start the query (pagination - how many documents to skip, NOT how many pages to skip)
+     * @param {*} showHidden - weather to show the hidden companies or not, defaults to 'false'
      *
      * @returns {companies, totalDocCount}
      */
-    async findAll(limit, offset, showBlocked = false, showAdminReason = false) {
+    async findAll(limit, offset, showHidden = false, showAdminReason = false) {
 
 
         const companyQuery = Company.find({});
 
-        if (!showBlocked) companyQuery.withoutBlocked();
+        if (!showHidden) companyQuery.withoutBlocked().withoutDisabled();
         if (!showAdminReason) companyQuery.hideAdminReason();
 
         const companies = [...(await companyQuery
@@ -47,10 +51,12 @@ class CompanyService {
 
     /**
      * @param {*} company_id Id of the company
+     * @param {*} showHidden weather to show the company if it is hidden, defaults to false
+     * @param {*} showAdminReason weahter to show the admin reason given to hide this company, defaults to false
      */
-    findById(company_id, showBlocked = false, showAdminReason = false) {
+    findById(company_id, showHidden = false, showAdminReason = false) {
         const query = Company.findById(company_id);
-        if (!showBlocked) query.withoutBlocked();
+        if (!showHidden) query.withoutBlocked().withoutDisabled();
         if (!showAdminReason) query.hideAdminReason();
         return query;
     }
@@ -99,40 +105,76 @@ class CompanyService {
      * @param {*} attributes object containing the attributes to change in company
      */
     changeAttributes(company_id, attributes) {
-        return Company.findOneAndUpdate({ _id: company_id }, attributes);
+        return Company.findOneAndUpdate(
+            { _id: company_id },
+            attributes,
+            { new: true, omitUndefined: true },
+            (err) => {
+                if (err) {
+                    console.error(err);
+                    throw err;
+                }
+            });
+    }
+
+    /**
+     * E-mails the given company using the provided notification template.
+     * @param {*} companyId the id of the company to whom the notifications is sent
+     * @param {*} notification the notification to send
+     */
+    async _sendCompanyNotification(companyId, notification) {
+        try {
+            const company = await Company.findById(companyId);
+            const companyAccount = await Account.findOne({
+                company
+            });
+            await EmailService.sendMail({
+                to: companyAccount.email,
+                ...notification(company.name),
+            });
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
 
     async sendCompanyBlockedNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_BLOCKED_NOTIFICATION);
+    }
+
+    async sendCompanyUnblockedNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_UNBLOCKED_NOTIFICATION);
+    }
+
+    disable(companyId) {
+
         try {
-            const company = await Company.findById(companyId);
-            const companyAccount = await Account.findOne({
-                company
-            });
-            await EmailService.sendMail({
-                to: companyAccount.email,
-                ...COMPANY_BLOCKED_NOTIFICATION(company.name),
-            });
+            return this.changeAttributes(companyId, { isDisabled: true });
         } catch (err) {
             console.error(err);
             throw err;
         }
     }
 
-    async sendCompanyUnblockedNotification(companyId) {
+    enable(companyId) {
+
         try {
-            const company = await Company.findById(companyId);
-            const companyAccount = await Account.findOne({
-                company
-            });
-            await EmailService.sendMail({
-                to: companyAccount.email,
-                ...COMPANY_UNBLOCKED_NOTIFICATION(company.name),
-            });
+            return this.changeAttributes(companyId, { isDisabled: false });
         } catch (err) {
             console.error(err);
             throw err;
         }
     }
+
+    async sendCompanyDisabledNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_DISABLED_NOTIFICATION);
+    }
+
+
+    async sendCompanyEnabledNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_ENABLED_NOTIFICATION);
+    }
+
 }
 
 module.exports = CompanyService;

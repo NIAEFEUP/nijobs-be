@@ -32,6 +32,10 @@ const CompanySchema = new Schema({
     },
     logo: {
         type: String,
+    },
+    isDisabled: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -42,6 +46,10 @@ CompanySchema.post("findOneAndUpdate", async function(doc) {
 
 CompanySchema.query.withoutBlocked = function() {
     return this.where({ isBlocked: false });
+};
+
+CompanySchema.query.withoutDisabled = function() {
+    return this.where({ isDisabled: false });
 };
 
 CompanySchema.query.hideAdminReason = function() {

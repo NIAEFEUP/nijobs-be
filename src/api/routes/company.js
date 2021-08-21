@@ -1,19 +1,20 @@
 const config = require("../../config/env");
 const { Router } = require("express");
+const HTTPStatus = require("http-status-codes");
 
 const validators = require("../middleware/validators/company");
 const companyMiddleware = require("../middleware/company");
 const authMiddleware = require("../middleware/auth");
 const CompanyService = require("../../services/company");
+const { ErrorTypes } = require("../middleware/errorHandler");
+const ValidationReasons = require("../middleware/validators/validationReasons");
+
+const { or } = require("../middleware/utils");
 
 const router = Router();
 
 const fileMiddleware  = require("../middleware/files");
-const { or } = require("../middleware/utils");
 const { authRequired } = require("../middleware/auth");
-const HTTPStatus = require("http-status-codes");
-const { ErrorTypes } = require("../middleware/errorHandler");
-const ValidationReasons = require("../middleware/validators/validationReasons");
 const OfferService = require("../../services/offer");
 
 module.exports = (app) => {
@@ -89,7 +90,7 @@ module.exports = (app) => {
             authMiddleware.isAdmin
         ],
         { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
-        validators.unblock,
+        validators.enable,
         async (req, res, _next) => {
             try {
                 const service = new CompanyService();
@@ -100,6 +101,51 @@ module.exports = (app) => {
             } catch (err) {
                 console.error(err);
                 throw err;
+            }
+        });
+
+    /**
+     * Enables a previously disabled company
+     */
+    router.put("/:companyId/enable",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isAdmin,
+            authMiddleware.isGod
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.enable,
+        (req, res, next) => companyMiddleware.canToggleCompanyVisibility(req.params.companyId)(req, res, next),
+        async (req, res, next) => {
+            try {
+                const service = new CompanyService();
+                await new OfferService().enableByCompany(req.params.companyId);
+                const company = await service.enable(req.params.companyId);
+                await service.sendCompanyEnabledNotification(req.params.companyId);
+                return res.json(company);
+            } catch (err) {
+                return next(err);
+            }
+        });
+
+    /**
+     * Disables a previously enabled company
+     */
+    router.put("/:companyId/disable",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isGod
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.disable,
+        (req, res, next) => companyMiddleware.canToggleCompanyVisibility(req.params.companyId)(req, res, next),
+        async (req, res, next) => {
+            try {
+                const service = new CompanyService();
+                await new OfferService().disableByCompany(req.params.companyId);
+                const company = await service.disable(req.params.companyId);
+                await service.sendCompanyDisabledNotification(req.params.companyId);
+                return res.json(company);
+            } catch (err) {
+                return next(err);
             }
         });
 };

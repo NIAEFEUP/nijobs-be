@@ -2,12 +2,13 @@ const { Router } = require("express");
 
 const authMiddleware = require("../middleware/auth");
 const companyMiddleware = require("../middleware/company");
+const offerMiddleware = require("../middleware/offer");
 const validators = require("../middleware/validators/offer");
 const OfferService = require("../../services/offer");
 const HTTPStatus = require("http-status-codes");
 const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
-const { or } = require("../middleware/utils");
+const { or, when } = require("../middleware/utils");
 const OfferConstants = require("../../models/constants/Offer");
 
 const router = Router();
@@ -74,6 +75,10 @@ module.exports = (app) => {
         companyMiddleware.profileComplete,
         (req, res, next) => companyMiddleware.isNotBlocked(req.targetOwner)(req, res, next),
         companyMiddleware.verifyMaxConcurrentOffersOnCreate,
+        when(
+            // if we are a company creating an offer, we can't be disabled, but admins/gods can create offers in our name
+            (req) => !req.hasAdminPrivileges,
+            (req, res, next) => companyMiddleware.isNotDisabled(req.targetOwner)(req, res, next)),
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
@@ -101,6 +106,7 @@ module.exports = (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.isExistingOffer,
         validators.offerOwnerNotBlocked,
+        validators.offerOwnerNotDisabled,
         validators.isEditable,
         validators.canBeManaged,
         validators.edit,
@@ -132,6 +138,7 @@ module.exports = (app) => {
         validators.validOfferId,
         validators.isExistingOffer,
         (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
+        validators.offerOwnerNotDisabled,
         validators.canHide,
         async (req, res, next) => {
             try {
@@ -158,6 +165,7 @@ module.exports = (app) => {
         validators.disable,
         validators.isExistingOffer,
         validators.canDisable,
+        offerMiddleware.isOwnerNotDisabled,
         async (req, res, next) => {
             try {
                 const offerService = new OfferService();
@@ -192,6 +200,7 @@ module.exports = (app) => {
         validators.canBeEnabled,
         validators.canBeManaged,
         validators.offerOwnerNotBlocked,
+        offerMiddleware.isOwnerNotDisabled,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).enable(req.params.offerId);

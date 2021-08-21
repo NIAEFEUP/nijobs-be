@@ -9,5 +9,6 @@ module.exports = Object.freeze({
         ADMIN_BLOCK: "ADMIN_REQUEST",
         COMPANY_REQUEST: "COMPANY_REQUEST",
         COMPANY_BLOCKED: "COMPANY_BLOCKED",
+        COMPANY_DISABLED: "COMPANY_DISABLED",
     },
 });

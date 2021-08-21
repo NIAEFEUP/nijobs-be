@@ -94,7 +94,32 @@ const isNotBlocked = (owner) => async (req, res, next) => {
             ValidationReasons.COMPANY_BLOCKED
         ));
     }
+    return next();
+};
 
+const isNotDisabled = (owner) => async (req, res, next) => {
+    const company = await (new CompanyService()).findById(owner, true);
+    if (company.isDisabled) {
+        return next(new APIError(
+            HTTPStatus.FORBIDDEN,
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.COMPANY_DISABLED
+        ));
+    }
+    return next();
+};
+
+const canToggleCompanyVisibility = (companyId) => async (req, res, next) => {
+    const company = await (new CompanyService()).findById(companyId, true);
+
+    // only god or the same company can disable a given company
+    if (!req.hasAdminPrivileges && company._id.toString() !== req.targetOwner) {
+        return next(new APIError(
+            HTTPStatus.FORBIDDEN,
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_VISIBILITY
+        ));
+    }
     return next();
 };
 
@@ -105,4 +130,6 @@ module.exports = {
     profileNotComplete,
     profileComplete,
     isNotBlocked,
+    canToggleCompanyVisibility,
+    isNotDisabled,
 };

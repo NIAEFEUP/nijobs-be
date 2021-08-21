@@ -55,7 +55,14 @@ const block = useExpressValidators([
         .trim(),
 ]);
 
-const unblock = useExpressValidators([
+const disable = useExpressValidators([
+    param("companyId")
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
+        .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
+]);
+
+const enable = useExpressValidators([
     param("companyId")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
@@ -66,7 +73,8 @@ module.exports = {
     finish,
     list,
     block,
-    unblock,
+    enable,
+    disable,
     companyExists,
     MAX_LIMIT_RESULTS,
 };

@@ -21,6 +21,7 @@ const {
 } = require("../../../models/constants/TimeConstants");
 const companyMiddleware = require("../company");
 const config = require("../../../config/env");
+const { when } = require("../utils");
 
 const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
 
@@ -561,6 +562,15 @@ const offerOwnerNotBlocked = async (req, res, next) => {
     return companyMiddleware.isNotBlocked(offer.owner)(req, res, next);
 };
 
+const offerOwnerNotDisabled = async (req, res, next) => {
+    const offer = await Offer.findById(req.params.offerId);
+
+    return when(
+        // if we are a company editing/hiding an offer, we can't be disabled, but admins/gods can do so on our behalf
+        !req.hasAdminPrivileges,
+        (req, res, next) => companyMiddleware.isNotDisabled(offer.owner)(req, res, next))(req, res, next);
+};
+
 module.exports = {
     create,
     get,
@@ -576,4 +586,5 @@ module.exports = {
     canDisable,
     disable,
     offerOwnerNotBlocked,
+    offerOwnerNotDisabled,
 };
