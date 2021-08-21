@@ -69,13 +69,10 @@ const enable = useExpressValidators([
         .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
 ]);
 
-const validCompanyId = useExpressValidators([
-    param("companyId", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED)
-        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID),
-]);
-
-const isExistingCompany = useExpressValidators([
+/**
+ * Checks if the param companyId is valid and corresponds to a valid company
+ */
+const getCompanyOffersValidator = useExpressValidators([
     param("companyId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
@@ -99,7 +96,6 @@ module.exports = {
     enable,
     disable,
     companyExists,
-    validCompanyId,
-    isExistingCompany,
+    getCompanyOffersValidator,
     MAX_LIMIT_RESULTS,
 };
