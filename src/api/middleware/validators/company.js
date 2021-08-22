@@ -44,11 +44,13 @@ const companyExists = async (companyId) => {
     return true;
 };
 
+const existingCompanyParamValidator = param("companyId")
+    .exists().withMessage(ValidationReasons.REQUIRED).bail()
+    .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
+    .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND);
+
 const block = useExpressValidators([
-    param("companyId")
-        .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
-        .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
+    existingCompanyParamValidator,
     body("adminReason")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING).bail()
@@ -56,17 +58,15 @@ const block = useExpressValidators([
 ]);
 
 const disable = useExpressValidators([
-    param("companyId")
-        .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
-        .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
+    existingCompanyParamValidator,
 ]);
 
 const enable = useExpressValidators([
-    param("companyId")
-        .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
-        .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND),
+    existingCompanyParamValidator,
+]);
+
+const deleteCompany = useExpressValidators([
+    existingCompanyParamValidator,
 ]);
 
 /**
@@ -85,6 +85,7 @@ module.exports = {
     block,
     enable,
     disable,
+    deleteCompany,
     companyExists,
     getOffers,
     MAX_LIMIT_RESULTS,

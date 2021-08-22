@@ -19,4 +19,9 @@ module.exports = Object.freeze({
         template: "company_enabled_notification",
         context: { companyName },
     }),
+    COMPANY_DELETED_NOTIFICATION: (companyName) => ({
+        subject: "Your company account on NIJobs has been deleted",
+        template: "company_deleted_notification",
+        context: { companyName },
+    }),
 });

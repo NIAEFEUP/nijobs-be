@@ -34,6 +34,18 @@ class AccountService {
             companyName: account.company.name,
         };
     }
+
+    deleteCompanyAccount(company) {
+        return Account.findOneAndDelete({
+            company
+        },
+        (err) => {
+            if (err) {
+                console.error(err);
+                throw err;
+            }
+        });
+    }
 }
 
 module.exports = AccountService;

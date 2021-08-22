@@ -1,7 +1,8 @@
 const { COMPANY_BLOCKED_NOTIFICATION,
     COMPANY_UNBLOCKED_NOTIFICATION,
     COMPANY_DISABLED_NOTIFICATION,
-    COMPANY_ENABLED_NOTIFICATION } = require("../email-templates/companyManagement");
+    COMPANY_ENABLED_NOTIFICATION,
+    COMPANY_DELETED_NOTIFICATION } = require("../email-templates/companyManagement");
 const EmailService = require("../lib/emailService");
 const Account = require("../models/Account");
 const Company = require("../models/Company");
@@ -173,6 +174,34 @@ class CompanyService {
 
     async sendCompanyEnabledNotification(companyId) {
         await this._sendCompanyNotification(companyId, COMPANY_ENABLED_NOTIFICATION);
+    }
+
+    async sendCompanyDeletedNotification(email, companyName) {
+        try {
+            await EmailService.sendMail({
+                to: email,
+                ...COMPANY_DELETED_NOTIFICATION(companyName),
+            });
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    }
+
+    /**
+     * Deletes a company by its ID and returns it
+     * @param {*} companyId ID of the company
+     */
+    deleteCompany(companyId) {
+        return Company.findByIdAndRemove(
+            companyId,
+            (err) => {
+                if (err) {
+                    console.error(err);
+                    throw err;
+                }
+            }
+        );
     }
 
 }

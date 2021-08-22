@@ -16,6 +16,7 @@ const router = Router();
 const fileMiddleware  = require("../middleware/files");
 const { authRequired } = require("../middleware/auth");
 const OfferService = require("../../services/offer");
+const AccountService = require("../../services/account");
 
 module.exports = (app) => {
     app.use("/company", router);
@@ -114,7 +115,7 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.enable,
-        (req, res, next) => companyMiddleware.canToggleCompanyVisibility(req.params.companyId)(req, res, next),
+        (req, res, next) => companyMiddleware.canManageAccountSettings(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {
                 const service = new CompanyService();
@@ -136,13 +137,36 @@ module.exports = (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.disable,
-        (req, res, next) => companyMiddleware.canToggleCompanyVisibility(req.params.companyId)(req, res, next),
+        (req, res, next) => companyMiddleware.canManageAccountSettings(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {
                 const service = new CompanyService();
                 await new OfferService().disableByCompany(req.params.companyId);
                 const company = await service.disable(req.params.companyId);
                 await service.sendCompanyDisabledNotification(req.params.companyId);
+                return res.json(company);
+            } catch (err) {
+                return next(err);
+            }
+        });
+
+    /**
+     * Deletes a company, its account and all its offers
+     */
+    router.post("/:companyId/delete",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isGod
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.deleteCompany,
+        (req, res, next) => companyMiddleware.canManageAccountSettings(req.params.companyId)(req, res, next),
+        async (req, res, next) => {
+            try {
+                const service = new CompanyService();
+                await new OfferService().deleteOffersByCompanyId(req.params.companyId);
+                const company = await service.deleteCompany(req.params.companyId);
+                const account = await new AccountService().deleteCompanyAccount(company);
+                await service.sendCompanyDeletedNotification(account.email, company.name);
                 return res.json(company);
             } catch (err) {
                 return next(err);
