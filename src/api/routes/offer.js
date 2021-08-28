@@ -10,6 +10,7 @@ const { ErrorTypes, APIError } = require("../middleware/errorHandler");
 const ValidationReasons = require("../middleware/validators/validationReasons");
 const { or, when } = require("../middleware/utils");
 const OfferConstants = require("../../models/constants/Offer");
+const companyValidators = require("../middleware/validators/company");
 
 const router = Router();
 
@@ -57,6 +58,19 @@ module.exports = (app) => {
 
         } catch (err) {
             console.error(err);
+            return next(err);
+        }
+    });
+
+    /**
+     * Gets all the offers of a certain company from the db
+     */
+    router.get("/company/:companyId", companyValidators.getOffers, async (req, res, next) => {
+        try {
+            const offers = await (new OfferService()).getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges);
+
+            return res.json(offers);
+        } catch (err) {
             return next(err);
         }
     });

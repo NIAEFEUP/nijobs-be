@@ -262,6 +262,18 @@ class OfferService {
         return constraints.length ? { "$and": constraints } : {};
     }
 
+    /**
+     * Checks whether a given offer is visible to a specific userCompanyId.
+     * Unpublished/Unactive offers may still be visible
+     * @param {*} offer
+     * @param {*} hasAdminPrivileges
+     * @param {*} userCompanyId
+     * @returns true if the offer is visible, false otherwise
+     */
+    isVisibleOffer(offer, hasAdminPrivileges, userCompanyId = "") {
+        return !offer?.isHidden || hasAdminPrivileges || (offer.owner.toString() === userCompanyId.toString());
+    }
+
     async getOfferById(offerId, targetOwner, hasAdminPrivileges, showAdminReason = false) {
         const offerQuery = Offer.findById(offerId);
 
@@ -269,9 +281,24 @@ class OfferService {
 
         const offer = await offerQuery;
 
-        if (offer?.isHidden && !(hasAdminPrivileges || offer.owner.toString() === targetOwner)) return null;
+        if (!this.isVisibleOffer(offer, hasAdminPrivileges, targetOwner)) return null;
 
         return offer;
+    }
+
+    /**
+     * Gets all the offers from a specific company that are visible to a specific user
+     * Note: This function will show even unpublished/unactive offers
+     * @param {*} companyId
+     * @param {*} userCompanyId
+     * @param {*} hasAdminPrivileges
+     * @returns Visible offers
+     */
+    async getOffersByCompanyId(companyId, userCompanyId, hasAdminPrivileges) {
+        return (await Offer.find({ owner: companyId }))
+            .filter((offer) =>
+                this.isVisibleOffer(offer, hasAdminPrivileges, userCompanyId)
+            );
     }
 
     async sendOfferDisabledNotification(offerId) {
