@@ -262,6 +262,14 @@ class OfferService {
         return constraints.length ? { "$and": constraints } : {};
     }
 
+    /**
+     * Checks whether a given offer is visible to a specific userCompanyId.
+     * Unpublished/Unactive offers may still be visible
+     * @param {*} offer
+     * @param {*} hasAdminPrivileges
+     * @param {*} userCompanyId
+     * @returns true if the offer is visible, false otherwise
+     */
     isVisibleOffer(offer, hasAdminPrivileges, userCompanyId = "") {
         return !offer?.isHidden || hasAdminPrivileges || (offer.owner.toString() === userCompanyId.toString());
     }
@@ -278,6 +286,14 @@ class OfferService {
         return offer;
     }
 
+    /**
+     * Gets all the offers from a specific company that are visible to a specific user
+     * Note: This function will show even unpublished/unactive offers
+     * @param {*} companyId
+     * @param {*} userCompanyId
+     * @param {*} hasAdminPrivileges
+     * @returns Visible offers
+     */
     async getOffersByCompanyId(companyId, userCompanyId, hasAdminPrivileges) {
         return (await Offer.find({ owner: companyId }))
             .filter((offer) =>
