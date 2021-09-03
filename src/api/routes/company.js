@@ -162,11 +162,11 @@ module.exports = (app) => {
         (req, res, next) => companyMiddleware.canManageAccountSettings(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {
-                const service = new CompanyService();
+                const companyService = new CompanyService();
                 await new OfferService().deleteOffersByCompanyId(req.params.companyId);
-                const company = await service.deleteCompany(req.params.companyId);
-                const account = await new AccountService().deleteCompanyAccount(company);
-                await service.sendCompanyDeletedNotification(account.email, company.name);
+                const company = await companyService.findAndDeleteById(req.params.companyId);
+                const account = await new AccountService().findAndDeleteByCompanyId(req.params.companyId);
+                await companyService.sendCompanyDeletedNotification(account.email, company.name);
                 return res.json(company);
             } catch (err) {
                 return next(err);

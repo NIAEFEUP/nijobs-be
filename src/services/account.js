@@ -35,16 +35,15 @@ class AccountService {
         };
     }
 
-    deleteCompanyAccount(company) {
-        return Account.findOneAndDelete({
-            company
-        },
-        (err) => {
-            if (err) {
-                console.error(err);
-                throw err;
-            }
-        });
+    async findAndDeleteByCompanyId(company) {
+        try {
+            const account = await Account.findOne({ company });
+            await Account.findByIdAndRemove(account._id);
+            return account;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
 }
 

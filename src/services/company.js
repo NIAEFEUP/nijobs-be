@@ -192,16 +192,15 @@ class CompanyService {
      * Deletes a company by its ID and returns it
      * @param {*} companyId ID of the company
      */
-    deleteCompany(companyId) {
-        return Company.findByIdAndRemove(
-            companyId,
-            (err) => {
-                if (err) {
-                    console.error(err);
-                    throw err;
-                }
-            }
-        );
+    async findAndDeleteById(companyId) {
+        try {
+            const company = await Company.findById(companyId);
+            await Company.findByIdAndRemove(companyId);
+            return company;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
 
 }
