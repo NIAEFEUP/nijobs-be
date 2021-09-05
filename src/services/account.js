@@ -34,6 +34,17 @@ class AccountService {
             companyName: account.company.name,
         };
     }
+
+    async findAndDeleteByCompanyId(company) {
+        try {
+            const account = await Account.findOne({ company });
+            await Account.findByIdAndRemove(account._id);
+            return account;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    }
 }
 
 module.exports = AccountService;

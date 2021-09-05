@@ -315,6 +315,10 @@ class OfferService {
         });
     }
 
+    async deleteOffersByCompanyId(companyId) {
+        await Offer.deleteMany({ owner: companyId });
+    }
+
 }
 
 module.exports = OfferService;

@@ -109,10 +109,10 @@ const isNotDisabled = (owner) => async (req, res, next) => {
     return next();
 };
 
-const canToggleCompanyVisibility = (companyId) => async (req, res, next) => {
+const canManageAccountSettings = (companyId) => async (req, res, next) => {
     const company = await (new CompanyService()).findById(companyId, true);
 
-    // only god or the same company can disable a given company
+    // only god or the same company can change account settings
     if (!req.hasAdminPrivileges && company._id.toString() !== req.targetOwner) {
         return next(new APIError(
             HTTPStatus.FORBIDDEN,
@@ -130,6 +130,6 @@ module.exports = {
     profileNotComplete,
     profileComplete,
     isNotBlocked,
-    canToggleCompanyVisibility,
+    canManageAccountSettings,
     isNotDisabled,
 };
