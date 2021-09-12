@@ -3,8 +3,7 @@
 ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/NIAEFEUP/nijobs-be/CI/master?label=BUILD%20-%20Master&style=for-the-badge)
 ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/NIAEFEUP/nijobs-be/CI/develop?label=BUILD%20-%20Develop&style=for-the-badge)
 
-
-[![GitHub issues](https://img.shields.io/github/issues/NIAEFEUP/nijobs-be.svg?style=for-the-badge)](https://github.com/NIAEFEUP/nijobs-be/issues)
+[![MVP Milestone](https://img.shields.io/github/milestones/progress-percent/NIAEFEUP/nijobs-fe/2?style=for-the-badge)](https://github.com/NIAEFEUP/nijobs-be/milestone/2)
 [![GitHub license](https://img.shields.io/github/license/NIAEFEUP/nijobs-be.svg?style=for-the-badge)](https://github.com/NIAEFEUP/nijobs-be/blob/master/LICENSE)
 
 
