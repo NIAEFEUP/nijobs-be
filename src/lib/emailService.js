@@ -58,14 +58,6 @@ class EmailService {
         if (!message.from) {
             data.from = this.email;
         }
-        if (!message.attachments || !(message.attachments instanceof Array)) {
-            message.attachments = [];
-            message.attachments.push({
-                filename: "logo-niaefeup.png",
-                path: "https://ni.fe.up.pt/images/logo-niaefeup.png",
-                cid: "id_1234698",
-            });
-        }
 
         const info = await this.transporter.sendMail({ ...data, ...message });
         const { response, envelope, messageId } = info;
