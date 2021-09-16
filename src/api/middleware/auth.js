@@ -75,9 +75,3 @@ export const hasAdminPrivileges = async (req, res, next) => {
 
     return next();
 };
-
-export const setTargetOwner = (req, res, next) => {
-
-    req.targetOwner = req.user?.company?._id.toString() || req.body.owner;
-    return next();
-};
