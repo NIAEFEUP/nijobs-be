@@ -27,7 +27,7 @@ export const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate, of
 
 export const verifyMaxConcurrentOffersOnCreate = (req, res, next) => {
 
-    if (req.body?.isHidden) return next();
+    if (req.body?.isHidden && JSON.parse(req.body?.isHidden)) return next();
 
     const owner = req.targetOwner;
     const publishDate = req.body.publishDate;
@@ -39,7 +39,7 @@ export const verifyMaxConcurrentOffersOnCreate = (req, res, next) => {
 
 export const verifyMaxConcurrentOffersOnEdit = async (req, res, next) => {
 
-    if (req.body?.isHidden) return next();
+    if (req.body?.isHidden && JSON.parse(req.body?.isHidden)) return next();
 
     try {
 
