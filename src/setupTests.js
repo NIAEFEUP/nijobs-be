@@ -8,7 +8,7 @@ if (process.env.NODE_ENV !== "test") {
     process.exit(55);
 }
 
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 // Occurs before all the tests, only once
 beforeAll(async () => {
     await new Promise((resolve) => {
@@ -27,12 +27,12 @@ afterAll(async () => {
 // Mock the emailing service
 jest.mock("./lib/emailService");
 
-const { EmailService } = require("./lib/emailService");
+import { EmailService } from "./lib/emailService.js";
 jest.spyOn(EmailService.prototype, "verifyConnection").mockImplementation(() => Promise.resolve());
 
 // Setting up the end-to-end request testing helper methods
-const supertest_request = require("supertest");
-const app = require("./index");
+import supertest_request from "supertest";
+import app from "./index.js";
 
 const request = () => supertest_request(app);
 const agent = () => supertest_request.agent(app);
