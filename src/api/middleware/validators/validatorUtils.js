@@ -1,15 +1,17 @@
-const ValidationReasons = require("./validationReasons");
-const Account = require("../../../models/Account");
-const { Types } = require("mongoose");
-const CompanyService = require("../../../services/company");
-const CompanyConstants = require("../../../models/constants/Company");
-const { parseHTML } = require("linkedom");
+import mongoose from "mongoose";
+import { parseHTML } from "linkedom";
+import ValidationReasons from "./validationReasons.js";
+import Account from "../../../models/Account.js";
+import CompanyService from "../../../services/company.js";
+import CompanyConstants from "../../../models/constants/Company.js";
+
+const { Types } = mongoose;
 
 /**
  * Returns a validator that checks whether all of the elements of an array belong to the provided set of values
  * @param {Array} set
  */
-const valuesInSet = (set) => (arr) => {
+export const valuesInSet = (set) => (arr) => {
     for (const item of arr) {
         if (!set.includes(item)) {
             throw new Error(ValidationReasons.IN_ARRAY(set));
@@ -23,7 +25,7 @@ const valuesInSet = (set) => (arr) => {
  * Throws an error if it already exists a account with the given email.
  * @param {String} email
  */
-const checkDuplicatedEmail = async (email) => {
+export const checkDuplicatedEmail = async (email) => {
     const acc = await Account.findOne({ email }).exec();
     if (acc) {
         throw new Error(ValidationReasons.ALREADY_EXISTS("email"));
@@ -38,13 +40,13 @@ const checkDuplicatedEmail = async (email) => {
  * but a one-element array is given, therefore it is parsed as a string instead
  * @param {*} val
  */
-const ensureArray = (val) => {
+export const ensureArray = (val) => {
     if (Array.isArray(val)) return val;
 
     else return [val];
 };
 
-const isObjectId = (id) => {
+export const isObjectId = (id) => {
     try {
         Types.ObjectId(id);
     } catch {
@@ -64,7 +66,7 @@ const sortOffersByFieldAscending = (field) => (offer1, offer2) => Date.parse(off
  * @param {*} publishEndDate Date in which the offer will end
  * @param {*} offerId the id of the offer to exclude from the count, if defined
  */
-const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, publishEndDate, offerId) => {
+export const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, publishEndDate, offerId) => {
     // We need to pass the offer model in case we're inside an Offer instance
     const offersInTimePeriod = await (new CompanyService())
         .getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel)
@@ -98,7 +100,7 @@ const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, p
     return maxConcurrent < CompanyConstants.offers.max_concurrent;
 };
 
-const maxHTMLContentLength = (max) => (text) => {
+export const maxHTMLContentLength = (max) => (text) => {
     const { document } = parseHTML();
     const node = document.createElement("pre");
     node.innerHTML = text;
@@ -108,14 +110,4 @@ const maxHTMLContentLength = (max) => (text) => {
     return true;
 };
 
-const normalizeDate = (date) => (new Date(Date.parse(date))).toISOString();
-
-module.exports = {
-    valuesInSet,
-    checkDuplicatedEmail,
-    ensureArray,
-    isObjectId,
-    concurrentOffersNotExceeded,
-    maxHTMLContentLength,
-    normalizeDate,
-};
+export const normalizeDate = (date) => (new Date(Date.parse(date))).toISOString();

@@ -4,4 +4,4 @@ const ApplicationStatus = Object.freeze({
     "REJECTED": "REJECTED",
 });
 
-module.exports = ApplicationStatus;
+export default ApplicationStatus;

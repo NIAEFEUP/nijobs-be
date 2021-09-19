@@ -1,7 +1,8 @@
-const config = require("./config/env");
-const loaders = require("./loaders");
-const express = require("express");
-const https = require("https");
+import config from "./config/env.js";
+
+import loaders from "./loaders/index.js";
+import express from "express";
+import https from "https";
 
 const app = express();
 
@@ -13,11 +14,11 @@ const startServer = async () => {
 
         let server = app;
         if (process.env.NODE_ENV !== "production") {
-            const fs = require("fs").promises;
-            const path = require("path");
+            const { promises: fs } = await import("fs");
+
             const [key, cert] = await Promise.all([
-                fs.readFile(path.join(__dirname, "../certs/key.pem")),
-                fs.readFile(path.join(__dirname, "../certs/cert.pem"))
+                fs.readFile(new URL("../certs/key.pem", import.meta.url).pathname),
+                fs.readFile(new URL("../certs/cert.pem", import.meta.url).pathname),
             ]);
             server = https.createServer({ key: key, cert: cert }, app);
         }

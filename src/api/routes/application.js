@@ -1,11 +1,11 @@
-const { Router } = require("express");
+import { Router } from "express";
 
-const validators = require("../middleware/validators/application");
-const ApplicationService = require("../../services/application");
+import * as validators from "../middleware/validators/application.js";
+import ApplicationService from "../../services/application.js";
 
 const router = Router();
 
-module.exports = (app) => {
+export default (app) => {
     app.use("/apply/company", router);
 
     /**

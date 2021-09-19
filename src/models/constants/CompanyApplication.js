@@ -1,4 +1,4 @@
-module.exports = Object.freeze({
+export default Object.freeze({
     motivation: {
         min_length: 10,
         max_length: 1500,

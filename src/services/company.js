@@ -1,12 +1,12 @@
-const { COMPANY_BLOCKED_NOTIFICATION,
+import { COMPANY_BLOCKED_NOTIFICATION,
     COMPANY_UNBLOCKED_NOTIFICATION,
     COMPANY_DISABLED_NOTIFICATION,
     COMPANY_ENABLED_NOTIFICATION,
-    COMPANY_DELETED_NOTIFICATION } = require("../email-templates/companyManagement");
-const EmailService = require("../lib/emailService");
-const Account = require("../models/Account");
-const Company = require("../models/Company");
-
+    COMPANY_DELETED_NOTIFICATION
+} from "../email-templates/companyManagement.js";
+import EmailService from "../lib/emailService.js";
+import Account from "../models/Account.js";
+import Company from "../models/Company.js";
 class CompanyService {
     getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel) {
         return OfferModel.find({
@@ -205,4 +205,4 @@ class CompanyService {
 
 }
 
-module.exports = CompanyService;
+export default CompanyService;

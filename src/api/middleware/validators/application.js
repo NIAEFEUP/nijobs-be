@@ -1,18 +1,18 @@
-const { body, param, query } = require("express-validator");
+import { body, param, query } from "express-validator";
+import mongoose from "mongoose";
 
-const { useExpressValidators } = require("../errorHandler");
-const ValidationReasons = require("./validationReasons");
-const { checkDuplicatedEmail, valuesInSet, ensureArray } = require("./validatorUtils");
-const CompanyApplicationConstants = require("../../../models/constants/CompanyApplication");
-const CompanyConstants = require("../../../models/constants/Company");
-const AccountConstants = require("../../../models/constants/Account");
-const { applicationUniqueness, CompanyApplicationProps } = require("../../../models/CompanyApplication");
-const mongoose = require("mongoose");
-const ApplicationStatus = require("../../../models/constants/ApplicationStatus");
+import { useExpressValidators } from "../errorHandler.js";
+import ValidationReasons from "./validationReasons.js";
+import { checkDuplicatedEmail, valuesInSet, ensureArray } from "./validatorUtils.js";
+import CompanyApplicationConstants from "../../../models/constants/CompanyApplication.js";
+import CompanyConstants from "../../../models/constants/Company.js";
+import AccountConstants from "../../../models/constants/Account.js";
+import { applicationUniqueness, CompanyApplicationProps } from "../../../models/CompanyApplication.js";
+import ApplicationStatus from "../../../models/constants/ApplicationStatus.js";
 
-const MAX_LIMIT_RESULTS = 100;
+export const MAX_LIMIT_RESULTS = 100;
 
-const create = useExpressValidators([
+export const create = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isEmail().withMessage(ValidationReasons.EMAIL)
@@ -47,14 +47,14 @@ const create = useExpressValidators([
         .trim(),
 ]);
 
-const approve = useExpressValidators([
+export const approve = useExpressValidators([
     param("id", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom((value) => mongoose.Types.ObjectId.isValid(value))
         .withMessage(ValidationReasons.OBJECT_ID).bail(),
 ]);
 
-const reject = useExpressValidators([
+export const reject = useExpressValidators([
     param("id", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail(),
     body("rejectReason", ValidationReasons.DEFAULT)
@@ -87,7 +87,7 @@ const sortByParamValidator = (val) => {
 const parseSortByField = (val) => val.split(",");
 
 
-const search = useExpressValidators([
+export const search = useExpressValidators([
     query("limit", ValidationReasons.DEFAULT)
         .optional()
         .isInt({ min: 1, max: MAX_LIMIT_RESULTS })
@@ -118,11 +118,3 @@ const search = useExpressValidators([
         .custom(sortByParamValidator)
         .customSanitizer(parseSortByField),
 ]);
-
-module.exports = {
-    create,
-    approve,
-    reject,
-    search,
-    MAX_LIMIT_RESULTS,
-};

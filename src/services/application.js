@@ -1,29 +1,28 @@
-const CompanyApplication = require("../models/CompanyApplication");
-const CompanyApplicationRules = require("../models/CompanyApplication").CompanyApplicationRules;
-const hash = require("../lib/passwordHashing");
-const AccountService = require("./account");
-const EmailService = require("../lib/emailService");
-const {
+import CompanyApplication, { CompanyApplicationRules } from "../models/CompanyApplication.js";
+import hash from "../lib/passwordHashing.js";
+import AccountService from "./account.js";
+import EmailService from "../lib/emailService.js";
+import {
     NEW_COMPANY_APPLICATION_ADMINS,
     NEW_COMPANY_APPLICATION_COMPANY,
     APPROVAL_NOTIFICATION,
     REJECTION_NOTIFICATION,
-} = require("../email-templates/companyApplicationApproval");
-const config = require("../config/env");
+} from "../email-templates/companyApplicationApproval.js";
+import config from "../config/env.js";
 
-class CompanyApplicationNotFound extends Error {
+export class CompanyApplicationNotFound extends Error {
     constructor(msg) {
         super(msg);
     }
 }
 
-class CompanyApplicationAlreadyReviewed extends Error {
+export class CompanyApplicationAlreadyReviewed extends Error {
     constructor(msg) {
         super(msg);
     }
 }
 
-class CompanyApplicationEmailAlreadyInUse extends Error {
+export class CompanyApplicationEmailAlreadyInUse extends Error {
     constructor(msg) {
         super(msg);
     }
@@ -218,7 +217,4 @@ class CompanyApplicationService {
     }
 }
 
-module.exports = CompanyApplicationService;
-module.exports.CompanyApplicationAlreadyReviewed = CompanyApplicationAlreadyReviewed;
-module.exports.CompanyApplicationNotFound = CompanyApplicationNotFound;
-module.exports.CompanyApplicationEmailAlreadyInUse = CompanyApplicationEmailAlreadyInUse;
+export default CompanyApplicationService;

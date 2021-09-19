@@ -1,12 +1,12 @@
-const HTTPStatus = require("http-status-codes");
-const { APIError, ErrorTypes, hideInsecureError } = require("./errorHandler");
-const ValidationReasons = require("./validators/validationReasons");
-const lodash = require("lodash");
+import HTTPStatus from "http-status-codes";
+import lodash from "lodash";
+import { APIError, ErrorTypes, hideInsecureError } from "./errorHandler.js";
+import ValidationReasons from "./validators/validationReasons.js";
 
-const DEFAULT_ERROR_CODE = ErrorTypes.VALIDATION_ERROR;
-const DEFAULT_ERROR_MSG = ValidationReasons.UNKNOWN;
-const DEFAULT_STATUS_CODE = HTTPStatus.BAD_REQUEST;
-const MAX_FILE_SIZE_MB = 10;
+export const DEFAULT_ERROR_CODE = ErrorTypes.VALIDATION_ERROR;
+export const DEFAULT_ERROR_MSG = ValidationReasons.UNKNOWN;
+export const DEFAULT_STATUS_CODE = HTTPStatus.BAD_REQUEST;
+export const MAX_FILE_SIZE_MB = 10;
 
 /**
  * Combines array of middleware using OR logic. Only fails if ALL functions fail (either by throwing or calling next(error))
@@ -22,7 +22,7 @@ const MAX_FILE_SIZE_MB = 10;
  *  - msg: the message in case of error (default: ValidationReasons.UNKNOWN)
  *  - status_code: The status used in the HTTP Response in case of error (default: BAD_REQUEST (400))
  */
-const or = (
+export const or = (
     [...middlewares],
     {
         error_code = DEFAULT_ERROR_CODE,
@@ -60,7 +60,7 @@ const or = (
  *  - msg: the message in case of error (default: ValidationReasons.UNKNOWN)
  *  - status_code: The status used in the HTTP Response in case of error (default: BAD_REQUEST (400))
  */
-const when = (
+export const when = (
     verify,
     middleware,
     {
@@ -82,13 +82,4 @@ const when = (
         }
     }
     return next();
-};
-
-module.exports = {
-    or,
-    when,
-    DEFAULT_ERROR_CODE,
-    DEFAULT_ERROR_MSG,
-    DEFAULT_STATUS_CODE,
-    MAX_FILE_SIZE_MB
 };

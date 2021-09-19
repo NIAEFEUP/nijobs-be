@@ -1,12 +1,8 @@
-const OfferService = require("../../services/offer");
-const companyMiddleware = require("./company");
+import OfferService from "../../services/offer.js";
+import * as companyMiddleware from "./company.js";
 
-const isOwnerNotDisabled = async (req, res, next) => {
+export const isOwnerNotDisabled = async (req, res, next) => {
     const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, true);
 
     return companyMiddleware.isNotDisabled(offer.owner)(req, res, next);
-};
-
-module.exports = {
-    isOwnerNotDisabled,
 };

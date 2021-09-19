@@ -1,7 +1,7 @@
-const nodemailer = require("nodemailer");
-const hbs = require("nodemailer-express-handlebars");
+import nodemailer from "nodemailer";
+import hbs from "nodemailer-express-handlebars";
 
-class EmailService {
+export class EmailService {
 
     async init({ email: user, password: pass }) {
         this.email = user;
@@ -67,5 +67,4 @@ class EmailService {
 
 }
 
-module.exports = new EmailService();
-module.exports.EmailService = EmailService;
+export default new EmailService();

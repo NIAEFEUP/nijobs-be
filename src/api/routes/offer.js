@@ -1,20 +1,20 @@
-const { Router } = require("express");
+import { Router } from "express";
+import HTTPStatus from "http-status-codes";
 
-const authMiddleware = require("../middleware/auth");
-const companyMiddleware = require("../middleware/company");
-const offerMiddleware = require("../middleware/offer");
-const validators = require("../middleware/validators/offer");
-const OfferService = require("../../services/offer");
-const HTTPStatus = require("http-status-codes");
-const { ErrorTypes, APIError } = require("../middleware/errorHandler");
-const ValidationReasons = require("../middleware/validators/validationReasons");
-const { or, when } = require("../middleware/utils");
-const OfferConstants = require("../../models/constants/Offer");
-const companyValidators = require("../middleware/validators/company");
+import * as authMiddleware from "../middleware/auth.js";
+import * as companyMiddleware from "../middleware/company.js";
+import * as offerMiddleware from "../middleware/offer.js";
+import * as validators from "../middleware/validators/offer.js";
+import OfferService from "../../services/offer.js";
+import { ErrorTypes, APIError } from "../middleware/errorHandler.js";
+import ValidationReasons from "../middleware/validators/validationReasons.js";
+import { or, when } from "../middleware/utils.js";
+import OfferConstants from "../../models/constants/Offer.js";
+import * as companyValidators from "../middleware/validators/company.js";
 
 const router = Router();
 
-module.exports = (app) => {
+export default (app) => {
     app.use("/offers", router);
 
     /**

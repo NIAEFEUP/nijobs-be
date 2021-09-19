@@ -1,18 +1,18 @@
-const HTTPStatus = require("http-status-codes");
-const fs = require("fs");
-const path = require("path");
-const util = require("util");
-const { MulterError } = require("multer");
-const multerConfig = require("../../config/multer");
-const { ErrorTypes, APIError } = require("./errorHandler");
-const cloudinary = require("cloudinary").v2;
-const config = require("../../config/env");
-const ValidationReasons = require("./validators/validationReasons");
+import HTTPStatus from "http-status-codes";
+import fs from "fs";
+import path from "path";
+import util from "util";
+import { MulterError } from "multer";
+import { v2 as cloudinary } from "cloudinary";
+import multerConfig from "../../config/multer.js";
+import { ErrorTypes, APIError } from "./errorHandler.js";
+import config from "../../config/env.js";
+import ValidationReasons from "./validators/validationReasons.js";
+import { MAX_FILE_SIZE_MB } from "./utils.js";
 
-const { MAX_FILE_SIZE_MB } = require("./utils");
 const parseError = (message) => message.toLowerCase().replace(/ /g, "-");
 
-const parseSingleFile = (field_name) => (req, res, next) => {
+export const parseSingleFile = (field_name) => (req, res, next) => {
     const upload = multerConfig.single(field_name);
     upload(req, res, (error) => {
         if (error || !req.file) {
@@ -43,7 +43,7 @@ const parseSingleFile = (field_name) => (req, res, next) => {
     });
 };
 
-const localSave = async (req, res, next) => {
+export const localSave = async (req, res, next) => {
     const buffer = req.file.buffer;
     const extension = req.file.mimetype.substr(req.file.mimetype.indexOf("/") + 1);
     const filename = `${req.user.company}.${extension}`;
@@ -68,7 +68,7 @@ const localSave = async (req, res, next) => {
 
 const upload = util.promisify(cloudinary.uploader.upload);
 
-const cloudSave = async (req, res, next) => {
+export const cloudSave = async (req, res, next) => {
     const filename = req.file.filename;
     const file_path = path.join(config.upload_folder, filename);
 
@@ -99,6 +99,3 @@ const cloudSave = async (req, res, next) => {
     return next();
 
 };
-
-
-module.exports = { parseSingleFile, localSave, cloudSave };

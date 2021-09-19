@@ -1,11 +1,11 @@
-const { body } = require("express-validator");
+import { body } from "express-validator";
 
-const { useExpressValidators } = require("../errorHandler");
-const ValidationReasons = require("./validationReasons");
-const { checkDuplicatedEmail } = require("./validatorUtils");
-const AccountConstants = require("../../../models/constants/Account");
+import { useExpressValidators } from "../errorHandler.js";
+import ValidationReasons from "./validationReasons.js";
+import { checkDuplicatedEmail } from "./validatorUtils.js";
+import AccountConstants from "../../../models/constants/Account.js";
 
-const register = useExpressValidators([
+export const register = useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isEmail().normalizeEmail().withMessage(ValidationReasons.EMAIL)
@@ -20,7 +20,7 @@ const register = useExpressValidators([
         .matches(/\d/).withMessage(ValidationReasons.HAS_NUMBER),
 ]);
 
-const login =  useExpressValidators([
+export const login =  useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .normalizeEmail().isEmail().withMessage(ValidationReasons.EMAIL)
@@ -30,5 +30,3 @@ const login =  useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING),
 ]);
-
-module.exports = { register, login };

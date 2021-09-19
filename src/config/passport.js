@@ -1,7 +1,7 @@
 // Set up passport middleware for sessions
-const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
-const Account = require("../models/Account");
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import Account from "../models/Account.js";
 
 // Passport configuration
 passport.use(new LocalStrategy({

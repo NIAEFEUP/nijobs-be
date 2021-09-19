@@ -1,27 +1,25 @@
-const { body, query, param } = require("express-validator");
+import { body, query, param } from "express-validator";
+import HTTPStatus from "http-status-codes";
 
-const { useExpressValidators, APIError } = require("../errorHandler");
-const ValidationReasons = require("./validationReasons");
-const { valuesInSet, ensureArray, isObjectId, maxHTMLContentLength, normalizeDate } = require("./validatorUtils");
-const JobTypes = require("../../../models/constants/JobTypes");
-const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("../../../models/constants/FieldTypes");
-const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../../models/constants/TechnologyTypes");
-const OfferService = require("../../../services/offer");
-const OfferConstants = require("../../../models/constants/Offer");
-const Company = require("../../../models/Company");
-const Offer = require("../../../models/Offer");
-const { validatePublishEndDateLimit } = require("../../../models/Offer");
-const { ErrorTypes } = require("../errorHandler");
-const HTTPStatus = require("http-status-codes");
-const {
+import { useExpressValidators, APIError, ErrorTypes } from "../errorHandler.js";
+import ValidationReasons from "./validationReasons.js";
+import { valuesInSet, ensureArray, isObjectId, maxHTMLContentLength, normalizeDate } from "./validatorUtils.js";
+import JobTypes from "../../../models/constants/JobTypes.js";
+import { FieldTypes, MIN_FIELDS, MAX_FIELDS } from "../../../models/constants/FieldTypes.js";
+import { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } from "../../../models/constants/TechnologyTypes.js";
+import OfferService from "../../../services/offer.js";
+import OfferConstants from "../../../models/constants/Offer.js";
+import Company from "../../../models/Company.js";
+import Offer, { validatePublishEndDateLimit } from "../../../models/Offer.js";
+import {
     HOUR_IN_MS,
     OFFER_EDIT_GRACE_PERIOD_HOURS,
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
-} = require("../../../models/constants/TimeConstants");
-const companyMiddleware = require("../company");
-const config = require("../../../config/env");
-const { when } = require("../utils");
+} from "../../../models/constants/TimeConstants.js";
+import * as companyMiddleware from "../company.js";
+import config from "../../../config/env.js";
+import { when } from "../utils.js";
 
 const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
 
@@ -70,7 +68,7 @@ const publishEndDateLimit = (publishEndDateCandidate, { req }) => {
     return true;
 };
 
-const create = useExpressValidators([
+export const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
@@ -312,7 +310,7 @@ const publishEndDateEditableLimit = async (publishEndDateCandidate, { req }) => 
     return true;
 };
 
-const isExistingOffer = useExpressValidators([
+export const isExistingOffer = useExpressValidators([
     param("offerId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
@@ -329,7 +327,7 @@ const isExistingOffer = useExpressValidators([
         }),
 ]);
 
-const edit = useExpressValidators([
+export const edit = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING)
@@ -424,7 +422,7 @@ const edit = useExpressValidators([
         .isArray(),
 ]);
 
-const isEditable = async (req, res, next) => {
+export const isEditable = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
     const currentDate = new Date(Date.now());
 
@@ -444,7 +442,7 @@ const isEditable = async (req, res, next) => {
     return next();
 };
 
-const offersDateSanitizers = useExpressValidators([
+export const offersDateSanitizers = useExpressValidators([
     body("publishDate")
         .optional()
         .toDate(),
@@ -453,12 +451,12 @@ const offersDateSanitizers = useExpressValidators([
         .toDate(),
 ]);
 
-const setDefaultValuesCreate = (req, res, next) => {
+export const setDefaultValuesCreate = (req, res, next) => {
     if (!req.body?.publishDate) req.body.publishDate = new Date(Date.now()).toISOString();
     return next();
 };
 
-const get = useExpressValidators([
+export const get = useExpressValidators([
     query("offset", ValidationReasons.DEFAULT)
         .optional()
         .isInt({ min: 0 }).withMessage(ValidationReasons.INT)
@@ -502,14 +500,14 @@ const get = useExpressValidators([
         .custom(valuesInSet((TechnologyTypes))),
 ]);
 
-const validOfferId = useExpressValidators([
+export const validOfferId = useExpressValidators([
     param("offerId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED)
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID),
 ]);
 
 // Validator to check if the offer can be managed, checking hiddenOffer flag
-const canBeManaged = async (req, res, next) => {
+export const canBeManaged = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     // Admin or gods can enable even if it was blocked by another admin
@@ -521,14 +519,14 @@ const canBeManaged = async (req, res, next) => {
     return next();
 };
 
-const canBeEnabled = async (req, res, next) => {
+export const canBeEnabled = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     return companyMiddleware.verifyMaxConcurrentOffers(offer.owner, offer.publishDate, offer.publishEndDate)(req, res, next);
 };
 
 // Validator to check if the offer is not already hidden
-const canHide = async (req, res, next) => {
+export const canHide = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     if (offer.isHidden) {
@@ -538,7 +536,7 @@ const canHide = async (req, res, next) => {
     return next();
 };
 
-const disable = useExpressValidators([
+export const disable = useExpressValidators([
     body("adminReason")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING).bail()
@@ -546,7 +544,7 @@ const disable = useExpressValidators([
 ]);
 
 // Validator to check if the offer is not already disabled by admin
-const canDisable = async (req, res, next) => {
+export const canDisable = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     if (offer.isHidden && offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
@@ -556,35 +554,17 @@ const canDisable = async (req, res, next) => {
     return next();
 };
 
-const offerOwnerNotBlocked = async (req, res, next) => {
+export const offerOwnerNotBlocked = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     return companyMiddleware.isNotBlocked(offer.owner)(req, res, next);
 };
 
-const offerOwnerNotDisabled = async (req, res, next) => {
+export const offerOwnerNotDisabled = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     return when(
         // if we are a company editing/hiding an offer, we can't be disabled, but admins/gods can do so on our behalf
         !req.hasAdminPrivileges,
         (req, res, next) => companyMiddleware.isNotDisabled(offer.owner)(req, res, next))(req, res, next);
-};
-
-module.exports = {
-    create,
-    get,
-    validOfferId,
-    isExistingOffer,
-    edit,
-    offersDateSanitizers,
-    setDefaultValuesCreate,
-    isEditable,
-    canBeManaged,
-    canBeEnabled,
-    canHide,
-    canDisable,
-    disable,
-    offerOwnerNotBlocked,
-    offerOwnerNotDisabled,
 };

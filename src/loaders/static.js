@@ -1,6 +1,6 @@
-const express = require("express");
-const config = require("../config/env");
-const fs = require("fs");
+import express from "express";
+import fs from "fs";
+import config from "../config/env.js";
 
 const setupStatic = (expressApp) => {
     if (!(config.webserver_host)) {
@@ -13,4 +13,4 @@ const setupStatic = (expressApp) => {
     expressApp.use("/static", express.static(file_dir));
 };
 
-module.exports = setupStatic;
+export default setupStatic;

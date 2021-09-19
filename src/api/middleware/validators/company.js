@@ -1,14 +1,13 @@
-const { body, query, param } = require("express-validator");
-const { useExpressValidators } = require("../errorHandler");
-const ValidationReasons = require("./validationReasons");
-const CompanyConstants = require("../../../models/constants/Company");
-const { ensureArray } = require("./validatorUtils");
-const { isObjectId } = require("./validatorUtils");
-const CompanyService = require("../../../services/company");
+import { body, query, param } from "express-validator";
+import { useExpressValidators } from "../errorHandler.js";
+import ValidationReasons from "./validationReasons.js";
+import CompanyConstants from "../../../models/constants/Company.js";
+import { ensureArray, isObjectId } from "./validatorUtils.js";
+import CompanyService from "../../../services/company.js";
 
-const MAX_LIMIT_RESULTS = 100;
+export const MAX_LIMIT_RESULTS = 100;
 
-const finish = useExpressValidators([
+export const finish = useExpressValidators([
     body("bio", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
@@ -21,7 +20,7 @@ const finish = useExpressValidators([
         .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length))
 ]);
 
-const list = useExpressValidators([
+export const list = useExpressValidators([
     query("limit", ValidationReasons.DEFAULT)
         .optional()
         .isInt({ min: 1, max: MAX_LIMIT_RESULTS })
@@ -32,7 +31,7 @@ const list = useExpressValidators([
         .withMessage(ValidationReasons.MIN(0)),
 ]);
 
-const companyExists = async (companyId) => {
+export const companyExists = async (companyId) => {
     try {
         const company = await new CompanyService().findById(companyId, true);
         if (!company) throw new Error(ValidationReasons.COMPANY_NOT_FOUND(companyId));
@@ -49,7 +48,7 @@ const existingCompanyParamValidator = param("companyId")
     .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
     .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND);
 
-const block = useExpressValidators([
+export const block = useExpressValidators([
     existingCompanyParamValidator,
     body("adminReason")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
@@ -57,36 +56,24 @@ const block = useExpressValidators([
         .trim(),
 ]);
 
-const disable = useExpressValidators([
+export const disable = useExpressValidators([
     existingCompanyParamValidator,
 ]);
 
-const enable = useExpressValidators([
+export const enable = useExpressValidators([
     existingCompanyParamValidator,
 ]);
 
-const deleteCompany = useExpressValidators([
+export const deleteCompany = useExpressValidators([
     existingCompanyParamValidator,
 ]);
 
 /**
  * Checks if the param companyId is valid and corresponds to a valid company
  */
-const getOffers = useExpressValidators([
+export const getOffers = useExpressValidators([
     param("companyId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
         .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND)
 ]);
-
-module.exports = {
-    finish,
-    list,
-    block,
-    enable,
-    disable,
-    deleteCompany,
-    companyExists,
-    getOffers,
-    MAX_LIMIT_RESULTS,
-};

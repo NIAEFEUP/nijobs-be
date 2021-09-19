@@ -1,4 +1,4 @@
-module.exports = Object.freeze({
+export default Object.freeze({
     password: {
         min_length: 8,
     },

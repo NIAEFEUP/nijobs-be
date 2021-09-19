@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 const { Schema } = mongoose;
 
 const AccountSchema = new Schema({
@@ -49,4 +49,4 @@ AccountSchema.methods.validatePassword = async function(password) {
 
 const Account = mongoose.model("Account", AccountSchema);
 
-module.exports = Account;
+export default Account;

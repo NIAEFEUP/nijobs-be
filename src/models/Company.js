@@ -1,7 +1,8 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+import CompanyConstants from "./constants/Company.js";
+import Offer from "./Offer.js";
+
 const { Schema } = mongoose;
-const CompanyConstants = require("./constants/Company");
-const Offer = require("./Offer");
 
 const CompanySchema = new Schema({
     name: {
@@ -65,4 +66,4 @@ CompanySchema.query.hideAdminReason = function() {
 const Company = mongoose.model("Company", CompanySchema);
 
 
-module.exports = Company;
+export default Company;

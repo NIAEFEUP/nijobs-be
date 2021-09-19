@@ -1,13 +1,13 @@
-const { ErrorTypes, APIError } = require("./errorHandler");
-const HTTPStatus = require("http-status-codes");
-const { concurrentOffersNotExceeded } = require("./validators/validatorUtils");
-const ValidationReasons = require("./validators/validationReasons");
-const CompanyConstants = require("../../models/constants/Company");
-const Offer = require("../../models/Offer");
-const CompanyService = require("../../services/company");
-const OfferService = require("../../services/offer");
+import HTTPStatus from "http-status-codes";
+import { ErrorTypes, APIError } from "./errorHandler.js";
+import { concurrentOffersNotExceeded } from "./validators/validatorUtils.js";
+import ValidationReasons from "./validators/validationReasons.js";
+import CompanyConstants from "../../models/constants/Company.js";
+import Offer from "../../models/Offer.js";
+import CompanyService from "../../services/company.js";
+import OfferService from "../../services/offer.js";
 
-const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate, offerId) => async (req, res, next) => {
+export const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate, offerId) => async (req, res, next) => {
 
     const limitNotReached = await concurrentOffersNotExceeded(Offer)(
         owner,
@@ -25,7 +25,7 @@ const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate, offerId) 
     return next();
 };
 
-const verifyMaxConcurrentOffersOnCreate = (req, res, next) => {
+export const verifyMaxConcurrentOffersOnCreate = (req, res, next) => {
 
     if (req.body?.isHidden) return next();
 
@@ -37,7 +37,7 @@ const verifyMaxConcurrentOffersOnCreate = (req, res, next) => {
 
 };
 
-const verifyMaxConcurrentOffersOnEdit = async (req, res, next) => {
+export const verifyMaxConcurrentOffersOnEdit = async (req, res, next) => {
 
     if (req.body?.isHidden) return next();
 
@@ -61,7 +61,7 @@ const verifyMaxConcurrentOffersOnEdit = async (req, res, next) => {
 
 };
 
-const profileNotComplete = async (req, res, next) => {
+export const profileNotComplete = async (req, res, next) => {
     const company = await (new CompanyService()).findById(req.targetOwner, true);
     if (company.hasFinishedRegistration) {
         return next(new APIError(
@@ -73,7 +73,7 @@ const profileNotComplete = async (req, res, next) => {
     return next();
 };
 
-const profileComplete = async (req, res, next) => {
+export const profileComplete = async (req, res, next) => {
     const company = await (new CompanyService()).findById(req.targetOwner, true);
     if (!company.hasFinishedRegistration) {
         return next(new APIError(
@@ -85,7 +85,7 @@ const profileComplete = async (req, res, next) => {
     return next();
 };
 
-const isNotBlocked = (owner) => async (req, res, next) => {
+export const isNotBlocked = (owner) => async (req, res, next) => {
     const company = await (new CompanyService()).findById(owner, true);
     if (company.isBlocked) {
         return next(new APIError(
@@ -97,7 +97,7 @@ const isNotBlocked = (owner) => async (req, res, next) => {
     return next();
 };
 
-const isNotDisabled = (owner) => async (req, res, next) => {
+export const isNotDisabled = (owner) => async (req, res, next) => {
     const company = await (new CompanyService()).findById(owner, true);
     if (company.isDisabled) {
         return next(new APIError(
@@ -109,7 +109,7 @@ const isNotDisabled = (owner) => async (req, res, next) => {
     return next();
 };
 
-const canManageAccountSettings = (companyId) => async (req, res, next) => {
+export const canManageAccountSettings = (companyId) => async (req, res, next) => {
     const company = await (new CompanyService()).findById(companyId, true);
 
     // only god or the same company can change account settings
@@ -121,15 +121,4 @@ const canManageAccountSettings = (companyId) => async (req, res, next) => {
         ));
     }
     return next();
-};
-
-module.exports = {
-    verifyMaxConcurrentOffers,
-    verifyMaxConcurrentOffersOnCreate,
-    verifyMaxConcurrentOffersOnEdit,
-    profileNotComplete,
-    profileComplete,
-    isNotBlocked,
-    canManageAccountSettings,
-    isNotDisabled,
 };

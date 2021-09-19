@@ -1,6 +1,6 @@
 
-const EmailService = require("../lib/emailService");
-const config = require("../config/env");
+import EmailService from "../lib/emailService.js";
+import config from "../config/env.js";
 
 const initEmailService = async () => {
     if (
@@ -32,4 +32,4 @@ const initEmailService = async () => {
 
 };
 
-module.exports = initEmailService;
+export default initEmailService;

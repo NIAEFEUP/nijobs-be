@@ -1,14 +1,15 @@
-const mongoose = require("mongoose");
-const { Schema, Types } = mongoose;
+import mongoose from "mongoose";
 
-const JobTypes = require("./constants/JobTypes");
-const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("./constants/FieldTypes");
-const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("./constants/TechnologyTypes");
-const PointSchema = require("./Point");
-const { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } = require("./constants/TimeConstants");
-const { noDuplicatesValidator, lengthBetweenValidator, validImageURL } = require("./modelUtils");
-const OfferConstants = require("./constants/Offer");
-const { concurrentOffersNotExceeded, maxHTMLContentLength } = require("../api/middleware/validators/validatorUtils");
+import JobTypes from "./constants/JobTypes.js";
+import { FieldTypes, MIN_FIELDS, MAX_FIELDS } from "./constants/FieldTypes.js";
+import { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } from "./constants/TechnologyTypes.js";
+import PointSchema from "./Point.js";
+import { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } from "./constants/TimeConstants.js";
+import { noDuplicatesValidator, lengthBetweenValidator, validImageURL } from "./modelUtils.js";
+import OfferConstants from "./constants/Offer.js";
+import { concurrentOffersNotExceeded, maxHTMLContentLength } from "../api/middleware/validators/validatorUtils.js";
+
+const { Schema, Types } = mongoose;
 
 const OfferSchema = new Schema({
     title: { type: String, maxlength: OfferConstants.title.max_length, required: true },
@@ -120,7 +121,7 @@ function validateEndDate(value) {
     return validatePublishEndDateLimit(this.publishDate, value);
 }
 
-function validatePublishEndDateLimit(publishDate, publishEndDate) {
+export function validatePublishEndDateLimit(publishDate, publishEndDate) {
 
     // Milisseconds from publish date to end date (Offer is no longer valid)
     const timeDiff = publishEndDate.getTime() - publishDate.getTime();
@@ -168,5 +169,4 @@ const Offer = mongoose.model("Offer", OfferSchema);
 // Useful for testing correct field implementation
 // console.log("DBG: ", OfferSchema.path("location"));
 
-module.exports = Offer;
-module.exports.validatePublishEndDateLimit = validatePublishEndDateLimit;
+export default Offer;

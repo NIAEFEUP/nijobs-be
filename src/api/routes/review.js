@@ -1,12 +1,12 @@
-const { Router } = require("express");
+import { Router } from "express";
+import mongoose from "mongoose";
+import HTTPStatus from "http-status-codes";
 
-const authMiddleware = require("../middleware/auth");
-const { MAX_LIMIT_RESULTS, ...companyApplicationValidators } = require("../middleware/validators/application");
-const ApplicationService = require("../../services/application");
-const mongoose = require("mongoose");
+import * as authMiddleware from "../middleware/auth.js";
+import * as companyApplicationValidators from "../middleware/validators/application.js";
+import ApplicationService from "../../services/application.js";
 
-const HTTPStatus = require("http-status-codes");
-const { buildErrorResponse, ErrorTypes } = require("../middleware/errorHandler");
+import { buildErrorResponse, ErrorTypes } from "../middleware/errorHandler.js";
 
 const router = Router();
 
@@ -26,7 +26,7 @@ const parseSortingOptions = (sortingOptions) => sortingOptions
         }
     }, {});
 
-module.exports = (app) => {
+export default (app) => {
     app.use("/applications/company", router);
 
     /**
@@ -49,7 +49,7 @@ module.exports = (app) => {
         async (req, res, next) => {
 
             const { limit, offset, sortBy, ...filters } = req.query;
-            const computedLimit = parseInt(limit || MAX_LIMIT_RESULTS, 10);
+            const computedLimit = parseInt(limit || companyApplicationValidators.MAX_LIMIT_RESULTS, 10);
             const computedOffset = parseInt(offset || 0, 10);
             let sortingOptions;
 
@@ -129,4 +129,4 @@ module.exports = (app) => {
         });
 };
 
-module.exports.MAX_LIMIT_RESULTS = MAX_LIMIT_RESULTS;
+export { MAX_LIMIT_RESULTS } from "../middleware/validators/application.js";
