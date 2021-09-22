@@ -12,3 +12,11 @@ export const setTargetOwner = (req, res, next) => {
     req.targetOwner = req.user?.company?._id.toString() || req.body.owner;
     return next();
 };
+
+export const parseIsHiddden = (req, res, next) => {
+
+    if (req.body?.isHidden !== undefined)
+        req.body.isHidden = JSON.parse(req.body.isHidden);
+
+    return next();
+};

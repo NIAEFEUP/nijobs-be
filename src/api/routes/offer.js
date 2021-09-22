@@ -18,6 +18,7 @@ export default (app) => {
     app.use("/offers", router);
 
     router.use(offerMiddleware.setTargetOwner);
+    router.use(offerMiddleware.parseIsHiddden);
 
     /**
      * Gets all currently active offers (without filtering, for now)
