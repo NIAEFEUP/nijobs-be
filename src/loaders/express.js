@@ -1,5 +1,5 @@
 import passport from "passport";
-import bodyParser from "body-parser";
+import express from "express";
 import session from "express-session";
 import morgan from "morgan";
 import helmet from "helmet";
@@ -41,7 +41,7 @@ export default (app) => {
     }));
 
     // JSON bodyparser (parses JSON request body into req.body)
-    app.use(bodyParser.json());
+    app.use(express.json());
 
     // Initializing passport authentication settings
     app.use(passport.initialize());
