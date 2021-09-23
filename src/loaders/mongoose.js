@@ -16,7 +16,7 @@ export default async () => {
         dbName: config.db_name,
         useNewUrlParser: true,
         useCreateIndex: true,
-        useFindAndModify: false
+        useFindAndModify: false,
     };
 
     try {

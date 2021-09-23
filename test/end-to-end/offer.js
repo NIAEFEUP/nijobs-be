@@ -1,29 +1,28 @@
-// const { mockCurrentDate } = require("../testUtils");
-const HTTPStatus = require("http-status-codes");
-const Offer = require("../../src/models/Offer");
-const JobTypes = require("../../src/models/constants/JobTypes");
-const FieldTypes = require("../../src/models/constants/FieldTypes");
-const TechnologyTypes = require("../../src/models/constants/TechnologyTypes");
-const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
-const ValidatorTester = require("../utils/ValidatorTester");
-const withGodToken = require("../utils/GodToken");
-const { DAY_TO_MS } = require("../utils/TimeConstants");
-const OfferConstants = require("../../src/models/constants/Offer");
-const Account = require("../../src/models/Account");
-const Company = require("../../src/models/Company");
-const hash = require("../../src/lib/passwordHashing");
-const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
-const { Types } = require("mongoose");
-const CompanyConstants = require("../../src/models/constants/Company");
-const {
+import HTTPStatus from "http-status-codes";
+import Offer from "../../src/models/Offer";
+import JobTypes from "../../src/models/constants/JobTypes";
+import * as FieldConstants from "../../src/models/constants/FieldTypes";
+import * as TechnologyConstants from "../../src/models/constants/TechnologyTypes";
+import { ErrorTypes } from "../../src/api/middleware/errorHandler";
+import ValidatorTester from "../utils/ValidatorTester";
+import withGodToken from "../utils/GodToken";
+import { DAY_TO_MS } from "../utils/TimeConstants";
+import OfferConstants from "../../src/models/constants/Offer";
+import Account from "../../src/models/Account";
+import Company from "../../src/models/Company";
+import hash from "../../src/lib/passwordHashing";
+import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
+import { Types } from "mongoose";
+import CompanyConstants from "../../src/models/constants/Company";
+import {
     OFFER_EDIT_GRACE_PERIOD_HOURS,
     HOUR_IN_MS,
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
-} = require("../../src/models/constants/TimeConstants");
-const OfferService = require("../../src/services/offer");
-const EmailService = require("../../src/lib/emailService");
-const { OFFER_DISABLED_NOTIFICATION } = require("../../src/email-templates/companyOfferDisabled");
+} from "../../src/models/constants/TimeConstants";
+import OfferService from "../../src/services/offer";
+import EmailService from "../../src/lib/emailService";
+import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -263,15 +262,15 @@ describe("Offer endpoint tests", () => {
             describe("fields", () => {
                 const FieldValidatorTester = BodyValidatorTester("fields");
                 FieldValidatorTester.isRequired();
-                FieldValidatorTester.mustBeArrayBetween(FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS);
-                FieldValidatorTester.mustHaveValuesInRange(FieldTypes.FieldTypes, FieldTypes.MIN_FIELDS + 1);
+                FieldValidatorTester.mustBeArrayBetween(FieldConstants.MIN_FIELDS, FieldConstants.MAX_FIELDS);
+                FieldValidatorTester.mustHaveValuesInRange(FieldConstants.FieldTypes, FieldConstants.MIN_FIELDS + 1);
             });
 
             describe("technologies", () => {
                 const FieldValidatorTester = BodyValidatorTester("technologies");
                 FieldValidatorTester.isRequired();
-                FieldValidatorTester.mustBeArrayBetween(TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES);
-                FieldValidatorTester.mustHaveValuesInRange(TechnologyTypes.TechnologyTypes, TechnologyTypes.MIN_TECHNOLOGIES + 1);
+                FieldValidatorTester.mustBeArrayBetween(TechnologyConstants.MIN_TECHNOLOGIES, TechnologyConstants.MAX_TECHNOLOGIES);
+                FieldValidatorTester.mustHaveValuesInRange(TechnologyConstants.TechnologyTypes, TechnologyConstants.MIN_TECHNOLOGIES + 1);
             });
 
             describe("owner", () => {
@@ -878,12 +877,12 @@ describe("Offer endpoint tests", () => {
 
             describe("fields", () => {
                 const FieldValidatorTester = QueryValidatorTester("fields");
-                FieldValidatorTester.mustHaveValuesInRange(FieldTypes.FieldTypes, FieldTypes.MIN_FIELDS + 1);
+                FieldValidatorTester.mustHaveValuesInRange(FieldConstants.FieldTypes, FieldConstants.MIN_FIELDS + 1);
             });
 
             describe("technologies", () => {
                 const FieldValidatorTester = QueryValidatorTester("technologies");
-                FieldValidatorTester.mustHaveValuesInRange(TechnologyTypes.TechnologyTypes, TechnologyTypes.MIN_TECHNOLOGIES + 1);
+                FieldValidatorTester.mustHaveValuesInRange(TechnologyConstants.TechnologyTypes, TechnologyConstants.MIN_TECHNOLOGIES + 1);
             });
         });
 
@@ -2179,14 +2178,16 @@ describe("Offer endpoint tests", () => {
 
                 describe("fields", () => {
                     const FieldValidatorTester = BodyValidatorTester("fields");
-                    FieldValidatorTester.mustBeArrayBetween(FieldTypes.MIN_FIELDS, FieldTypes.MAX_FIELDS);
-                    FieldValidatorTester.mustHaveValuesInRange(FieldTypes.FieldTypes, FieldTypes.MIN_FIELDS + 1);
+                    FieldValidatorTester.mustBeArrayBetween(FieldConstants.MIN_FIELDS, FieldConstants.MAX_FIELDS);
+                    FieldValidatorTester.mustHaveValuesInRange(FieldConstants.FieldTypes, FieldConstants.MIN_FIELDS + 1);
                 });
 
                 describe("technologies", () => {
                     const FieldValidatorTester = BodyValidatorTester("technologies");
-                    FieldValidatorTester.mustBeArrayBetween(TechnologyTypes.MIN_TECHNOLOGIES, TechnologyTypes.MAX_TECHNOLOGIES);
-                    FieldValidatorTester.mustHaveValuesInRange(TechnologyTypes.TechnologyTypes, TechnologyTypes.MIN_TECHNOLOGIES + 1);
+                    FieldValidatorTester.mustBeArrayBetween(TechnologyConstants.MIN_TECHNOLOGIES, TechnologyConstants.MAX_TECHNOLOGIES);
+                    FieldValidatorTester.mustHaveValuesInRange(
+                        TechnologyConstants.TechnologyTypes, TechnologyConstants.MIN_TECHNOLOGIES + 1
+                    );
                 });
 
                 describe("location", () => {

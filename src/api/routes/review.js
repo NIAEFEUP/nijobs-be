@@ -4,7 +4,11 @@ import HTTPStatus from "http-status-codes";
 
 import * as authMiddleware from "../middleware/auth.js";
 import * as companyApplicationValidators from "../middleware/validators/application.js";
-import ApplicationService from "../../services/application.js";
+import ApplicationService, {
+    CompanyApplicationAlreadyReviewed,
+    CompanyApplicationEmailAlreadyInUse,
+    CompanyApplicationNotFound
+} from "../../services/application.js";
 
 import { buildErrorResponse, ErrorTypes } from "../middleware/errorHandler.js";
 
@@ -83,13 +87,13 @@ export default (app) => {
                 return res.json(account);
             } catch (err) {
                 console.error(err);
-                if (err instanceof ApplicationService.CompanyApplicationNotFound) {
+                if (err instanceof CompanyApplicationNotFound) {
                     return res
                         .status(HTTPStatus.NOT_FOUND)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
                 } else if (
-                    err instanceof ApplicationService.CompanyApplicationAlreadyReviewed ||
-                    err instanceof ApplicationService.CompanyApplicationEmailAlreadyInUse
+                    err instanceof CompanyApplicationAlreadyReviewed ||
+                    err instanceof CompanyApplicationEmailAlreadyInUse
                 ) {
                     return res
                         .status(HTTPStatus.CONFLICT)
@@ -114,11 +118,11 @@ export default (app) => {
                 return res.json(application);
             } catch (err) {
                 console.error(err);
-                if (err instanceof ApplicationService.CompanyApplicationNotFound) {
+                if (err instanceof CompanyApplicationNotFound) {
                     return res
                         .status(HTTPStatus.NOT_FOUND)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
-                } else if (err instanceof ApplicationService.CompanyApplicationAlreadyReviewed) {
+                } else if (err instanceof CompanyApplicationAlreadyReviewed) {
                     return res
                         .status(HTTPStatus.CONFLICT)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));

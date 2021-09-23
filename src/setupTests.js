@@ -18,11 +18,6 @@ beforeAll(async () => {
     });
 });
 
-// To handle the hanging test process problem
-// (which weirdly enough was being caused by not disconnecting from the db - see https://github.com/visionmedia/supertest/issues/520)
-afterAll(async () => {
-    await (mongoose.connection && mongoose.connection.close());
-});
 
 // Mock the emailing service
 jest.mock("./lib/emailService");
@@ -32,7 +27,15 @@ jest.spyOn(EmailService.prototype, "verifyConnection").mockImplementation(() => 
 
 // Setting up the end-to-end request testing helper methods
 import supertest_request from "supertest";
-import app from "./index.js";
+import { default as app } from "./index.js";
+
+
+// To handle the hanging test process problem
+// (which weirdly enough was being caused by not disconnecting from the db - see https://github.com/visionmedia/supertest/issues/520)
+afterAll(async () => {
+    await (mongoose.connection && mongoose.connection.close());
+    await mongoose.disconnect();
+});
 
 const request = () => supertest_request(app);
 const agent = () => supertest_request.agent(app);

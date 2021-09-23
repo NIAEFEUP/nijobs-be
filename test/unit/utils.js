@@ -1,6 +1,6 @@
-const { APIError, UnknownAPIError } = require("../../src/api/middleware/errorHandler");
-const { or, DEFAULT_ERROR_CODE, DEFAULT_STATUS_CODE, DEFAULT_ERROR_MSG, when } = require("../../src/api/middleware/utils");
-const { validImageURL } = require("../../src/models/modelUtils");
+import { APIError, UnknownAPIError } from "../../src/api/middleware/errorHandler";
+import { or, DEFAULT_ERROR_CODE, DEFAULT_STATUS_CODE, DEFAULT_ERROR_MSG, when } from "../../src/api/middleware/utils";
+import { validImageURL } from "../../src/models/modelUtils";
 
 describe("Middleware utils", () => {
     describe("or util", () => {

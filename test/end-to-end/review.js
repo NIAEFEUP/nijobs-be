@@ -1,14 +1,16 @@
-const EmailService = require("../../src/lib/emailService");
-const HTTPStatus = require("http-status-codes");
-const CompanyApplication = require("../../src/models/CompanyApplication");
-const CompanyApplicationRules = require("../../src/models/CompanyApplication").CompanyApplicationRules;
-const { APPROVED, PENDING } = require("../../src/models/constants/ApplicationStatus");
-const hash = require("../../src/lib/passwordHashing");
-const Account = require("../../src/models/Account");
-const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
-const ApplicationStatus = require("../../src/models/constants/ApplicationStatus");
-const { APPROVAL_NOTIFICATION, REJECTION_NOTIFICATION } = require("../../src/email-templates/companyApplicationApproval");
-const { ObjectId } = require("mongoose").Types;
+jest.mock("../../src/lib/emailService");
+import EmailService, { EmailService as EmailServiceClass } from "../../src/lib/emailService";
+jest.spyOn(EmailServiceClass.prototype, "verifyConnection").mockImplementation(() => Promise.resolve());
+import HTTPStatus from "http-status-codes";
+import CompanyApplication, { CompanyApplicationRules } from "../../src/models/CompanyApplication";
+import hash from "../../src/lib/passwordHashing";
+import Account from "../../src/models/Account";
+import { ErrorTypes } from "../../src/api/middleware/errorHandler";
+import ApplicationStatus from "../../src/models/constants/ApplicationStatus";
+import { APPROVAL_NOTIFICATION, REJECTION_NOTIFICATION } from "../../src/email-templates/companyApplicationApproval";
+import mongoose from "mongoose";
+
+const { ObjectId } = mongoose.Types;
 
 describe("Company application review endpoint test", () => {
 
@@ -134,26 +136,26 @@ describe("Company application review endpoint test", () => {
                 test("Should filter by state", async () => {
 
                     const wrongFormatQuery = await test_agent
-                        .get(`/applications/company/search?state=<["${APPROVED}"]`);
+                        .get(`/applications/company/search?state=<["${ApplicationStatus.APPROVED}"]`);
 
                     expect(wrongFormatQuery.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(wrongFormatQuery.body.errors[0]).toStrictEqual({
                         location: "query",
                         msg: "must-be-in:[PENDING,APPROVED,REJECTED]",
                         param: "state",
-                        value: [`<["${APPROVED}"]`]
+                        value: [`<["${ApplicationStatus.APPROVED}"]`]
                     });
 
 
                     const singleStateQuery = await test_agent
-                        .get("/applications/company/search").query({ state: [APPROVED] });
+                        .get("/applications/company/search").query({ state: [ApplicationStatus.APPROVED] });
 
                     expect(singleStateQuery.status).toBe(HTTPStatus.OK);
                     expect(singleStateQuery.body.applications.length).toBe(1);
                     expect(singleStateQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
 
                     const multiStateQuery = await test_agent
-                        .get("/applications/company/search?").query({ state: [APPROVED, PENDING] });
+                        .get("/applications/company/search?").query({ state: [ApplicationStatus.APPROVED, ApplicationStatus.PENDING] });
 
                     expect(multiStateQuery.status).toBe(HTTPStatus.OK);
                     expect(multiStateQuery.body.applications.length).toBe(2);

@@ -1,5 +1,5 @@
-const { hasAdminPrivileges } = require("../../src/api/middleware/auth");
-const withGodToken = require("../utils/GodToken");
+import { hasAdminPrivileges } from "../../src/api/middleware/auth";
+import withGodToken from "../utils/GodToken";
 
 describe("Auth middleware tests", () => {
 
