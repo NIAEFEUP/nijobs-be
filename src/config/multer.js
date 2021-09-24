@@ -1,6 +1,6 @@
-const multer = require("multer");
-const ValidationReasons = require("../api/middleware/validators/validationReasons");
-const { MAX_FILE_SIZE_MB } = require("../api/middleware/utils");
+import multer from "multer";
+import ValidationReasons from "../api/middleware/validators/validationReasons.js";
+import { MAX_FILE_SIZE_MB } from "../api/middleware/utils.js";
 
 const storage =  multer.memoryStorage();
 const limits = { fileSize: MAX_FILE_SIZE_MB * 1024 * 1024 };
@@ -13,4 +13,4 @@ const fileFilter = (req, file, cb) => {
         cb(new Error(ValidationReasons.IMAGE_FORMAT));
     }
 };
-module.exports = multer({ storage, limits, fileFilter });
+export default multer({ storage, limits, fileFilter });

@@ -1,4 +1,4 @@
-const FieldTypes = Object.freeze([
+export const FieldTypes = Object.freeze([
     "BACKEND",
     "FRONTEND",
     "DEVOPS",
@@ -7,11 +7,5 @@ const FieldTypes = Object.freeze([
     "OTHER",
 ]);
 
-const MIN_FIELDS = 2;
-const MAX_FIELDS = 5;
-
-module.exports = {
-    FieldTypes,
-    MIN_FIELDS,
-    MAX_FIELDS,
-};
+export const MIN_FIELDS = 2;
+export const MAX_FIELDS = 5;

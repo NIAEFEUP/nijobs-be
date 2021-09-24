@@ -1,16 +1,15 @@
-const HTTPStatus = require("http-status-codes");
-const { Router } = require("express");
-const passport = require("passport");
+import HTTPStatus from "http-status-codes";
+import { Router } from "express";
+import passport from "passport";
 
-const { authRequired, isGod } = require("../middleware/auth");
-const validators = require("../middleware/validators/auth");
-const AccountService = require("../../services/account");
-const Company = require("../../models/Company");
-
+import { authRequired, isGod } from "../middleware/auth.js";
+import * as validators from "../middleware/validators/auth.js";
+import AccountService from "../../services/account.js";
+import Company from "../../models/Company.js";
 
 const router = Router();
 
-module.exports = (app) => {
+export default (app) => {
     app.use("/auth", router);
 
     // Get logged in user info

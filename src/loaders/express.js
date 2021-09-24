@@ -1,23 +1,21 @@
-const passport = require("passport");
-const bodyParser = require("body-parser");
-const session = require("express-session");
-const morgan = require("morgan");
-const HTTPStatus = require("http-status-codes");
+import passport from "passport";
+import bodyParser from "body-parser";
+import session from "express-session";
+import morgan from "morgan";
+import helmet from "helmet";
+import HTTPStatus from "http-status-codes";
+import RateLimit from "express-rate-limit";
+import MongoStore from "rate-limit-mongo";
 
-const apiRoutes = require("../api");
-const enhanceRequests = require("./requestEnhancers");
-const config = require("../config/env");
-const { defaultErrorHandler } = require("../api/middleware/errorHandler");
-
-const helmet = require("helmet");
-
-const RateLimit = require("express-rate-limit");
-const MongoStore = require("rate-limit-mongo");
+import apiRoutes from "../api/index.js";
+import enhanceRequests from "./requestEnhancers.js";
+import config from "../config/env.js";
+import { defaultErrorHandler } from "../api/middleware/errorHandler.js";
 
 const API_REQUEST_TIME_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const API_MAX_REQUESTS_PER_WINDOW = 100;
 
-module.exports = (app) => {
+export default (app) => {
     // Checking for session secret
     if (!config.session_secret) {
         console.error("'SESSION_SECRET' must be defined in .env file! See README.md for details.");

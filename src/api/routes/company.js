@@ -1,31 +1,30 @@
-const config = require("../../config/env");
-const { Router } = require("express");
-const HTTPStatus = require("http-status-codes");
+import { Router } from "express";
+import HTTPStatus from "http-status-codes";
 
-const validators = require("../middleware/validators/company");
-const companyMiddleware = require("../middleware/company");
-const authMiddleware = require("../middleware/auth");
-const CompanyService = require("../../services/company");
-const { ErrorTypes } = require("../middleware/errorHandler");
-const ValidationReasons = require("../middleware/validators/validationReasons");
+import config from "../../config/env.js";
+import * as validators from "../middleware/validators/company.js";
+import * as companyMiddleware from "../middleware/company.js";
+import * as authMiddleware from "../middleware/auth.js";
+import CompanyService from "../../services/company.js";
+import { ErrorTypes } from "../middleware/errorHandler.js";
+import ValidationReasons from "../middleware/validators/validationReasons.js";
 
-const { or } = require("../middleware/utils");
+import { or } from "../middleware/utils.js";
+
+import * as fileMiddleware  from "../middleware/files.js";
+import OfferService from "../../services/offer.js";
+import AccountService from "../../services/account.js";
 
 const router = Router();
 
-const fileMiddleware  = require("../middleware/files");
-const { authRequired } = require("../middleware/auth");
-const OfferService = require("../../services/offer");
-const AccountService = require("../../services/account");
-
-module.exports = (app) => {
+export default (app) => {
     app.use("/company", router);
 
     /**
      * Finishes the profile of a Company
      */
     router.post("/application/finish",
-        authRequired,
+        authMiddleware.authRequired,
         authMiddleware.isCompany,
         companyMiddleware.profileNotComplete,
         fileMiddleware.parseSingleFile("logo"),

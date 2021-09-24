@@ -1,6 +1,6 @@
-const { hasAdminPrivileges, setTargetOwner } = require("../api/middleware/auth");
+import { hasAdminPrivileges, setTargetOwner } from "../api/middleware/auth.js";
 
-module.exports = (app) => {
+export default (app) => {
 
     // Populates req.hasAdminPrivileges accordingly
     app.use(hasAdminPrivileges);

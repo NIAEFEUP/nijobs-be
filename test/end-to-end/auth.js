@@ -1,12 +1,12 @@
-const HTTPStatus = require("http-status-codes");
-const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
-const Account = require("../../src/models/Account");
-const ValidatorTester = require("../utils/ValidatorTester");
-const withGodToken = require("../utils/GodToken");
-const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
-const hash = require("../../src/lib/passwordHashing");
-const AccountConstants = require("../../src/models/constants/Account");
-const Company = require("../../src/models/Company");
+import HTTPStatus from "http-status-codes";
+import { ErrorTypes } from "../../src/api/middleware/errorHandler";
+import Account from "../../src/models/Account";
+import ValidatorTester from "../utils/ValidatorTester";
+import withGodToken from "../utils/GodToken";
+import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
+import hash from "../../src/lib/passwordHashing";
+import AccountConstants from "../../src/models/constants/Account";
+import Company from "../../src/models/Company";
 
 describe("Register endpoint test", () => {
     describe("Input Validation (unsuccessful registration)", () => {

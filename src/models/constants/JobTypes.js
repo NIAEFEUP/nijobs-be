@@ -6,4 +6,4 @@ const JobTypes = Object.freeze([
     "OTHER",
 ]);
 
-module.exports = JobTypes;
+export default JobTypes;

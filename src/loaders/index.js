@@ -1,19 +1,17 @@
-const mongooseLoader = require("./mongoose");
-const expressLoader = require("./express");
-const emailServiceLoader = require("./emailService");
-const staticFilesLoader = require("./static");
+import mongooseLoader from "./mongoose.js";
+import expressLoader from "./express.js";
+import emailServiceLoader from "./emailService.js";
+import staticFilesLoader from "./static.js";
 
-const setupLoaders = async ({ expressApp }) => {
+export default async ({ expressApp }) => {
     await mongooseLoader();
     console.info("Mongoose DB connection initialized");
     await expressLoader(expressApp);
     console.info("Express initialized");
     await emailServiceLoader();
     console.info("Nodemailer initialized");
-    require("../config/passport");
+    await import("../config/passport.js");
     console.info("Passport configurations loaded");
     staticFilesLoader(expressApp);
     console.info("Static files being served at /static");
 };
-
-module.exports = setupLoaders;

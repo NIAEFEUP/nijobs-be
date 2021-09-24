@@ -1,9 +1,9 @@
 /* istanbul ignore file */
-const HTTPStatus = require("http-status-codes");
+import HTTPStatus from "http-status-codes";
 
-const { ErrorTypes } = require("../../src/api/middleware/errorHandler");
-const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
-const { DAY_TO_MS } = require("../utils/TimeConstants");
+import { ErrorTypes } from "../../src/api/middleware/errorHandler";
+import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
+import { DAY_TO_MS } from "../utils/TimeConstants";
 
 /**
  * Checks the common parts of the error response: the status code, error_code property and that the body also has the error properties
@@ -315,4 +315,4 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
     },
 });
 
-module.exports = ValidatorTester;
+export default ValidatorTester;

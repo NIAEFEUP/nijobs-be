@@ -1,6 +1,6 @@
-const Account = require("../models/Account");
-const hash = require("../lib/passwordHashing");
-const Company = require("../models/Company");
+import Account from "../models/Account.js";
+import hash from "../lib/passwordHashing.js";
+import Company from "../models/Company.js";
 class AccountService {
     // TODO: Use typedi or similar
     constructor() {
@@ -47,4 +47,4 @@ class AccountService {
     }
 }
 
-module.exports = AccountService;
+export default AccountService;

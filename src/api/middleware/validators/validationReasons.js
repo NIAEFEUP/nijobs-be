@@ -47,4 +47,4 @@ const ValidationReasons = Object.freeze({
     FILE_TOO_LARGE: (max) => `file-cant-be-larger-than-${max}MB`,
 });
 
-module.exports = ValidationReasons;
+export default ValidationReasons;

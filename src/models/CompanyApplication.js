@@ -1,10 +1,11 @@
-const mongoose = require("mongoose");
-const { Schema } = mongoose;
-const ApplicationStatus = require("./constants/ApplicationStatus");
-const CompanyApplicationConstants = require("./constants/CompanyApplication");
-const { checkDuplicatedEmail } = require("../api/middleware/validators/validatorUtils");
+import mongoose from "mongoose";
+import ApplicationStatus from "./constants/ApplicationStatus.js";
+import CompanyApplicationConstants from "./constants/CompanyApplication.js";
+import { checkDuplicatedEmail } from "../api/middleware/validators/validatorUtils.js";
 
-const CompanyApplicationRules = Object.freeze({
+const { Schema } = mongoose;
+
+export const CompanyApplicationRules = Object.freeze({
     // Email already linked to a non-rejected company application
     ONLY_ONE_APPLICATION_ACTIVE_PER_EMAIL: {
         validator: validateSingleActiveApplication,
@@ -34,7 +35,7 @@ const CompanyApplicationRules = Object.freeze({
     },
 });
 
-const CompanyApplicationProps = {
+export const CompanyApplicationProps = {
     email: {
         type: String,
         trim: true,
@@ -112,7 +113,7 @@ function validateMutuallyExclusiveEvents(field) {
     };
 }
 
-const applicationUniqueness = async (email) => {
+export const applicationUniqueness = async (email) => {
     const existingApplications = await CompanyApplication.find({ email });
     if (existingApplications.some((application) =>
         application.state === ApplicationStatus.PENDING ||
@@ -133,7 +134,7 @@ async function validateSingleActiveApplication(value) {
     return true;
 }
 
-const isApprovable = (application) => {
+export const isApprovable = (application) => {
 
     if (application.state !== ApplicationStatus.PENDING)
         throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
@@ -141,7 +142,7 @@ const isApprovable = (application) => {
     return true;
 };
 
-const isRejectable = (application) => {
+export const isRejectable = (application) => {
 
     if (application.state !== ApplicationStatus.PENDING)
         throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
@@ -186,9 +187,4 @@ CompanyApplicationSchema.set("toObject", { transform: (obj) => {
 } });
 
 const CompanyApplication = mongoose.model("CompanyApplication", CompanyApplicationSchema);
-module.exports = CompanyApplication;
-module.exports.applicationUniqueness = applicationUniqueness;
-module.exports.isApprovable = isApprovable;
-module.exports.isRejectable = isRejectable;
-module.exports.CompanyApplicationRules = CompanyApplicationRules;
-module.exports.CompanyApplicationProps = CompanyApplicationProps;
+export default CompanyApplication;

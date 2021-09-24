@@ -1,8 +1,9 @@
-const mongoose = require("mongoose");
-const config = require("../config/env");
-const Account = require("../models/Account");
-const hash  = require("../lib/passwordHashing");
-const setupDbConnection = async () => {
+import mongoose from "mongoose";
+import config from "../config/env.js";
+import Account from "../models/Account.js";
+import hash from "../lib/passwordHashing.js";
+
+export default async () => {
     if (!(config.db_uri || (config.db_host && config.db_port && config.db_name))) {
         console.error(`Either 'DB_URI' or 'DB_HOST', 'DB_PORT' and 'DB_NAME' must be specified in the env file! 
         See README.md for details.`);
@@ -15,7 +16,7 @@ const setupDbConnection = async () => {
         dbName: config.db_name,
         useNewUrlParser: true,
         useCreateIndex: true,
-        useFindAndModify: false
+        useFindAndModify: false,
     };
 
     try {
@@ -50,5 +51,3 @@ const createDefaultAdmin = async () => {
 
     console.info("Created default admin!");
 };
-
-module.exports = setupDbConnection;

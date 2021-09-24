@@ -1,15 +1,14 @@
-const EmailService = require("../../src/lib/emailService");
-const HTTPStatus = require("http-status-codes");
-const CompanyApplication = require("../../src/models/CompanyApplication");
-const { CompanyApplicationRules }  = require("../../src/models/CompanyApplication");
-const Account  = require("../../src/models/Account");
-const ValidatorTester = require("../utils/ValidatorTester");
-const ValidationReasons = require("../../src/api/middleware/validators/validationReasons");
-const CompanyApplicationConstants = require("../../src/models/constants/CompanyApplication");
-const AccountConstants = require("../../src/models/constants/Account");
-const CompanyConstants = require("../../src/models/constants/Company");
-const { NEW_COMPANY_APPLICATION_ADMINS, NEW_COMPANY_APPLICATION_COMPANY } = require("../../src/email-templates/companyApplicationApproval");
-const config = require("../../src/config/env");
+import EmailService from "../../src/lib/emailService";
+import HTTPStatus from "http-status-codes";
+import CompanyApplication, { CompanyApplicationRules } from "../../src/models/CompanyApplication";
+import Account from "../../src/models/Account";
+import ValidatorTester from "../utils/ValidatorTester";
+import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
+import CompanyApplicationConstants from "../../src/models/constants/CompanyApplication";
+import AccountConstants from "../../src/models/constants/Account";
+import CompanyConstants from "../../src/models/constants/Company";
+import { NEW_COMPANY_APPLICATION_ADMINS, NEW_COMPANY_APPLICATION_COMPANY } from "../../src/email-templates/companyApplicationApproval";
+import config from "../../src/config/env";
 
 
 describe("Company application endpoint test", () => {

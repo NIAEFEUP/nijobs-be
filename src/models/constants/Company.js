@@ -1,4 +1,4 @@
-module.exports = Object.freeze({
+export default Object.freeze({
     companyName: {
         min_length: 2,
         max_length: 50,

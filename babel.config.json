@@ -1,0 +1,14 @@
+{
+    "presets": [
+        [
+            "@babel/preset-env",
+            {
+                "targets": {
+                    "node": true
+                },
+                "modules": "auto"
+            }
+        ]
+    ],
+    "plugins": ["@babel/plugin-proposal-optional-chaining", "babel-plugin-transform-import-meta"]
+}

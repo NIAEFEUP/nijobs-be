@@ -1,4 +1,3 @@
-const bcrypt = require("bcrypt");
+import bcrypt from "bcrypt";
 
-const hash = (password) => bcrypt.hash(password, 10);
-module.exports = hash;
+export default (password) => bcrypt.hash(password, 10);

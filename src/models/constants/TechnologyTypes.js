@@ -1,4 +1,4 @@
-const TechnologyTypes = Object.freeze([
+export const TechnologyTypes = Object.freeze([
     "React",
     "Angular",
     "Vue",
@@ -19,11 +19,5 @@ const TechnologyTypes = Object.freeze([
     "Other",
 ]);
 
-const MIN_TECHNOLOGIES = 1;
-const MAX_TECHNOLOGIES = 7;
-
-module.exports = {
-    TechnologyTypes,
-    MIN_TECHNOLOGIES,
-    MAX_TECHNOLOGIES,
-};
+export const MIN_TECHNOLOGIES = 1;
+export const MAX_TECHNOLOGIES = 7;

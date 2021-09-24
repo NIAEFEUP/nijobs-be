@@ -1,8 +1,8 @@
-const Company = require("../src/models/Company");
-const SchemaTester = require("./utils/SchemaTester");
-const CompanyConstants = require("../src/models/constants/Company");
-const { DAY_TO_MS } = require("./utils/TimeConstants");
-const Offer = require("../src/models/Offer");
+import Company from "../src/models/Company";
+import SchemaTester from "./utils/SchemaTester";
+import CompanyConstants from "../src/models/constants/Company";
+import { DAY_TO_MS } from "./utils/TimeConstants";
+import Offer from "../src/models/Offer";
 
 const CompanySchemaTester = SchemaTester(Company);
 

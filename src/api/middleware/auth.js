@@ -1,12 +1,12 @@
-const { ErrorTypes, APIError } = require("./errorHandler");
-const config = require("../../config/env");
-const HTTPStatus = require("http-status-codes");
-const OfferService = require("../../services/offer");
-const ValidationReasons = require("./validators/validationReasons");
-const { or } = require("./utils");
+import HTTPStatus from "http-status-codes";
+import { ErrorTypes, APIError } from "./errorHandler.js";
+import config from "../../config/env.js";
+import OfferService from "../../services/offer.js";
+import ValidationReasons from "./validators/validationReasons.js";
+import { or } from "./utils.js";
 
 // Middleware to require login in an endpoint
-const authRequired = (req, res, next) => {
+export const authRequired = (req, res, next) => {
     if (req.isAuthenticated()) {
         return next();
     }
@@ -14,7 +14,7 @@ const authRequired = (req, res, next) => {
 };
 
 // Eventually should be done via a session in an god account, but at least this will work for now, before a permission system is added
-const isGod = (req, res, next) => {
+export const isGod = (req, res, next) => {
     if (!req.body.god_token) {
         return next(new APIError(HTTPStatus.UNAUTHORIZED, ErrorTypes.FORBIDDEN, ValidationReasons.MUST_BE_GOD));
     }
@@ -25,12 +25,12 @@ const isGod = (req, res, next) => {
     return next();
 };
 
-const isCompany = (req, res, next) => {
+export const isCompany = (req, res, next) => {
     if (req?.user?.company) return next();
     else return next(new APIError(HTTPStatus.UNAUTHORIZED, ErrorTypes.FORBIDDEN, ValidationReasons.MUST_BE_COMPANY));
 };
 
-const isAdmin = (req, res, next) => {
+export const isAdmin = (req, res, next) => {
     if (!req.user?.isAdmin) {
         return next(new APIError(HTTPStatus.UNAUTHORIZED, ErrorTypes.FORBIDDEN, ValidationReasons.MUST_BE_ADMIN));
     }
@@ -38,14 +38,14 @@ const isAdmin = (req, res, next) => {
     return next();
 };
 
-const hasOwnershipRights = (offerId) => or([
+export const hasOwnershipRights = (offerId) => or([
     isOfferOwner(offerId),
     isGod,
     isAdmin],
 { status_code: HTTPStatus.FORBIDDEN, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }
 );
 
-const isOfferOwner = (offerId) => async (req, res, next) => {
+export const isOfferOwner = (offerId) => async (req, res, next) => {
 
     try {
         const offer = await (new OfferService()).getOfferById(offerId, req.targetOwner, req.hasAdminPrivileges);
@@ -60,7 +60,7 @@ const isOfferOwner = (offerId) => async (req, res, next) => {
     }
 };
 
-const hasAdminPrivileges = async (req, res, next) => {
+export const hasAdminPrivileges = async (req, res, next) => {
 
     let unprivileged = false;
 
@@ -76,19 +76,8 @@ const hasAdminPrivileges = async (req, res, next) => {
     return next();
 };
 
-const setTargetOwner = (req, res, next) => {
+export const setTargetOwner = (req, res, next) => {
 
     req.targetOwner = req.user?.company?._id.toString() || req.body.owner;
     return next();
-};
-
-module.exports = {
-    authRequired,
-    isGod,
-    isAdmin,
-    isCompany,
-    isOfferOwner,
-    hasOwnershipRights,
-    hasAdminPrivileges,
-    setTargetOwner,
 };

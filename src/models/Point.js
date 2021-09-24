@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 // As per https://mongoosejs.com/docs/geojson.html#points
@@ -19,4 +19,4 @@ const PointSchema = new Schema({
 PointSchema.index("2dsphere");
 
 // Only exporting the Schema because Point will only be used as a subdocument - no need to create a model
-module.exports = PointSchema;
+export default PointSchema;

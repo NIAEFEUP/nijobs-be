@@ -1,9 +1,9 @@
-const Company = require("../models/Company");
-const Offer = require("../models/Offer");
-const Account = require("../models/Account");
-const EmailService = require("../lib/emailService");
-const { OFFER_DISABLED_NOTIFICATION } = require("../email-templates/companyOfferDisabled");
-const { HiddenOfferReasons } = require("../models/constants/Offer");
+import Company  from "../models/Company.js";
+import Offer  from "../models/Offer.js";
+import Account  from "../models/Account.js";
+import EmailService  from "../lib/emailService.js";
+import { OFFER_DISABLED_NOTIFICATION }  from "../email-templates/companyOfferDisabled.js";
+import OfferConstants  from "../models/constants/Offer.js";
 
 class OfferService {
     // TODO: Use typedi or similar
@@ -175,19 +175,19 @@ class OfferService {
     }
 
     blockByCompany(owner) {
-        return this._hideByCompany(owner, HiddenOfferReasons.COMPANY_BLOCKED);
+        return this._hideByCompany(owner, OfferConstants.HiddenOfferReasons.COMPANY_BLOCKED);
     }
 
     unblockByCompany(owner) {
-        return this._unhideByCompany(owner, HiddenOfferReasons.COMPANY_BLOCKED);
+        return this._unhideByCompany(owner, OfferConstants.HiddenOfferReasons.COMPANY_BLOCKED);
     }
 
     disableByCompany(owner) {
-        return this._hideByCompany(owner, HiddenOfferReasons.COMPANY_DISABLED);
+        return this._hideByCompany(owner, OfferConstants.HiddenOfferReasons.COMPANY_DISABLED);
     }
 
     enableByCompany(owner) {
-        return this._unhideByCompany(owner, HiddenOfferReasons.COMPANY_DISABLED);
+        return this._unhideByCompany(owner, OfferConstants.HiddenOfferReasons.COMPANY_DISABLED);
     }
 
     /**
@@ -321,4 +321,4 @@ class OfferService {
 
 }
 
-module.exports = OfferService;
+export default OfferService;

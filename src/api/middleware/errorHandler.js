@@ -1,14 +1,14 @@
-const HTTPStatus = require("http-status-codes");
-const { validationResult } = require("express-validator");
-const { ensureArray } = require("./validators/validatorUtils");
-const ValidationReasons = require("./validators/validationReasons");
+import HTTPStatus from "http-status-codes";
+import { validationResult } from "express-validator";
+import { ensureArray } from "./validators/validatorUtils.js";
+import ValidationReasons from "./validators/validationReasons.js";
 
-const buildErrorResponse = (error_code, errors) => ({
+export const buildErrorResponse = (error_code, errors) => ({
     error_code,
     errors: ensureArray(errors),
 });
 
-class APIError extends Error {
+export class APIError extends Error {
     constructor(status_code, error_code, info, payload) {
         super(info);
         // info: array of errors or error message
@@ -27,7 +27,7 @@ class APIError extends Error {
     }
 }
 
-class UnknownAPIError extends APIError {
+export class UnknownAPIError extends APIError {
     constructor() {
         super(
             HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -37,7 +37,7 @@ class UnknownAPIError extends APIError {
     }
 }
 
-const ErrorTypes = Object.freeze({
+export const ErrorTypes = Object.freeze({
     VALIDATION_ERROR: 1,
     // Possibly nested in the future
     FILE_ERROR: 2,
@@ -46,7 +46,7 @@ const ErrorTypes = Object.freeze({
 });
 
 // Automatically run validators in order to have a standardized error response
-const useExpressValidators = (validators) => async (req, res, next) => {
+export const useExpressValidators = (validators) => async (req, res, next) => {
     await Promise.all(validators.map((validator) => validator.run(req)));
 
     const errors = validationResult(req);
@@ -61,23 +61,12 @@ const useExpressValidators = (validators) => async (req, res, next) => {
  * Converts error to UnknownAPIError if it's not an instance of APIError
  * @param {*} error
  */
-const hideInsecureError = (error) => {
+export const hideInsecureError = (error) => {
     if (error instanceof APIError) return error;
     else return new UnknownAPIError();
 };
 
-const defaultErrorHandler = (err, req, res, _) => {
+export const defaultErrorHandler = (err, req, res, _) => {
     if (!(err instanceof APIError)) console.error("UNEXPECTED ERROR:", err);
     hideInsecureError(err).sendResponse(res);
-};
-
-
-module.exports = {
-    defaultErrorHandler,
-    hideInsecureError,
-    ErrorTypes,
-    useExpressValidators,
-    buildErrorResponse,
-    APIError,
-    UnknownAPIError
 };

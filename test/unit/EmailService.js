@@ -1,6 +1,5 @@
-const EmailService = jest.requireActual("../../src/lib/emailService"); // Bypass auto jest mocks
-const EmailServiceClass = EmailService.EmailService;
-const nodemailer = require("nodemailer"); // Mocked at __mocks__/nodemailer.js
+import nodemailer from "nodemailer"; // Mocked at __mocks__/nodemailer.js
+const { EmailService } = jest.requireActual("../../src/lib/emailService"); // Bypass auto jest mocks
 
 describe("EmailService", () => {
 
@@ -9,7 +8,7 @@ describe("EmailService", () => {
     });
 
     test("Should init a transporter", async () => {
-        const emailService = new EmailServiceClass();
+        const emailService = new EmailService();
 
         expect(emailService.transporter).toBeUndefined();
         await emailService.init({
@@ -24,7 +23,7 @@ describe("EmailService", () => {
     });
 
     test("Should execute no-op when sending email if init() was not called", () => {
-        const emailService = new EmailServiceClass();
+        const emailService = new EmailService();
 
         emailService.sendMail({ mockMessage: true });
 
@@ -32,7 +31,7 @@ describe("EmailService", () => {
     });
 
     test("Should send email with delivery state notification", async () => {
-        const emailService = new EmailServiceClass();
+        const emailService = new EmailService();
         await emailService.init({
             user: "user",
             clientId: "clientId",
@@ -49,8 +48,7 @@ describe("EmailService", () => {
             id: Math.random().toString(36).substring(7),
             return: "headers",
             notify: ["failure", "delay"],
-            recipient: this.email
-
+            recipient: emailService.email
         });
 
         emailService.sendMail({ mockMessage: true }, { sendFailureNotification: true });
@@ -58,7 +56,7 @@ describe("EmailService", () => {
             id: Math.random().toString(36).substring(7),
             return: "headers",
             notify: ["failure", "delay"],
-            recipient: this.email
+            recipient: emailService.email
 
         });
 
@@ -67,14 +65,14 @@ describe("EmailService", () => {
             id: Math.random().toString(36).substring(7),
             return: "headers",
             notify: ["failure", "delay"],
-            recipient: this.email
+            recipient: emailService.email
 
         });
         Math.random = MathRandom;
     });
 
     test("Should not send email with delivery state notification", async () => {
-        const emailService = new EmailServiceClass();
+        const emailService = new EmailService();
         await emailService.init({
             user: "user",
             clientId: "clientId",

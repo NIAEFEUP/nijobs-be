@@ -1,5 +1,7 @@
-require("dotenv-flow").config();
-const path = require("path");
+import dotenvflow from "dotenv-flow";
+import path from "path";
+
+dotenvflow.config();
 
 const generateDBUriFromEnv = () => {
     if (!process.env.DB_HOST || !process.env.DB_PORT || !process.env.DB_NAME)
@@ -8,7 +10,7 @@ const generateDBUriFromEnv = () => {
     return `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
 };
 
-module.exports = Object.freeze({
+export default Object.freeze({
     // Database
     db_host: process.env.DB_HOST,
     db_port: process.env.DB_PORT,
@@ -32,6 +34,6 @@ module.exports = Object.freeze({
 
     // File upload
     cloudinary_url: process.env.CLOUDINARY_URL,
-    upload_folder: path.join(path.join(__dirname, "../.."), process.env.UPLOAD_FOLDER || "static"),
+    upload_folder: new URL("../..", path.join(import.meta.url, process.env.UPLOAD_FOLDER || "static")).pathname,
     webserver_host: process.env.WEBSERVER_HOST,
 });

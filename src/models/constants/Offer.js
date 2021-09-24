@@ -1,4 +1,4 @@
-module.exports = Object.freeze({
+export default Object.freeze({
     title: {
         max_length: 90,
     },
