@@ -68,6 +68,8 @@ const publishEndDateLimit = (publishEndDateCandidate, { req }) => {
     return true;
 };
 
+const checkBooleanField = (booleanFieldCandidate) => (typeof booleanFieldCandidate === "boolean");
+
 export const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
@@ -118,7 +120,7 @@ export const create = useExpressValidators([
 
     body("isPaid", ValidationReasons.DEFAULT)
         .optional()
-        .isBoolean().withMessage(ValidationReasons.BOOLEAN),
+        .custom(checkBooleanField).withMessage(ValidationReasons.BOOLEAN),
 
     body("vacancies", ValidationReasons.DEFAULT)
         .optional()
@@ -145,7 +147,7 @@ export const create = useExpressValidators([
 
     body("isHidden", ValidationReasons.DEFAULT)
         .optional()
-        .isBoolean().withMessage(ValidationReasons.BOOLEAN),
+        .custom(checkBooleanField).withMessage(ValidationReasons.BOOLEAN),
 
     body("owner", ValidationReasons.DEFAULT)
         .custom(async (owner, { req }) => {
@@ -378,7 +380,7 @@ export const edit = useExpressValidators([
 
     body("isPaid", ValidationReasons.DEFAULT)
         .optional()
-        .isBoolean().withMessage(ValidationReasons.BOOLEAN),
+        .custom(checkBooleanField).withMessage(ValidationReasons.BOOLEAN),
 
     body("vacancies", ValidationReasons.DEFAULT)
         .optional()
@@ -405,7 +407,7 @@ export const edit = useExpressValidators([
 
     body("isHidden", ValidationReasons.DEFAULT)
         .optional()
-        .isBoolean().withMessage(ValidationReasons.BOOLEAN),
+        .custom(checkBooleanField).withMessage(ValidationReasons.BOOLEAN),
 
     body("location", ValidationReasons.DEFAULT)
         .optional()
@@ -467,6 +469,8 @@ export const get = useExpressValidators([
         .isInt({ min: 0, max: OfferService.MAX_OFFERS_PER_QUERY }).withMessage(ValidationReasons.INT)
         .toInt(),
 
+    // we cant use .custom(checkBooleanField) because this is passed in the request query,
+    // and will be parsed by express.json() into a string, so the default isBoolean check is more fit
     query("showHidden")
         .optional()
         .isBoolean().withMessage(ValidationReasons.BOOLEAN)
