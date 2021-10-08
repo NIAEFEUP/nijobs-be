@@ -288,6 +288,11 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = BodyValidatorTester("requirements");
                 FieldValidatorTester.isRequired();
             });
+
+            describe("isHidden", () => {
+                const FieldValidatorTester = BodyValidatorTester("isHidden");
+                FieldValidatorTester.mustBeBoolean();
+            });
         });
 
         describe("Without pre-existing offers", () => {
@@ -508,24 +513,6 @@ describe("Offer endpoint tests", () => {
             test("should fail to create a new offer (with default publishDate)", async () => {
                 const offer_params = {
                     ...generateTestOffer(),
-                    owner: test_company._id,
-                };
-                delete offer_params.publishDate;
-
-                const res = await request()
-                    .post("/offers/new")
-                    .send(withGodToken(offer_params));
-
-                expect(res.status).toBe(HTTPStatus.CONFLICT);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual(
-                    { msg: ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent) });
-            });
-
-            test("Should fail to create a new offer (with 'isHidden' set to \"false\")", async () => {
-                const offer_params = {
-                    ...generateTestOffer({ isHidden: "false" }),
                     owner: test_company._id,
                 };
                 delete offer_params.publishDate;
@@ -2242,6 +2229,11 @@ describe("Offer endpoint tests", () => {
                 describe("location", () => {
                     const FieldValidatorTester = BodyValidatorTester("location");
                     FieldValidatorTester.mustBeString();
+                });
+
+                describe("isHidden", () => {
+                    const FieldValidatorTester = BodyValidatorTester("isHidden");
+                    FieldValidatorTester.mustBeBoolean();
                 });
             });
         });
