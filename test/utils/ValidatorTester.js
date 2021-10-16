@@ -233,6 +233,25 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
         });
     },
 
+    mustHaveAtLeast: (arr_min) => {
+        test(`should be Array with at least ${arr_min} elements`, async () => {
+            const params = {
+                [field_name]: Array.from("a".repeat(arr_min >= 1 ? arr_min - 1 : 0)), // prevent `repeat(z-1)`
+            };
+            const res = await requestEndpoint(params);
+
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.TOO_SHORT(arr_min),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            });
+        });
+    },
+
     hasMaxLength: (max_length) => {
         test(`should not be longer than ${max_length} characters`, async () => {
             const params = {
