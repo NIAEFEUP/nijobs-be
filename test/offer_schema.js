@@ -524,7 +524,7 @@ describe("# Offer Schema tests", () => {
                     expect(err.errors.coordinates).toBeDefined();
                     expect(err.errors.coordinates).toHaveProperty("kind", "Embedded");
                     expect(err.errors.coordinates).toHaveProperty("message",
-                        "Cast to Embedded failed for value \"\" at path \"coordinates\""
+                        "Cast to Embedded failed for value \"\" (type string) at path \"coordinates\""
                     );
                 }
             });

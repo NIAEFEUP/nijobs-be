@@ -41,7 +41,7 @@ describe("EmailService", () => {
         });
 
         const MathRandom = Math.random;
-        Math.random = () => 123456789987654321;
+        Math.random = () => 123456789987654321n;
 
         emailService.sendMail({ mockMessage: true });
         expect(nodemailer.transporter.sendMail.mock.calls[0][0]).toHaveProperty("dsn", {
@@ -82,7 +82,7 @@ describe("EmailService", () => {
         });
 
         const MathRandom = Math.random;
-        Math.random = () => 123456789987654321;
+        Math.random = () => 123456789987654321n;
 
         emailService.sendMail({ mockMessage: true }, { sendFailureNotification: false });
         expect(nodemailer.transporter.sendMail.mock.calls[0][0]).not.toHaveProperty("dsn");
