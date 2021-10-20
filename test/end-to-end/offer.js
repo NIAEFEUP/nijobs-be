@@ -397,6 +397,24 @@ describe("Offer endpoint tests", () => {
                 expect(res.body.errors[0]).toHaveProperty("location", "body");
                 expect(res.body.errors[0].msg).toEqual(ValidationReasons.TOO_LONG(OfferConstants.description.max_length));
             });
+
+            test("Should fail to create an offer if jobStartDate is specified as null", async () => {
+                const offer_params = generateTestOffer({
+                    jobStartDate: null,
+                    owner: test_company._id
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body.errors).toHaveLength(1);
+                expect(res.body.errors[0]).toHaveProperty("param", "jobStartDate");
+                expect(res.body.errors[0]).toHaveProperty("location", "body");
+                expect(res.body.errors[0].msg).toEqual(ValidationReasons.DATE);
+            });
         });
 
         describe("Before reaching the offers limit while having past offers", () => {
@@ -2133,6 +2151,19 @@ describe("Offer endpoint tests", () => {
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
                         .send(withGodToken({ "requirements": future_test_offer.requirements }))
                         .expect(HTTPStatus.OK);
+                });
+
+                test("Should fail to edit an offer if jobStartDate is specified as null", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ jobStartDate: null }));
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body.errors).toHaveLength(1);
+                    expect(res.body.errors[0]).toHaveProperty("param", "jobStartDate");
+                    expect(res.body.errors[0]).toHaveProperty("location", "body");
+                    expect(res.body.errors[0].msg).toEqual(ValidationReasons.DATE);
                 });
 
                 const EndpointValidatorTester = ValidatorTester((params) => request().post("/offers/new").send(withGodToken(params)));
