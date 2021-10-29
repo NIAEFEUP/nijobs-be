@@ -101,7 +101,7 @@ export const create = useExpressValidators([
 
     body("jobStartDate", ValidationReasons.DEFAULT)
         .optional()
-        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .customSanitizer(normalizeDate)
         .toDate(),
 
@@ -361,7 +361,7 @@ export const edit = useExpressValidators([
 
     body("jobStartDate", ValidationReasons.DEFAULT)
         .optional()
-        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE)
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .customSanitizer(normalizeDate)
         .toDate(),
 
