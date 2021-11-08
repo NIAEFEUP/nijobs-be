@@ -17,6 +17,8 @@ const router = Router();
 export default (app) => {
     app.use("/offers", router);
 
+    router.use(offerMiddleware.setTargetOwner);
+
     /**
      * Gets all currently active offers (without filtering, for now)
      * supports offset and limit as query params

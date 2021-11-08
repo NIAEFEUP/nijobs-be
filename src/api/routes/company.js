@@ -5,6 +5,7 @@ import config from "../../config/env.js";
 import * as validators from "../middleware/validators/company.js";
 import * as companyMiddleware from "../middleware/company.js";
 import * as authMiddleware from "../middleware/auth.js";
+import * as offerMiddleware from "../middleware/offer.js";
 import CompanyService from "../../services/company.js";
 import { ErrorTypes } from "../middleware/errorHandler.js";
 import ValidationReasons from "../middleware/validators/validationReasons.js";
@@ -19,6 +20,8 @@ const router = Router();
 
 export default (app) => {
     app.use("/company", router);
+
+    router.use(offerMiddleware.setTargetOwner);
 
     /**
      * Finishes the profile of a Company

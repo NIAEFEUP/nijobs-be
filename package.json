@@ -11,7 +11,7 @@
     "lint-fix": "npm run lint -- --fix",
     "test": "NODE_ENV=test jest --runInBand --coverage --verbose false",
     "ci": "npm run lint && npm test",
-    "audit": "npm audit --audit-level=high --json | npm-audit-helper --prod-only"
+    "audit": "npm audit --production --audit-level=high --json | npm-audit-helper --prod-only"
   },
   "repository": {
     "type": "git",
@@ -33,7 +33,6 @@
     "@babel/plugin-proposal-optional-chaining": "^7.12.7",
     "babel": "^6.23.0",
     "bcrypt": "^5.0.1",
-    "body-parser": "^1.18.3",
     "cloudinary": "^1.24.0",
     "dotenv-flow": "^3.0.0",
     "express": "^4.17.1",

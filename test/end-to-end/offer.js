@@ -240,6 +240,7 @@ describe("Offer endpoint tests", () => {
             describe("contacts", () => {
                 const FieldValidatorTester = BodyValidatorTester("contacts");
                 FieldValidatorTester.isRequired();
+                FieldValidatorTester.mustHaveAtLeast(1);
             });
 
             describe("isPaid", () => {
@@ -287,6 +288,11 @@ describe("Offer endpoint tests", () => {
             describe("requirements", () => {
                 const FieldValidatorTester = BodyValidatorTester("requirements");
                 FieldValidatorTester.isRequired();
+            });
+
+            describe("isHidden", () => {
+                const FieldValidatorTester = BodyValidatorTester("isHidden");
+                FieldValidatorTester.mustBeBoolean();
             });
         });
 
@@ -2166,64 +2172,87 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors[0].msg).toEqual(ValidationReasons.DATE);
                 });
 
-                const EndpointValidatorTester = ValidatorTester((params) => request().post("/offers/new").send(withGodToken(params)));
-                const BodyValidatorTester = EndpointValidatorTester("body");
+                describe("Input validation", () => {
 
-                describe("title", () => {
-                    const FieldValidatorTester = BodyValidatorTester("title");
-                    FieldValidatorTester.mustBeString();
-                    FieldValidatorTester.hasMaxLength(OfferConstants.title.max_length);
-                });
+                    let offer;
 
-                describe("jobStartDate", () => {
-                    const FieldValidatorTester = BodyValidatorTester("jobStartDate");
-                    FieldValidatorTester.mustBeDate();
-                });
+                    beforeAll(async () => {
 
-                describe("description", () => {
-                    const FieldValidatorTester = BodyValidatorTester("description");
-                    FieldValidatorTester.mustBeString();
-                    FieldValidatorTester.hasMaxLength(OfferConstants.description.max_length);
-                });
+                        offer = await Offer.create(
+                            generateTestOffer({
+                                owner: test_company._id,
+                                ownerName: test_company.name,
+                                ownerLogo: test_company.logo,
+                            })
+                        );
 
-                describe("contacts", () => {
-                    const FieldValidatorTester = BodyValidatorTester("contacts");
-                    FieldValidatorTester.isRequired();
-                });
+                    });
 
-                describe("isPaid", () => {
-                    const FieldValidatorTester = BodyValidatorTester("isPaid");
-                    FieldValidatorTester.mustBeBoolean();
-                });
+                    const EndpointValidatorTester = ValidatorTester(
+                        (params) => request().post(`/offers/edit/${offer._id}`).send(withGodToken(params)));
+                    const BodyValidatorTester = EndpointValidatorTester("body");
 
-                describe("vacancies", () => {
-                    const FieldValidatorTester = BodyValidatorTester("vacancies");
-                    FieldValidatorTester.mustBeNumber();
-                });
+                    describe("title", () => {
+                        const FieldValidatorTester = BodyValidatorTester("title");
+                        FieldValidatorTester.mustBeString();
+                        FieldValidatorTester.hasMaxLength(OfferConstants.title.max_length);
+                    });
 
-                describe("jobType", () => {
-                    const FieldValidatorTester = BodyValidatorTester("jobType");
-                    FieldValidatorTester.mustBeString();
-                    FieldValidatorTester.mustBeInArray(JobTypes);
-                });
+                    describe("jobStartDate", () => {
+                        const FieldValidatorTester = BodyValidatorTester("jobStartDate");
+                        FieldValidatorTester.mustBeDate();
+                    });
 
-                describe("fields", () => {
-                    const FieldValidatorTester = BodyValidatorTester("fields");
-                    FieldValidatorTester.mustBeArrayBetween(FieldConstants.MIN_FIELDS, FieldConstants.MAX_FIELDS);
-                    FieldValidatorTester.mustHaveValuesInRange(FieldConstants.FieldTypes, FieldConstants.MIN_FIELDS + 1);
-                });
+                    describe("description", () => {
+                        const FieldValidatorTester = BodyValidatorTester("description");
+                        FieldValidatorTester.mustBeString();
+                        FieldValidatorTester.hasMaxLength(OfferConstants.description.max_length);
+                    });
 
-                describe("technologies", () => {
-                    const FieldValidatorTester = BodyValidatorTester("technologies");
-                    FieldValidatorTester.mustBeArrayBetween(TechnologyConstants.MIN_TECHNOLOGIES, TechnologyConstants.MAX_TECHNOLOGIES);
-                    FieldValidatorTester.mustHaveValuesInRange(
-                        TechnologyConstants.TechnologyTypes, TechnologyConstants.MIN_TECHNOLOGIES + 1
-                    );
-                });
+                    describe("contacts", () => {
+                        const FieldValidatorTester = BodyValidatorTester("contacts");
+                        FieldValidatorTester.mustHaveAtLeast(1);
+                    });
 
-                describe("location", () => {
-                    const FieldValidatorTester = BodyValidatorTester("location");
-                    FieldValidatorTester.mustBeString();
+                    describe("isPaid", () => {
+                        const FieldValidatorTester = BodyValidatorTester("isPaid");
+                        FieldValidatorTester.mustBeBoolean();
+                    });
+
+                    describe("vacancies", () => {
+                        const FieldValidatorTester = BodyValidatorTester("vacancies");
+                        FieldValidatorTester.mustBeNumber();
+                    });
+
+                    describe("jobType", () => {
+                        const FieldValidatorTester = BodyValidatorTester("jobType");
+                        FieldValidatorTester.mustBeString();
+                        FieldValidatorTester.mustBeInArray(JobTypes);
+                    });
+
+                    describe("fields", () => {
+                        const FieldValidatorTester = BodyValidatorTester("fields");
+                        FieldValidatorTester.mustBeArrayBetween(FieldConstants.MIN_FIELDS, FieldConstants.MAX_FIELDS);
+                        FieldValidatorTester.mustHaveValuesInRange(FieldConstants.FieldTypes, FieldConstants.MIN_FIELDS + 1);
+                    });
+
+                    describe("technologies", () => {
+                        const FieldValidatorTester = BodyValidatorTester("technologies");
+                        FieldValidatorTester.mustBeArrayBetween(TechnologyConstants.MIN_TECHNOLOGIES, TechnologyConstants.MAX_TECHNOLOGIES);
+                        FieldValidatorTester.mustHaveValuesInRange(
+                            TechnologyConstants.TechnologyTypes, TechnologyConstants.MIN_TECHNOLOGIES + 1
+                        );
+                    });
+
+                    describe("location", () => {
+                        const FieldValidatorTester = BodyValidatorTester("location");
+                        FieldValidatorTester.mustBeString();
+                    });
+
+                    describe("isHidden", () => {
+                        const FieldValidatorTester = BodyValidatorTester("isHidden");
+                        FieldValidatorTester.mustBeBoolean();
+                    });
                 });
             });
         });

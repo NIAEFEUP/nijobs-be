@@ -6,3 +6,9 @@ export const isOwnerNotDisabled = async (req, res, next) => {
 
     return companyMiddleware.isNotDisabled(offer.owner)(req, res, next);
 };
+
+export const setTargetOwner = (req, res, next) => {
+
+    req.targetOwner = req.user?.company?._id.toString() || req.body.owner;
+    return next();
+};
