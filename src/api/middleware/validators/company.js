@@ -2,7 +2,7 @@ import { body, query, param } from "express-validator";
 import { useExpressValidators } from "../errorHandler.js";
 import ValidationReasons from "./validationReasons.js";
 import CompanyConstants from "../../../models/constants/Company.js";
-import { ensureArray, isObjectId } from "./validatorUtils.js";
+import { ensureArray, isObjectId, normalizeDate } from "./validatorUtils.js";
 import CompanyService from "../../../services/company.js";
 
 export const MAX_LIMIT_RESULTS = 100;
@@ -76,4 +76,20 @@ export const getOffers = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
         .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND)
+]);
+
+export const checkConcurrent = useExpressValidators([
+    existingCompanyParamValidator,
+
+    body("publishDate", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
+        .customSanitizer(normalizeDate),
+
+    body("publishEndDate", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
+        .customSanitizer(normalizeDate)
+        .custom((publishEndDate, { req }) => publishEndDate > req.body.publishDate)
+        .withMessage(ValidationReasons.MUST_BE_AFTER("publishDate")),
 ]);

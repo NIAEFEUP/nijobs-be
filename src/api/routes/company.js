@@ -9,12 +9,14 @@ import * as offerMiddleware from "../middleware/offer.js";
 import CompanyService from "../../services/company.js";
 import { ErrorTypes } from "../middleware/errorHandler.js";
 import ValidationReasons from "../middleware/validators/validationReasons.js";
+import { concurrentOffersNotExceeded } from "../middleware/validators/validatorUtils.js";
 
 import { or } from "../middleware/utils.js";
 
 import * as fileMiddleware  from "../middleware/files.js";
 import OfferService from "../../services/offer.js";
 import AccountService from "../../services/account.js";
+import Offer from "../../models/Offer.js";
 
 const router = Router();
 
@@ -170,6 +172,31 @@ export default (app) => {
                 const account = await new AccountService().findAndDeleteByCompanyId(req.params.companyId);
                 await companyService.sendCompanyDeletedNotification(account.email, company.name);
                 return res.json(company);
+            } catch (err) {
+                return next(err);
+            }
+        });
+
+    /**
+     * Verifies if a company has reached max concurrent offers between two dates
+     */
+    router.get("/:companyId/concurrent",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isAdmin,
+            authMiddleware.isGod,
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.checkConcurrent,
+        (req, res, next) => companyMiddleware.canManageAccountSettings(req.params.companyId)(req, res, next),
+        async (req, res, next) => {
+            try {
+                const maxNotReached = await concurrentOffersNotExceeded(Offer)(
+                    req.params.companyId,
+                    req.body.publishDate,
+                    req.body.publishEndDate
+                );
+
+                return res.json({ maxOffersReached: !maxNotReached });
             } catch (err) {
                 return next(err);
             }
