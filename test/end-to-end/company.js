@@ -1139,7 +1139,7 @@ describe("Company endpoint", () => {
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_VISIBILITY });
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS });
 
         });
 
@@ -1382,7 +1382,7 @@ describe("Company endpoint", () => {
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_VISIBILITY });
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS });
         });
 
         test("should fail to disable company if logged as admin", async () => {
@@ -1581,7 +1581,7 @@ describe("Company endpoint", () => {
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body.error_code).toBe(ErrorTypes.FORBIDDEN);
-            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_VISIBILITY });
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS });
         });
 
         test("should fail to delete company if logged as admin", async () => {
@@ -1864,7 +1864,7 @@ describe("Company endpoint", () => {
 
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_VISIBILITY);
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS);
         });
 
         test("Should succeed if god token is sent", async () => {
