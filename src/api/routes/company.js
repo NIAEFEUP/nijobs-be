@@ -180,7 +180,8 @@ export default (app) => {
     /**
      * Verifies if a company has reached max concurrent offers between two dates
      */
-    router.get("/:companyId/concurrent",
+    router.get("/:companyId/hasReachedMaxConcurrentOffersBetweenDates",
+        validators.setDefaultValuesConcurrent,
         or([
             authMiddleware.isCompany,
             authMiddleware.isAdmin,

@@ -4,6 +4,7 @@ import ValidationReasons from "./validationReasons.js";
 import CompanyConstants from "../../../models/constants/Company.js";
 import { ensureArray, isObjectId, normalizeDate } from "./validatorUtils.js";
 import CompanyService from "../../../services/company.js";
+import { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } from "../../../models/constants/TimeConstants.js";
 
 export const MAX_LIMIT_RESULTS = 100;
 
@@ -82,14 +83,25 @@ export const checkConcurrent = useExpressValidators([
     existingCompanyParamValidator,
 
     body("publishDate", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .customSanitizer(normalizeDate),
 
     body("publishEndDate", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .customSanitizer(normalizeDate)
         .custom((publishEndDate, { req }) => publishEndDate > req.body.publishDate)
         .withMessage(ValidationReasons.MUST_BE_AFTER("publishDate")),
 ]);
+
+export const setDefaultValuesConcurrent = (req, res, next) => {
+    if (!req.body?.publishDate) req.body.publishDate = new Date(Date.now()).toISOString();
+
+    if (!req.body?.publishEndDate) {
+        const publishDateMs = Date.parse(req.body.publishDate);
+        const offerMaxTimeMS = OFFER_MAX_LIFETIME_MONTHS * MONTH_IN_MS;
+        req.body.publishEndDate = (new Date(publishDateMs + offerMaxTimeMS)).toISOString();
+    }
+    return next();
+};

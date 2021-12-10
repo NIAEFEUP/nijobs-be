@@ -1665,7 +1665,7 @@ describe("Company endpoint", () => {
         });
     });
 
-    describe("GET /company/:companyId/concurrent", () => {
+    describe("GET /company/:companyId/hasReachedMaxConcurrentOffersBetweenDates", () => {
         let test_company_1, test_company_2;
         const test_user_admin = {
             email: "admin@email.com",
@@ -1743,7 +1743,7 @@ describe("Company endpoint", () => {
             test("Should fail if using an invalid id", async () => {
 
                 const res = await test_agent
-                    .get("/company/123/concurrent")
+                    .get("/company/123/hasReachedMaxConcurrentOffersBetweenDates")
                     .send(withGodToken({ publishDate, publishEndDate }))
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
@@ -1757,7 +1757,7 @@ describe("Company endpoint", () => {
 
                 const id = "111111111111111111111111";
                 const res = await test_agent
-                    .get(`/company/${id}/concurrent`)
+                    .get(`/company/${id}/hasReachedMaxConcurrentOffersBetweenDates`)
                     .send(withGodToken({ publishDate, publishEndDate }))
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
@@ -1769,36 +1769,40 @@ describe("Company endpoint", () => {
         });
 
         describe("Date validation", () => {
-            test("Should fail if publishDate is not specified", async () => {
+            test("Should succeed if publishDate is not specified", async () => {
 
                 const res = await test_agent
-                    .get(`/company/${test_company_1._id}/concurrent`)
+                    .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                     .send(withGodToken({ publishEndDate }))
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    .expect(HTTPStatus.OK);
 
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "publishDate");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.REQUIRED);
+                expect(res.body).toHaveProperty("maxOffersReached", false);
             });
 
-            test("Should fail if publishEndDate is not specified", async () => {
+            test("Should succeed if publishEndDate is not specified", async () => {
 
                 const res = await test_agent
-                    .get(`/company/${test_company_1._id}/concurrent`)
+                    .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                     .send(withGodToken({ publishDate }))
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    .expect(HTTPStatus.OK);
 
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.REQUIRED);
+                expect(res.body).toHaveProperty("maxOffersReached", false);
+            });
+
+            test("Should succeed if neither publishDate or publishEndDate are specified", async () => {
+
+                const res = await test_agent
+                    .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("maxOffersReached", false);
             });
 
             test("Should fail if publishDate is after publishEndDate", async () => {
 
                 const res = await test_agent
-                    .get(`/company/${test_company_1._id}/concurrent`)
+                    .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                     .send(withGodToken({
                         publishDate: publishEndDate,
                         publishEndDate: publishDate,
@@ -1814,7 +1818,7 @@ describe("Company endpoint", () => {
             test("Should fail if publishDate doesn't have a date format", async () => {
 
                 const res = await test_agent
-                    .get(`/company/${test_company_1._id}/concurrent`)
+                    .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                     .send(withGodToken({ publishDate: "123", publishEndDate }))
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
@@ -1827,7 +1831,7 @@ describe("Company endpoint", () => {
             test("Should fail if publishEndDate doesn't have a date format", async () => {
 
                 const res = await test_agent
-                    .get(`/company/${test_company_1._id}/concurrent`)
+                    .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                     .send(withGodToken({ publishDate, publishEndDate: "123" }))
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
@@ -1841,7 +1845,7 @@ describe("Company endpoint", () => {
         test("Should fail if not logged in", async () => {
 
             const res = await test_agent
-                .get(`/company/${test_company_1._id}/concurrent`)
+                .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                 .send({ publishDate, publishEndDate })
                 .expect(HTTPStatus.UNAUTHORIZED);
 
@@ -1858,7 +1862,7 @@ describe("Company endpoint", () => {
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .get(`/company/${test_company_1._id}/concurrent`)
+                .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                 .send({ publishDate, publishEndDate })
                 .expect(HTTPStatus.FORBIDDEN);
 
@@ -1870,7 +1874,7 @@ describe("Company endpoint", () => {
         test("Should succeed if god token is sent", async () => {
 
             const res = await test_agent
-                .get(`/company/${test_company_1._id}/concurrent`)
+                .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                 .send(withGodToken({ publishDate, publishEndDate }))
                 .expect(HTTPStatus.OK);
 
@@ -1885,7 +1889,7 @@ describe("Company endpoint", () => {
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .get(`/company/${test_company_1._id}/concurrent`)
+                .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                 .send({ publishDate, publishEndDate })
                 .expect(HTTPStatus.OK);
 
@@ -1900,7 +1904,7 @@ describe("Company endpoint", () => {
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .get(`/company/${test_company_1._id}/concurrent`)
+                .get(`/company/${test_company_1._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                 .send({ publishDate, publishEndDate })
                 .expect(HTTPStatus.OK);
 
@@ -1915,7 +1919,7 @@ describe("Company endpoint", () => {
                 .expect(HTTPStatus.OK);
 
             const res = await test_agent
-                .get(`/company/${test_company_2._id}/concurrent`)
+                .get(`/company/${test_company_2._id}/hasReachedMaxConcurrentOffersBetweenDates`)
                 .send({ publishDate, publishEndDate })
                 .expect(HTTPStatus.OK);
 
