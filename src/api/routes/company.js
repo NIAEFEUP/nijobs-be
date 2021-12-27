@@ -181,13 +181,13 @@ export default (app) => {
      * Verifies if a company has reached max concurrent offers between two dates
      */
     router.get("/:companyId/hasReachedMaxConcurrentOffersBetweenDates",
-        validators.setDefaultValuesConcurrent,
         or([
             authMiddleware.isCompany,
             authMiddleware.isAdmin,
             authMiddleware.isGod,
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.checkConcurrent,
+        validators.setDefaultValuesConcurrent,
         (req, res, next) => companyMiddleware.canManageAccountSettings(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {

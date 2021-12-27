@@ -7,6 +7,7 @@ import CompanyService from "../../../services/company.js";
 import { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } from "../../../models/constants/TimeConstants.js";
 
 export const MAX_LIMIT_RESULTS = 100;
+const DEFAULT_PUBLISH_DATE = new Date(Date.now()).toISOString();
 
 export const finish = useExpressValidators([
     body("bio", ValidationReasons.DEFAULT)
@@ -42,6 +43,11 @@ export const companyExists = async (companyId) => {
     }
 
     return true;
+};
+
+const publishEndDateAfterPublishDate = (publishEndDateCandidate, { req }) => {
+    const publishDate = req.body?.publishDate || DEFAULT_PUBLISH_DATE;
+    return publishEndDateCandidate > publishDate;
 };
 
 const existingCompanyParamValidator = param("companyId")
@@ -91,17 +97,17 @@ export const checkConcurrent = useExpressValidators([
         .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .customSanitizer(normalizeDate)
-        .custom((publishEndDate, { req }) => publishEndDate > req.body.publishDate)
+        .custom(publishEndDateAfterPublishDate)
         .withMessage(ValidationReasons.MUST_BE_AFTER("publishDate")),
 ]);
 
 export const setDefaultValuesConcurrent = (req, res, next) => {
-    if (!req.body?.publishDate) req.body.publishDate = new Date(Date.now()).toISOString();
+    if (!req.body?.publishDate) req.body.publishDate = DEFAULT_PUBLISH_DATE;
 
     if (!req.body?.publishEndDate) {
-        const publishDateMs = Date.parse(req.body.publishDate);
+        const publishDateMS = Date.parse(req.body.publishDate);
         const offerMaxTimeMS = OFFER_MAX_LIFETIME_MONTHS * MONTH_IN_MS;
-        req.body.publishEndDate = (new Date(publishDateMs + offerMaxTimeMS)).toISOString();
+        req.body.publishEndDate = (new Date(publishDateMS + offerMaxTimeMS)).toISOString();
     }
     return next();
 };
