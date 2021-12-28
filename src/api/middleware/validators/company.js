@@ -2,10 +2,12 @@ import { body, query, param } from "express-validator";
 import { useExpressValidators } from "../errorHandler.js";
 import ValidationReasons from "./validationReasons.js";
 import CompanyConstants from "../../../models/constants/Company.js";
-import { ensureArray, isObjectId } from "./validatorUtils.js";
+import { ensureArray, isObjectId, normalizeDate } from "./validatorUtils.js";
 import CompanyService from "../../../services/company.js";
+import { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } from "../../../models/constants/TimeConstants.js";
 
 export const MAX_LIMIT_RESULTS = 100;
+const DEFAULT_PUBLISH_DATE = new Date(Date.now()).toISOString();
 
 export const finish = useExpressValidators([
     body("bio", ValidationReasons.DEFAULT)
@@ -43,6 +45,11 @@ export const companyExists = async (companyId) => {
     return true;
 };
 
+const publishEndDateAfterPublishDate = (publishEndDateCandidate, { req }) => {
+    const publishDate = req.body?.publishDate || DEFAULT_PUBLISH_DATE;
+    return publishEndDateCandidate > publishDate;
+};
+
 const existingCompanyParamValidator = param("companyId")
     .exists().withMessage(ValidationReasons.REQUIRED).bail()
     .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
@@ -77,3 +84,30 @@ export const getOffers = useExpressValidators([
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
         .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND)
 ]);
+
+export const checkConcurrent = useExpressValidators([
+    existingCompanyParamValidator,
+
+    body("publishDate", ValidationReasons.DEFAULT)
+        .optional()
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
+        .customSanitizer(normalizeDate),
+
+    body("publishEndDate", ValidationReasons.DEFAULT)
+        .optional()
+        .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
+        .customSanitizer(normalizeDate)
+        .custom(publishEndDateAfterPublishDate)
+        .withMessage(ValidationReasons.MUST_BE_AFTER("publishDate")),
+]);
+
+export const setDefaultValuesConcurrent = (req, res, next) => {
+    if (!req.body?.publishDate) req.body.publishDate = DEFAULT_PUBLISH_DATE;
+
+    if (!req.body?.publishEndDate) {
+        const publishDateMS = Date.parse(req.body.publishDate);
+        const offerMaxTimeMS = OFFER_MAX_LIFETIME_MONTHS * MONTH_IN_MS;
+        req.body.publishEndDate = (new Date(publishDateMS + offerMaxTimeMS)).toISOString();
+    }
+    return next();
+};
