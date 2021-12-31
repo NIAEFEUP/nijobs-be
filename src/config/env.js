@@ -34,6 +34,6 @@ export default Object.freeze({
 
     // File upload
     cloudinary_url: process.env.CLOUDINARY_URL,
-    upload_folder: new URL("../..", path.join(import.meta.url, process.env.UPLOAD_FOLDER || "static")).pathname,
+    upload_folder: new URL(process.env.UPLOAD_FOLDER || "static", path.join(import.meta.url, "../..")).pathname,
     webserver_host: process.env.WEBSERVER_HOST,
 });

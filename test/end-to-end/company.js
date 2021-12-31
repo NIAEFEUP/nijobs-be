@@ -19,6 +19,7 @@ import { COMPANY_UNBLOCKED_NOTIFICATION,
     COMPANY_DISABLED_NOTIFICATION,
     COMPANY_DELETED_NOTIFICATION } from "../../src/email-templates/companyManagement";
 import { MAX_FILE_SIZE_MB } from "../../src/api/middleware/utils";
+import { fileURLToPath } from "url";
 
 const getCompanies = async (options) =>
     [...(await Company.find(options)
@@ -340,7 +341,7 @@ describe("Company endpoint", () => {
                 test("should return error when the logo is missing", async () => {
                     const res = await test_agent
                         .post("/company/application/finish")
-                        .attach("logo", __filename)
+                        .attach("logo", fileURLToPath(import.meta.url))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
                     expect(res.body.errors).toContainEqual({
