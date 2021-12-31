@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import hbs from "nodemailer-express-handlebars";
+import path from "path";
 
 export class EmailService {
 
@@ -19,13 +20,13 @@ export class EmailService {
 
         transporter.use("compile", hbs({
             viewEngine: {
-                layoutsDir: `${__dirname}/../email-templates/layouts`,
-                partialsDir: `${__dirname}/../email-templates/partials/`,
+                layoutsDir: `${path.resolve()}/../email-templates/layouts`,
+                partialsDir: `${path.resolve()}/../email-templates/partials/`,
                 extName: ".handlebars",
                 defaultLayout: "main"
             },
             extName: ".handlebars",
-            viewPath: `${__dirname}/../email-templates/`,
+            viewPath: `${path.resolve()}/../email-templates/`,
         }));
 
         this.transporter = transporter;
