@@ -20,13 +20,13 @@ export class EmailService {
 
         transporter.use("compile", hbs({
             viewEngine: {
-                layoutsDir: `${path.resolve()}/../email-templates/layouts`,
-                partialsDir: `${path.resolve()}/../email-templates/partials/`,
+                layoutsDir: `${path.resolve()}/src/email-templates/layouts`,
+                partialsDir: `${path.resolve()}/src/email-templates/partials/`,
                 extName: ".handlebars",
                 defaultLayout: "main"
             },
             extName: ".handlebars",
-            viewPath: `${path.resolve()}/../email-templates/`,
+            viewPath: `${path.resolve()}/src/email-templates/`,
         }));
 
         this.transporter = transporter;
