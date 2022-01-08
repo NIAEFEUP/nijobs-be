@@ -1,5 +1,6 @@
 export default Object.freeze({
     title: {
+        min_length: 1,
         max_length: 90,
     },
     description: {

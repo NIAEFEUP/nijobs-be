@@ -199,6 +199,7 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = BodyValidatorTester("title");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeString();
+                FieldValidatorTester.hasMinLength(OfferConstants.title.min_length);
                 FieldValidatorTester.hasMaxLength(OfferConstants.title.max_length);
             });
 
