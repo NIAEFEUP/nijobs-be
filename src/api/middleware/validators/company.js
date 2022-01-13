@@ -30,7 +30,7 @@ export const list = useExpressValidators([
     query("offset", ValidationReasons.DEFAULT)
         .optional()
         .isInt({ min: 0 })
-        .withMessage(ValidationReasons.MIN(0)),
+        .withMessage(ValidationReasons.MIN(ValidationReasons.MIN)),
 ]);
 
 export const companyExists = async (companyId) => {
