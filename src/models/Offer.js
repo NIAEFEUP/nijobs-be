@@ -12,7 +12,7 @@ import { concurrentOffersNotExceeded, maxHTMLContentLength } from "../api/middle
 const { Schema, Types } = mongoose;
 
 const OfferSchema = new Schema({
-    title: { type: String, maxlength: OfferConstants.title.max_length, required: true },
+    title: { type: String, maxlength: OfferConstants.title.max_length, minlength: OfferConstants.title.min_length, required: true },
     publishDate: {
         type: Date,
         required: true,
