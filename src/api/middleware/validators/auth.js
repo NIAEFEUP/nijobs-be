@@ -16,7 +16,8 @@ export const register = useExpressValidators([
     body("password", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
-        .isLength({ min: AccountConstants.password.min_length }).withMessage(ValidationReasons.TOO_SHORT(8))
+        .isLength({ min: AccountConstants.password.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(AccountConstants.password.min_length))
         .matches(/\d/).withMessage(ValidationReasons.HAS_NUMBER),
 ]);
 

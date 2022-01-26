@@ -1,9 +1,16 @@
 export default Object.freeze({
     title: {
+        min_length: 1,
         max_length: 90,
     },
     description: {
         max_length: 1500,
+    },
+    contacts: {
+        min_length: 1,
+    },
+    requirements: {
+        min_length: 1,
     },
     HiddenOfferReasons: {
         ADMIN_BLOCK: "ADMIN_REQUEST",

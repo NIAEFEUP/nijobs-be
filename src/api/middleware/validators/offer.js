@@ -74,7 +74,8 @@ export const create = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
-        .isLength({ max: OfferConstants.title.max_length }).withMessage(ValidationReasons.TOO_LONG(90))
+        .isLength({ min: OfferConstants.title.min_length }).withMessage(ValidationReasons.TOO_SHORT(OfferConstants.title.min_length))
+        .isLength({ max: OfferConstants.title.max_length }).withMessage(ValidationReasons.TOO_LONG(OfferConstants.title.max_length))
         .trim(),
 
     body("publishDate", ValidationReasons.DEFAULT)
@@ -115,8 +116,8 @@ export const create = useExpressValidators([
 
     body("contacts", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isArray({ min: 1 })
-        .withMessage(ValidationReasons.TOO_SHORT(1)),
+        .isArray({ min: OfferConstants.contacts.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(OfferConstants.contacts.min_length)),
 
     body("isPaid", ValidationReasons.DEFAULT)
         .optional()
@@ -182,8 +183,8 @@ export const create = useExpressValidators([
 
     body("requirements", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isArray({ min: 1 })
-        .withMessage(ValidationReasons.TOO_SHORT(1)),
+        .isArray({ min: OfferConstants.requirements.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(OfferConstants.requirements.min_length)),
 ]);
 
 const jobMinDurationEditable = async (jobMinDurationCandidate, { req }) => {
@@ -333,7 +334,8 @@ export const edit = useExpressValidators([
     body("title", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING)
-        .isLength({ max: OfferConstants.title.max_length }).withMessage(ValidationReasons.TOO_LONG(90))
+        .isLength({ min: OfferConstants.title.min_length }).withMessage(ValidationReasons.TOO_SHORT(OfferConstants.title.min_length))
+        .isLength({ max: OfferConstants.title.max_length }).withMessage(ValidationReasons.TOO_LONG(OfferConstants.title.max_length))
         .trim(),
 
     body("publishDate", ValidationReasons.DEFAULT)
@@ -375,8 +377,8 @@ export const edit = useExpressValidators([
 
     body("contacts", ValidationReasons.DEFAULT)
         .optional()
-        .isArray({ min: 1 })
-        .withMessage(ValidationReasons.TOO_SHORT(1)),
+        .isArray({ min: OfferConstants.contacts.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(OfferConstants.contacts.min_length)),
 
     body("isPaid", ValidationReasons.DEFAULT)
         .optional()
@@ -415,8 +417,8 @@ export const edit = useExpressValidators([
         .trim(),
     body("requirements", ValidationReasons.DEFAULT)
         .optional()
-        .isArray({ min: 1 })
-        .withMessage(ValidationReasons.TOO_SHORT(1)),
+        .isArray({ min: OfferConstants.requirements.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(OfferConstants.requirements.min_length)),
     // TODO: Figure out how to handle this field
     // We should probably only receive the array part and inject the type that PointSchema requires in a custom sanitizer
     body("coordinates", ValidationReasons.DEFAULT)
