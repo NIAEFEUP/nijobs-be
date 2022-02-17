@@ -8,6 +8,7 @@ export default Object.freeze({
     },
     offers: {
         max_concurrent: 5,
+        max_profile_visible: 5
     },
     contacts: {
         min_length: 1,
