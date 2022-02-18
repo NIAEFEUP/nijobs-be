@@ -12,6 +12,9 @@ export default Object.freeze({
     requirements: {
         min_length: 1,
     },
+    vacancies: {
+        min: 1,
+    },
     HiddenOfferReasons: {
         ADMIN_BLOCK: "ADMIN_REQUEST",
         COMPANY_REQUEST: "COMPANY_REQUEST",

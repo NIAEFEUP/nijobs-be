@@ -62,7 +62,7 @@ const OfferSchema = new Schema({
     },
 
     isPaid: { type: Boolean },
-    vacancies: { type: Number },
+    vacancies: { type: Number, min: OfferConstants.vacancies.min },
     jobType: { type: String, required: true, enum: JobTypes },
     fields: {
         type: [{ type: String, enum: FieldTypes }],
