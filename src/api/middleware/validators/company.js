@@ -75,14 +75,9 @@ export const deleteCompany = useExpressValidators([
     existingCompanyParamValidator,
 ]);
 
-/**
- * Checks if the param companyId is valid and corresponds to a valid company
- */
+
 export const getOffers = useExpressValidators([
-    param("companyId", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
-        .custom(companyExists).withMessage(ValidationReasons.COMPANY_NOT_FOUND)
+    existingCompanyParamValidator,
 ]);
 
 export const checkConcurrent = useExpressValidators([
