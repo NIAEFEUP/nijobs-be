@@ -240,7 +240,7 @@ describe("Company endpoint", () => {
         });
 
         describe("GET /company/:companyId/profile", () => {
-            let test_company, test_company_2, test_company_3, test_company_4, hidden_company, disabled_company;
+            let test_company, test_company_2, test_company_3, test_company_4, hidden_company, disabled_offer_company;
             const test_user = {
                 email: "user@email.com",
                 password: "password123"
@@ -261,7 +261,7 @@ describe("Company endpoint", () => {
             beforeAll(async () => {
                 await Company.deleteMany({});
 
-                [test_company, test_company_2, test_company_3, test_company_4, hidden_company, disabled_company] =
+                [test_company, test_company_2, test_company_3, test_company_4, hidden_company, disabled_offer_company] =
                 await Company.create(
                     [test_company_data, test_company_data, test_company_data, test_company_data, test_company_data, test_company_data]);
 
@@ -447,16 +447,16 @@ describe("Company endpoint", () => {
 
                 const disabled_test_offer = await Offer.create(
                     generateTestOffer({
-                        owner: disabled_company._id.toString(),
-                        ownerName: disabled_company.name,
-                        ownerLogo: disabled_company.logo,
+                        owner: disabled_offer_company._id.toString(),
+                        ownerName: disabled_offer_company.name,
+                        ownerLogo: disabled_offer_company.logo,
                     })
                 );
 
                 await (new OfferService()).disable(disabled_test_offer._id, OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
 
                 const res = await test_agent
-                    .get(`/company/${disabled_company._id}/profile`)
+                    .get(`/company/${disabled_offer_company._id}/profile`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers.length).toEqual(0);

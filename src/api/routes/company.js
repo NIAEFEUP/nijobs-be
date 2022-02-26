@@ -76,9 +76,10 @@ export default (app) => {
     router.get("/:companyId/profile", validators.profile, async (req, res) => {
         const company = await new CompanyService().findById(req.params.companyId, req.hasAdminPrivileges, req.hasAdminPrivileges);
         const offers = (await new OfferService()
-            .getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges))
-            .sort((a1, a2) => a1.publishDate > a2.publishDate)
-            .slice(0, CompanyConstants.offers.max_profile_visible);
+            .getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges, {
+                sort: { publishDate: "desc" }, limit: CompanyConstants.offers.max_profile_visible
+            })
+        );
         return res.json({ company, offers });
     });
 
