@@ -312,21 +312,23 @@ const publishEndDateEditableLimit = async (publishEndDateCandidate, { req }) => 
     return true;
 };
 
+const existingOfferId = async (offerId, { req }) => {
+    try {
+        const offer = await (new OfferService()).getOfferById(offerId, req.targetOwner, req.hasAdminPrivileges);
+        if (!offer) throw new Error(ValidationReasons.OFFER_NOT_FOUND(offerId));
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+
+    return true;
+};
+
 export const isExistingOffer = useExpressValidators([
     param("offerId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
-        .custom(async (offerId, { req }) => {
-            try {
-                const offer = await (new OfferService()).getOfferById(offerId, req.targetOwner, req.hasAdminPrivileges);
-                if (!offer) throw new Error(ValidationReasons.OFFER_NOT_FOUND(offerId));
-            } catch (err) {
-                console.error(err);
-                throw err;
-            }
-
-            return true;
-        }),
+        .custom(existingOfferId),
 ]);
 
 export const edit = useExpressValidators([
@@ -441,10 +443,10 @@ export const setDefaultValuesCreate = (req, res, next) => {
 };
 
 export const get = useExpressValidators([
-    query("offset", ValidationReasons.DEFAULT)
+    query("lastOfferId", ValidationReasons.DEFAULT)
         .optional()
-        .isInt({ min: 0 }).withMessage(ValidationReasons.INT)
-        .toInt(),
+        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
+        .custom(existingOfferId),
 
     query("limit")
         .optional()
