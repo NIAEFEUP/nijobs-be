@@ -1,9 +1,12 @@
+import mongoose from "mongoose";
 import Company  from "../models/Company.js";
 import Offer  from "../models/Offer.js";
 import Account  from "../models/Account.js";
 import EmailService  from "../lib/emailService.js";
 import { OFFER_DISABLED_NOTIFICATION }  from "../email-templates/companyOfferDisabled.js";
 import OfferConstants  from "../models/constants/Offer.js";
+
+const { ObjectId } = mongoose.Types;
 
 class OfferService {
     // TODO: Use typedi or similar
@@ -192,29 +195,68 @@ class OfferService {
 
     /**
      * Fetches offers according to specified options
+     * Learn more about keyset search here: https://github.com/NIAEFEUP/nijobs-be/issues/129
+     *
      * @param {*} options
      * value: Text to use in full-text-search
-     * offset: Point to start looking (and limiting)
+     * lastOfferId: Id of the last fetched offer
      * limit: How many offers to show
      * jobType: Array of jobTypes allowed
      */
-    get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false, showAdminReason = false, ...filters }) {
+    async get({ value = "", lastOfferId = null, limit = OfferService.MAX_OFFERS_PER_QUERY,
+        showHidden = false, showAdminReason = false, ...filters }) {
 
-        const offers = (value ? Offer.find(
-            { "$and": [this._buildFilterQuery(filters), { "$text": { "$search": value } }] }, { score: { "$meta": "textScore" } }
-        ) : Offer.find(this._buildFilterQuery(filters))).current();
+        let offers;
+        if (lastOfferId && value) {
+            const lastOffer = await Offer.findOne({ "$and": [
+                { _id: ObjectId(lastOfferId) },
+                { "$text": { "$search": value } }
+            ] }, { score: { "$meta": "textScore" } }).lean(); // validate offer with score
 
-        if (!showHidden) offers.withoutHidden();
+            offers = Offer.aggregate([
+                { $match: { $text: { $search: value } } },
+                { $addFields: {
+                    score: { $meta: "textScore" },
+                    adminReason: { $cond: [showAdminReason, "$adminReason", "$$REMOVE"] }
+                } },
+                { $match: { "$or": [
+                    { score: { "$lt": lastOffer.score } },
+                    { score: lastOffer.score, _id: { "$gt": lastOffer._id } }
+                ] } },
+                { $match: Offer.currentCondition },
+                { $match: showHidden ? {} : Offer.withoutHiddenCondition }
+            ]);
 
-        const offersQuery = offers
-            .sort(value ? { score: { "$meta": "textScore" } } : undefined)
-            .skip(offset)
+        } else {
+            if (lastOfferId) {
+
+                offers = Offer.find({ "$and": [
+                    this._buildFilterQuery(filters),
+                    { _id: { "$gt": lastOfferId } }
+                ] });
+
+            } else {
+
+                offers = (value ? Offer.find({ "$and": [
+                    this._buildFilterQuery(filters),
+                    { "$text": { "$search": value } }
+                ] }, { score: { "$meta": "textScore" } }
+
+                ) : Offer.find(this._buildFilterQuery(filters)));
+            }
+
+            offers.current();
+            if (!showHidden) offers.withoutHidden();
+            if (!showAdminReason) offers.select("-adminReason");
+            // TODO: Test this
+        }
+
+        return offers
+            .sort(value ? { score: { "$meta": "textScore" }, _id: 1 } : { _id: 1 })
             .limit(limit)
         ;
-
-        return showAdminReason ? offersQuery : offersQuery.select("-adminReason");
-
     }
+
     _buildFilterQuery(filters) {
         if (!filters || !Object.keys(filters).length) return {};
 
