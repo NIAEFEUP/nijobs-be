@@ -12,8 +12,6 @@ import OfferConstants from "../../../models/constants/Offer.js";
 import Company from "../../../models/Company.js";
 import Offer, { validatePublishEndDateLimit } from "../../../models/Offer.js";
 import {
-    HOUR_IN_MS,
-    OFFER_EDIT_GRACE_PERIOD_HOURS,
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
 } from "../../../models/constants/TimeConstants.js";
@@ -432,17 +430,8 @@ export const isEditable = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
     const currentDate = new Date(Date.now());
 
-    // Verify if offer editing grace period is over
-    const timeDiff = currentDate - offer.createdAt;
-    const diffInHours = timeDiff / HOUR_IN_MS;
-
     if (offer.publishEndDate.toISOString() <= currentDate.toISOString()) {
         return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_EXPIRED(req.params.offerId)));
-    } else if (offer.publishDate.toISOString() <= currentDate.toISOString() && diffInHours > OFFER_EDIT_GRACE_PERIOD_HOURS) {
-        return next(
-            new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_EDIT_PERIOD_OVER(diffInHours.toFixed(2)))
-        );
-
     }
 
     return next();

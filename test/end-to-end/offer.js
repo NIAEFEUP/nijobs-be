@@ -15,8 +15,6 @@ import ValidationReasons from "../../src/api/middleware/validators/validationRea
 import { Types } from "mongoose";
 import CompanyConstants from "../../src/models/constants/Company";
 import {
-    OFFER_EDIT_GRACE_PERIOD_HOURS,
-    HOUR_IN_MS,
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
 } from "../../src/models/constants/TimeConstants";
@@ -1840,8 +1838,6 @@ describe("Offer endpoint tests", () => {
     describe("POST /offers/edit/:offerId", () => {
         let createOffer,
             expired_test_offer,
-            grace_period_over_test_offer,
-            grace_period_valid_test_offer,
             future_test_offer,
             valid_test_offer_1,
             valid_test_offer_2,
@@ -1873,18 +1869,6 @@ describe("Offer endpoint tests", () => {
                 "publishDate": "2019-11-17",
                 "publishEndDate": "2019-11-18"
             }));
-
-            grace_period_over_test_offer = await createOffer(generateTestOffer({
-                "publishDate": (new Date(Date.now())).toISOString(),
-                "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
-            }
-            ));
-
-            grace_period_valid_test_offer = await createOffer(generateTestOffer({
-                "publishDate": (new Date(Date.now())).toISOString(),
-                "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
-            }
-            ));
 
             future_test_offer = await createOffer(generateTestOffer({
                 "publishDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
@@ -1955,39 +1939,6 @@ describe("Offer endpoint tests", () => {
                     .expect(HTTPStatus.FORBIDDEN);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_EXPIRED(expired_test_offer._id.toString()) });
-            });
-
-            describe("should fail if offer with grace period over", () => {
-                const RealDateNow = Date.now;
-                const mockDate = new Date(Date.now() + (OFFER_EDIT_GRACE_PERIOD_HOURS * HOUR_IN_MS * 2));
-                beforeEach(() => {
-                    Date.now = () => mockDate.getTime();
-                });
-
-                afterEach(() => {
-                    Date.now = RealDateNow;
-                });
-
-                test("should fail offer with grace period over", async () => {
-                    const expired_over_hours =
-                        ((new Date(Date.now())).getTime() - (new Date(grace_period_over_test_offer.createdAt)).getTime()) / HOUR_IN_MS;
-                    const res = await test_agent
-                        .post(`/offers/edit/${grace_period_over_test_offer._id.toString()}`)
-                        .send(withGodToken())
-                        .expect(HTTPStatus.FORBIDDEN);
-                    expect(res.body).toHaveProperty("errors");
-                    expect(res.body.errors).toContainEqual({
-                        msg: ValidationReasons.OFFER_EDIT_PERIOD_OVER(expired_over_hours.toFixed(2))
-                    });
-                });
-
-            });
-
-            test("should allow editing offer with valid grace period", async () => {
-                await test_agent
-                    .post(`/offers/edit/${grace_period_valid_test_offer._id.toString()}`)
-                    .send(withGodToken())
-                    .expect(HTTPStatus.OK);
             });
 
             test("should allow editing offer in the future", async () => {
