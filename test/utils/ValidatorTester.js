@@ -332,6 +332,26 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             });
         });
     },
+
+    mustBeGreaterThanOrEqualTo: (min) => {
+        test(`should be greater than or equal to ${min}`, async () => {
+            const params = {
+                [field_name]: min - 1,
+            };
+
+            const res = await requestEndpoint(params);
+
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.MIN(min),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            });
+        });
+    },
 });
 
 export default ValidatorTester;

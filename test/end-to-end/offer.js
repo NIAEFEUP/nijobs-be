@@ -251,7 +251,7 @@ describe("Offer endpoint tests", () => {
 
             describe("vacancies", () => {
                 const FieldValidatorTester = BodyValidatorTester("vacancies");
-                FieldValidatorTester.mustBeNumber();
+                FieldValidatorTester.mustBeGreaterThanOrEqualTo(OfferConstants.vacancies.min);
             });
 
             describe("jobType", () => {
@@ -2222,7 +2222,7 @@ describe("Offer endpoint tests", () => {
 
                     describe("vacancies", () => {
                         const FieldValidatorTester = BodyValidatorTester("vacancies");
-                        FieldValidatorTester.mustBeNumber();
+                        FieldValidatorTester.mustBeGreaterThanOrEqualTo(OfferConstants.vacancies.min);
                     });
 
                     describe("jobType", () => {

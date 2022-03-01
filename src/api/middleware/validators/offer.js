@@ -125,7 +125,8 @@ export const create = useExpressValidators([
 
     body("vacancies", ValidationReasons.DEFAULT)
         .optional()
-        .isInt().withMessage(ValidationReasons.INT),
+        .isInt({ min: OfferConstants.vacancies.min })
+        .withMessage(ValidationReasons.MIN(OfferConstants.vacancies.min)),
 
     body("jobType", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
@@ -386,7 +387,8 @@ export const edit = useExpressValidators([
 
     body("vacancies", ValidationReasons.DEFAULT)
         .optional()
-        .isInt().withMessage(ValidationReasons.INT),
+        .isInt({ min: OfferConstants.vacancies.min })
+        .withMessage(ValidationReasons.MIN(OfferConstants.vacancies.min)),
 
     body("jobType", ValidationReasons.DEFAULT)
         .optional()
