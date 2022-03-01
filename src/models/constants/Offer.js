@@ -13,7 +13,7 @@ export default Object.freeze({
         min_length: 1,
     },
     vacancies: {
-        min: 1,
+        min: 0,
     },
     HiddenOfferReasons: {
         ADMIN_BLOCK: "ADMIN_REQUEST",
