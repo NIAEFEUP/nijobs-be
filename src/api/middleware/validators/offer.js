@@ -446,7 +446,27 @@ export const get = useExpressValidators([
     query("lastOfferId", ValidationReasons.DEFAULT)
         .optional()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
-        .custom(existingOfferId),
+        .custom(existingOfferId)
+        .custom(async (offerId, { req }) => {
+            try {
+                const offerService = new OfferService();
+                const { value, ...filters } = req.query;
+
+                if (!await offerService.doesOfferMatchFilters(offerId, filters)) {
+                    throw new Error(ValidationReasons.OFFER_NOT_MATCHING_CRITERIA);
+                }
+
+                if (!value) return true;
+
+                const score = await offerService.getTextSearchScoreById(offerId, value);
+                if (score <= 0) throw new Error(ValidationReasons.OFFER_NOT_MATCHING_CRITERIA);
+            } catch (err) {
+                console.error(err);
+                throw err;
+            }
+
+            return true;
+        }),
 
     query("limit")
         .optional()

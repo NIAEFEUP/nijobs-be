@@ -37,6 +37,7 @@ const ValidationReasons = Object.freeze({
     OFFER_EXPIRED: (id) => `offer-expired:${id}`,
     NOT_OFFER_OWNER: (id) => `not-offer-owner:${id}`,
     OFFER_EDIT_PERIOD_OVER: (value) => `offer-edit-period-over:${value}-hours`,
+    OFFER_NOT_MATCHING_CRITERIA: "offer-not-matching-search-criteria",
     JOB_MIN_DURATION_NOT_SPECIFIED: "job-max-duration-requires-job-min-duration",
     REGISTRATION_FINISHED: "registration-already-finished",
     REGISTRATION_NOT_FINISHED: "registration-not-finished-yet",

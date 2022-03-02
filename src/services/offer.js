@@ -208,10 +208,7 @@ class OfferService {
 
         let offers;
         if (lastOfferId && value) {
-            const lastOffer = await Offer.findOne({ "$and": [
-                { _id: ObjectId(lastOfferId) },
-                { "$text": { "$search": value } }
-            ] }, { score: { "$meta": "textScore" } }).lean(); // validate offer with score
+            const lastOfferScore = await this.getTextSearchScoreById(lastOfferId, value);
 
             offers = Offer.aggregate([
                 { $match: { $text: { $search: value } } },
@@ -220,8 +217,8 @@ class OfferService {
                     adminReason: { $cond: [showAdminReason, "$adminReason", "$$REMOVE"] }
                 } },
                 { $match: { "$or": [
-                    { score: { "$lt": lastOffer.score } },
-                    { score: lastOffer.score, _id: { "$gt": lastOffer._id } }
+                    { score: { "$lt": lastOfferScore } },
+                    { score: lastOfferScore, _id: { "$gt": lastOfferId } }
                 ] } },
                 { $match: Offer.currentCondition },
                 { $match: showHidden ? {} : Offer.withoutHiddenCondition }
@@ -248,7 +245,6 @@ class OfferService {
             offers.current();
             if (!showHidden) offers.withoutHidden();
             if (!showAdminReason) offers.select("-adminReason");
-            // TODO: Test this
         }
 
         return offers
@@ -359,6 +355,24 @@ class OfferService {
 
     async deleteOffersByCompanyId(companyId) {
         await Offer.deleteMany({ owner: companyId });
+    }
+
+    async getTextSearchScoreById(offerId, value) {
+        const offer = await Offer.findOne({ "$and": [
+            { _id: ObjectId(offerId) },
+            { "$text": { "$search": value } }
+        ] }, { score: { "$meta": "textScore" } }).lean();
+
+        return offer?.score || 0;
+    }
+
+    async doesOfferMatchFilters(offerId, filters) {
+        const offer = await Offer.findOne({ "$and": [
+            { _id: ObjectId(offerId) },
+            this._buildFilterQuery(filters)
+        ] });
+
+        return !!offer;
     }
 
 }
