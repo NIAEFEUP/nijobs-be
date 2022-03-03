@@ -220,8 +220,8 @@ class OfferService {
                     { score: { "$lt": lastOfferScore } },
                     { score: lastOfferScore, _id: { "$gt": lastOfferId } }
                 ] } },
-                { $match: Offer.currentCondition },
-                { $match: showHidden ? {} : Offer.withoutHiddenCondition }
+                { $match: Offer.currentCondition() },
+                { $match: showHidden ? {} : Offer.withoutHiddenCondition() }
             ]);
 
         } else {
