@@ -873,11 +873,6 @@ describe("Offer endpoint tests", () => {
             const EndpointValidatorTester = ValidatorTester((params) => request().get("/offers").query(params));
             const QueryValidatorTester = EndpointValidatorTester("query");
 
-            describe("offset", () => {
-                const FieldValidatorTester = QueryValidatorTester("offset");
-                FieldValidatorTester.mustBeNumber();
-            });
-
             describe("limit", () => {
                 const FieldValidatorTester = QueryValidatorTester("limit");
                 FieldValidatorTester.mustBeNumber();
@@ -973,6 +968,7 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.OK);
                     expect(res.body).toHaveLength(1);
+
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
                     const extracted_data = res.body.map((elem) => {
                         delete elem["_id"];
