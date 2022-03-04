@@ -218,7 +218,7 @@ class OfferService {
                 } },
                 { $match: { "$or": [
                     { score: { "$lt": lastOfferScore } },
-                    { score: lastOfferScore, _id: { "$gt": lastOfferId } }
+                    { score: lastOfferScore, _id: { "$gt": ObjectId(lastOfferId) } }
                 ] } },
                 { $match: Offer.currentCondition() },
                 { $match: showHidden ? {} : Offer.withoutHiddenCondition() }
@@ -229,7 +229,7 @@ class OfferService {
 
                 offers = Offer.find({ "$and": [
                     this._buildFilterQuery(filters),
-                    { _id: { "$gt": lastOfferId } }
+                    { _id: { "$gt": ObjectId(lastOfferId) } }
                 ] });
 
             } else {
