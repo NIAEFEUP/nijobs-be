@@ -904,9 +904,41 @@ describe("Offer endpoint tests", () => {
             });
         });
 
+        describe("lastOfferId validation", () => {
+            test("should fail if lastOfferId is not a valid id", async () => {
+                const res = await request()
+                    .get("/offers")
+                    .query({ lastOfferId: "123" });
+
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+                expect(res.body.errors[0]).toHaveProperty("param", "lastOfferId");
+                expect(res.body.errors[0]).toHaveProperty("location", "query");
+            });
+
+            test("should fail if the offer does not exist", async () => {
+                const lastOfferId = "5facf0cdb8bc30016ee58952";
+                const res = await request()
+                    .get("/offers")
+                    .query({ lastOfferId });
+
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OFFER_NOT_FOUND(lastOfferId));
+                expect(res.body.errors[0]).toHaveProperty("param", "lastOfferId");
+                expect(res.body.errors[0]).toHaveProperty("location", "query");
+            });
+        });
+
         describe("Using already created offer(s)", () => {
             let test_company;
             let test_offer;
+
+            const testPublishDate = "2019-11-22T00:00:00.000Z";
+            const testPublishEndDate = "2019-11-28T00:00:00.000Z";
 
             beforeAll(async () => {
                 test_company = await Company.create({
@@ -918,8 +950,8 @@ describe("Offer endpoint tests", () => {
 
                 test_offer = {
                     ...generateTestOffer({
-                        "publishDate": "2019-11-22T00:00:00.000Z",
-                        "publishEndDate": "2019-11-28T00:00:00.000Z"
+                        "publishDate": testPublishDate,
+                        "publishEndDate": testPublishEndDate
                     }),
                     owner: test_company._id,
                     ownerName: test_company.name,
@@ -1046,6 +1078,102 @@ describe("Offer endpoint tests", () => {
                         expect(extracted_data).toContainEqual(prepared_test_offer);
                     });
                 });
+
+                describe("When lastOfferId is given", () => {
+
+                    beforeAll(async () => {
+                        // Add another offer
+                        await Offer.deleteMany({});
+                        await Offer.create([test_offer, { ...test_offer, jobType: "FULL-TIME" },
+                            expired_test_offer, future_test_offer]);
+                    });
+
+                    test("should fetch offers with the id greater than the one provided", async () => {
+                        const res = await request()
+                            .get("/offers");
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body).toHaveLength(2);
+
+                        const lastOfferId = res.body[0]._id;
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ lastOfferId });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body).toHaveLength(1);
+
+                        const offer = res2.body[0];
+                        expect(offer._id).not.toBe(lastOfferId);
+                    });
+
+                    test("should succeed if there are no more offers after the last one", async () => {
+                        const res = await request()
+                            .get("/offers");
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body).toHaveLength(2);
+
+                        const lastOfferId = res.body[1]._id;
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ lastOfferId });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body).toHaveLength(0);
+                    });
+
+                    test("should fail if the last offer does not match the filters", async () => {
+                        const lastOffer = await Offer.findOne({ publishDate: testPublishDate });
+
+                        const res = await request()
+                            .get("/offers")
+                            .query({
+                                lastOfferId: String(lastOffer._id),
+                                jobType: "PART-TIME"
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                        expect(res.body).toHaveProperty("errors");
+                        expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OFFER_NOT_MATCHING_CRITERIA);
+                        expect(res.body.errors[0]).toHaveProperty("param", "lastOfferId");
+                        expect(res.body.errors[0]).toHaveProperty("location", "query");
+                    });
+
+                    test("should fail if the last offer does not match full text search", async () => {
+                        const lastOffer = await Offer.findOne({ publishDate: testPublishDate });
+
+                        const res = await request()
+                            .get("/offers")
+                            .query({
+                                lastOfferId: String(lastOffer._id),
+                                value: "wrong value"
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                        expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                        expect(res.body).toHaveProperty("errors");
+                        expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OFFER_NOT_MATCHING_CRITERIA);
+                        expect(res.body.errors[0]).toHaveProperty("param", "lastOfferId");
+                        expect(res.body.errors[0]).toHaveProperty("location", "query");
+                    });
+
+                    test("offers are returned according to filters", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({
+                                publishDate: testPublishDate,
+                                publishEndDate: testPublishEndDate,
+                                jobType: "FULL-TIME"
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body).toHaveLength(1);
+                        expect(res.body[0].jobType).toBe("FULL-TIME");
+                    });
+                });
+
                 describe("When showHidden is active", () => {
 
                     beforeAll(async () => {
@@ -1257,6 +1385,7 @@ describe("Offer endpoint tests", () => {
                 beforeAll(async () => {
                     portoFrontend = {
                         ...test_offer,
+                        title: "This offer is from Porto",
                         location: "Porto",
                         jobType: "FULL-TIME",
                         fields: ["FRONTEND", "OTHER"],
@@ -1511,6 +1640,384 @@ describe("Offer endpoint tests", () => {
 
                     expected_offers.forEach((expected) => {
                         expect(extracted_data).toContainEqual(expected);
+                    });
+                });
+
+                describe("When lastOfferId and value are given", () => {
+
+                    test("should return next matching offer with lower score", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({
+                                value: "porto",
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body).toHaveLength(2);
+                        expect(res.body[0].title).toEqual(portoFrontend.title);
+
+                        const lastOfferId = res.body[0]._id;
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({
+                                value: "porto",
+                                lastOfferId
+                            });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body).toHaveLength(1);
+                        expect(res2.body[0].title).toEqual(portoBackend.title);
+                    });
+
+                    test("should return next matching offer with the same score", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({
+                                value: "backend",
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body).toHaveLength(2);
+
+                        const lastOfferId = res.body[0]._id;
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({
+                                value: "backend",
+                                lastOfferId
+                            });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body).toHaveLength(1);
+                    });
+
+                    describe("With not current offers", () => {
+
+                        const expired_test_offer = generateTestOffer({
+                            "publishDate": (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString()
+                        });
+                        const future_test_offer = generateTestOffer({
+                            "publishDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+                        });
+
+                        beforeAll(async () => {
+
+                            [future_test_offer, expired_test_offer]
+                                .forEach((offer) => {
+                                    offer.owner = test_company._id;
+                                    offer.ownerName = test_company.name;
+                                    offer.ownerLogo = test_company.logo;
+                                });
+
+                            await Offer.create([expired_test_offer, future_test_offer]);
+                        });
+
+                        afterAll(async () => {
+                            await Offer.deleteOne(future_test_offer);
+                            await Offer.deleteOne(expired_test_offer);
+                        });
+
+                        test("should provide only current offers", async () => {
+                            const res = await request()
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body).toHaveLength(2);
+
+                            const lastOfferId = res.body[0]._id;
+                            const res2 = await request()
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    lastOfferId
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body).toHaveLength(1);
+
+                            res2.body.forEach((offer) => {
+                                expect(offer.publishDate <= new Date(Date.now()).toISOString()).toBeTruthy();
+                                expect(offer.publishEndDate >= new Date(Date.now()).toISOString()).toBeTruthy();
+                            });
+                        });
+                    });
+
+                    describe("When lastOfferId and value are provided and showHidden is active", () => {
+
+                        beforeAll(async () => {
+                            await Offer.create({
+                                ...portoFrontend,
+                                isHidden: true,
+                                title: "This offer is hidden"
+                            });
+                        });
+
+                        afterAll(async () => {
+                            await Offer.deleteOne({ isHidden: true });
+                        });
+
+                        test("should not return hidden offers by default", async () => {
+                            const res = await request()
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body).toHaveLength(2);
+
+                            const lastOfferId = res.body[0]._id;
+                            const res2 = await request()
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    lastOfferId
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body).toHaveLength(1);
+
+                            res2.body.forEach((offer) => {
+                                expect(offer.isHidden).toBeFalsy();
+                            });
+                        });
+
+                        test("companies should not see their hidden offers", async () => {
+                            await test_agent
+                                .post("/auth/login")
+                                .send(test_user_company)
+                                .expect(HTTPStatus.OK);
+
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body).toHaveLength(2);
+
+                            const lastOfferId = res.body[0]._id;
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    lastOfferId
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body).toHaveLength(1);
+
+                            res2.body.forEach((offer) => {
+                                expect(offer.isHidden).toBeFalsy();
+                            });
+                        });
+
+                        test("admins should see hidden offers", async () => {
+                            await test_agent
+                                .post("/auth/login")
+                                .send(test_user_admin)
+                                .expect(HTTPStatus.OK);
+
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body).toHaveLength(3);
+
+                            const lastOfferId = res.body[0]._id;
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    lastOfferId
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body).toHaveLength(2);
+                        });
+
+                        test("should see hidden offers if god token is sent", async () => {
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true
+                                })
+                                .send(withGodToken());
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body).toHaveLength(3);
+
+                            const lastOfferId = res.body[0]._id;
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    lastOfferId
+                                })
+                                .send(withGodToken());
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body).toHaveLength(2);
+                        });
+                    });
+
+                    describe("When lastOfferId and value are provided and adminReason is set", () => {
+                        beforeAll(async () => {
+                            await Offer.create({
+                                ...portoFrontend,
+                                title: "This offer was hidden by an admin",
+                                isHidden: true,
+                                hiddenReason: "ADMIN_REQUEST",
+                                adminReason: "test_reason"
+                            });
+                        });
+
+                        afterAll(async () => {
+                            await Offer.deleteOne({ isHidden: true });
+                        });
+
+                        test("should return adminReason if logged in as admin", async () => {
+                            await test_agent
+                                .post("/auth/login")
+                                .send(test_user_admin)
+                                .expect(HTTPStatus.OK);
+
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body).toHaveLength(3);
+
+                            const lastOfferId = res.body[0]._id;
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    lastOfferId
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body).toHaveLength(2);
+
+                            res2.body.filter((offer) => offer.isHidden).forEach((offer) => {
+                                expect(offer.hiddenReason).toBe("ADMIN_REQUEST");
+                                expect(offer.adminReason).toBe("test_reason");
+                            });
+                        });
+
+                        test("should return adminReason if god token is sent", async () => {
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                })
+                                .send(withGodToken());
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body).toHaveLength(3);
+
+                            const lastOfferId = res.body[0]._id;
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    lastOfferId
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body).toHaveLength(2);
+
+                            res2.body.filter((offer) => offer.isHidden).forEach((offer) => {
+                                expect(offer.hiddenReason).toBe("ADMIN_REQUEST");
+                                expect(offer.adminReason).toBe("test_reason");
+                            });
+                        });
+
+                        test("companies should not see admin reason for their own offers", async () => {
+                            await test_agent
+                                .post("/auth/login")
+                                .send(test_user_company)
+                                .expect(HTTPStatus.OK);
+
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body).toHaveLength(2);
+                            res.body.forEach((offer) => {
+                                expect(offer.adminReason).toBeUndefined();
+                            });
+
+                            const lastOfferId = res.body[0]._id;
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    lastOfferId
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body).toHaveLength(1);
+                            res2.body.forEach((offer) => {
+                                expect(offer.adminReason).toBeUndefined();
+                            });
+                        });
+
+                        test("should not return admin reason if not logged in", async () => {
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body).toHaveLength(2);
+                            res.body.forEach((offer) => {
+                                expect(offer.adminReason).toBeUndefined();
+                            });
+
+                            const lastOfferId = res.body[0]._id;
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    lastOfferId
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body).toHaveLength(1);
+                            res2.body.forEach((offer) => {
+                                expect(offer.adminReason).toBeUndefined();
+                            });
+                        });
                     });
                 });
             });
