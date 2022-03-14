@@ -443,7 +443,7 @@ export const setDefaultValuesCreate = (req, res, next) => {
 };
 
 export const get = useExpressValidators([
-    query("lastOfferId", ValidationReasons.DEFAULT)
+    query("queryToken", ValidationReasons.DEFAULT)
         .optional()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
         .custom(existingOfferId)

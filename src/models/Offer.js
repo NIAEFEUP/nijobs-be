@@ -146,7 +146,7 @@ function validateDescription(value) {
 /**
  * Currently active Offers (publish date was before Date.now and end date is after Date.now)
  */
-OfferSchema.statics.currentCondition = () => ({
+OfferSchema.statics.filterCurrent = () => ({
     publishDate: {
         $lte: new Date(Date.now()),
     },
@@ -155,15 +155,15 @@ OfferSchema.statics.currentCondition = () => ({
     },
 });
 OfferSchema.query.current = function() {
-    return this.where(this.model.currentCondition());
+    return this.where(this.model.filterCurrent());
 };
 
 /**
  * Currently active and non-hidden Offers
  */
-OfferSchema.statics.withoutHiddenCondition = () => ({ isHidden: false });
+OfferSchema.statics.filterNonHidden = () => ({ isHidden: false });
 OfferSchema.query.withoutHidden = function() {
-    return this.where(this.model.withoutHiddenCondition());
+    return this.where(this.model.filterNonHidden());
 };
 
 const Offer = mongoose.model("Offer", OfferSchema);

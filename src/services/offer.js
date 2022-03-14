@@ -199,16 +199,16 @@ class OfferService {
      *
      * @param {*} options
      * value: Text to use in full-text-search
-     * lastOfferId: Id of the last fetched offer
+     * queryToken: Id of the last fetched offer
      * limit: How many offers to show
      * jobType: Array of jobTypes allowed
      */
-    async get({ value = "", lastOfferId = null, limit = OfferService.MAX_OFFERS_PER_QUERY,
+    async get({ value = "", queryToken = null, limit = OfferService.MAX_OFFERS_PER_QUERY,
         showHidden = false, showAdminReason = false, ...filters }) {
 
         let offers;
-        if (lastOfferId && value) {
-            const lastOfferScore = await this.getTextSearchScoreById(lastOfferId, value);
+        if (queryToken && value) {
+            const lastOfferScore = await this.getTextSearchScoreById(queryToken, value);
 
             offers = Offer.aggregate([
                 { $match: { $text: { $search: value } } },
@@ -218,18 +218,18 @@ class OfferService {
                 } },
                 { $match: { "$or": [
                     { score: { "$lt": lastOfferScore } },
-                    { score: lastOfferScore, _id: { "$gt": ObjectId(lastOfferId) } }
+                    { score: lastOfferScore, _id: { "$gt": ObjectId(queryToken) } }
                 ] } },
-                { $match: Offer.currentCondition() },
-                { $match: showHidden ? {} : Offer.withoutHiddenCondition() }
+                { $match: Offer.filterCurrent() },
+                { $match: showHidden ? {} : Offer.filterNonHidden() }
             ]);
 
         } else {
-            if (lastOfferId) {
+            if (queryToken) {
 
                 offers = Offer.find({ "$and": [
                     this._buildFilterQuery(filters),
-                    { _id: { "$gt": ObjectId(lastOfferId) } }
+                    { _id: { "$gt": ObjectId(queryToken) } }
                 ] });
 
             } else {
