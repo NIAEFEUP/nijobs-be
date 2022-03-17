@@ -442,31 +442,30 @@ export const setDefaultValuesCreate = (req, res, next) => {
     return next();
 };
 
+const validGetQueryToken = async (queryToken, { req }) => {
+    try {
+        const { id, score } = (new OfferService()).decodeQueryToken(queryToken);
+        if (!isObjectId(id)) throw new Error(ValidationReasons.OBJECT_ID);
+        await existingOfferId(id, { req });
+
+        if (req.query.value) {
+            if (isNaN(score)) throw new Error(ValidationReasons.NUMBER);
+            if (score < 0) throw new Error(ValidationReasons.MIN(0));
+        }
+
+    } catch (err) {
+        console.error(err);
+        throw new Error(ValidationReasons.INVALID_QUERY_TOKEN);
+    }
+
+    return true;
+};
+
 export const get = useExpressValidators([
     query("queryToken", ValidationReasons.DEFAULT)
         .optional()
-        .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
-        .custom(existingOfferId)
-        .custom(async (offerId, { req }) => {
-            try {
-                const offerService = new OfferService();
-                const { value, ...filters } = req.query;
-
-                if (!await offerService.doesOfferMatchFilters(offerId, filters)) {
-                    throw new Error(ValidationReasons.OFFER_NOT_MATCHING_CRITERIA);
-                }
-
-                if (!value) return true;
-
-                const score = await offerService.getTextSearchScoreById(offerId, value);
-                if (score <= 0) throw new Error(ValidationReasons.OFFER_NOT_MATCHING_CRITERIA);
-            } catch (err) {
-                console.error(err);
-                throw err;
-            }
-
-            return true;
-        }),
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .custom(validGetQueryToken),
 
     query("limit")
         .optional()

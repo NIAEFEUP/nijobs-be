@@ -5,6 +5,7 @@ import Account  from "../models/Account.js";
 import EmailService  from "../lib/emailService.js";
 import { OFFER_DISABLED_NOTIFICATION }  from "../email-templates/companyOfferDisabled.js";
 import OfferConstants  from "../models/constants/Offer.js";
+import base64url from "base64url";
 
 const { ObjectId } = mongoose.Types;
 
@@ -206,10 +207,13 @@ class OfferService {
     async get({ value = "", queryToken = null, limit = OfferService.MAX_OFFERS_PER_QUERY,
         showHidden = false, showAdminReason = false, ...filters }) {
 
-        let offers;
-        if (queryToken && value) {
-            const lastOfferScore = await this.getTextSearchScoreById(queryToken, value);
+        const {
+            id: lastOfferId,
+            score: lastOfferScore
+        } = queryToken ? this.decodeQueryToken(queryToken) : {};
 
+        let offers;
+        if (lastOfferId && value) {
             offers = Offer.aggregate([
                 { $match: { $text: { $search: value } } },
                 { $addFields: {
@@ -218,18 +222,18 @@ class OfferService {
                 } },
                 { $match: { "$or": [
                     { score: { "$lt": lastOfferScore } },
-                    { score: lastOfferScore, _id: { "$gt": ObjectId(queryToken) } }
+                    { score: lastOfferScore, _id: { "$gt": ObjectId(lastOfferId) } }
                 ] } },
                 { $match: Offer.filterCurrent() },
                 { $match: showHidden ? {} : Offer.filterNonHidden() }
             ]);
 
         } else {
-            if (queryToken) {
+            if (lastOfferId) {
 
                 offers = Offer.find({ "$and": [
                     this._buildFilterQuery(filters),
-                    { _id: { "$gt": ObjectId(queryToken) } }
+                    { _id: { "$gt": ObjectId(lastOfferId) } }
                 ] });
 
             } else {
@@ -247,10 +251,12 @@ class OfferService {
             if (!showAdminReason) offers.select("-adminReason");
         }
 
-        return offers
+        const results = await offers
             .sort(value ? { score: { "$meta": "textScore" }, _id: 1 } : { _id: 1 })
             .limit(limit)
         ;
+
+        return results.map(this.buildQueryToken);
     }
 
     _buildFilterQuery(filters) {
@@ -298,6 +304,33 @@ class OfferService {
         if (technologies?.length) constraints.push({ technologies: {  "$elemMatch": { "$in": technologies } } });
 
         return constraints.length ? { "$and": constraints } : {};
+    }
+
+    /**
+     * Builds a query token, by taking the offer's id and FTS score (if present) and decoding in safe base64
+     * @param {*} offer
+     */
+    buildQueryToken(offer) {
+        return {
+            ...offer.toJSON(),
+            queryToken: base64url.encode(JSON.stringify({
+                id: offer._id,
+                score: offer.score || offer._doc?.score
+            })),
+        };
+    }
+
+    /**
+     * Decodes a query token, extracting the lastOffer's ID and FTS score
+     * @param {*} queryToken
+     */
+    decodeQueryToken(queryToken) {
+        const tokenInfo = JSON.parse(base64url.decode(queryToken));
+
+        return {
+            ...tokenInfo,
+            score: Number(tokenInfo.score, 10)
+        };
     }
 
     /**
@@ -355,24 +388,6 @@ class OfferService {
 
     async deleteOffersByCompanyId(companyId) {
         await Offer.deleteMany({ owner: companyId });
-    }
-
-    async getTextSearchScoreById(offerId, value) {
-        const offer = await Offer.findOne({ "$and": [
-            { _id: ObjectId(offerId) },
-            { "$text": { "$search": value } }
-        ] }, { score: { "$meta": "textScore" } }).lean();
-
-        return offer?.score || 0;
-    }
-
-    async doesOfferMatchFilters(offerId, filters) {
-        const offer = await Offer.findOne({ "$and": [
-            { _id: ObjectId(offerId) },
-            this._buildFilterQuery(filters)
-        ] });
-
-        return !!offer;
     }
 
 }
