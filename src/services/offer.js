@@ -312,7 +312,7 @@ class OfferService {
      */
     buildQueryToken(offer) {
         return {
-            ...offer.toJSON(),
+            ...(offer.toJSON ? offer.toJSON() : offer), // Aggregation differs from query
             queryToken: base64url.encode(JSON.stringify({
                 id: offer._id,
                 score: offer.score || offer._doc?.score
