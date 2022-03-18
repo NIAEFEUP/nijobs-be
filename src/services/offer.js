@@ -329,7 +329,7 @@ class OfferService {
 
         return {
             ...tokenInfo,
-            score: Number(tokenInfo.score, 10)
+            score: Number(tokenInfo.score)
         };
     }
 

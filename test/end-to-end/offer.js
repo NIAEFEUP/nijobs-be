@@ -904,39 +904,6 @@ describe("Offer endpoint tests", () => {
             });
         });
 
-        describe("queryToken validation", () => {
-            test("should fail if queryToken is not a valid id", async () => {
-                const { queryToken } = (new OfferService()).buildQueryToken({ _id: "123" });
-
-                const res = await request()
-                    .get("/offers")
-                    .query({ queryToken });
-
-                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
-                expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
-                expect(res.body.errors[0]).toHaveProperty("location", "query");
-            });
-
-            test("should fail if the offer does not exist", async () => {
-                const { queryToken } = (new OfferService()).buildQueryToken({ _id: "5facf0cdb8bc30016ee58952" });
-                const res = await request()
-                    .get("/offers")
-                    .query({ queryToken });
-
-                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
-                expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
-                expect(res.body.errors[0]).toHaveProperty("location", "query");
-            });
-
-            // TODO: score validation
-        });
-
         describe("Using already created offer(s)", () => {
             let test_company;
             let test_offer;
@@ -975,6 +942,124 @@ describe("Offer endpoint tests", () => {
 
             afterEach(() => {
                 Date.now = RealDateNow;
+            });
+
+            describe("queryToken validation", () => {
+                test("should fail if queryToken does not contain a valid id", async () => {
+                    const { queryToken } = (new OfferService()).buildQueryToken({ _id: "123" });
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's offer does not exist", async () => {
+                    const { queryToken } = (new OfferService()).buildQueryToken({ _id: "5facf0cdb8bc30016ee58952" });
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's score is not a number", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const { queryToken } = (new OfferService())
+                        .buildQueryToken({ _id: testOfferId, score: "hello" });
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken, value: "test" });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's score is negative", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const { queryToken } = (new OfferService())
+                        .buildQueryToken({ _id: testOfferId, score: -5 });
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken, value: "test" });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if value is present and the queryToken's score is missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const { queryToken } = (new OfferService())
+                        .buildQueryToken({ _id: testOfferId });
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken, value: "test" });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should succeed when value and queryToken's score are missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const { queryToken } = (new OfferService())
+                        .buildQueryToken({ _id: testOfferId });
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                });
+
+                test("should succeed when value is present and queryToken's score is a number", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const { queryToken } = (new OfferService())
+                        .buildQueryToken({ _id: testOfferId, score: 5 });
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken, value: "test" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                });
+
+                test("should succeed when value is present and queryToken's score can be parsed as a number", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const { queryToken } = (new OfferService())
+                        .buildQueryToken({ _id: testOfferId, score: "3.5" });
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken, value: "test" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                });
             });
 
             describe("Only current offers are returned", () => {
