@@ -256,7 +256,10 @@ class OfferService {
             .limit(limit)
         ;
 
-        return results.map(this.buildQueryToken);
+        return results.length > 0 ?
+            { results, queryToken: this.encodeQueryToken(results[results.length - 1]) }
+            :
+            { results };
     }
 
     _buildFilterQuery(filters) {
@@ -307,17 +310,14 @@ class OfferService {
     }
 
     /**
-     * Builds a query token, by taking the offer's id and FTS score (if present) and decoding in safe base64
+     * Encodes a query token, by taking the offer's id and FTS score (if present) and decoding in safe url base64
      * @param {*} offer
      */
-    buildQueryToken(offer) {
-        return {
-            ...(offer.toJSON ? offer.toJSON() : offer), // Aggregation differs from query
-            queryToken: base64url.encode(JSON.stringify({
-                id: offer._id,
-                score: offer.score || offer._doc?.score
-            })),
-        };
+    encodeQueryToken(offer) {
+        return base64url.encode(JSON.stringify({
+            id: offer._id,
+            score: offer.score || offer._doc?.score
+        }));
     }
 
     /**
