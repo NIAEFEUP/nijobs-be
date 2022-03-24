@@ -31,7 +31,6 @@ export const TechnologyTypes = Object.freeze([
     "Cypress",
     "D",
     "Dart",
-    "Dart",
     "DevOps",
     "Django",
     "Docker",

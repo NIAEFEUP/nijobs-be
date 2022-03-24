@@ -374,7 +374,7 @@ describe("# Offer Schema tests", () => {
         test("'fields' array must be unique", async () => {
             const field_to_insert = FieldTypes[0];
             const submitted_fields = [];
-            for (let i = 0; i < MIN_FIELDS; ++i) {
+            for (let i = 0; i < MIN_FIELDS + 1; ++i) {
                 // Preventing interference from duplicate error
                 submitted_fields.push(field_to_insert);
             }

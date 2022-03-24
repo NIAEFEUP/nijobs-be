@@ -37,7 +37,7 @@ describe("# Company Schema tests", () => {
                     description: "For Testing Purposes",
                     contacts: ["geral@niaefeup.pt", "229417766"],
                     jobType: "SUMMER INTERNSHIP",
-                    fields: ["DEVOPS", "MACHINE LEARNING", "OTHER"],
+                    fields: ["DEVOPS", "BACKEND", "OTHER"],
                     technologies: ["React", "CSS"],
                     location: "Testing Street, Test City, 123",
                     requirements: ["The candidate must be tested", "Fluent in testJS"],
