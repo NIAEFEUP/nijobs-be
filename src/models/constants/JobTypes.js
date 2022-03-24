@@ -3,6 +3,7 @@ const JobTypes = Object.freeze([
     "PART-TIME",
     "SUMMER INTERNSHIP",
     "CURRICULAR INTERNSHIP",
+    "GRANT",
     "OTHER",
 ]);
 
