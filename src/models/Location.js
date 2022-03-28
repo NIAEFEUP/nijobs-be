@@ -5,15 +5,7 @@ const { Schema } = mongoose;
 const LocationSchema = new Schema({
     city: {
         type: String,
-        required: function() {
-            return !this.cityAscii;
-        }
-    },
-    cityAscii: {
-        type: String,
-        required: function() {
-            return !this.city;
-        }
+        required: true
     },
     country: {
         type: String,
