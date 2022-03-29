@@ -85,6 +85,69 @@ export const profileComplete = async (req, res, next) => {
     return next();
 };
 
+export const restrictedAccess = (owner) => async (req, res, next) => {
+    const company = await (new CompanyService()).findById(owner, true);
+    let error = {};
+
+    if (company.isDisabled) {
+        if (req.params?.companyId === req.user.company) {
+            error = new APIError(
+                HTTPStatus.OK,
+                ErrorTypes.VALIDATION_ERROR,
+                ValidationReasons.COMPANY_DISABLED,
+                { company: company }
+            );
+        } else {
+            error = new APIError(
+                HTTPStatus.FORBIDDEN,
+                ErrorTypes.FORBIDDEN,
+                ValidationReasons.NOT_FOUND
+            );
+        }
+    }
+
+    if (company.isBlocked) {
+        if (req.params?.companyId === req.user.company) {
+            error = new APIError(
+                HTTPStatus.OK,
+                ErrorTypes.VALIDATION_ERROR,
+                ValidationReasons.COMPANY_BLOCKED,
+                { company: company }
+            );
+        } else {
+            error = new APIError(
+                HTTPStatus.FORBIDDEN,
+                ErrorTypes.FORBIDDEN,
+                ValidationReasons.NOT_FOUND
+            );
+        }
+    }
+
+
+    return next(error);
+};
+
+export const registrationStatus = (owner) => async (req, res, next) => {
+    const company = await (new CompanyService()).findById(owner, true);
+    if (!company.hasFinishedRegistration && (req.params?.companyId === req.user.company)) {
+        return next(new APIError(
+            HTTPStatus.FORBIDDEN,
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.REGISTRATION_NOT_FINISHED
+        ));
+    }
+
+    if (!company.hasFinishedRegistration && !(req.params?.companyId === req.user.company)) {
+        return next(new APIError(
+            HTTPStatus.FORBIDDEN,
+            ErrorTypes.FORBIDDEN,
+            ValidationReasons.NOT_FOUND
+        ));
+    }
+
+    return next();
+};
+
 export const isNotBlocked = (owner) => async (req, res, next) => {
     const company = await (new CompanyService()).findById(owner, true);
     if (company.isBlocked) {
