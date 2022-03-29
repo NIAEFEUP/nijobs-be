@@ -46,6 +46,7 @@ const ValidationReasons = Object.freeze({
     OFFER_BLOCKED_ADMIN: "offer-blocked-by-admin",
     OFFER_HIDDEN: "offer-is-hidden",
     FILE_TOO_LARGE: (max) => `file-cant-be-larger-than-${max}MB`,
+    MUST_HAVE_BOTH_COORDINATES: "must-have-both-coords",
 });
 
 export default ValidationReasons;
