@@ -18,6 +18,7 @@ const ValidationReasons = Object.freeze({
     ARRAY: "must-be-array",
     DATE: "must-be-ISO8601-date",
     INT: "must-be-int",
+    NUMERIC: "must-be-numeric",
     BOOLEAN: "must-be-boolean",
     IN_ARRAY: (vals, field) => `${field ? `${field}:` : ""}must-be-in:[${vals}]`,
     ARRAY_SIZE: (min, max) => `size-must-be-between:[${min},${max}]`,
