@@ -123,7 +123,6 @@ export default (app) => {
         validators.isExistingOffer,
         validators.offerOwnerNotBlocked,
         validators.offerOwnerNotDisabled,
-        validators.isEditable,
         validators.canBeManaged,
         validators.edit,
         (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),

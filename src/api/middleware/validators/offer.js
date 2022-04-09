@@ -426,17 +426,6 @@ export const edit = useExpressValidators([
         .isArray(),
 ]);
 
-export const isEditable = async (req, res, next) => {
-    const offer = await Offer.findById(req.params.offerId);
-    const currentDate = new Date(Date.now());
-
-    if (offer.publishEndDate.toISOString() <= currentDate.toISOString()) {
-        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_EXPIRED(req.params.offerId)));
-    }
-
-    return next();
-};
-
 export const offersDateSanitizers = useExpressValidators([
     body("publishDate")
         .optional()
