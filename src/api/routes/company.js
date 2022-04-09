@@ -202,4 +202,29 @@ export default (app) => {
                 return next(err);
             }
         });
+        router.post(
+            "/:companyId/edit",
+            or([
+                authMiddleware.isCompany,
+                authMiddleware.isAdmin,
+                authMiddleware.isGod
+            ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+            validators.companyExists,
+            validators.companyNotBlocked,
+            validators.companyNotDisabled,
+            validators.isEditable,
+            validators.canBeManaged,
+            validators.edit,
+            (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
+            companyMiddleware.verifyMaxConcurrentOffersOnEdit,
+            validators.offersDateSanitizers,
+            async (req, res, next) => {
+                try {
+                    const offer = await (new OfferService()).edit(req.params.offerId, req.body);
+                    return res.json(offer);
+                } catch (err) {
+                    console.error(err);
+                    return next(err);
+                }
+            });
 };
