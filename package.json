@@ -1,0 +1,56 @@
+{
+  "name": "nijobs-be",
+  "version": "1.0.0",
+  "description": "Back-End for NiJobs website",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon src/index.js",
+    "prod": "NODE_ENV=production node src/index.js",
+    "lint": "eslint src test --max-warnings 0",
+    "lint-fix": "npm run lint -- --fix",
+    "test": "NODE_ENV=test jest --runInBand --coverage --verbose false",
+    "ci": "npm run lint && npm test",
+    "audit": "npm audit --production --audit-level=high --json | npm-audit-helper --prod-only"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NIAEFEUP/nijobs-be.git"
+  },
+  "author": "NIAEFEUP",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@babel/preset-env": "^7.15.6",
+    "babel-jest": "^27.2.0",
+    "babel-plugin-transform-import-meta": "^2.1.0",
+    "eslint": "^8.0.1",
+    "jest": "^27.2.5",
+    "nodemon": "^2.0.13",
+    "npm-audit-helper": "^2.3.24",
+    "supertest": "^4.0.2"
+  },
+  "dependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.12.7",
+    "babel": "^6.23.0",
+    "bcrypt": "^5.0.1",
+    "cloudinary": "^1.24.0",
+    "dotenv-flow": "^3.0.0",
+    "express": "^4.17.1",
+    "express-rate-limit": "^5.0.0",
+    "express-session": "^1.15.6",
+    "express-validator": "^6.9.2",
+    "helmet": "^3.21.2",
+    "http-status-codes": "^1.4.0",
+    "linkedom": "^0.11.1",
+    "lodash": "^4.17.20",
+    "mongoose": "^5.13.11",
+    "mongoose-unique-array": "^0.3.1",
+    "morgan": "^1.9.1",
+    "multer": "^1.4.2",
+    "nodemailer": "^6.7.2",
+    "nodemailer-express-handlebars": "^5.0.0",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
+    "rate-limit-mongo": "^2.1.0"
+  }
+}
