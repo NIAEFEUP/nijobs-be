@@ -18,6 +18,7 @@ import {
 import * as companyMiddleware from "../company.js";
 import config from "../../../config/env.js";
 import { when } from "../utils.js";
+import { validApplyURL } from "../../../models/modelUtils.js";
 
 const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
 
@@ -184,6 +185,11 @@ export const create = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isArray({ min: OfferConstants.requirements.min_length })
         .withMessage(ValidationReasons.TOO_SHORT(OfferConstants.requirements.min_length)),
+
+    body("applyURL", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .custom(validApplyURL),
 ]);
 
 const jobMinDurationEditable = async (jobMinDurationCandidate, { req }) => {
@@ -426,6 +432,11 @@ export const edit = useExpressValidators([
     body("coordinates", ValidationReasons.DEFAULT)
         .optional()
         .isArray(),
+
+    body("applyURL", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .custom(validApplyURL),
 ]);
 
 export const offersDateSanitizers = useExpressValidators([
