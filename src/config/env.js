@@ -28,6 +28,9 @@ export default Object.freeze({
     admin_password: process.env.ADMIN_PASSWORD,
     access_control_allow_origin: process.env.ACCESS_CONTROL_ALLOW_ORIGIN || "*",
 
+    // Sentry
+    sentry_dsn: process.env.SENTRY_DSN,
+
     // Mail
     mail_from: process.env.MAIL_FROM,
     mail_from_password: process.env.MAIL_FROM_PASSWORD,

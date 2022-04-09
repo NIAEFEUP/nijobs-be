@@ -4,6 +4,9 @@ import loaders from "./loaders/index.js";
 import express from "express";
 import https from "https";
 
+import  * as Sentry from "@sentry/node";
+import * as Tracing from "@sentry/tracing";
+
 const app = express();
 
 const startServer = async () => {
@@ -35,6 +38,16 @@ const startServer = async () => {
 };
 
 startServer();
+
+Sentry.init({
+    dsn: config.sentry_dsn,
+    integrations: [
+        new Sentry.Integrations.Http({ tracing: true }),
+        new Tracing.Integrations.Express({ app }),
+    ],
+    tracesSampleRate: 1.0,
+    debug: true
+});
 
 if (process.env.NODE_ENV === "test") {
     // Necessary for test HTTP requests (End-to-End testing)

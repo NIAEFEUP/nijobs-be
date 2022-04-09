@@ -2,6 +2,7 @@ import HTTPStatus from "http-status-codes";
 import { validationResult } from "express-validator";
 import { ensureArray } from "./validators/validatorUtils.js";
 import ValidationReasons from "./validators/validationReasons.js";
+import  * as Sentry from "@sentry/node";
 
 export const buildErrorResponse = (error_code, errors) => ({
     error_code,
@@ -67,6 +68,9 @@ export const hideInsecureError = (error) => {
 };
 
 export const defaultErrorHandler = (err, req, res, _) => {
-    if (!(err instanceof APIError)) console.error("UNEXPECTED ERROR:", err);
+    if (!(err instanceof APIError)) {
+        Sentry.captureException(err);
+        console.error("UNEXPECTED ERROR:", err);
+    }
     hideInsecureError(err).sendResponse(res);
 };
