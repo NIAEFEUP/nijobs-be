@@ -948,10 +948,7 @@ describe("Offer endpoint tests", () => {
 
             describe("Only current offers are returned", () => {
 
-                const expired_test_offer = generateTestOffer({
-                    "publishDate": "2019-11-17",
-                    "publishEndDate": "2019-11-18"
-                });
+
                 const future_test_offer = generateTestOffer({
                     "publishDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
                     "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
@@ -959,14 +956,14 @@ describe("Offer endpoint tests", () => {
 
                 beforeAll(async () => {
 
-                    [future_test_offer, expired_test_offer]
+                    [future_test_offer]
                         .forEach((offer) => {
                             offer.owner = test_company._id;
                             offer.ownerName = test_company.name;
                             offer.ownerLogo = test_company.logo;
                         });
 
-                    await Offer.create([expired_test_offer, future_test_offer]);
+                    await Offer.create([future_test_offer]);
                 });
 
 
@@ -1025,7 +1022,7 @@ describe("Offer endpoint tests", () => {
                     beforeAll(async () => {
                         // Add 2 more offers
                         await Offer.deleteMany({});
-                        await Offer.create([test_offer, expired_test_offer, future_test_offer, test_offer, test_offer]);
+                        await Offer.create([test_offer,  future_test_offer, test_offer, test_offer]);
                     });
 
                     test("Only `limit` number of offers are returned", async () => {
@@ -1837,7 +1834,6 @@ describe("Offer endpoint tests", () => {
 
     describe("POST /offers/edit/:offerId", () => {
         let createOffer,
-            expired_test_offer,
             future_test_offer,
             valid_test_offer_1,
             valid_test_offer_2,
@@ -1864,11 +1860,6 @@ describe("Offer endpoint tests", () => {
                     createdAt: createdAt.toISOString()
                 };
             };
-
-            expired_test_offer = await createOffer(generateTestOffer({
-                "publishDate": "2019-11-17",
-                "publishEndDate": "2019-11-18"
-            }));
 
             future_test_offer = await createOffer(generateTestOffer({
                 "publishDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString(),
@@ -1931,15 +1922,6 @@ describe("Offer endpoint tests", () => {
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OFFER_NOT_FOUND(_id));
             });
 
-
-            test("should fail with expired offer", async () => {
-                const res = await test_agent
-                    .post(`/offers/edit/${expired_test_offer._id.toString()}`)
-                    .send(withGodToken())
-                    .expect(HTTPStatus.FORBIDDEN);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_EXPIRED(expired_test_offer._id.toString()) });
-            });
 
             test("should allow editing offer in the future", async () => {
                 await test_agent
