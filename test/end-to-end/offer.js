@@ -293,6 +293,12 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = BodyValidatorTester("isHidden");
                 FieldValidatorTester.mustBeBoolean();
             });
+
+            describe("applyURL", () => {
+                const FieldValidatorTester = BodyValidatorTester("applyURL");
+                FieldValidatorTester.mustBeString();
+                FieldValidatorTester.mustBeValidURL();
+            });
         });
 
         describe("Without pre-existing offers", () => {
