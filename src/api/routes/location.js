@@ -1,7 +1,8 @@
 import { Router } from "express";
-import * as HTTPStatus from "http-status-codes";
 
 import * as validators from "../middleware/validators/location.js";
+
+import LocationService from "../../services/location";
 
 const router = Router();
 
@@ -13,7 +14,10 @@ export default (app) => {
         (req, res, next) => {
 
             try {
-                return res.status(HTTPStatus.OK);
+
+                const locations = LocationService.search();
+
+                return res.json(locations);
             } catch (err) {
                 console.error(err);
                 return next(err);

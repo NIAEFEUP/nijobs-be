@@ -18,7 +18,6 @@ const ValidationReasons = Object.freeze({
     ARRAY: "must-be-array",
     DATE: "must-be-ISO8601-date",
     INT: "must-be-int",
-    NUMERIC: "must-be-numeric",
     BOOLEAN: "must-be-boolean",
     IN_ARRAY: (vals, field) => `${field ? `${field}:` : ""}must-be-in:[${vals}]`,
     ARRAY_SIZE: (min, max) => `size-must-be-between:[${min},${max}]`,
@@ -46,7 +45,6 @@ const ValidationReasons = Object.freeze({
     OFFER_BLOCKED_ADMIN: "offer-blocked-by-admin",
     OFFER_HIDDEN: "offer-is-hidden",
     FILE_TOO_LARGE: (max) => `file-cant-be-larger-than-${max}MB`,
-    MUST_HAVE_BOTH_COORDINATES: "must-have-both-coords",
 });
 
 export default ValidationReasons;

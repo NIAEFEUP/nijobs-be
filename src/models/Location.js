@@ -7,7 +7,15 @@ const LocationSchema = new Schema({
         type: String,
         required: true
     },
+    citySearch: {
+        type: String,
+        required: true
+    },
     country: {
+        type: String,
+        required: true
+    },
+    countrySearch: {
         type: String,
         required: true
     },
@@ -22,8 +30,8 @@ const LocationSchema = new Schema({
 });
 
 LocationSchema.index(
-    { city: "text", country: "text", latitude: "number", longitude: "number" },
-    { name: "Search index", weights: { city: 10, country: 5, latitude: 5, longitude: 5 } }
+    { citySearch: "text", countrySearch: "text" },
+    { name: "Search index", weights: { citySearch: 10, countrySearch: 5 } }
 );
 
 const Location = mongoose.model("Location", LocationSchema);
