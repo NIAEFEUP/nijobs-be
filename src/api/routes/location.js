@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import * as validators from "../middleware/validators/location.js";
 
-import LocationService from "../../services/location";
+import LocationService from "../../services/location.js";
 
 const router = Router();
 
@@ -11,11 +11,10 @@ export default (app) => {
 
     router.get("/search",
         validators.search,
-        (req, res, next) => {
+        async (req, res, next) => {
 
             try {
-
-                const locations = LocationService.search();
+                const locations = await new LocationService().search(req.query.searchTerm);
 
                 return res.json(locations);
             } catch (err) {

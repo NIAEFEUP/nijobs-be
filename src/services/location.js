@@ -1,12 +1,12 @@
-import Location from "../models/Location";
+import Location from "../models/Location.js";
 
 class LocationService {
 
-    get MAX_LOCATIONS() {
+    static get MAX_LOCATIONS() {
         return 10;
     }
 
-    get LOCATION_FIELDS() {
+    static get LOCATION_FIELDS() {
         return [
             "city",
             "country",
@@ -21,8 +21,8 @@ class LocationService {
             { $text: { $search: `"${searchTerm}"` } },
             { score: { $meta: "textScore" } }
         ).sort({ score: { $meta: "textScore" } })
-            .limit(this.MAX_LOCATIONS)
-            .select(this.LOCATION_FIELDS.join(" "));
+            .limit(LocationService.MAX_LOCATIONS)
+            .select(LocationService.LOCATION_FIELDS.join(" "));
 
         return result;
     }
