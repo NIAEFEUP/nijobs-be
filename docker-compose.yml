@@ -6,6 +6,7 @@ services:
       dockerfile: Dockerfile-prod
     environment:
       - DB_HOST=mongo
+      - LOCATION_DB_HOST=mongo
     ports:
       - "${PORT}:${PORT}"
     depends_on:
@@ -18,6 +19,7 @@ services:
       - "${PORT}:${PORT}"
     environment:
       - DB_HOST=mongo
+      - LOCATION_DB_HOST=mongo
     volumes:
       - ./src:/usr/src/app/src
     depends_on:
@@ -28,6 +30,7 @@ services:
       dockerfile: Dockerfile-test
     environment:
       - DB_HOST=mongo
+      - LOCATION_DB_HOST=mongo
     volumes:
       - ./src:/usr/src/nijobs-be/src
       - ./test:/usr/src/nijobs-be/test

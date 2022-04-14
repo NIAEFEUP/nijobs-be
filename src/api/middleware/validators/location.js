@@ -8,6 +8,7 @@ import LocationConstants from "../../../models/constants/Location.js";
 export const search = useExpressValidators([
     query("searchTerm", ValidationReasons.DEFAULT)
         .isString().withMessage(ValidationReasons.STRING).bail()
-        .isLength({ min: 3 }).withMessage(ValidationReasons.LOCATION_SEARCH_TERM_MIN_LENGTH(LocationConstants.searchTerm.minLength)),
+        .isLength({ min: LocationConstants.searchTerm.minLength })
+        .withMessage(ValidationReasons.TOO_SHORT(LocationConstants.searchTerm.minLength)),
 
 ]);
