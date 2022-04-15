@@ -39,7 +39,7 @@ export default async () => {
 
     try {
         await mongoose.connect(config.db_uri, appDbOptions);
-        await mongoose.createConnection(config.location_db_uri, locationDbOptions);
+        /* await */ mongoose.createConnection(config.location_db_uri, locationDbOptions);
         await createDefaultAdmin();
     } catch (err) {
         console.error("Mongoose: failure in initial connection to the DB (aborting, will not retry)", err);
