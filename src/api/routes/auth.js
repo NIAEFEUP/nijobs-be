@@ -6,6 +6,7 @@ import { authRequired, isGod } from "../middleware/auth.js";
 import * as validators from "../middleware/validators/auth.js";
 import AccountService from "../../services/account.js";
 import Company from "../../models/Company.js";
+import CompanyService from "../../services/company.js";
 
 const router = Router();
 
@@ -60,4 +61,25 @@ export default (app) => {
             return next(err);
         }
     });
+
+    router.post("/recover/request", validators.recover, async (req, res, next) => {
+        try {
+            const accountService = new AccountService();
+
+            const account = await accountService.findByEmail(req.body.email);
+
+            if (account === null) {
+                return res.status(HTTPStatus.OK).json({});
+            }
+
+            accountService.requestRecoverAccount(account);
+
+            return res.status(HTTPStatus.OK).json({});
+        } catch (err) {
+            console.error(err);
+            return next(err);
+        }
+    });
+
+
 };

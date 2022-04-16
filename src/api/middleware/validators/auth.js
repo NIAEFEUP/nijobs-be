@@ -31,3 +31,10 @@ export const login =  useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING),
 ]);
+
+export const recover =  useExpressValidators([
+    body("email", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .normalizeEmail().isEmail().withMessage(ValidationReasons.EMAIL)
+        .trim(),
+]);
