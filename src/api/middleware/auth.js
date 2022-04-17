@@ -84,7 +84,5 @@ export const validToken = (req, res, next) => {
         return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.INVALID_TOKEN));
     }
 
-    res.locals.token = decoded;
-
     return next();
 };
