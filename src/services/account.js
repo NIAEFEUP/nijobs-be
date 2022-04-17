@@ -1,11 +1,11 @@
 import Account from "../models/Account.js";
 import hash from "../lib/passwordHashing.js";
 import Company from "../models/Company.js";
-import jwt from "jsonwebtoken";
 import { RECOVERY_LINK_EXPIRATION } from "../models/constants/Account.js";
 import env from "../config/env.js";
 import EmailService from "../lib/emailService.js";
 import { REQUEST_ACCOUNT_RECOVERY } from "../email-templates/accountManagement.js";
+import { generateToken } from "../lib/token.js";
 
 class AccountService {
     // TODO: Use typedi or similar
@@ -51,22 +51,8 @@ class AccountService {
     }
 
     buildPasswordRecoveryLink(account) {
-        const token = jwt.sign({
-            email: account.email
-        },
-        env.awt_secret,
-        {
-            expiresIn: RECOVERY_LINK_EXPIRATION
-        });
+        const token = generateToken({ email: account.email }, env.awt_secret, RECOVERY_LINK_EXPIRATION);
         return `${env.password_recovery_link}/${token}`;
-    }
-
-    decodeToken(token) {
-        try {
-            return jwt.verify(token, env.awt_secret);
-        } catch (err) {
-            return null;
-        }
     }
 
     sendPasswordRecoveryNotification(account, link) {

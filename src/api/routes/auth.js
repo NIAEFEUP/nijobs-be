@@ -6,7 +6,6 @@ import { authRequired, isGod, validToken } from "../middleware/auth.js";
 import * as validators from "../middleware/validators/auth.js";
 import AccountService from "../../services/account.js";
 import Company from "../../models/Company.js";
-import CompanyService from "../../services/company.js";
 
 const router = Router();
 
