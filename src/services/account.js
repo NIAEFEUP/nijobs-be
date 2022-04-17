@@ -57,6 +57,14 @@ class AccountService {
         return `${env.password_recovery_link}/${token}`;
     }
 
+    decodeToken(token) {
+        try {
+            return jwt.verify(token, env.awt_secret);
+        } catch (err) {
+            return null;
+        }
+    }
+
     sendPasswordRecoveryNotification(account, link) {
         try {
             EmailService.sendMail({

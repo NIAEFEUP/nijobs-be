@@ -1,4 +1,4 @@
-import { body } from "express-validator";
+import { body, param } from "express-validator";
 
 import { useExpressValidators } from "../errorHandler.js";
 import ValidationReasons from "./validationReasons.js";
@@ -36,5 +36,20 @@ export const recover =  useExpressValidators([
     body("email", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .normalizeEmail().isEmail().withMessage(ValidationReasons.EMAIL)
+        .trim(),
+]);
+
+export const confirmRecover =  useExpressValidators([
+    param("token", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .trim(),
+]);
+
+export const finishRecover =  useExpressValidators([
+    body("password", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING),
+    param("token", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .trim(),
 ]);

@@ -2,7 +2,7 @@ import HTTPStatus from "http-status-codes";
 import { Router } from "express";
 import passport from "passport";
 
-import { authRequired, isGod } from "../middleware/auth.js";
+import { authRequired, isGod, validToken } from "../middleware/auth.js";
 import * as validators from "../middleware/validators/auth.js";
 import AccountService from "../../services/account.js";
 import Company from "../../models/Company.js";
@@ -81,5 +81,7 @@ export default (app) => {
             return next(err);
         }
     });
+
+    router.get("/recover/:token/confirm", validators.confirmRecover, validToken, (req, res) => res.status(HTTPStatus.OK).json({}));
 
 };

@@ -4,6 +4,7 @@ import config from "../../config/env.js";
 import OfferService from "../../services/offer.js";
 import ValidationReasons from "./validators/validationReasons.js";
 import { or } from "./utils.js";
+import AccountService from "../../services/account.js";
 
 // Middleware to require login in an endpoint
 export const authRequired = (req, res, next) => {
@@ -72,6 +73,17 @@ export const hasAdminPrivileges = async (req, res, next) => {
     });
 
     req.hasAdminPrivileges = !unprivileged;
+
+    return next();
+};
+
+export const validToken = (req, _res, next) => {
+    const decoded = new AccountService().decodeToken(req.params.token);
+
+
+    if (!decoded) {
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.INVALID_TOKEN));
+    }
 
     return next();
 };
