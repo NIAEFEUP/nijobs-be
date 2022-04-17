@@ -3,6 +3,9 @@ import hash from "../lib/passwordHashing.js";
 import Company from "../models/Company.js";
 import jwt from "jsonwebtoken";
 import { RECOVERY_LINK_EXPIRATION } from "../models/constants/Account.js";
+import env from "../config/env.js";
+import EmailService from "../lib/emailService.js";
+import { REQUEST_ACCOUNT_RECOVERY } from "../email-templates/accountManagement.js";
 
 class AccountService {
     // TODO: Use typedi or similar
@@ -43,14 +46,27 @@ class AccountService {
         return account;
     }
 
-    _buildLink(account) {
-        const token = jwt.sign({ email: account.email }, "secret", { expiresIn: RECOVERY_LINK_EXPIRATION });
-        console.log(token);
+    buildPasswordRecoveryLink(account) {
+        const token = jwt.sign({
+            email: account.email
+        },
+        env.awt_secret,
+        {
+            expiresIn: RECOVERY_LINK_EXPIRATION
+        });
+        return `${env.password_recovery_link}/${token}`;
     }
 
-    requestRecoverAccount(account) {
-        this._buildLink(account);
-        return account;
+    sendPasswordRecoveryNotification(account, link) {
+        try {
+            EmailService.sendMail({
+                to: account.email,
+                ...REQUEST_ACCOUNT_RECOVERY(link),
+            });
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
 
     async findAndDeleteByCompanyId(company) {

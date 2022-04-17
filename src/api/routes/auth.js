@@ -72,7 +72,8 @@ export default (app) => {
                 return res.status(HTTPStatus.OK).json({});
             }
 
-            accountService.requestRecoverAccount(account);
+            const link = accountService.buildPasswordRecoveryLink(account);
+            accountService.sendPasswordRecoveryNotification(account, link);
 
             return res.status(HTTPStatus.OK).json({});
         } catch (err) {
@@ -80,6 +81,5 @@ export default (app) => {
             return next(err);
         }
     });
-
 
 };
