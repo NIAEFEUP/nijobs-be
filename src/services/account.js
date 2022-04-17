@@ -41,6 +41,10 @@ class AccountService {
         };
     }
 
+    async updatePassword(email, password) {
+        await Account.findOneAndUpdate({ email }, { password: await hash(password) });
+    }
+
     async findByEmail(email) {
         const account = await Account.findOne({ email });
         return account;

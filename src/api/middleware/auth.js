@@ -77,13 +77,14 @@ export const hasAdminPrivileges = async (req, res, next) => {
     return next();
 };
 
-export const validToken = (req, _res, next) => {
+export const validToken = (req, res, next) => {
     const decoded = new AccountService().decodeToken(req.params.token);
-
 
     if (!decoded) {
         return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.INVALID_TOKEN));
     }
+
+    res.locals.token = decoded;
 
     return next();
 };

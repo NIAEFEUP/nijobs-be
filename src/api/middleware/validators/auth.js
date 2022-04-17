@@ -46,10 +46,13 @@ export const confirmRecover =  useExpressValidators([
 ]);
 
 export const finishRecover =  useExpressValidators([
-    body("password", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isString().withMessage(ValidationReasons.STRING),
     param("token", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .trim(),
+    body("password", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isString().withMessage(ValidationReasons.STRING)
+        .isLength({ min: AccountConstants.password.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(AccountConstants.password.min_length))
+        .matches(/\d/).withMessage(ValidationReasons.HAS_NUMBER),
 ]);

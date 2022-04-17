@@ -84,4 +84,16 @@ export default (app) => {
 
     router.get("/recover/:token/confirm", validators.confirmRecover, validToken, (req, res) => res.status(HTTPStatus.OK).json({}));
 
+    router.post("/recover/:token/confirm", validators.finishRecover, validToken, async (req, res, next) => {
+        const { email } = res.locals.token;
+
+        try {
+            await new AccountService().updatePassword(email, req.body.password);
+            return res.status(HTTPStatus.OK).json({});
+        } catch (err) {
+            console.error(err);
+            return next(err);
+        }
+    });
+
 };
