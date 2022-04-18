@@ -293,12 +293,6 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = BodyValidatorTester("isHidden");
                 FieldValidatorTester.mustBeBoolean();
             });
-
-            describe("applyURL", () => {
-                const FieldValidatorTester = BodyValidatorTester("applyURL");
-                FieldValidatorTester.mustBeString();
-                FieldValidatorTester.mustBeValidURL();
-            });
         });
 
         describe("Without pre-existing offers", () => {
@@ -869,6 +863,91 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
+            });
+        });
+
+        describe("applyURL validation", () => {
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+            });
+
+            beforeEach(async () => {
+                await Offer.deleteMany({});
+            });
+
+            test("should fail if applyURL is neither a URL or an email", async () => {
+                const offer_params = generateTestOffer({
+                    applyURL: "this_is_not_valid",
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+            });
+
+            test("should fail if applyURL is a URL with an unsupported protocol", async () => {
+                const offer_params = generateTestOffer({
+                    applyURL: "ftp://www.coolwebsite.com",
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+            });
+
+            test("should succeed if applyURL is a valid email", async () => {
+                const applyURL = "mailto:nicemail@gmail.com";
+                const offer_params = generateTestOffer({
+                    applyURL,
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("applyURL", applyURL);
+            });
+
+            test("should succeed if applyURL is a valid HTTP URL", async () => {
+                const applyURL = "http://www.coolwebsite.com";
+                const offer_params = generateTestOffer({
+                    applyURL,
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("applyURL", applyURL);
+            });
+
+            test("should succeed if applyURL is a valid HTTPS URL", async () => {
+                const applyURL = "https://www.coolwebsite.com";
+                const offer_params = generateTestOffer({
+                    applyURL,
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("applyURL", applyURL);
             });
         });
 
@@ -2669,6 +2748,53 @@ describe("Offer endpoint tests", () => {
                         .expect(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("publishDate", newPublishDate.toISOString());
                     expect(res.body).toHaveProperty("publishEndDate", newPublishEndDate.toISOString());
+                });
+            });
+
+            describe("applyURL validation", () => {
+                test("should fail if applyURL is neither a URL or an email", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "applyURL": "this_is_not_valid" }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+                });
+
+                test("should fail if applyURL is a URL with an unsupported protocol", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "applyURL": "ftp://www.coolwebsite.com" }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+                });
+
+                test("should edit if applyURL is a valid email", async () => {
+                    const applyURL = "mailto:nicemail@gmail.com";
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ applyURL }))
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("applyURL", applyURL);
+                });
+
+                test("should edit if applyURL is a valid HTTP URL", async () => {
+                    const applyURL = "http://www.coolwebsite.com";
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ applyURL }))
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("applyURL", applyURL);
+                });
+
+                test("should edit if applyURL is a valid HTTPS URL", async () => {
+                    const applyURL = "https://www.coolwebsite.com";
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ applyURL }))
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("applyURL", applyURL);
                 });
             });
 
