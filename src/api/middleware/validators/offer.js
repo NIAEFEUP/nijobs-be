@@ -189,7 +189,7 @@ export const create = useExpressValidators([
     body("applyURL", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING).bail()
-        .custom(validApplyURL),
+        .custom(validApplyURL).withMessage(ValidationReasons.BAD_APPLY_URL),
 ]);
 
 const jobMinDurationEditable = async (jobMinDurationCandidate, { req }) => {
@@ -436,7 +436,7 @@ export const edit = useExpressValidators([
     body("applyURL", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING).bail()
-        .custom(validApplyURL),
+        .custom(validApplyURL).withMessage(ValidationReasons.BAD_APPLY_URL),
 ]);
 
 export const offersDateSanitizers = useExpressValidators([
