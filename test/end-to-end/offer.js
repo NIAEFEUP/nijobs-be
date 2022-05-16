@@ -905,6 +905,36 @@ describe("Offer endpoint tests", () => {
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
             });
 
+            test("should fail if applyURL contains javascript code", async () => {
+                const offer_params = generateTestOffer({
+                    applyURL: "javascript:alert('hello friend');",
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+            });
+
+            test("should fail if applyURL contains javascript code with a commented valid URL", async () => {
+                const offer_params = generateTestOffer({
+                    applyURL: "javascript:alert('hello friend'); // https://www.google.com",
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+            });
+
             test("should succeed if applyURL is a valid email", async () => {
                 const applyURL = "mailto:nicemail@gmail.com";
                 const offer_params = generateTestOffer({
@@ -921,7 +951,7 @@ describe("Offer endpoint tests", () => {
             });
 
             test("should succeed if applyURL is a valid HTTP URL", async () => {
-                const applyURL = "http://www.coolwebsite.com";
+                const applyURL = "http://www.coolwebsite.com/a/";
                 const offer_params = generateTestOffer({
                     applyURL,
                     owner: test_company._id,
