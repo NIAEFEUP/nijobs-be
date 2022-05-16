@@ -26,8 +26,8 @@ export const validImageURL = (val) => {
 };
 
 export const validApplyURL = (val) => {
-    const httpRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?/;
-    const emailRegex = /mailto:(\S+@\S+)/;
+    const httpRegex = /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)?$/;
+    const emailRegex = /^mailto:(\S+@\S+)$/;
 
     return httpRegex.test(val) || emailRegex.test(val);
 };
