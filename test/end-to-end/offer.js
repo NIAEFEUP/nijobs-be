@@ -1064,6 +1064,10 @@ describe("Offer endpoint tests", () => {
 
             describe("Only current offers are returned", () => {
 
+                const expired_test_offer = generateTestOffer({
+                    "publishDate": (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString()
+                });
 
                 const future_test_offer = generateTestOffer({
                     "publishDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
@@ -1072,7 +1076,7 @@ describe("Offer endpoint tests", () => {
 
                 beforeAll(async () => {
 
-                    [future_test_offer]
+                    [expired_test_offer, future_test_offer]
                         .forEach((offer) => {
                             offer.owner = test_company._id;
                             offer.ownerName = test_company.name;
