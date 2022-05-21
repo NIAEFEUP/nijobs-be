@@ -212,44 +212,10 @@ class OfferService {
             score: lastOfferScore
         } = queryToken ? this.decodeQueryToken(queryToken) : {};
 
-        let offers;
-        if (lastOfferId && value) {
-            offers = Offer.aggregate([
-                { $match: { $text: { $search: value } } },
-                { $addFields: {
-                    score: { $meta: "textScore" },
-                    adminReason: { $cond: [showAdminReason, "$adminReason", "$$REMOVE"] }
-                } },
-                { $match: { "$or": [
-                    { score: { "$lt": lastOfferScore } },
-                    { score: lastOfferScore, _id: { "$gt": ObjectId(lastOfferId) } }
-                ] } },
-                { $match: Offer.filterCurrent() },
-                { $match: showHidden ? {} : Offer.filterNonHidden() }
-            ]);
-
-        } else {
-            if (lastOfferId) {
-
-                offers = Offer.find({ "$and": [
-                    this._buildFilterQuery(filters),
-                    { _id: { "$gt": ObjectId(lastOfferId) } }
-                ] });
-
-            } else {
-
-                offers = (value ? Offer.find({ "$and": [
-                    this._buildFilterQuery(filters),
-                    { "$text": { "$search": value } }
-                ] }, { score: { "$meta": "textScore" } }
-
-                ) : Offer.find(this._buildFilterQuery(filters)));
-            }
-
-            offers.current();
-            if (!showHidden) offers.withoutHidden();
-            if (!showAdminReason) offers.select("-adminReason");
-        }
+        const offers = lastOfferId && value ?
+            this._buildSearchAggregation(lastOfferId, lastOfferScore, value, showAdminReason, showHidden, filters)
+            :
+            this._buildSearchQuery(lastOfferId, value, showAdminReason, showHidden, filters);
 
         const results = await offers
             .sort(value ? { score: { "$meta": "textScore" }, _id: 1 } : { _id: 1 })
@@ -260,6 +226,59 @@ class OfferService {
             { results, queryToken: this.encodeQueryToken(results[results.length - 1]) }
             :
             { results };
+    }
+
+    /**
+     * Builds a search query with a regular find().
+     * Cannot be used when loading more offers and searching with full-text search at the same time.
+     * Otherwise, use _buildSearchAggregation().
+     */
+    _buildSearchQuery(lastOfferId, value, showAdminReason, showHidden, filters) {
+        let offers;
+        if (lastOfferId) {
+
+            offers = Offer.find({ "$and": [
+                this._buildFilterQuery(filters),
+                { _id: { "$gt": ObjectId(lastOfferId) } }
+            ] });
+
+        } else {
+
+            offers = (value ? Offer.find({ "$and": [
+                this._buildFilterQuery(filters),
+                { "$text": { "$search": value } }
+            ] }, { score: { "$meta": "textScore" } }
+
+            ) : Offer.find(this._buildFilterQuery(filters)));
+        }
+
+        offers.current();
+        if (!showHidden) offers.withoutHidden();
+        if (!showAdminReason) offers.select("-adminReason");
+
+        return offers;
+    }
+
+    /**
+     * Builds a search aggregation with aggregate().
+     * Only use this when loading more offers and searching with full-text search at the same time.
+     * Otherwise, use _buildSearchQuery().
+     */
+    _buildSearchAggregation(lastOfferId, lastOfferScore, value, showAdminReason, showHidden, filters) {
+        return Offer.aggregate([
+            { $match: { $text: { $search: value } } },
+            { $match: filters },
+            { $addFields: {
+                score: { $meta: "textScore" },
+                adminReason: { $cond: [showAdminReason, "$adminReason", "$$REMOVE"] }
+            } },
+            { $match: { "$or": [
+                { score: { "$lt": lastOfferScore } },
+                { score: lastOfferScore, _id: { "$gt": ObjectId(lastOfferId) } }
+            ] } },
+            { $match: Offer.filterCurrent() },
+            { $match: showHidden ? {} : Offer.filterNonHidden() }
+        ]);
     }
 
     _buildFilterQuery(filters) {
