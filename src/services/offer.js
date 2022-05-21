@@ -213,9 +213,9 @@ class OfferService {
         } = queryToken ? this.decodeQueryToken(queryToken) : {};
 
         const offers = lastOfferId && value ?
-            this._buildSearchAggregation(lastOfferId, lastOfferScore, value, showAdminReason, showHidden, filters)
+            this._buildTextSearchContinuationQuery(lastOfferId, lastOfferScore, value, showAdminReason, showHidden, filters)
             :
-            this._buildSearchQuery(lastOfferId, value, showAdminReason, showHidden, filters);
+            this._buildRegularSearchQuery(lastOfferId, value, showAdminReason, showHidden, filters);
 
         const results = await offers
             .sort(value ? { score: { "$meta": "textScore" }, _id: 1 } : { _id: 1 })
@@ -229,11 +229,11 @@ class OfferService {
     }
 
     /**
-     * Builds a search query with a regular find().
+     * Builds an initial search query or continuation without full-text search.
      * Cannot be used when loading more offers and searching with full-text search at the same time.
-     * Otherwise, use _buildSearchAggregation().
+     * Otherwise, use _buildTextSearchContinuationQuery().
      */
-    _buildSearchQuery(lastOfferId, value, showAdminReason, showHidden, filters) {
+    _buildRegularSearchQuery(lastOfferId, value, showAdminReason, showHidden, filters) {
         let offers;
         if (lastOfferId) {
 
@@ -260,11 +260,11 @@ class OfferService {
     }
 
     /**
-     * Builds a search aggregation with aggregate().
+     * Builds a search continuation query with full-text search.
      * Only use this when loading more offers and searching with full-text search at the same time.
-     * Otherwise, use _buildSearchQuery().
+     * Otherwise, use _buildRegularSearchQuery().
      */
-    _buildSearchAggregation(lastOfferId, lastOfferScore, value, showAdminReason, showHidden, filters) {
+    _buildTextSearchContinuationQuery(lastOfferId, lastOfferScore, value, showAdminReason, showHidden, filters) {
         return Offer.aggregate([
             { $match: { $text: { $search: value } } },
             { $match: filters },
