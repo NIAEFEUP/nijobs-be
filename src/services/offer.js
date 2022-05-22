@@ -207,18 +207,25 @@ class OfferService {
     async get({ value = "", queryToken = null, limit = OfferService.MAX_OFFERS_PER_QUERY,
         showHidden = false, showAdminReason = false, ...filters }) {
 
-        const {
-            id: lastOfferId,
-            score: lastOfferScore
-        } = queryToken ? this.decodeQueryToken(queryToken) : {};
+        let offers, queryValue = value, queryFilters = filters;
 
-        const offers = lastOfferId && value ?
-            this._buildTextSearchContinuationQuery(lastOfferId, lastOfferScore, value, showAdminReason, showHidden, filters)
-            :
-            this._buildRegularSearchQuery(lastOfferId, value, showAdminReason, showHidden, filters);
+        if (queryToken) {
+            const {
+                id: lastOfferId,
+                score: lastOfferScore,
+                ...searchInfo
+            } = this.decodeQueryToken(queryToken);
+
+            [queryValue, queryFilters] = [searchInfo.value, searchInfo.filters];
+
+            offers = this._buildSearchContinuationQuery(lastOfferId, lastOfferScore, queryValue,
+                showHidden, showAdminReason, queryFilters);
+        } else {
+            offers = this._buildInitialSearchQuery(queryValue, showHidden, showAdminReason, queryFilters);
+        }
 
         const results = await offers
-            .sort(value ? { score: { "$meta": "textScore" }, _id: 1 } : { _id: 1 })
+            .sort(queryValue ? { score: { "$meta": "textScore" }, _id: 1 } : { _id: 1 })
             .limit(limit)
         ;
 
@@ -228,7 +235,8 @@ class OfferService {
                 results,
                 queryToken: this.encodeQueryToken(
                     lastOffer._id,
-                    lastOffer.score || lastOffer._doc?.score
+                    lastOffer.score || lastOffer._doc?.score,
+                    queryValue, queryFilters
                 ),
             };
         } else {
@@ -237,28 +245,16 @@ class OfferService {
     }
 
     /**
-     * Builds an initial search query or continuation without full-text search.
-     * Cannot be used when loading more offers and searching with full-text search at the same time.
-     * Otherwise, use _buildTextSearchContinuationQuery().
+     * Builds an initial search query. Cannot be used when loading more offers.
+     * Otherwise, use _buildSearchContinuationQuery().
      */
-    _buildRegularSearchQuery(lastOfferId, value, showAdminReason, showHidden, filters) {
-        let offers;
-        if (lastOfferId) {
+    _buildInitialSearchQuery(value, showHidden, showAdminReason, filters) {
+        const offers = (value ? Offer.find({ "$and": [
+            this._buildFilterQuery(filters),
+            { "$text": { "$search": value } }
+        ] }, { score: { "$meta": "textScore" } }
 
-            offers = Offer.find({ "$and": [
-                this._buildFilterQuery(filters),
-                { _id: { "$gt": ObjectId(lastOfferId) } }
-            ] });
-
-        } else {
-
-            offers = (value ? Offer.find({ "$and": [
-                this._buildFilterQuery(filters),
-                { "$text": { "$search": value } }
-            ] }, { score: { "$meta": "textScore" } }
-
-            ) : Offer.find(this._buildFilterQuery(filters)));
-        }
+        ) : Offer.find(this._buildFilterQuery(filters)));
 
         offers.current();
         if (!showHidden) offers.withoutHidden();
@@ -268,25 +264,38 @@ class OfferService {
     }
 
     /**
-     * Builds a search continuation query with full-text search.
-     * Only use this when loading more offers and searching with full-text search at the same time.
-     * Otherwise, use _buildRegularSearchQuery().
+     * Builds a search continuation query. Only use this when loading more offers.
+     * Otherwise, use _buildInitialSearchQuery().
      */
-    _buildTextSearchContinuationQuery(lastOfferId, lastOfferScore, value, showAdminReason, showHidden, filters) {
-        return Offer.aggregate([
-            { $match: { $text: { $search: value } } },
-            { $match: filters },
-            { $addFields: {
-                score: { $meta: "textScore" },
-                adminReason: { $cond: [showAdminReason, "$adminReason", "$$REMOVE"] }
-            } },
-            { $match: { "$or": [
-                { score: { "$lt": lastOfferScore } },
-                { score: lastOfferScore, _id: { "$gt": ObjectId(lastOfferId) } }
-            ] } },
-            { $match: Offer.filterCurrent() },
-            { $match: showHidden ? {} : Offer.filterNonHidden() }
-        ]);
+    _buildSearchContinuationQuery(lastOfferId, lastOfferScore, value, showHidden, showAdminReason, filters) {
+        let offers;
+        if (value) {
+            offers = Offer.aggregate([
+                { $match: { $text: { $search: value } } },
+                { $match: this._buildFilterQuery(filters) },
+                { $addFields: {
+                    score: { $meta: "textScore" },
+                    adminReason: { $cond: [showAdminReason, "$adminReason", "$$REMOVE"] }
+                } },
+                { $match: { "$or": [
+                    { score: { "$lt": lastOfferScore } },
+                    { score: lastOfferScore, _id: { "$gt": ObjectId(lastOfferId) } }
+                ] } },
+                { $match: Offer.filterCurrent() },
+                { $match: showHidden ? {} : Offer.filterNonHidden() }
+            ]);
+        } else {
+            offers = Offer.find({ "$and": [
+                this._buildFilterQuery(filters),
+                { _id: { "$gt": ObjectId(lastOfferId) } }
+            ] });
+
+            offers.current();
+            if (!showHidden) offers.withoutHidden();
+            if (!showAdminReason) offers.select("-adminReason");
+        }
+
+        return offers;
     }
 
     _buildFilterQuery(filters) {
@@ -341,10 +350,9 @@ class OfferService {
      * @param {*} id
      * @param {*} score
      */
-    encodeQueryToken(id, score) {
+    encodeQueryToken(id, score, value, filters) {
         return base64url.encode(JSON.stringify({
-            id,
-            score,
+            id, score, value, filters
         }));
     }
 
