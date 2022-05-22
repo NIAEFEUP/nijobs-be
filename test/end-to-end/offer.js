@@ -977,11 +977,11 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is not a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, "hello");
+                        .encodeQueryToken(testOfferId, "hello", "test");
 
                     const res = await request()
                         .get("/offers")
-                        .query({ queryToken, value: "test" });
+                        .query({ queryToken });
 
                     expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
@@ -994,11 +994,11 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is negative", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, -5);
+                        .encodeQueryToken(testOfferId, -5, "test");
 
                     const res = await request()
                         .get("/offers")
-                        .query({ queryToken, value: "test" });
+                        .query({ queryToken });
 
                     expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
@@ -1008,14 +1008,14 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors[0]).toHaveProperty("location", "query");
                 });
 
-                test("should fail if value is present and the queryToken's score is missing", async () => {
+                test("should fail if the queryToken's value is present and score is missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId);
+                        .encodeQueryToken(testOfferId, undefined, "test");
 
                     const res = await request()
                         .get("/offers")
-                        .query({ queryToken, value: "test" });
+                        .query({ queryToken });
 
                     expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
@@ -1025,7 +1025,24 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors[0]).toHaveProperty("location", "query");
                 });
 
-                test("should succeed when value and queryToken's score are missing", async () => {
+                test("should fail if the queryToken's score is present and value is missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId, 5);
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should succeed when the queryToken's value and score are missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
                         .encodeQueryToken(testOfferId);
@@ -1037,14 +1054,14 @@ describe("Offer endpoint tests", () => {
                     expect(res.status).toBe(HTTPStatus.OK);
                 });
 
-                test("should succeed when value is present and queryToken's score is a number", async () => {
+                test("should succeed when the queryToken's value is present and score is a valid number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, 5);
+                        .encodeQueryToken(testOfferId, 5, "test");
 
                     const res = await request()
                         .get("/offers")
-                        .query({ queryToken, value: "test" });
+                        .query({ queryToken });
 
                     expect(res.status).toBe(HTTPStatus.OK);
                 });
@@ -1052,11 +1069,11 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when value is present and queryToken's score can be parsed as a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, "3.5");
+                        .encodeQueryToken(testOfferId, "3.5", "test");
 
                     const res = await request()
                         .get("/offers")
-                        .query({ queryToken, value: "test" });
+                        .query({ queryToken });
 
                     expect(res.status).toBe(HTTPStatus.OK);
                 });
@@ -1230,6 +1247,52 @@ describe("Offer endpoint tests", () => {
                         expect(res.status).toBe(HTTPStatus.OK);
                         expect(res.body?.results).toHaveLength(1);
                         expect(res.body.results[0].jobType).toBe("FULL-TIME");
+                    });
+
+                    test("offers are returned according to filters when using queryToken", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({
+                                publishDate: testPublishDate,
+                                publishEndDate: testPublishEndDate,
+                                fields: ["DEVOPS"],
+                                limit: 1
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].fields).toContainEqual("DEVOPS");
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({
+                                queryToken: res.body.queryToken
+                            });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                        expect(res2.body.results[0].fields).toContainEqual("DEVOPS");
+
+                        const res3 = await request()
+                            .get("/offers")
+                            .query({
+                                publishDate: testPublishDate,
+                                publishEndDate: testPublishEndDate,
+                                jobType: "FULL-TIME"
+                            });
+
+                        expect(res3.status).toBe(HTTPStatus.OK);
+                        expect(res3.body?.results).toHaveLength(1);
+                        expect(res3.body.results[0].jobType).toBe("FULL-TIME");
+
+                        const res4 = await request()
+                            .get("/offers")
+                            .query({
+                                queryToken: res3.body.queryToken
+                            });
+
+                        expect(res4.status).toBe(HTTPStatus.OK);
+                        expect(res4.body?.results).toHaveLength(0);
                     });
                 });
 

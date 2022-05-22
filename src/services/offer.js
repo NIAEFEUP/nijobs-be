@@ -200,7 +200,7 @@ class OfferService {
      *
      * @param {*} options
      * value: Text to use in full-text-search
-     * queryToken: Id of the last fetched offer
+     * queryToken: Token used to continue the previous search
      * limit: How many offers to show
      * jobType: Array of jobTypes allowed
      */
