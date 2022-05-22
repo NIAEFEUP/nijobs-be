@@ -946,7 +946,7 @@ describe("Offer endpoint tests", () => {
 
             describe("queryToken validation", () => {
                 test("should fail if queryToken does not contain a valid id", async () => {
-                    const queryToken = (new OfferService()).encodeQueryToken({ _id: "123" });
+                    const queryToken = (new OfferService()).encodeQueryToken("123");
 
                     const res = await request()
                         .get("/offers")
@@ -961,7 +961,7 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test("should fail if the queryToken's offer does not exist", async () => {
-                    const queryToken = (new OfferService()).encodeQueryToken({ _id: "5facf0cdb8bc30016ee58952" });
+                    const queryToken = (new OfferService()).encodeQueryToken("5facf0cdb8bc30016ee58952");
                     const res = await request()
                         .get("/offers")
                         .query({ queryToken });
@@ -977,7 +977,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is not a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken({ _id: testOfferId, score: "hello" });
+                        .encodeQueryToken(testOfferId, "hello");
 
                     const res = await request()
                         .get("/offers")
@@ -994,7 +994,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is negative", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken({ _id: testOfferId, score: -5 });
+                        .encodeQueryToken(testOfferId, -5);
 
                     const res = await request()
                         .get("/offers")
@@ -1011,7 +1011,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if value is present and the queryToken's score is missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken({ _id: testOfferId });
+                        .encodeQueryToken(testOfferId);
 
                     const res = await request()
                         .get("/offers")
@@ -1028,7 +1028,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when value and queryToken's score are missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken({ _id: testOfferId });
+                        .encodeQueryToken(testOfferId);
 
                     const res = await request()
                         .get("/offers")
@@ -1040,7 +1040,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when value is present and queryToken's score is a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken({ _id: testOfferId, score: 5 });
+                        .encodeQueryToken(testOfferId, 5);
 
                     const res = await request()
                         .get("/offers")
@@ -1052,7 +1052,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when value is present and queryToken's score can be parsed as a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken({ _id: testOfferId, score: "3.5" });
+                        .encodeQueryToken(testOfferId, "3.5");
 
                     const res = await request()
                         .get("/offers")

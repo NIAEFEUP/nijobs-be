@@ -222,10 +222,18 @@ class OfferService {
             .limit(limit)
         ;
 
-        return results.length > 0 ?
-            { results, queryToken: this.encodeQueryToken(results[results.length - 1]) }
-            :
-            { results };
+        if (results.length > 0) {
+            const lastOffer = results[results.length - 1];
+            return {
+                results,
+                queryToken: this.encodeQueryToken(
+                    lastOffer._id,
+                    lastOffer.score || lastOffer._doc?.score
+                ),
+            };
+        } else {
+            return { results };
+        }
     }
 
     /**
@@ -329,18 +337,19 @@ class OfferService {
     }
 
     /**
-     * Encodes a query token, by taking the offer's id and FTS score (if present) and decoding in safe url base64
-     * @param {*} offer
+     * Encodes a query token, by taking the an id and FTS score if present, and encoding them in safe url base64
+     * @param {*} id
+     * @param {*} score
      */
-    encodeQueryToken(offer) {
+    encodeQueryToken(id, score) {
         return base64url.encode(JSON.stringify({
-            id: offer._id,
-            score: offer.score || offer._doc?.score
+            id,
+            score,
         }));
     }
 
     /**
-     * Decodes a query token, extracting the lastOffer's ID and FTS score
+     * Decodes a query token, extracting the FTS score and remaining offer's information
      * @param {*} queryToken
      */
     decodeQueryToken(queryToken) {
