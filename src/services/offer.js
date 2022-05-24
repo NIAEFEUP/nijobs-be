@@ -256,11 +256,7 @@ class OfferService {
 
         ) : Offer.find(this._buildFilterQuery(filters)));
 
-        offers.current();
-        if (!showHidden) offers.withoutHidden();
-        if (!showAdminReason) offers.select("-adminReason");
-
-        return offers;
+        return this.selectSearchOffers(offers, showHidden, showAdminReason);
     }
 
     /**
@@ -290,9 +286,7 @@ class OfferService {
                 { _id: { "$gt": ObjectId(lastOfferId) } }
             ] });
 
-            offers.current();
-            if (!showHidden) offers.withoutHidden();
-            if (!showAdminReason) offers.select("-adminReason");
+            this.selectSearchOffers(offers, showHidden, showAdminReason);
         }
 
         return offers;
@@ -343,6 +337,14 @@ class OfferService {
         if (technologies?.length) constraints.push({ technologies: {  "$elemMatch": { "$in": technologies } } });
 
         return constraints.length ? { "$and": constraints } : {};
+    }
+
+    selectSearchOffers(offers, showHidden, showAdminReason) {
+        offers.current();
+        if (!showHidden) offers.withoutHidden();
+        if (!showAdminReason) offers.select("-adminReason");
+
+        return offers;
     }
 
     /**
