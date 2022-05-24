@@ -14,7 +14,7 @@ import env from "../../src/config/env";
 import { SECOND_IN_MS } from "../../src/models/constants/TimeConstants";
 
 const generateTokenSpy = jest.spyOn(token, "generateToken");
-jest.spyOn(token, "decodeToken");
+jest.spyOn(token, "verifyAndDecodeToken");
 
 describe("Register endpoint test", () => {
     describe("Input Validation (unsuccessful registration)", () => {
@@ -249,7 +249,7 @@ describe("Password recovery endpoint test", () => {
             FieldValidatorTester.mustBeEmail();
         });
 
-        test("should return ok and not send email neither generate a token if account not found", async () => {
+        test("should return ok and not send email nor generate a token if account not found", async () => {
             const res = await request()
                 .post("/auth/recover/request")
                 .send({ email: "not_valid_email@email.com" });
@@ -411,7 +411,7 @@ describe("Password recovery endpoint test", () => {
             FieldValidatorTester.hasNumber();
         });
 
-        test("recover flow", async () => {
+        test("should succeed to complete the whole password recovery process", async () => {
             const test_agent = agent();
             let res = await test_agent
                 .post("/auth/login")
@@ -439,6 +439,37 @@ describe("Password recovery endpoint test", () => {
                 .send({ email: test_account.email, password: newPassword });
 
             expect(res.status).toBe(HTTPStatus.OK);
+
+        });
+
+        test("should change password in database after whole password recovery process", async () => {
+            const oldPassword = (await Account.findOne({ email: test_account.email })).password;
+
+            const test_agent = agent();
+            let res = await test_agent
+                .post("/auth/login")
+                .send(test_account);
+
+            expect(res.status).toBe(HTTPStatus.OK);
+
+            await test_agent.delete("/auth/login");
+
+            res = await request()
+                .post("/auth/recover/request")
+                .send({ email: test_account.email });
+
+            expect(res.status).toBe(HTTPStatus.OK);
+            const generatedToken = generateTokenSpy.mock.results[0].value;
+
+            res = await request()
+                .post(`/auth/recover/${generatedToken}/confirm`)
+                .send({ password: newPassword });
+
+            expect(res.status).toBe(HTTPStatus.OK);
+
+            const password = (await Account.findOne({ email: test_account.email })).password;
+
+            expect(password).not.toBe(oldPassword);
 
         });
     });

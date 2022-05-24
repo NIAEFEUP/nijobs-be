@@ -1,14 +1,14 @@
 import jwt from "jsonwebtoken";
 
-export const generateToken = (data, secret, expiration) => jwt.sign(
+export const generateToken = (data, secret, expiresInSeconds) => jwt.sign(
     { ...data },
     secret,
-    {   expiresIn: expiration }
+    { expiresIn: `${expiresInSeconds} seconds`, algorithm: "HS256" }
 );
 
-export const decodeToken = (token, secret) => {
+export const verifyAndDecodeToken = (token, secret) => {
     try {
-        return jwt.verify(token, secret);
+        return jwt.verify(token, secret, { algorithm: "HS256" });
     } catch (err) {
         return null;
     }

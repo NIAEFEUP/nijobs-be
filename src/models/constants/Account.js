@@ -5,4 +5,4 @@ export default Object.freeze({
 });
 
 // Recovery link expiration in seconds
-export const RECOVERY_LINK_EXPIRATION = 300;
+export const RECOVERY_LINK_EXPIRATION = 600;

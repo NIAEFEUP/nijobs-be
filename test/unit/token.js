@@ -1,4 +1,4 @@
-import { decodeToken, generateToken } from "../../src/lib/token";
+import { verifyAndDecodeToken, generateToken } from "../../src/lib/token";
 import { SECOND_IN_MS } from "../../src/models/constants/TimeConstants";
 
 describe("AWT Token tests", () => {
@@ -16,11 +16,11 @@ describe("AWT Token tests", () => {
     });
 
     test("should decoded token", () => {
-        expect(decodeToken(token, secret)).toHaveProperty("mock", data["mock"]);
+        expect(verifyAndDecodeToken(token, secret)).toHaveProperty("mock", data["mock"]);
     });
 
     test("should fail to decode token if invalid secret", () => {
-        expect(decodeToken(token, `${secret}o`)).toBeNull();
+        expect(verifyAndDecodeToken(token, `${secret}o`)).toBeNull();
     });
 
     test("should fail to decode token if expired", () => {
@@ -28,7 +28,7 @@ describe("AWT Token tests", () => {
         const mockDate = Date.now() + (11 * SECOND_IN_MS);
         Date.now = () => mockDate;
 
-        expect(decodeToken(token, `${secret}`)).toBeNull();
+        expect(verifyAndDecodeToken(token, `${secret}`)).toBeNull();
 
         Date.now = realTime;
     });
