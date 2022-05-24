@@ -1,9 +1,13 @@
+import mongoose from "mongoose";
 import Company  from "../models/Company.js";
 import Offer  from "../models/Offer.js";
 import Account  from "../models/Account.js";
 import EmailService  from "../lib/emailService.js";
 import { OFFER_DISABLED_NOTIFICATION }  from "../email-templates/companyOfferDisabled.js";
 import OfferConstants  from "../models/constants/Offer.js";
+import base64url from "base64url";
+
+const { ObjectId } = mongoose.Types;
 
 class OfferService {
     // TODO: Use typedi or similar
@@ -192,29 +196,102 @@ class OfferService {
 
     /**
      * Fetches offers according to specified options
+     * Learn more about keyset search here: https://github.com/NIAEFEUP/nijobs-be/issues/129
+     *
      * @param {*} options
      * value: Text to use in full-text-search
-     * offset: Point to start looking (and limiting)
+     * queryToken: Token used to continue the previous search
      * limit: How many offers to show
      * jobType: Array of jobTypes allowed
      */
-    get({ value = "", offset = 0, limit = OfferService.MAX_OFFERS_PER_QUERY, showHidden = false, showAdminReason = false, ...filters }) {
+    async get({ value = "", queryToken = null, limit = OfferService.MAX_OFFERS_PER_QUERY,
+        showHidden = false, showAdminReason = false, ...filters }) {
 
-        const offers = (value ? Offer.find(
-            { "$and": [this._buildFilterQuery(filters), { "$text": { "$search": value } }] }, { score: { "$meta": "textScore" } }
-        ) : Offer.find(this._buildFilterQuery(filters))).current();
+        let offers, queryValue = value, queryFilters = filters;
 
-        if (!showHidden) offers.withoutHidden();
+        if (queryToken) {
+            const {
+                id: lastOfferId,
+                score: lastOfferScore,
+                ...searchInfo
+            } = this.decodeQueryToken(queryToken);
 
-        const offersQuery = offers
-            .sort(value ? { score: { "$meta": "textScore" } } : undefined)
-            .skip(offset)
+            [queryValue, queryFilters] = [searchInfo.value, searchInfo.filters];
+
+            offers = this._buildSearchContinuationQuery(lastOfferId, lastOfferScore, queryValue,
+                showHidden, showAdminReason, queryFilters);
+        } else {
+            offers = this._buildInitialSearchQuery(queryValue, showHidden, showAdminReason, queryFilters);
+        }
+
+        const results = await offers
+            .sort(queryValue ? { score: { "$meta": "textScore" }, _id: 1 } : { _id: 1 })
             .limit(limit)
         ;
 
-        return showAdminReason ? offersQuery : offersQuery.select("-adminReason");
-
+        if (results.length > 0) {
+            const lastOffer = results[results.length - 1];
+            return {
+                results,
+                queryToken: this.encodeQueryToken(
+                    lastOffer._id,
+                    lastOffer.score || lastOffer._doc?.score,
+                    queryValue, queryFilters
+                ),
+            };
+        } else {
+            return { results };
+        }
     }
+
+    /**
+     * Builds an initial search query. Cannot be used when loading more offers.
+     * Otherwise, use _buildSearchContinuationQuery().
+     */
+    _buildInitialSearchQuery(value, showHidden, showAdminReason, filters) {
+        const offers = (value ? Offer.find({ "$and": [
+            this._buildFilterQuery(filters),
+            { "$text": { "$search": value } }
+        ] }, { score: { "$meta": "textScore" } }
+
+        ) : Offer.find(this._buildFilterQuery(filters)));
+
+        return this.selectSearchOffers(offers, showHidden, showAdminReason);
+    }
+
+    /**
+     * Builds a search continuation query. Only use this when loading more offers.
+     * Otherwise, use _buildInitialSearchQuery().
+     */
+    _buildSearchContinuationQuery(lastOfferId, lastOfferScore, value, showHidden, showAdminReason, filters) {
+        let offers;
+        if (value) {
+            offers = Offer.aggregate([
+                { $match: { $text: { $search: value } } },
+                { $match: this._buildFilterQuery(filters) },
+                { $addFields: {
+                    score: { $meta: "textScore" },
+                    adminReason: { $cond: [showAdminReason, "$adminReason", "$$REMOVE"] }
+                } },
+                { $match: { "$or": [
+                    { score: { "$lt": lastOfferScore } },
+                    { score: lastOfferScore, _id: { "$gt": ObjectId(lastOfferId) } }
+                ] } },
+                { $match: Offer.filterCurrent() },
+                { $match: showHidden ? {} : Offer.filterNonHidden() }
+            ]);
+        } else {
+            offers = Offer.find({ "$and": [
+                this._buildFilterQuery(filters),
+                { _id: { "$gt": ObjectId(lastOfferId) } }
+            ] });
+
+            this.selectSearchOffers(offers, showHidden, showAdminReason);
+        }
+
+        return offers;
+    }
+
     _buildFilterQuery(filters) {
         if (!filters || !Object.keys(filters).length) return {};
 
@@ -260,6 +337,38 @@ class OfferService {
         if (technologies?.length) constraints.push({ technologies: {  "$elemMatch": { "$in": technologies } } });
 
         return constraints.length ? { "$and": constraints } : {};
+    }
+
+    selectSearchOffers(offers, showHidden, showAdminReason) {
+        offers.current();
+        if (!showHidden) offers.withoutHidden();
+        if (!showAdminReason) offers.select("-adminReason");
+
+        return offers;
+    }
+
+    /**
+     * Encodes a query token, by taking the an id and FTS score if present, and encoding them in safe url base64
+     * @param {*} id
+     * @param {*} score
+     */
+    encodeQueryToken(id, score, value, filters) {
+        return base64url.encode(JSON.stringify({
+            id, score, value, filters
+        }));
+    }
+
+    /**
+     * Decodes a query token, extracting the FTS score and remaining offer's information
+     * @param {*} queryToken
+     */
+    decodeQueryToken(queryToken) {
+        const tokenInfo = JSON.parse(base64url.decode(queryToken));
+
+        return {
+            ...tokenInfo,
+            score: Number(tokenInfo.score)
+        };
     }
 
     /**

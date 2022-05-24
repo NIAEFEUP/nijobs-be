@@ -312,21 +312,23 @@ const publishEndDateEditableLimit = async (publishEndDateCandidate, { req }) => 
     return true;
 };
 
+const existingOfferId = async (offerId, { req }) => {
+    try {
+        const offer = await (new OfferService()).getOfferById(offerId, req.targetOwner, req.hasAdminPrivileges);
+        if (!offer) throw new Error(ValidationReasons.OFFER_NOT_FOUND(offerId));
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+
+    return true;
+};
+
 export const isExistingOffer = useExpressValidators([
     param("offerId", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .custom(isObjectId).withMessage(ValidationReasons.OBJECT_ID).bail()
-        .custom(async (offerId, { req }) => {
-            try {
-                const offer = await (new OfferService()).getOfferById(offerId, req.targetOwner, req.hasAdminPrivileges);
-                if (!offer) throw new Error(ValidationReasons.OFFER_NOT_FOUND(offerId));
-            } catch (err) {
-                console.error(err);
-                throw err;
-            }
-
-            return true;
-        }),
+        .custom(existingOfferId),
 ]);
 
 export const edit = useExpressValidators([
@@ -440,11 +442,33 @@ export const setDefaultValuesCreate = (req, res, next) => {
     return next();
 };
 
+const validGetQueryToken = async (queryToken, { req }) => {
+    try {
+        const { id, score, value } = (new OfferService()).decodeQueryToken(queryToken);
+        if (!isObjectId(id)) throw new Error(ValidationReasons.OBJECT_ID);
+        await existingOfferId(id, { req });
+
+        if (value) {
+            if (isNaN(score)) throw new Error(ValidationReasons.NUMBER);
+            if (score < 0) throw new Error(ValidationReasons.MIN(0));
+        }
+
+        if (score && !value)
+            throw new Error(ValidationReasons.REQUIRED);
+
+    } catch (err) {
+        console.error(err);
+        throw new Error(ValidationReasons.INVALID_QUERY_TOKEN);
+    }
+
+    return true;
+};
+
 export const get = useExpressValidators([
-    query("offset", ValidationReasons.DEFAULT)
+    query("queryToken", ValidationReasons.DEFAULT)
         .optional()
-        .isInt({ min: 0 }).withMessage(ValidationReasons.INT)
-        .toInt(),
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .custom(validGetQueryToken),
 
     query("limit")
         .optional()

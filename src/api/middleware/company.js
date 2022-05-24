@@ -43,7 +43,7 @@ export const verifyMaxConcurrentOffersOnEdit = async (req, res, next) => {
 
     try {
 
-        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
+        const offer = await (new OfferService()).getOfferById(req.params.offerId, req.targetOwner, req.hasAdminPrivileges);
 
         if (!offer)
             throw new APIError(HTTPStatus.NOT_FOUND, ErrorTypes.VALIDATION_ERROR, ValidationReasons.OFFER_NOT_FOUND(req.params.offerId));

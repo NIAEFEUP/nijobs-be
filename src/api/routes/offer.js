@@ -20,12 +20,13 @@ export default (app) => {
     router.use(offerMiddleware.setTargetOwner);
 
     /**
-     * Gets all currently active offers (without filtering, for now)
-     * supports offset and limit as query params
+     * Gets active offers based on passed filters and full-text search.
+     * Returns the offers found and a queryToken used for pagination.
+     * Also takes queryToken and limit as query params.
      */
     router.get("/", validators.get, async (req, res, next) => {
         try {
-            const offers = await (new OfferService()).get(
+            const resultsAndQueryToken = await (new OfferService()).get(
                 {
                     ...req.query,
                     showHidden: req?.query?.showHidden && req.hasAdminPrivileges,
@@ -33,7 +34,7 @@ export default (app) => {
                 }
             );
 
-            return res.json(offers);
+            return res.json(resultsAndQueryToken);
         } catch (err) {
             console.error(err);
             return next(err);
