@@ -227,7 +227,24 @@ export default (app) => {
             }
         });
 
-    router.put("/:offerId/archive", (req, res, _next) => {
-        res.json({ ok: true });
-    });
+    /*
+     * Archives a given offer
+     */
+    router.put("/:offerId/archive",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isAdmin,
+            authMiddleware.isGod,
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.isExistingOffer,
+        (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
+        async (req, res, next) => {
+            try {
+                const offer = await (new OfferService()).archive(req.params.offerId);
+                return res.json(offer);
+            } catch (err) {
+                console.error(err);
+                return next(err);
+            }
+        });
 };
