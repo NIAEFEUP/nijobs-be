@@ -85,6 +85,10 @@ const OfferSchema = new Schema({
         type: Boolean,
         default: false
     },
+    isArchived: {
+        type: Boolean,
+        default: false
+    },
     owner: {
         type: Types.ObjectId,
         ref: "Company",

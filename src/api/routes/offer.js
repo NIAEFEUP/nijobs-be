@@ -226,4 +226,8 @@ export default (app) => {
                 return next(err);
             }
         });
+
+    router.put("/:offerId/archive", (req, res, _next) => {
+        res.json({ ok: true });
+    });
 };

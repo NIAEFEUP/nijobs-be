@@ -35,6 +35,7 @@ describe("Offer endpoint tests", () => {
         technologies: ["React", "CSS"],
         location: "Testing Street, Test City, 123",
         isHidden: false,
+        isArchived: false,
         requirements: ["The candidate must be tested", "Fluent in testJS"],
         ...params,
     });
