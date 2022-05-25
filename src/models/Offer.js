@@ -5,7 +5,7 @@ import { FieldTypes, MIN_FIELDS, MAX_FIELDS } from "./constants/FieldTypes.js";
 import { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } from "./constants/TechnologyTypes.js";
 import PointSchema from "./Point.js";
 import { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } from "./constants/TimeConstants.js";
-import { noDuplicatesValidator, lengthBetweenValidator, validImageURL } from "./modelUtils.js";
+import { noDuplicatesValidator, lengthBetweenValidator, validImageURL, validApplyURL } from "./modelUtils.js";
 import OfferConstants from "./constants/Offer.js";
 import { concurrentOffersNotExceeded, maxHTMLContentLength } from "../api/middleware/validators/validatorUtils.js";
 
@@ -103,6 +103,7 @@ const OfferSchema = new Schema({
     ownerLogo: { type: String, required: true, validate: (val) => validImageURL(val) },
     location: { type: String, required: true },
     coordinates: { type: PointSchema, required: false },
+    applyURL: { type: String, validate: (val) => validApplyURL(val) },
 });
 
 OfferSchema.set("timestamps", true);
@@ -146,22 +147,24 @@ function validateDescription(value) {
 /**
  * Currently active Offers (publish date was before Date.now and end date is after Date.now)
  */
+OfferSchema.statics.filterCurrent = () => ({
+    publishDate: {
+        $lte: new Date(Date.now()),
+    },
+    publishEndDate: {
+        $gt: new Date(Date.now()),
+    },
+});
 OfferSchema.query.current = function() {
-    return this.where({
-        publishDate: {
-            $lte: new Date(Date.now()),
-        },
-        publishEndDate: {
-            $gt: new Date(Date.now()),
-        },
-    });
+    return this.where(this.model.filterCurrent());
 };
 
 /**
  * Currently active and non-hidden Offers
  */
+OfferSchema.statics.filterNonHidden = () => ({ isHidden: false });
 OfferSchema.query.withoutHidden = function() {
-    return this.where({ isHidden: false });
+    return this.where(this.model.filterNonHidden());
 };
 
 const Offer = mongoose.model("Offer", OfferSchema);

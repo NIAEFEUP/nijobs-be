@@ -866,17 +866,127 @@ describe("Offer endpoint tests", () => {
             });
         });
 
+        describe("applyURL validation", () => {
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+            });
+
+            beforeEach(async () => {
+                await Offer.deleteMany({});
+            });
+
+            test("should fail if applyURL is neither a URL or an email", async () => {
+                const offer_params = generateTestOffer({
+                    applyURL: "this_is_not_valid",
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+            });
+
+            test("should fail if applyURL is a URL with an unsupported protocol", async () => {
+                const offer_params = generateTestOffer({
+                    applyURL: "ftp://www.coolwebsite.com",
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+            });
+
+            test("should fail if applyURL contains javascript code", async () => {
+                const offer_params = generateTestOffer({
+                    applyURL: "javascript:alert('hello friend');",
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+            });
+
+            test("should fail if applyURL contains javascript code with a commented valid URL", async () => {
+                const offer_params = generateTestOffer({
+                    applyURL: "javascript:alert('hello friend'); // https://www.google.com",
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+            });
+
+            test("should succeed if applyURL is a valid email", async () => {
+                const applyURL = "mailto:nicemail@gmail.com";
+                const offer_params = generateTestOffer({
+                    applyURL,
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("applyURL", applyURL);
+            });
+
+            test("should succeed if applyURL is a valid HTTP URL", async () => {
+                const applyURL = "http://www.coolwebsite.com/a/";
+                const offer_params = generateTestOffer({
+                    applyURL,
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("applyURL", applyURL);
+            });
+
+            test("should succeed if applyURL is a valid HTTPS URL", async () => {
+                const applyURL = "https://www.coolwebsite.com";
+                const offer_params = generateTestOffer({
+                    applyURL,
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("applyURL", applyURL);
+            });
+        });
+
     });
 
     describe("GET /offers", () => {
         describe("Input Validation", () => {
             const EndpointValidatorTester = ValidatorTester((params) => request().get("/offers").query(params));
             const QueryValidatorTester = EndpointValidatorTester("query");
-
-            describe("offset", () => {
-                const FieldValidatorTester = QueryValidatorTester("offset");
-                FieldValidatorTester.mustBeNumber();
-            });
 
             describe("limit", () => {
                 const FieldValidatorTester = QueryValidatorTester("limit");
@@ -913,6 +1023,9 @@ describe("Offer endpoint tests", () => {
             let test_company;
             let test_offer;
 
+            const testPublishDate = "2019-11-22T00:00:00.000Z";
+            const testPublishEndDate = "2019-11-28T00:00:00.000Z";
+
             beforeAll(async () => {
                 test_company = await Company.create({
                     name: "test company",
@@ -923,8 +1036,8 @@ describe("Offer endpoint tests", () => {
 
                 test_offer = {
                     ...generateTestOffer({
-                        "publishDate": "2019-11-22T00:00:00.000Z",
-                        "publishEndDate": "2019-11-28T00:00:00.000Z"
+                        "publishDate": testPublishDate,
+                        "publishEndDate": testPublishEndDate
                     }),
                     owner: test_company._id,
                     ownerName: test_company.name,
@@ -946,8 +1059,147 @@ describe("Offer endpoint tests", () => {
                 Date.now = RealDateNow;
             });
 
+            describe("queryToken validation", () => {
+                test("should fail if queryToken does not contain a valid id", async () => {
+                    const queryToken = (new OfferService()).encodeQueryToken("123");
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's offer does not exist", async () => {
+                    const queryToken = (new OfferService()).encodeQueryToken("5facf0cdb8bc30016ee58952");
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's score is not a number", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId, "hello", "test");
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's score is negative", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId, -5, "test");
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's value is present and score is missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId, undefined, "test");
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's score is present and value is missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId, 5);
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should succeed when the queryToken's value and score are missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId);
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                });
+
+                test("should succeed when the queryToken's value is present and score is a valid number", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId, 5, "test");
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                });
+
+                test("should succeed when value is present and queryToken's score can be parsed as a number", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId, "3.5", "test");
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                });
+            });
+
             describe("Only current offers are returned", () => {
 
+                const expired_test_offer = generateTestOffer({
+                    "publishDate": (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString(),
+                    "publishEndDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString()
+                });
 
                 const future_test_offer = generateTestOffer({
                     "publishDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
@@ -956,7 +1208,7 @@ describe("Offer endpoint tests", () => {
 
                 beforeAll(async () => {
 
-                    [future_test_offer]
+                    [expired_test_offer, future_test_offer]
                         .forEach((offer) => {
                             offer.owner = test_company._id;
                             offer.ownerName = test_company.name;
@@ -972,14 +1224,16 @@ describe("Offer endpoint tests", () => {
                         .get("/offers");
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(1);
+                    expect(res.body?.results).toHaveLength(1);
+
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                    const extracted_data = res.body.map((elem) => {
+                    const extracted_data = res.body.results.map((elem) => {
                         delete elem["_id"];
                         delete elem["__v"];
                         delete elem["createdAt"];
                         delete elem["updatedAt"];
                         delete elem["score"];
+                        delete elem["queryToken"];
                         return elem;
                     });
                     const prepared_test_offer = {
@@ -999,14 +1253,15 @@ describe("Offer endpoint tests", () => {
                         });
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(1);
+                    expect(res.body?.results).toHaveLength(1);
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                    const extracted_data = res.body.map((elem) => {
+                    const extracted_data = res.body.results.map((elem) => {
                         delete elem["_id"];
                         delete elem["__v"];
                         delete elem["createdAt"];
                         delete elem["updatedAt"];
                         delete elem["score"];
+                        delete elem["queryToken"];
                         return elem;
                     });
                     const prepared_test_offer = {
@@ -1033,11 +1288,12 @@ describe("Offer endpoint tests", () => {
                             });
 
                         expect(res.status).toBe(HTTPStatus.OK);
-                        expect(res.body).toHaveLength(2);
+                        expect(res.body?.results).toHaveLength(2);
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                        const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
+                        const extracted_data = res.body.results.map((elem) => {
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                            delete elem["updatedAt"]; delete elem["queryToken"];
                             return elem;
                         });
 
@@ -1050,6 +1306,111 @@ describe("Offer endpoint tests", () => {
                         expect(extracted_data).toContainEqual(prepared_test_offer);
                     });
                 });
+
+                describe("When queryToken is given", () => {
+
+                    beforeAll(async () => {
+                        // Add another offer
+                        await Offer.deleteMany({});
+                        await Offer.create([test_offer, { ...test_offer, jobType: "FULL-TIME" },
+                            expired_test_offer, future_test_offer]);
+                    });
+
+                    test("should fetch offers with the id greater than the one provided", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({ limit: 1 });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ queryToken: res.body.queryToken });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+
+                        const offer = res2.body.results[0];
+                        expect(offer._id).not.toBe(res.body.results[0]._id);
+                    });
+
+                    test("should succeed if there are no more offers after the last one", async () => {
+                        const res = await request()
+                            .get("/offers");
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(2);
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ queryToken: res.body.queryToken });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(0);
+                    });
+
+                    test("offers are returned according to filters", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({
+                                publishDate: testPublishDate,
+                                publishEndDate: testPublishEndDate,
+                                jobType: "FULL-TIME"
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].jobType).toBe("FULL-TIME");
+                    });
+
+                    test("offers are returned according to filters when using queryToken", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({
+                                publishDate: testPublishDate,
+                                publishEndDate: testPublishEndDate,
+                                fields: ["DEVOPS"],
+                                limit: 1
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].fields).toContainEqual("DEVOPS");
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({
+                                queryToken: res.body.queryToken
+                            });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                        expect(res2.body.results[0].fields).toContainEqual("DEVOPS");
+
+                        const res3 = await request()
+                            .get("/offers")
+                            .query({
+                                publishDate: testPublishDate,
+                                publishEndDate: testPublishEndDate,
+                                jobType: "FULL-TIME"
+                            });
+
+                        expect(res3.status).toBe(HTTPStatus.OK);
+                        expect(res3.body?.results).toHaveLength(1);
+                        expect(res3.body.results[0].jobType).toBe("FULL-TIME");
+
+                        const res4 = await request()
+                            .get("/offers")
+                            .query({
+                                queryToken: res3.body.queryToken
+                            });
+
+                        expect(res4.status).toBe(HTTPStatus.OK);
+                        expect(res4.body?.results).toHaveLength(0);
+                    });
+                });
+
                 describe("When showHidden is active", () => {
 
                     beforeAll(async () => {
@@ -1071,11 +1432,12 @@ describe("Offer endpoint tests", () => {
                             .get("/offers");
 
                         expect(res.status).toBe(HTTPStatus.OK);
-                        expect(res.body).toHaveLength(1);
+                        expect(res.body?.results).toHaveLength(1);
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                        const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
+                        const extracted_data = res.body.results.map((elem) => {
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                            delete elem["updatedAt"]; delete elem["queryToken"];
                             return elem;
                         });
 
@@ -1103,11 +1465,12 @@ describe("Offer endpoint tests", () => {
                             });
 
                         expect(res.status).toBe(HTTPStatus.OK);
-                        expect(res.body).toHaveLength(1);
+                        expect(res.body?.results).toHaveLength(1);
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                        const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
+                        const extracted_data = res.body.results.map((elem) => {
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                            delete elem["updatedAt"]; delete elem["queryToken"];
                             return elem;
                         });
 
@@ -1135,11 +1498,12 @@ describe("Offer endpoint tests", () => {
                             });
 
                         expect(res.status).toBe(HTTPStatus.OK);
-                        expect(res.body).toHaveLength(2);
+                        expect(res.body?.results).toHaveLength(2);
 
                         // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                        const extracted_data = res.body.map((elem) => {
-                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"];
+                        const extracted_data = res.body.results.map((elem) => {
+                            delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                            delete elem["updatedAt"]; delete elem["queryToken"];
                             return elem;
                         });
 
@@ -1189,7 +1553,7 @@ describe("Offer endpoint tests", () => {
 
                         expect(res.status).toBe(HTTPStatus.OK);
 
-                        const extracted_data = res.body.map((elem) => elem["adminReason"]);
+                        const extracted_data = res.body.results.map((elem) => elem["adminReason"]);
 
                         const expected_data = ["my_reason", "my_reason", "my_reason", "my_reason", "my_reason"];
 
@@ -1207,7 +1571,7 @@ describe("Offer endpoint tests", () => {
 
                         expect(res.status).toBe(HTTPStatus.OK);
 
-                        const extracted_data = res.body.map((elem) => elem["adminReason"]);
+                        const extracted_data = res.body.results.map((elem) => elem["adminReason"]);
 
                         const expected_data = ["my_reason", "my_reason", "my_reason", "my_reason", "my_reason"];
 
@@ -1226,7 +1590,7 @@ describe("Offer endpoint tests", () => {
 
                         expect(res.status).toBe(HTTPStatus.OK);
 
-                        const extracted_data = res.body.map((elem) => elem["adminReason"]);
+                        const extracted_data = res.body.results.map((elem) => elem["adminReason"]);
 
                         const expected_data = [];
 
@@ -1241,7 +1605,7 @@ describe("Offer endpoint tests", () => {
 
                         expect(res.status).toBe(HTTPStatus.OK);
 
-                        const extracted_data = res.body.map((elem) => elem["adminReason"]);
+                        const extracted_data = res.body.results.map((elem) => elem["adminReason"]);
 
                         const expected_data = [];
 
@@ -1261,6 +1625,7 @@ describe("Offer endpoint tests", () => {
                 beforeAll(async () => {
                     portoFrontend = {
                         ...test_offer,
+                        title: "This offer is from Porto",
                         location: "Porto",
                         jobType: "FULL-TIME",
                         fields: ["FRONTEND", "OTHER"],
@@ -1298,11 +1663,12 @@ describe("Offer endpoint tests", () => {
                         });
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(2);
+                    expect(res.body?.results).toHaveLength(2);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                    const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
+                    const extracted_data = res.body.results.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                        delete elem["updatedAt"]; delete elem["score"]; delete elem["queryToken"];
                         return elem;
                     });
 
@@ -1327,11 +1693,12 @@ describe("Offer endpoint tests", () => {
                         });
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(1);
+                    expect(res.body?.results).toHaveLength(1);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                    const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
+                    const extracted_data = res.body.results.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                        delete elem["updatedAt"]; delete elem["score"]; delete elem["queryToken"];
                         return elem;
                     });
 
@@ -1353,11 +1720,12 @@ describe("Offer endpoint tests", () => {
                         });
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(2);
+                    expect(res.body?.results).toHaveLength(2);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                    const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
+                    const extracted_data = res.body.results.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                        delete elem["updatedAt"]; delete elem["score"]; delete elem["queryToken"];
                         return elem;
                     });
 
@@ -1383,11 +1751,12 @@ describe("Offer endpoint tests", () => {
                         });
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(1);
+                    expect(res.body?.results).toHaveLength(1);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                    const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
+                    const extracted_data = res.body.results.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                        delete elem["updatedAt"]; delete elem["score"]; delete elem["queryToken"];
                         return elem;
                     });
 
@@ -1410,11 +1779,12 @@ describe("Offer endpoint tests", () => {
                         });
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(2);
+                    expect(res.body?.results).toHaveLength(2);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                    const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
+                    const extracted_data = res.body.results.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                        delete elem["updatedAt"]; delete elem["score"]; delete elem["queryToken"];
                         return elem;
                     });
 
@@ -1439,11 +1809,12 @@ describe("Offer endpoint tests", () => {
                         });
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(1);
+                    expect(res.body?.results).toHaveLength(1);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                    const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
+                    const extracted_data = res.body.results.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                        delete elem["updatedAt"]; delete elem["score"]; delete elem["queryToken"];
                         return elem;
                     });
 
@@ -1466,11 +1837,12 @@ describe("Offer endpoint tests", () => {
                         });
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(2);
+                    expect(res.body?.results).toHaveLength(2);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                    const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
+                    const extracted_data = res.body.results.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                        delete elem["updatedAt"]; delete elem["score"]; delete elem["queryToken"];
                         return elem;
                     });
 
@@ -1498,11 +1870,12 @@ describe("Offer endpoint tests", () => {
                             jobMaxDuration: 4
                         });
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(2);
+                    expect(res.body?.results).toHaveLength(2);
 
                     // Necessary because jest matchers appear to not be working (expect.any(Number), expect.anthing(), etc)
-                    const extracted_data = res.body.map((elem) => {
-                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"]; delete elem["updatedAt"]; delete elem["score"];
+                    const extracted_data = res.body.results.map((elem) => {
+                        delete elem["_id"]; delete elem["__v"]; delete elem["createdAt"];
+                        delete elem["updatedAt"]; delete elem["score"]; delete elem["queryToken"];
                         return elem;
                     });
 
@@ -1515,6 +1888,380 @@ describe("Offer endpoint tests", () => {
 
                     expected_offers.forEach((expected) => {
                         expect(extracted_data).toContainEqual(expected);
+                    });
+                });
+
+                describe("When queryToken and value are given", () => {
+
+                    test("should return next matching offer with lower score", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({
+                                value: "porto",
+                                limit: 1
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].title).toEqual(portoFrontend.title);
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({
+                                value: "porto",
+                                queryToken: res.body.queryToken
+                            });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                        expect(res2.body.results[0].title).toEqual(portoBackend.title);
+                    });
+
+                    test("should return next matching offer with the same score", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({
+                                value: "backend",
+                                limit: 1
+                            });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({
+                                value: "backend",
+                                queryToken: res.body.queryToken
+                            });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                    });
+
+                    describe("With not current offers", () => {
+
+                        const expired_test_offer = generateTestOffer({
+                            "publishDate": (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString()
+                        });
+                        const future_test_offer = generateTestOffer({
+                            "publishDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString()
+                        });
+
+                        beforeAll(async () => {
+
+                            [future_test_offer, expired_test_offer]
+                                .forEach((offer) => {
+                                    offer.owner = test_company._id;
+                                    offer.ownerName = test_company.name;
+                                    offer.ownerLogo = test_company.logo;
+                                });
+
+                            await Offer.create([expired_test_offer, future_test_offer]);
+                        });
+
+                        afterAll(async () => {
+                            await Offer.deleteOne(future_test_offer);
+                            await Offer.deleteOne(expired_test_offer);
+                        });
+
+                        test("should provide only current offers", async () => {
+                            const res = await request()
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    limit: 1
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body?.results).toHaveLength(1);
+
+                            const res2 = await request()
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    queryToken: res.body.queryToken
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body?.results).toHaveLength(1);
+
+                            res2.body.results.forEach((offer) => {
+                                expect(offer.publishDate <= new Date(Date.now()).toISOString()).toBeTruthy();
+                                expect(offer.publishEndDate >= new Date(Date.now()).toISOString()).toBeTruthy();
+                            });
+                        });
+                    });
+
+                    describe("When queryToken and value are provided and showHidden is active", () => {
+
+                        beforeAll(async () => {
+                            await Offer.create({
+                                ...portoFrontend,
+                                isHidden: true,
+                                title: "This offer is hidden"
+                            });
+                        });
+
+                        afterAll(async () => {
+                            await Offer.deleteOne({ isHidden: true });
+                        });
+
+                        test("should not return hidden offers by default", async () => {
+                            const res = await request()
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    limit: 1
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body?.results).toHaveLength(1);
+
+                            const res2 = await request()
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    queryToken: res.body.queryToken
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body?.results).toHaveLength(1);
+
+                            res2.body.results.forEach((offer) => {
+                                expect(offer.isHidden).toBeFalsy();
+                            });
+                        });
+
+                        test("companies should not see their hidden offers", async () => {
+                            await test_agent
+                                .post("/auth/login")
+                                .send(test_user_company)
+                                .expect(HTTPStatus.OK);
+
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    limit: 1
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body?.results).toHaveLength(1);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    queryToken: res.body.queryToken
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body?.results).toHaveLength(1);
+
+                            res2.body.results.forEach((offer) => {
+                                expect(offer.isHidden).toBeFalsy();
+                            });
+                        });
+
+                        test("admins should see hidden offers", async () => {
+                            await test_agent
+                                .post("/auth/login")
+                                .send(test_user_admin)
+                                .expect(HTTPStatus.OK);
+
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    limit: 1
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body?.results).toHaveLength(1);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    queryToken: res.body.queryToken
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body?.results).toHaveLength(2);
+                        });
+
+                        test("should see hidden offers if god token is sent", async () => {
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    limit: 1
+                                })
+                                .send(withGodToken());
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body?.results).toHaveLength(1);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    queryToken: res.body.queryToken
+                                })
+                                .send(withGodToken());
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body?.results).toHaveLength(2);
+                        });
+                    });
+
+                    describe("When queryToken and value are provided and adminReason is set", () => {
+                        beforeAll(async () => {
+                            await Offer.create({
+                                ...portoFrontend,
+                                title: "This offer was hidden by an admin",
+                                isHidden: true,
+                                hiddenReason: "ADMIN_REQUEST",
+                                adminReason: "test_reason"
+                            });
+                        });
+
+                        afterAll(async () => {
+                            await Offer.deleteOne({ isHidden: true });
+                        });
+
+                        test("should return adminReason if logged in as admin", async () => {
+                            await test_agent
+                                .post("/auth/login")
+                                .send(test_user_admin)
+                                .expect(HTTPStatus.OK);
+
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    limit: 1
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body?.results).toHaveLength(1);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    queryToken: res.body.queryToken
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body?.results).toHaveLength(2);
+
+                            res2.body.results.filter((offer) => offer.isHidden).forEach((offer) => {
+                                expect(offer.hiddenReason).toBe("ADMIN_REQUEST");
+                                expect(offer.adminReason).toBe("test_reason");
+                            });
+                        });
+
+                        test("should return adminReason if god token is sent", async () => {
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    limit: 1
+                                })
+                                .send(withGodToken());
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body?.results).toHaveLength(1);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    queryToken: res.body.queryToken
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body?.results).toHaveLength(2);
+
+                            res2.body.results.filter((offer) => offer.isHidden).forEach((offer) => {
+                                expect(offer.hiddenReason).toBe("ADMIN_REQUEST");
+                                expect(offer.adminReason).toBe("test_reason");
+                            });
+                        });
+
+                        test("companies should not see admin reason for their own offers", async () => {
+                            await test_agent
+                                .post("/auth/login")
+                                .send(test_user_company)
+                                .expect(HTTPStatus.OK);
+
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    limit: 1
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body?.results).toHaveLength(1);
+                            expect(res.body.results[0].adminReason).toBeUndefined();
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    queryToken: res.body.queryToken
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body?.results).toHaveLength(1);
+                            res2.body.results.forEach((offer) => {
+                                expect(offer.adminReason).toBeUndefined();
+                            });
+                        });
+
+                        test("should not return admin reason if not logged in", async () => {
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    limit: 1
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body?.results).toHaveLength(1);
+                            expect(res.body.results[0].adminReason).toBeUndefined();
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "porto",
+                                    showHidden: true,
+                                    queryToken: res.body.queryToken
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body?.results).toHaveLength(1);
+                            res2.body.results.forEach((offer) => {
+                                expect(offer.adminReason).toBeUndefined();
+                            });
+                        });
                     });
                 });
             });
@@ -1532,8 +2279,8 @@ describe("Offer endpoint tests", () => {
                         .get("/offers");
 
                     expect(res.status).toBe(HTTPStatus.OK);
-                    expect(res.body).toHaveLength(1);
-                    expect(res.body[0].requirements).toEqual(test_offer.requirements);
+                    expect(res.body?.results).toHaveLength(1);
+                    expect(res.body.results[0].requirements).toEqual(test_offer.requirements);
                 });
             });
         });
@@ -2031,6 +2778,53 @@ describe("Offer endpoint tests", () => {
                         .expect(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("publishDate", newPublishDate.toISOString());
                     expect(res.body).toHaveProperty("publishEndDate", newPublishEndDate.toISOString());
+                });
+            });
+
+            describe("applyURL validation", () => {
+                test("should fail if applyURL is neither a URL or an email", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "applyURL": "this_is_not_valid" }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+                });
+
+                test("should fail if applyURL is a URL with an unsupported protocol", async () => {
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ "applyURL": "ftp://www.coolwebsite.com" }))
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+                });
+
+                test("should edit if applyURL is a valid email", async () => {
+                    const applyURL = "mailto:nicemail@gmail.com";
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ applyURL }))
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("applyURL", applyURL);
+                });
+
+                test("should edit if applyURL is a valid HTTP URL", async () => {
+                    const applyURL = "http://www.coolwebsite.com";
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ applyURL }))
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("applyURL", applyURL);
+                });
+
+                test("should edit if applyURL is a valid HTTPS URL", async () => {
+                    const applyURL = "https://www.coolwebsite.com";
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ applyURL }))
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("applyURL", applyURL);
                 });
             });
 
