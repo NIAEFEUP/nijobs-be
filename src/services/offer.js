@@ -38,6 +38,7 @@ class OfferService {
         location,
         coordinates,
         requirements,
+        applyURL,
     }) {
 
         const { name: ownerName, logo: ownerLogo } = await Company.findById(owner);
@@ -61,7 +62,8 @@ class OfferService {
             ownerLogo,
             location,
             coordinates,
-            requirements
+            requirements,
+            applyURL,
         });
         return offer;
     }
@@ -85,6 +87,7 @@ class OfferService {
             location,
             coordinates,
             requirements,
+            applyURL,
         }) {
         const edits = {
             title,
@@ -103,6 +106,7 @@ class OfferService {
             location,
             coordinates,
             requirements,
+            applyURL,
         };
         const offer = await Offer.findOneAndUpdate(
             { _id },

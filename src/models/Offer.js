@@ -5,7 +5,7 @@ import { FieldTypes, MIN_FIELDS, MAX_FIELDS } from "./constants/FieldTypes.js";
 import { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } from "./constants/TechnologyTypes.js";
 import PointSchema from "./Point.js";
 import { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } from "./constants/TimeConstants.js";
-import { noDuplicatesValidator, lengthBetweenValidator, validImageURL } from "./modelUtils.js";
+import { noDuplicatesValidator, lengthBetweenValidator, validImageURL, validApplyURL } from "./modelUtils.js";
 import OfferConstants from "./constants/Offer.js";
 import { concurrentOffersNotExceeded, maxHTMLContentLength } from "../api/middleware/validators/validatorUtils.js";
 
@@ -103,6 +103,7 @@ const OfferSchema = new Schema({
     ownerLogo: { type: String, required: true, validate: (val) => validImageURL(val) },
     location: { type: String, required: true },
     coordinates: { type: PointSchema, required: false },
+    applyURL: { type: String, validate: (val) => validApplyURL(val) },
 });
 
 OfferSchema.set("timestamps", true);

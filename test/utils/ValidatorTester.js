@@ -313,6 +313,26 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
         });
     },
 
+    mustBeValidURL: () => {
+        test("should be a valid URL", async () => {
+            const params = {
+                [field_name]: "@aaa",
+            };
+
+            const res = await requestEndpoint(params);
+
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.EMAIL,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            });
+        });
+    },
+
     hasNumber: () => {
         test("should have a number", async () => {
             const params = {
