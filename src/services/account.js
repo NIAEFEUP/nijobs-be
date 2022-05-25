@@ -51,7 +51,7 @@ class AccountService {
     }
 
     buildPasswordRecoveryLink(account) {
-        const token = generateToken({ email: account.email }, env.awt_secret, RECOVERY_LINK_EXPIRATION);
+        const token = generateToken({ email: account.email }, env.jwt_secret, RECOVERY_LINK_EXPIRATION);
         return `${env.password_recovery_link}/${token}`;
     }
 

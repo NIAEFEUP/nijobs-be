@@ -78,7 +78,7 @@ export const hasAdminPrivileges = async (req, res, next) => {
 };
 
 export const validToken = (req, res, next) => {
-    const decoded = verifyAndDecodeToken(req.params.token, config.awt_secret);
+    const decoded = verifyAndDecodeToken(req.params.token, config.jwt_secret);
 
     if (!decoded) {
         return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.INVALID_TOKEN));

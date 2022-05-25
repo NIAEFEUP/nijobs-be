@@ -1,7 +1,7 @@
 import { verifyAndDecodeToken, generateToken } from "../../src/lib/token";
 import { SECOND_IN_MS } from "../../src/models/constants/TimeConstants";
 
-describe("AWT Token tests", () => {
+describe("JWT Token tests", () => {
     const data = {
         mock: "data"
     };

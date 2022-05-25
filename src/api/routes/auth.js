@@ -86,7 +86,7 @@ export default (app) => {
     router.get("/recover/:token/confirm", validators.confirmRecover, validToken, (req, res) => res.status(HTTPStatus.OK).json({}));
 
     router.post("/recover/:token/confirm", validators.finishRecover, validToken, async (req, res, next) => {
-        const { email } = verifyAndDecodeToken(req.params.token, env.awt_secret);
+        const { email } = verifyAndDecodeToken(req.params.token, env.jwt_secret);
 
         try {
             await new AccountService().updatePassword(email, req.body.password);

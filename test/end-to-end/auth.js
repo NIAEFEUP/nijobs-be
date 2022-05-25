@@ -266,7 +266,7 @@ describe("Password recovery endpoint test", () => {
                 .send({ email: test_account.email });
             expect(res.status).toBe(HTTPStatus.OK);
 
-            expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.awt_secret, RECOVERY_LINK_EXPIRATION);
+            expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.jwt_secret, RECOVERY_LINK_EXPIRATION);
 
             const generatedToken = generateTokenSpy.mock.results[0].value;
 
@@ -297,7 +297,7 @@ describe("Password recovery endpoint test", () => {
                 .post("/auth/recover/request")
                 .send({ email: test_account.email });
 
-            expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.awt_secret, RECOVERY_LINK_EXPIRATION);
+            expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.jwt_secret, RECOVERY_LINK_EXPIRATION);
 
             const generatedToken = generateTokenSpy.mock.results[0].value;
             expect(res.status).toBe(HTTPStatus.OK);
@@ -313,7 +313,7 @@ describe("Password recovery endpoint test", () => {
                 .post("/auth/recover/request")
                 .send({ email: test_account.email });
 
-            expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.awt_secret, RECOVERY_LINK_EXPIRATION);
+            expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.jwt_secret, RECOVERY_LINK_EXPIRATION);
 
             const generatedToken = generateTokenSpy.mock.results[0].value;
             expect(res.status).toBe(HTTPStatus.OK);
@@ -350,7 +350,7 @@ describe("Password recovery endpoint test", () => {
                 .post("/auth/recover/request")
                 .send({ email: test_account.email });
 
-            expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.awt_secret, RECOVERY_LINK_EXPIRATION);
+            expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.jwt_secret, RECOVERY_LINK_EXPIRATION);
 
             const generatedToken = generateTokenSpy.mock.results[0].value;
             expect(res.status).toBe(HTTPStatus.OK);
@@ -367,7 +367,7 @@ describe("Password recovery endpoint test", () => {
                 .post("/auth/recover/request")
                 .send({ email: test_account.email });
 
-            expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.awt_secret, RECOVERY_LINK_EXPIRATION);
+            expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.jwt_secret, RECOVERY_LINK_EXPIRATION);
 
             const generatedToken = generateTokenSpy.mock.results[0].value;
             expect(res.status).toBe(HTTPStatus.OK);
@@ -396,7 +396,7 @@ describe("Password recovery endpoint test", () => {
                     .post("/auth/recover/request")
                     .send({ email: test_account.email });
 
-                expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.awt_secret, RECOVERY_LINK_EXPIRATION);
+                expect(token.generateToken).toHaveBeenCalledWith({ email: test_account.email }, env.jwt_secret, RECOVERY_LINK_EXPIRATION);
 
                 generatedToken = generateTokenSpy.mock.results[0].value;
             });
