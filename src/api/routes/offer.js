@@ -229,6 +229,8 @@ export default (app) => {
 
     /*
      * Archives a given offer
+     *
+     * This action is irreversible
      */
     router.put("/:offerId/archive",
         or([

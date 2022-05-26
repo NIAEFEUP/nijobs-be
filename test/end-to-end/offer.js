@@ -1278,7 +1278,7 @@ describe("Offer endpoint tests", () => {
                     beforeAll(async () => {
                         // Add 2 more offers
                         await Offer.deleteMany({});
-                        await Offer.create([test_offer,  future_test_offer, test_offer, test_offer]);
+                        await Offer.create([test_offer, future_test_offer, test_offer, test_offer]);
                     });
 
                     test("Only `limit` number of offers are returned", async () => {
@@ -1526,7 +1526,8 @@ describe("Offer endpoint tests", () => {
 
                         for (let i = 0; i < 5; i++)
                             test_offers.push(
-                                { ...test_offer,
+                                {
+                                    ...test_offer,
                                     isHidden: true,
                                     hiddenReason: "ADMIN_REQUEST",
                                     adminReason: "my_reason"
@@ -3167,7 +3168,8 @@ describe("Offer endpoint tests", () => {
                 test_offer_before = await Offer.create({
                     ...generateTestOffer({
                         publishDate: (new Date(now + (3 * DAY_TO_MS))).toISOString(),
-                        publishEndDate: (new Date(now + (7 * DAY_TO_MS))).toISOString() }),
+                        publishEndDate: (new Date(now + (7 * DAY_TO_MS))).toISOString()
+                    }),
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
@@ -3177,7 +3179,8 @@ describe("Offer endpoint tests", () => {
                     await Offer.create({
                         ...generateTestOffer({
                             publishDate: (new Date(now + (8 * DAY_TO_MS))).toISOString(),
-                            publishEndDate: (new Date(now + (12 * DAY_TO_MS))).toISOString() }),
+                            publishEndDate: (new Date(now + (12 * DAY_TO_MS))).toISOString()
+                        }),
                         owner: test_company._id.toString(),
                         ownerName: test_company.name,
                         ownerLogo: test_company.logo,
@@ -3186,7 +3189,8 @@ describe("Offer endpoint tests", () => {
                 test_offer_current = await Offer.create({
                     ...generateTestOffer({
                         publishDate: (new Date(now + (8 * DAY_TO_MS))).toISOString(),
-                        publishEndDate: (new Date(now + (12 * DAY_TO_MS))).toISOString() }),
+                        publishEndDate: (new Date(now + (12 * DAY_TO_MS))).toISOString()
+                    }),
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
@@ -3195,7 +3199,8 @@ describe("Offer endpoint tests", () => {
                 test_offer_after = await Offer.create({
                     ...generateTestOffer({
                         publishDate: (new Date(now + (13 * DAY_TO_MS))).toISOString(),
-                        publishEndDate: (new Date(now + (17 * DAY_TO_MS))).toISOString() }),
+                        publishEndDate: (new Date(now + (17 * DAY_TO_MS))).toISOString()
+                    }),
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
@@ -4021,5 +4026,39 @@ describe("Offer endpoint tests", () => {
                 expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
             });
         });
+    });
+
+    describe("PUT /offers/:offerId/archive", () => {
+
+        let test_offer;
+
+        beforeAll(async () => {
+
+            await Offer.deleteMany({});
+
+            test_offer = await Offer.create({
+                ...generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                }),
+            });
+        });
+
+        test("Should fail to archive offer if unauthenticated", async () => {
+
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .put(`/offers/${test_offer._id}/archive`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
+        });
+
     });
 });
