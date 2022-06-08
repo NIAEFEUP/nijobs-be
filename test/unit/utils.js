@@ -1,5 +1,5 @@
 import { APIError, UnknownAPIError } from "../../src/api/middleware/errorHandler";
-import { or, DEFAULT_ERROR_CODE, DEFAULT_STATUS_CODE, DEFAULT_ERROR_MSG, when } from "../../src/api/middleware/utils";
+import { or, DEFAULT_ERROR_CODE, DEFAULT_STATUS_CODE, DEFAULT_ERROR_MSG, when, storeInLocals } from "../../src/api/middleware/utils";
 import { validImageURL } from "../../src/models/modelUtils";
 
 describe("Middleware utils", () => {
@@ -241,6 +241,46 @@ describe("Middleware utils", () => {
             expect(validImageURL(url4)).toBe(false);
             expect(validImageURL(url5)).toBe(false);
             expect(validImageURL(url6)).toBe(true);
+        });
+    });
+
+    describe("req locals util", () => {
+        test("Should create locals if not defined", () => {
+            const req = {};
+
+            expect(req.locals).toBeUndefined();
+
+            storeInLocals(req, {});
+
+            expect(req.locals).toStrictEqual({});
+        });
+
+        test("Should add to pair to locals", () => {
+            const req = { locals: {} };
+
+            const obj = { pair: "value" };
+
+            storeInLocals(req, obj);
+
+            expect(req.locals).toStrictEqual(obj);
+        });
+
+        test("Should not replace old values", () => {
+            const obj1 = { pair1: "value" };
+            const obj2 = { pair2: "value" };
+            const req = {
+                locals: {
+                    ...obj1,
+                }
+            };
+
+
+            storeInLocals(req, obj2);
+
+            expect(req.locals).toStrictEqual({
+                ...obj1,
+                ...obj2,
+            });
         });
     });
 });

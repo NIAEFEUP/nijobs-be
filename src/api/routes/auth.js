@@ -6,8 +6,6 @@ import { authRequired, isGod, validToken } from "../middleware/auth.js";
 import * as validators from "../middleware/validators/auth.js";
 import AccountService from "../../services/account.js";
 import Company from "../../models/Company.js";
-import { verifyAndDecodeToken } from "../../lib/token.js";
-import env from "../../config/env.js";
 
 const router = Router();
 
@@ -86,7 +84,7 @@ export default (app) => {
     router.get("/recover/:token/confirm", validators.confirmRecover, validToken, (req, res) => res.status(HTTPStatus.OK).json({}));
 
     router.post("/recover/:token/confirm", validators.finishRecover, validToken, async (req, res, next) => {
-        const { email } = verifyAndDecodeToken(req.params.token, env.jwt_secret);
+        const { email } = req.locals.token;
 
         try {
             await new AccountService().updatePassword(email, req.body.password);
