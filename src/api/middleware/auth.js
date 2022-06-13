@@ -3,7 +3,8 @@ import { ErrorTypes, APIError } from "./errorHandler.js";
 import config from "../../config/env.js";
 import OfferService from "../../services/offer.js";
 import ValidationReasons from "./validators/validationReasons.js";
-import { or } from "./utils.js";
+import { or, storeInLocals } from "./utils.js";
+import { verifyAndDecodeToken } from "../../lib/token.js";
 
 // Middleware to require login in an endpoint
 export const authRequired = (req, res, next) => {
@@ -72,6 +73,20 @@ export const hasAdminPrivileges = async (req, res, next) => {
     });
 
     req.hasAdminPrivileges = !unprivileged;
+
+    return next();
+};
+
+export const validToken = (req, res, next) => {
+    const decoded = verifyAndDecodeToken(req.params.token, config.jwt_secret);
+
+    if (!decoded) {
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.INVALID_TOKEN));
+    }
+
+    storeInLocals(req, {
+        token: decoded,
+    });
 
     return next();
 };

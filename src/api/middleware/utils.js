@@ -83,3 +83,14 @@ export const when = (
     }
     return next();
 };
+
+export const storeInLocals = (req, obj) => {
+    if (!req.locals) {
+        req.locals = {};
+    }
+
+    req.locals = {
+        ...req.locals,
+        ...obj,
+    };
+};

@@ -1,6 +1,12 @@
 import Account from "../models/Account.js";
 import hash from "../lib/passwordHashing.js";
 import Company from "../models/Company.js";
+import { RECOVERY_LINK_EXPIRATION } from "../models/constants/Account.js";
+import env from "../config/env.js";
+import EmailService from "../lib/emailService.js";
+import { REQUEST_ACCOUNT_RECOVERY } from "../email-templates/accountManagement.js";
+import { generateToken } from "../lib/token.js";
+
 class AccountService {
     // TODO: Use typedi or similar
     constructor() {
@@ -33,6 +39,32 @@ class AccountService {
             email: account.email,
             companyName: account.company.name,
         };
+    }
+
+    async updatePassword(email, password) {
+        await Account.findOneAndUpdate({ email }, { password: await hash(password) });
+    }
+
+    async findByEmail(email) {
+        const account = await Account.findOne({ email });
+        return account;
+    }
+
+    buildPasswordRecoveryLink(account) {
+        const token = generateToken({ email: account.email }, env.jwt_secret, RECOVERY_LINK_EXPIRATION);
+        return `${env.password_recovery_link}/${token}`;
+    }
+
+    sendPasswordRecoveryNotification(account, link) {
+        try {
+            EmailService.sendMail({
+                to: account.email,
+                ...REQUEST_ACCOUNT_RECOVERY(link),
+            });
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
 
     async findAndDeleteByCompanyId(company) {
