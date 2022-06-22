@@ -4030,35 +4030,143 @@ describe("Offer endpoint tests", () => {
 
     describe("PUT /offers/:offerId/archive", () => {
 
-        let test_offer;
+        let test_offer1, test_offer2, test_offer3;
+        let test_company_2;
+        const test_user = {
+            email: "archive_company@email.com",
+            password: "password123",
+        };
 
         beforeAll(async () => {
 
             await Offer.deleteMany({});
-
-            test_offer = await Offer.create({
+            test_offer1 = await Offer.create({
                 ...generateTestOffer({
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
                 }),
             });
+            test_offer2 = await Offer.create({
+                ...generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                }),
+            });
+            test_offer3 = await Offer.create({
+                ...generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                }),
+            });
+
+            test_company_2 = await Company.create({
+                name: "test company",
+                bio: "a bio",
+                contacts: ["a contact"],
+                hasFinishedRegistration: true,
+                logo: "http://awebsite.com/alogo.jpg",
+            });
+            await Account.create({
+                email: test_user.email,
+                password: await hash(test_user.password),
+                company: test_company_2._id
+            });
+        });
+
+        afterEach(async () => {
+            await test_agent
+                .del("/auth/login");
+        });
+
+        test("Should fail with invalid id", async () => {
+
+            const res = await test_agent
+                .put("/offers/123/archive")
+                .send(withGodToken())
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+            expect(res.body.errors[0]).toHaveProperty("param", "offerId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+        });
+
+        test("Should fail if offer does not exist", async () => {
+            const _id = "111111111111111111111111";
+
+            const res = await test_agent
+                .put(`/offers/${_id}/archive`)
+                .send(withGodToken())
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+            expect(res.body.errors[0]).toHaveProperty("param", "offerId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OFFER_NOT_FOUND(_id));
         });
 
         test("Should fail to archive offer if unauthenticated", async () => {
 
-            await test_agent
-                .del("/auth/login");
-
             const res = await test_agent
-                .put(`/offers/${test_offer._id}/archive`)
+                .put(`/offers/${test_offer1._id}/archive`)
                 .expect(HTTPStatus.UNAUTHORIZED);
 
-            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
         });
 
+        test("Should fail if logged as another company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/offers/${test_offer3._id}/archive`)
+                .expect(HTTPStatus.FORBIDDEN);
+
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
+        });
+
+        test("Should succeed if god token sent", async () => {
+
+            const res = await test_agent
+                .put(`/offers/${test_offer1._id}/archive`)
+                .send(withGodToken())
+                .expect(HTTPStatus.OK);
+
+            expect(res.body).toHaveProperty("isArchived", true);
+        });
+
+        test("Should succeed if logged as admin", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/offers/${test_offer2._id}/archive`)
+                .expect(HTTPStatus.OK);
+
+            expect(res.body).toHaveProperty("isArchived", true);
+        });
+
+        test("Should succeed if logged as owing company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/offers/${test_offer3._id}/archive`)
+                .expect(HTTPStatus.OK);
+
+            expect(res.body).toHaveProperty("isArchived", true);
+        });
     });
 });

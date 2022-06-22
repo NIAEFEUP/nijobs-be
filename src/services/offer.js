@@ -164,9 +164,9 @@ class OfferService {
         return offer;
     }
 
-    async archive(id) {
+    async archive(_id) {
         const offer = await Offer.findOneAndUpdate(
-            { id },
+            { _id },
             {
                 isArchived: true,
             },
