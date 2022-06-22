@@ -17,7 +17,6 @@ import {
 } from "../../../models/constants/TimeConstants.js";
 import * as companyMiddleware from "../company.js";
 import config from "../../../config/env.js";
-import { when } from "../utils.js";
 import { validApplyURL } from "../../../models/modelUtils.js";
 
 const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
@@ -584,8 +583,5 @@ export const offerOwnerNotBlocked = async (req, res, next) => {
 export const offerOwnerNotDisabled = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
-    return when(
-        // if we are a company editing/hiding an offer, we can't be disabled, but admins/gods can do so on our behalf
-        !req.hasAdminPrivileges,
-        (req, res, next) => companyMiddleware.isNotDisabled(offer.owner)(req, res, next))(req, res, next);
+    return companyMiddleware.isNotDisabled(offer.owner)(req, res, next);
 };
