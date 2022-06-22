@@ -4268,5 +4268,100 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("isArchived", true);
             });
         });
+
+        describe("Blocked company", () => {
+
+            let blocked_test_offer_1, blocked_test_offer_2;
+            let blocked_test_company;
+            const blocked_test_user = {
+                email: "blocked_archive_company@email.com",
+                password: "password123",
+            };
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                blocked_test_company = await Company.create({
+                    name: "test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    hasFinishedRegistration: true,
+                    logo: "http://awebsite.com/alogo.jpg",
+                    isBlocked: true
+                });
+                await Account.create({
+                    email: blocked_test_user.email,
+                    password: await hash(blocked_test_user.password),
+                    company: blocked_test_company._id
+                });
+
+                blocked_test_offer_1 = await Offer.create(
+                    generateTestOffer({
+                        owner: blocked_test_company._id.toString(),
+                        ownerName: blocked_test_company.name,
+                        ownerLogo: blocked_test_company.logo,
+                    })
+                );
+                blocked_test_offer_2 = await Offer.create(
+                    generateTestOffer({
+                        owner: blocked_test_company._id.toString(),
+                        ownerName: blocked_test_company.name,
+                        ownerLogo: blocked_test_company.logo,
+                    })
+                );
+            });
+
+            afterEach(async () => {
+                await test_agent
+                    .del("/auth/login")
+                    .expect(HTTPStatus.OK);
+            });
+
+            afterAll(async () => {
+                await Company.deleteOne({ _id: blocked_test_company._id });
+                await Account.deleteOne({ email: blocked_test_user.email });
+            });
+
+            test("Should fail to archive offer as blocked company", async () => {
+
+                await test_agent
+                    .post("/auth/login")
+                    .send(blocked_test_user)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/offers/${blocked_test_offer_1._id}/archive`)
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_BLOCKED });
+            });
+
+            test("Should succeed if god token sent", async () => {
+
+                const res = await test_agent
+                    .put(`/offers/${blocked_test_offer_1._id}/archive`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("isArchived", true);
+            });
+
+            test("Should succeed if logged as admin", async () => {
+
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/offers/${blocked_test_offer_2._id}/archive`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("isArchived", true);
+            });
+        });
     });
 });

@@ -241,6 +241,7 @@ export default (app) => {
         validators.isExistingOffer,
         (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
         offerMiddleware.isOwnerNotDisabled,
+        offerMiddleware.isOwnerNotBlocked,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).archive(req.params.offerId);
