@@ -240,6 +240,7 @@ export default (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.isExistingOffer,
         (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
+        validators.offerOwnerNotDisabled,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).archive(req.params.offerId);
