@@ -171,6 +171,14 @@ OfferSchema.query.withoutHidden = function() {
     return this.where(this.model.filterNonHidden());
 };
 
+/**
+ * Currently active and non-archived Offers
+ */
+OfferSchema.statics.filterNonArchived = () => ({ isArchived: false });
+OfferSchema.query.withoutArchived = function() {
+    return this.where(this.model.filterNonArchived());
+};
+
 const Offer = mongoose.model("Offer", OfferSchema);
 
 // Useful for testing correct field implementation
