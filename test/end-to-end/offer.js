@@ -20,6 +20,7 @@ import {
 } from "../../src/models/constants/TimeConstants";
 import OfferService from "../../src/services/offer";
 import EmailService from "../../src/lib/emailService";
+import { concurrentOffersNotExceeded } from "../../src/api/middleware/validators/validatorUtils";
 import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
 
 //----------------------------------------------------------------
@@ -4361,6 +4362,59 @@ describe("Offer endpoint tests", () => {
                     .expect(HTTPStatus.OK);
 
                 expect(res.body).toHaveProperty("isArchived", true);
+            });
+        });
+
+        describe("Concurrent offers", () => {
+
+            let offer;
+
+            beforeAll(async () => {
+
+                const now = Date.now();
+
+                await Offer.deleteMany({});
+
+                for (let i = 0; i < CompanyConstants.offers.max_concurrent - 1; i++) {
+                    await Offer.create(
+                        generateTestOffer({
+                            owner: test_company._id.toString(),
+                            ownerName: test_company.name,
+                            ownerLogo: test_company.logo,
+                            publishDate: (new Date(now - (DAY_TO_MS))).toISOString(),
+                            publishEndDate: (new Date(now + (DAY_TO_MS))).toISOString()
+                        }));
+                }
+
+                offer = await Offer.create(
+                    generateTestOffer({
+                        owner: test_company._id.toString(),
+                        ownerName: test_company.name,
+                        ownerLogo: test_company.logo,
+                        publishDate: (new Date(now - (DAY_TO_MS))).toISOString(),
+                        publishEndDate: (new Date(now + (DAY_TO_MS))).toISOString()
+                    }));
+
+            });
+
+            test("Should exclude archived offer from concurrent offer count", async () => {
+
+                // eslint-disable-next-line
+                let limitNotReached = await concurrentOffersNotExceeded(Offer)(test_company._id.toString(), offer.publishDate, offer.publishEndDate);
+
+                expect(limitNotReached).toEqual(false);
+
+                const res = await test_agent
+                    .put(`/offers/${offer._id}/archive`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("isArchived", true);
+
+                // eslint-disable-next-line
+                limitNotReached = await concurrentOffersNotExceeded(Offer)(test_company._id.toString(), offer.publishDate, offer.publishEndDate);
+
+                expect(limitNotReached).toEqual(true);
             });
         });
     });
