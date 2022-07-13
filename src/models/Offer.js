@@ -174,9 +174,8 @@ OfferSchema.query.withoutHidden = function() {
 /**
  * Currently active and non-archived Offers
  */
-OfferSchema.statics.filterNonArchived = () => ({ isArchived: false });
 OfferSchema.query.withoutArchived = function() {
-    return this.where(this.model.filterNonArchived());
+    return this.where({ isArchived: false });
 };
 
 const Offer = mongoose.model("Offer", OfferSchema);

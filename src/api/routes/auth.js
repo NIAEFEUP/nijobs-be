@@ -38,8 +38,13 @@ export default (app) => {
     router.post("/login", validators.login, passport.authenticate("local"), (req, res) => res.status(HTTPStatus.OK).json({}));
 
     // Logout endpoint
-    router.delete("/login", (req, res) => {
-        if (req.isAuthenticated()) req.logout();
+    router.delete("/login", (req, res, next) => {
+        if (req.isAuthenticated()) req.logout((err) => {
+            if (err) {
+                console.error(err);
+                next(err);
+            }
+        });
 
         return res.status(HTTPStatus.OK).json({});
     });

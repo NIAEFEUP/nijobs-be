@@ -4399,8 +4399,8 @@ describe("Offer endpoint tests", () => {
 
             test("Should exclude archived offer from concurrent offer count", async () => {
 
-                // eslint-disable-next-line
-                let limitNotReached = await concurrentOffersNotExceeded(Offer)(test_company._id.toString(), offer.publishDate, offer.publishEndDate);
+                let limitNotReached =
+                    await concurrentOffersNotExceeded(Offer)(test_company._id.toString(), offer.publishDate, offer.publishEndDate);
 
                 expect(limitNotReached).toEqual(false);
 
@@ -4411,8 +4411,8 @@ describe("Offer endpoint tests", () => {
 
                 expect(res.body).toHaveProperty("isArchived", true);
 
-                // eslint-disable-next-line
-                limitNotReached = await concurrentOffersNotExceeded(Offer)(test_company._id.toString(), offer.publishDate, offer.publishEndDate);
+                limitNotReached =
+                    await concurrentOffersNotExceeded(Offer)(test_company._id.toString(), offer.publishDate, offer.publishEndDate);
 
                 expect(limitNotReached).toEqual(true);
             });
