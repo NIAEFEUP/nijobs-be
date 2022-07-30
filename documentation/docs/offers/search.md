@@ -16,111 +16,146 @@ import Highlight from "../../src/highlight.js"
 
 This endpoint returns offers based on search criteria. It allows for _Full-Text Search_ as well as results filtering. Perfect for a search component!
 
-**URL** : `/offers/search`
+**URL** : `/offers`
 
 **Method** : <Highlight level="info" inline>GET</Highlight>
 
 :::caution Authentication
-Auth is required to get hidden Offers. Only Admins or owners of hidden Offers will see them if `showHidden` is set to `true`
+Auth is required to get hidden Offers. Only Admins or owners of hidden Offers will see them if `showHidden` is set to `true`.
 :::
 
 ## Parameters 
 
-### showHidden <Highlight level="info" inline>Query Parameter</Highlight>
+### showHidden 
 
-<Highlight level="success">Optional</Highlight>
+<Highlight level="info">Query Parameter</Highlight>
 
-<Highlight level="secondary">Boolean</Highlight>
+<Highlight level="success" inline>Optional</Highlight>
+<Highlight level="secondary" inline>Boolean</Highlight>
 
-If active, will also return hidden offers, only for admin or offer owner 
+If active, will also return hidden offers, only for admin or offer owner.
 
-### limit <Highlight level="info" inline>Query Parameter</Highlight>
+### limit
 
+<Highlight level="info" inline>Query Parameter</Highlight>
 <Highlight level="success" inline>Optional</Highlight> 
+<br/>
 <Highlight level="warning" inline>Default: 20</Highlight>
+<Highlight level="secondary" inline>Number</Highlight>
 
-<Highlight level="secondary">Number</Highlight>
+Limits the number of results returned.
 
-Limits the number of results returned
+### queryToken
 
-### offset <Highlight level="info" inline>Query Parameter</Highlight>
+<Highlight level="info">Query Parameter</Highlight>
 
-<Highlight level="success" inline>Optional</Highlight> 
-<Highlight level="warning" inline>Default: 0</Highlight>
+<Highlight level="success" inline>Optional</Highlight>
+<Highlight level="secondary" inline>String</Highlight>
 
-<Highlight level="secondary">Number</Highlight>
+Used to continue a search after the previous one (often used with [limit](#limit-query-parameter) to have pagination).
+When using this parameter, it's not needed to pass the previous search parameters again.
 
-Specifies offset where to start returning results (often used with [limit](#limit-query-parameter) to have pagination)
-
-### value <Highlight level="info" inline>Query Parameter</Highlight>
-
-<Highlight level="success" inline>Optional</Highlight> 
-<Highlight level="warning" inline>Default: ""</Highlight>
-
-<Highlight level="secondary">String</Highlight>
-
-Full-Text-Search query
-
-### jobType <Highlight level="info" inline>Query Parameter</Highlight>
-
-<Highlight level="success">Optional</Highlight> 
-
-<Highlight level="secondary">String</Highlight>
-
-Filters the search results to only include ones of given type
-
-:::caution
-Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "OTHER"]`)
+:::info
+You can get this token in the response of a previous call to this endpoint.
 :::
 
-### jobMinDuration <Highlight level="info" inline>Query Parameter</Highlight>
+### value
 
-<Highlight level="success">Optional</Highlight> 
+<Highlight level="info" inline>Query Parameter</Highlight>
+<Highlight level="success" inline>Optional</Highlight>
+<br/>
+<Highlight level="warning" inline>Default: ""</Highlight>
+<Highlight level="secondary" inline>String</Highlight>
 
-<Highlight level="secondary">Number</Highlight>
+Query for full text search.
 
-Filters the search results to only include Offers with a `jobMinDuration` greater than given value
+### jobType
 
-### jobMaxDuration <Highlight level="info" inline>Query Parameter</Highlight>
+<Highlight level="info">Query Parameter</Highlight>
 
-<Highlight level="success">Optional</Highlight> 
+<Highlight level="success" inline>Optional</Highlight>
+<Highlight level="secondary" inline>String</Highlight>
 
-<Highlight level="secondary">Number</Highlight>
+Filters the search results to only include ones of given type.
 
-Filters the search results to only include Offers with a `jobMinDuration` lower than given value
+:::caution
+Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "RESEARCH GRANT", "OTHER"]`).
+:::
 
-### fields <Highlight level="info" inline>Query Parameter</Highlight>
+### jobMinDuration
 
-<Highlight level="success">Optional</Highlight> 
+<Highlight level="info">Query Parameter</Highlight>
 
+<Highlight level="success" inline>Optional</Highlight>
+<Highlight level="secondary" inline>Number</Highlight>
+
+Filters the search results to only include Offers with a `jobMinDuration` greater than given value.
+
+### jobMaxDuration
+
+<Highlight level="info">Query Parameter</Highlight>
+
+<Highlight level="success" inline>Optional</Highlight>
+<Highlight level="secondary" inline>Number</Highlight>
+
+Filters the search results to only include Offers with a `jobMinDuration` lower than given value.
+
+### fields
+
+<Highlight level="info" inline>Query Parameter</Highlight>
+<Highlight level="success" inline>Optional</Highlight> 
+<br/>
 <Highlight level="secondary" inline>String</Highlight>
 <Highlight level="secondary" inline>Array</Highlight>
 
-Filters the search results to only include Offers with at least one of `fields` being one of given values
+Filters the search results to only include Offers with at least one of `fields` being one of given values.
 
 :::caution
-Must be a valid Field Type (currently `["BACKEND", "FRONTEND", "DEVOPS", "BLOCKCHAIN", "MACHINE LEARNING", "OTHER"]`)
+Must be a valid Field Type (see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/FieldTypes.js)).
 :::
 
 :::info
-If you pass multiple values like: `<url>/?fields=field1&fields=field2` it will be parsed as a String array 
+If you pass multiple values like: `<url>/?fields=field1&fields=field2` it will be parsed as a String array.
 :::
 
-### technologies <Highlight level="info" inline>Query Parameter</Highlight>
+### technologies
 
-<Highlight level="success">Optional</Highlight> 
-
+<Highlight level="info" inline>Query Parameter</Highlight>
+<Highlight level="success" inline>Optional</Highlight> 
+<br/>
 <Highlight level="secondary" inline>String</Highlight>
 <Highlight level="secondary" inline>Array</Highlight>
 
-Filters the search results to only include Offers with at least one of `technologies` being one of given values
+Filters the search results to only include Offers with at least one of `technologies` being one of given values.
 
 :::caution
-Must be a valid Technology Type (currently `["React","Angular","Vue","Node.js","Java","C++","C","C#","Clojure","Go","Haskell","Spring Boot","Android","Flutter","Dart","PHP","CSS","Other"]`):::
+Must be a valid Technology Type (see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/TechnologyTypes.js)).
 :::
 
 :::info
 If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2` it will be parsed as a String array 
+:::
+
+## Response
+
+### results
+
+<Highlight level="info">Response Field</Highlight>
+
+<Highlight level="secondary" inline>Object</Highlight>
+<Highlight level="secondary" inline>Array</Highlight>
+
+Array of objects containing the offers found by the search
+
+### queryToken
+
+<Highlight level="info" inline>Response Field</Highlight>
+<Highlight level="secondary" inline>String</Highlight>
+
+Token used to continue the search in a following request. It's needed to get the next page of results.
+
+:::info
+You can use this together with [limit](#limit-query-parameter) to achieve pagination
 :::
 
 
@@ -141,7 +176,7 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
 <TabItem value="request">
 
 ```bash
-/offers/?value=testcompany%20frontend&technologies=React&technologies=Node.js
+/offers?value=testcompany%20frontend&technologies=React&technologies=NodeJS
 ```
 
 </TabItem>
@@ -149,59 +184,83 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
 <TabItem value="response">
 
 ```json
-[
+{
+  "results": [
     {
-        "contacts": [
-            "contact@company.com"
-        ],
-        "fields": [
-            "BACKEND",
-            "FRONTEND"
-        ],
-        "technologies": [
-            "React",
-            "Node.js",
-            "CSS"
-        ],
-        "isHidden": false,
-        "_id": "5ff390335f65ee2ada9f95e8",
-        "title": "Software Engineer - Fullstack",
-        "publishDate": "2021-01-04T22:01:23.097Z",
-        "publishEndDate": "2021-02-19T23:00:00.000Z",
-        "jobStartDate": "2020-06-14T23:00:00.000Z",
-        "description": "I love cheese, especially fromage frais gouda. Mascarpone when the cheese comes out everybody's happy say cheese cheese triangles caerphilly cheesecake gouda smelly cheese. Cheese and wine bocconcini lancashire pecorino stilton gouda port-salut cauliflower cheese. Cut the cheese squirty cheese rubber cheese cow boursin caerphilly cheesy grin cut the cheese. Camembert de normandie dolcelatte roquefort queso red leicester ricotta everyone loves fromage. Cream cheese ricotta cheese triangles croque monsieur everyone loves smelly cheese pepper jack pepper jack. Stilton st. agur blue cheese. Port-salut rubber cheese halloumi. Airedale queso halloumi emmental fromage frais when the cheese comes out everybody's happy airedale stinking bishop. Stinking bishop red leicester who moved my cheese fondue manchego swiss cheddar cow. Edam queso rubber cheese swiss parmesan pepper jack cheese strings cheese on toast. Fondue caerphilly croque monsieur red leicester jarlsberg roquefort chalk and cheese halloumi. Queso jarlsberg cut the cheese caerphilly. Stilton macaroni cheese babybel. Blue castello fromage frais cheesecake cheese and biscuits cheesy feet smelly cheese port-salut cut the cheese.",
-        "jobType": "FULL-TIME",
-        "owner": "5ff38a150188759f34e69723",
-        "location": "Porto",
-        "ownerName": "companyname",
-        "__v": 0
+      "contacts": [
+        "contact@company.com"
+      ],
+      "fields": [
+        "FRONTEND",
+        "FULL-STACK"
+      ],
+      "technologies": [
+        "React",
+        "JavaScript"
+      ],
+      "isHidden": false,
+      "isArchived": false,
+      "requirements": [
+        "Ambitious people with a passion for this area",
+        "Degree in Computer Engineering or similar"
+      ],
+      "_id": "62601cb7cb39d3001b3664d9",
+      "title": "React JS Developer",
+      "publishDate": "2022-04-20T14:28:59.072Z",
+      "publishEndDate": "2022-10-19T02:57:47.000Z",
+      "jobMinDuration": 1,
+      "jobMaxDuration": 12,
+      "description": "We are an amazing company with amazing job opportunities. We're currently looking for amazing engineers",
+      "applyURL": "https://www.company.com/apply",
+      "isPaid": true,
+      "jobType": "FULL-TIME",
+      "owner": "625ff2d1cb39d3001b36635b",
+      "ownerName": "Company Name",
+      "ownerLogo": "https://res.cloudinary.com/coolimage.jpg",
+      "location": "Porto, Portugal",
+      "createdAt": "2022-04-20T14:46:15.281Z",
+      "updatedAt": "2022-04-20T14:46:15.281Z",
+      "__v": 0,
+      "score": 5.5
     },
     {
-        "contacts": [
-            "contact@company.com"
-        ],
-        "fields": [
-            "BACKEND",
-        ],
-        "technologies": [
-            "React",
-            "Node.js",
-            "C++"
-        ],
-        "isHidden": false,
-        "_id": "5ff390335f65ee2ada9f95e8",
-        "title": "Software Engineer - Backend",
-        "publishDate": "2021-01-04T22:01:23.097Z",
-        "publishEndDate": "2021-02-19T23:00:00.000Z",
-        "jobStartDate": "2020-06-14T23:00:00.000Z",
-        "description": "I love cheese, especially fromage frais gouda. Mascarpone when the cheese comes out everybody's happy say cheese cheese triangles caerphilly cheesecake gouda smelly cheese. Cheese and wine bocconcini lancashire pecorino stilton gouda port-salut cauliflower cheese. Cut the cheese squirty cheese rubber cheese cow boursin caerphilly cheesy grin cut the cheese. Camembert de normandie dolcelatte roquefort queso red leicester ricotta everyone loves fromage. Cream cheese ricotta cheese triangles croque monsieur everyone loves smelly cheese pepper jack pepper jack. Stilton st. agur blue cheese. Port-salut rubber cheese halloumi. Airedale queso halloumi emmental fromage frais when the cheese comes out everybody's happy airedale stinking bishop. Stinking bishop red leicester who moved my cheese fondue manchego swiss cheddar cow. Edam queso rubber cheese swiss parmesan pepper jack cheese strings cheese on toast. Fondue caerphilly croque monsieur red leicester jarlsberg roquefort chalk and cheese halloumi. Queso jarlsberg cut the cheese caerphilly. Stilton macaroni cheese babybel. Blue castello fromage frais cheesecake cheese and biscuits cheesy feet smelly cheese port-salut cut the cheese.",
-        "jobType": "FULL-TIME",
-        "owner": "5ff38a150188759f34e69723",
-        "location": "Porto",
-        "ownerName": "companyname - a subsidiary",
-        "__v": 0
-    },
-]
+      "contacts": [
+        "contact@company2.pt"
+      ],
+      "fields": [
+        "FRONTEND",
+        "MOBILE"
+      ],
+      "technologies": [
+        "JavaScript",
+        "React Native"
+      ],
+      "isHidden": false,
+      "isArchived": false,
+      "requirements": [
+        "Recent graduate/master's degree in Computer Science, Engineering or similar areas"
+      ],
+      "_id": "62cd48ab5dee380013abe4a7",
+      "title": "Software Developer - Trainee (Full remote)",
+      "publishDate": "2022-07-12T10:02:38.499Z",
+      "publishEndDate": "2023-01-09T22:31:26.000Z",
+      "jobMinDuration": 1,
+      "jobMaxDuration": 9,
+      "description": "We are currently looking for a Software Developer - Graduate Trainee to join our Creative Tech team.",
+      "isPaid": true,
+      "jobType": "OTHER",
+      "owner": "62cd33385dee380013abe457",
+      "ownerName": "Company2 Name",
+      "ownerLogo": "https://res.cloudinary.com/niceimage.jpg",
+      "location": "Porto, Portugal",
+      "createdAt": "2022-07-12T10:10:51.054Z",
+      "updatedAt": "2022-07-12T10:11:10.743Z",
+      "__v": 0,
+      "score": 5.5
+    }
+  ],
+  "queryToken": "eyJpZCI6IjYyY2Q0OGFiNWRlZTM4MDAxM2FiZTRhNyIsInNjb3JlIjo1LjUsInZhbHVlIjoidGVzdGNvbXBhbnkgZnJvbnRlbmQiLCJmaWx0ZXJzIjp7InRlY2hub2xvZ2llcyI6WyJSZWFjdCIsIk5vZGVKUyJdfX0"
+}
 ```
 
 </TabItem>
@@ -224,7 +283,7 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
 <TabItem value="request">
 
 ```bash
-/offers/?jobType=fas
+/offers?jobType=fas
 ```
 
 </TabItem>
@@ -237,7 +296,7 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
     "errors": [
         {
             "value": "fas",
-            "msg": "must-be-in:[FULL-TIME,PART-TIME,SUMMER INTERNSHIP,CURRICULAR INTERNSHIP,OTHER]",
+            "msg": "must-be-in:[FULL-TIME,PART-TIME,SUMMER INTERNSHIP,CURRICULAR INTERNSHIP,RESEARCH GRANT,OTHER]",
             "param": "jobType",
             "location": "query"
         }
@@ -265,7 +324,7 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
 <TabItem value="request">
 
 ```bash
-/offers/?fields=fas
+/offers?fields=fas
 ```
 
 </TabItem>
@@ -280,7 +339,7 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
             "value": [
                 "fas"
             ],
-            "msg": "must-be-in:[BACKEND,FRONTEND,DEVOPS,BLOCKCHAIN,MACHINE LEARNING,OTHER]",
+            "msg": "must-be-in:[ARTIFICIAL INTELLIGENCE,BACKEND,BLOCKCHAIN,DEVOPS,FRONTEND,OTHER]",
             "param": "fields",
             "location": "query"
         }
@@ -308,7 +367,7 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
 <TabItem value="request">
 
 ```bash
-/offers/?technologies=fas
+/offers?technologies=fas
 ```
 
 </TabItem>
@@ -323,7 +382,7 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
             "value": [
                 "fas"
             ],
-            "msg": "must-be-in:[React,Angular,Vue,Node.js,Java,C++,C,C#,Clojure,Go,Haskell,Spring Boot,Android,Flutter,Dart,PHP,CSS,Other]",
+            "msg": "must-be-in:[.NET,Angular,Go,Haskell,NodeJS,Rust,Spring,Unity,Windows,Other]",
             "param": "technologies",
             "location": "query"
         }
@@ -351,7 +410,7 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
 <TabItem value="request">
 
 ```bash
-/offers/?limit=fas
+/offers?limit=fas
 ```
 
 </TabItem>
@@ -369,6 +428,47 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
             "location": "query"
         }
     ]
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example 6 - Invalid queryToken
+
+**Condition** : If given an invalid queryToken (e.g. random string)
+
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
+
+<Tabs
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
+>
+
+<TabItem value="request">
+
+```bash
+/offers?queryToken=random_string
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+  "error_code": 1,
+  "errors": [
+    {
+      "value": "random_string",
+      "msg": "invalid-query-token",
+      "param": "queryToken",
+      "location": "query"
+    }
+  ]
 }
 ```
 
