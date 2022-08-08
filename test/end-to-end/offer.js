@@ -20,6 +20,7 @@ import {
 } from "../../src/models/constants/TimeConstants";
 import OfferService from "../../src/services/offer";
 import EmailService from "../../src/lib/emailService";
+import { concurrentOffersNotExceeded } from "../../src/api/middleware/validators/validatorUtils";
 import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
 
 //----------------------------------------------------------------
@@ -35,6 +36,7 @@ describe("Offer endpoint tests", () => {
         technologies: ["React", "CSS"],
         location: "Testing Street, Test City, 123",
         isHidden: false,
+        isArchived: false,
         requirements: ["The candidate must be tested", "Fluent in testJS"],
         ...params,
     });
@@ -1277,7 +1279,7 @@ describe("Offer endpoint tests", () => {
                     beforeAll(async () => {
                         // Add 2 more offers
                         await Offer.deleteMany({});
-                        await Offer.create([test_offer,  future_test_offer, test_offer, test_offer]);
+                        await Offer.create([test_offer, future_test_offer, test_offer, test_offer]);
                     });
 
                     test("Only `limit` number of offers are returned", async () => {
@@ -1525,7 +1527,8 @@ describe("Offer endpoint tests", () => {
 
                         for (let i = 0; i < 5; i++)
                             test_offers.push(
-                                { ...test_offer,
+                                {
+                                    ...test_offer,
                                     isHidden: true,
                                     hiddenReason: "ADMIN_REQUEST",
                                     adminReason: "my_reason"
@@ -3166,7 +3169,8 @@ describe("Offer endpoint tests", () => {
                 test_offer_before = await Offer.create({
                     ...generateTestOffer({
                         publishDate: (new Date(now + (3 * DAY_TO_MS))).toISOString(),
-                        publishEndDate: (new Date(now + (7 * DAY_TO_MS))).toISOString() }),
+                        publishEndDate: (new Date(now + (7 * DAY_TO_MS))).toISOString()
+                    }),
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
@@ -3176,7 +3180,8 @@ describe("Offer endpoint tests", () => {
                     await Offer.create({
                         ...generateTestOffer({
                             publishDate: (new Date(now + (8 * DAY_TO_MS))).toISOString(),
-                            publishEndDate: (new Date(now + (12 * DAY_TO_MS))).toISOString() }),
+                            publishEndDate: (new Date(now + (12 * DAY_TO_MS))).toISOString()
+                        }),
                         owner: test_company._id.toString(),
                         ownerName: test_company.name,
                         ownerLogo: test_company.logo,
@@ -3185,7 +3190,8 @@ describe("Offer endpoint tests", () => {
                 test_offer_current = await Offer.create({
                     ...generateTestOffer({
                         publishDate: (new Date(now + (8 * DAY_TO_MS))).toISOString(),
-                        publishEndDate: (new Date(now + (12 * DAY_TO_MS))).toISOString() }),
+                        publishEndDate: (new Date(now + (12 * DAY_TO_MS))).toISOString()
+                    }),
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
@@ -3194,7 +3200,8 @@ describe("Offer endpoint tests", () => {
                 test_offer_after = await Offer.create({
                     ...generateTestOffer({
                         publishDate: (new Date(now + (13 * DAY_TO_MS))).toISOString(),
-                        publishEndDate: (new Date(now + (17 * DAY_TO_MS))).toISOString() }),
+                        publishEndDate: (new Date(now + (17 * DAY_TO_MS))).toISOString()
+                    }),
                     owner: test_company._id.toString(),
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
@@ -4018,6 +4025,396 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
+            });
+        });
+    });
+
+    describe("PUT /offers/:offerId/archive", () => {
+
+        let test_offer1, test_offer2, test_offer3;
+        let test_company_2;
+        const test_user = {
+            email: "archive_company@email.com",
+            password: "password123",
+        };
+
+        beforeAll(async () => {
+
+            await Offer.deleteMany({});
+            test_offer1 = await Offer.create(
+                generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                })
+            );
+            test_offer2 = await Offer.create(
+                generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                })
+            );
+            test_offer3 = await Offer.create(
+                generateTestOffer({
+                    owner: test_company._id.toString(),
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                })
+            );
+
+            test_company_2 = await Company.create({
+                name: "test company",
+                bio: "a bio",
+                contacts: ["a contact"],
+                hasFinishedRegistration: true,
+                logo: "http://awebsite.com/alogo.jpg",
+            });
+            await Account.create({
+                email: test_user.email,
+                password: await hash(test_user.password),
+                company: test_company_2._id
+            });
+        });
+
+        afterEach(async () => {
+            await test_agent
+                .del("/auth/login");
+        });
+
+        afterAll(async () => {
+            await Company.deleteOne({ _id: test_company_2._id });
+            await Account.deleteOne({ email: test_user.email });
+        });
+
+        test("Should fail with invalid id", async () => {
+
+            const res = await test_agent
+                .put("/offers/123/archive")
+                .send(withGodToken())
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+            expect(res.body.errors[0]).toHaveProperty("param", "offerId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+        });
+
+        test("Should fail if offer does not exist", async () => {
+            const _id = "111111111111111111111111";
+
+            const res = await test_agent
+                .put(`/offers/${_id}/archive`)
+                .send(withGodToken())
+                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+            expect(res.body.errors[0]).toHaveProperty("param", "offerId");
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OFFER_NOT_FOUND(_id));
+        });
+
+        test("Should fail to archive offer if unauthenticated", async () => {
+
+            const res = await test_agent
+                .put(`/offers/${test_offer1._id}/archive`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
+        });
+
+        test("Should fail if logged as another company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/offers/${test_offer3._id}/archive`)
+                .expect(HTTPStatus.FORBIDDEN);
+
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
+        });
+
+        test("Should succeed if god token sent", async () => {
+
+            const res = await test_agent
+                .put(`/offers/${test_offer1._id}/archive`)
+                .send(withGodToken())
+                .expect(HTTPStatus.OK);
+
+            expect(res.body).toHaveProperty("isArchived", true);
+        });
+
+        test("Should succeed if logged as admin", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_admin)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/offers/${test_offer2._id}/archive`)
+                .expect(HTTPStatus.OK);
+
+            expect(res.body).toHaveProperty("isArchived", true);
+        });
+
+        test("Should succeed if logged as owing company", async () => {
+
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/offers/${test_offer3._id}/archive`)
+                .expect(HTTPStatus.OK);
+
+            expect(res.body).toHaveProperty("isArchived", true);
+        });
+
+        describe("Disabled company", () => {
+
+            let disabled_test_offer_1, disabled_test_offer_2;
+            let disabled_test_company;
+            const disabled_test_user = {
+                email: "disabled_archive_company@email.com",
+                password: "password123",
+            };
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                disabled_test_company = await Company.create({
+                    name: "test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    hasFinishedRegistration: true,
+                    logo: "http://awebsite.com/alogo.jpg",
+                    isDisabled: true
+                });
+                await Account.create({
+                    email: disabled_test_user.email,
+                    password: await hash(disabled_test_user.password),
+                    company: disabled_test_company._id
+                });
+
+                disabled_test_offer_1 = await Offer.create(
+                    generateTestOffer({
+                        owner: disabled_test_company._id.toString(),
+                        ownerName: disabled_test_company.name,
+                        ownerLogo: disabled_test_company.logo,
+                    })
+                );
+                disabled_test_offer_2 = await Offer.create(
+                    generateTestOffer({
+                        owner: disabled_test_company._id.toString(),
+                        ownerName: disabled_test_company.name,
+                        ownerLogo: disabled_test_company.logo,
+                    })
+                );
+            });
+
+            afterEach(async () => {
+                await test_agent
+                    .del("/auth/login")
+                    .expect(HTTPStatus.OK);
+            });
+
+            afterAll(async () => {
+                await Company.deleteOne({ _id: disabled_test_company._id });
+                await Account.deleteOne({ email: disabled_test_user.email });
+            });
+
+            test("Should fail to archive offer as disabled company", async () => {
+
+                await test_agent
+                    .post("/auth/login")
+                    .send(disabled_test_user)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/offers/${disabled_test_offer_1._id}/archive`)
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_DISABLED });
+            });
+
+            test("Should succeed if god token sent", async () => {
+
+                const res = await test_agent
+                    .put(`/offers/${disabled_test_offer_1._id}/archive`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("isArchived", true);
+            });
+
+            test("Should succeed if logged as admin", async () => {
+
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/offers/${disabled_test_offer_2._id}/archive`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("isArchived", true);
+            });
+        });
+
+        describe("Blocked company", () => {
+
+            let blocked_test_offer_1, blocked_test_offer_2;
+            let blocked_test_company;
+            const blocked_test_user = {
+                email: "blocked_archive_company@email.com",
+                password: "password123",
+            };
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                blocked_test_company = await Company.create({
+                    name: "test company",
+                    bio: "a bio",
+                    contacts: ["a contact"],
+                    hasFinishedRegistration: true,
+                    logo: "http://awebsite.com/alogo.jpg",
+                    isBlocked: true
+                });
+                await Account.create({
+                    email: blocked_test_user.email,
+                    password: await hash(blocked_test_user.password),
+                    company: blocked_test_company._id
+                });
+
+                blocked_test_offer_1 = await Offer.create(
+                    generateTestOffer({
+                        owner: blocked_test_company._id.toString(),
+                        ownerName: blocked_test_company.name,
+                        ownerLogo: blocked_test_company.logo,
+                    })
+                );
+                blocked_test_offer_2 = await Offer.create(
+                    generateTestOffer({
+                        owner: blocked_test_company._id.toString(),
+                        ownerName: blocked_test_company.name,
+                        ownerLogo: blocked_test_company.logo,
+                    })
+                );
+            });
+
+            afterEach(async () => {
+                await test_agent
+                    .del("/auth/login")
+                    .expect(HTTPStatus.OK);
+            });
+
+            afterAll(async () => {
+                await Company.deleteOne({ _id: blocked_test_company._id });
+                await Account.deleteOne({ email: blocked_test_user.email });
+            });
+
+            test("Should fail to archive offer as blocked company", async () => {
+
+                await test_agent
+                    .post("/auth/login")
+                    .send(blocked_test_user)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/offers/${blocked_test_offer_1._id}/archive`)
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors).toContainEqual({ msg: ValidationReasons.COMPANY_BLOCKED });
+            });
+
+            test("Should succeed if god token sent", async () => {
+
+                const res = await test_agent
+                    .put(`/offers/${blocked_test_offer_1._id}/archive`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("isArchived", true);
+            });
+
+            test("Should succeed if logged as admin", async () => {
+
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/offers/${blocked_test_offer_2._id}/archive`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("isArchived", true);
+            });
+        });
+
+        describe("Concurrent offers", () => {
+
+            let offer;
+
+            beforeAll(async () => {
+
+                const now = Date.now();
+
+                await Offer.deleteMany({});
+
+                for (let i = 0; i < CompanyConstants.offers.max_concurrent - 1; i++) {
+                    await Offer.create(
+                        generateTestOffer({
+                            owner: test_company._id.toString(),
+                            ownerName: test_company.name,
+                            ownerLogo: test_company.logo,
+                            publishDate: (new Date(now - (DAY_TO_MS))).toISOString(),
+                            publishEndDate: (new Date(now + (DAY_TO_MS))).toISOString()
+                        }));
+                }
+
+                offer = await Offer.create(
+                    generateTestOffer({
+                        owner: test_company._id.toString(),
+                        ownerName: test_company.name,
+                        ownerLogo: test_company.logo,
+                        publishDate: (new Date(now - (DAY_TO_MS))).toISOString(),
+                        publishEndDate: (new Date(now + (DAY_TO_MS))).toISOString()
+                    }));
+
+            });
+
+            test("Should exclude archived offer from concurrent offer count", async () => {
+
+                let limitNotReached =
+                    await concurrentOffersNotExceeded(Offer)(test_company._id.toString(), offer.publishDate, offer.publishEndDate);
+
+                expect(limitNotReached).toEqual(false);
+
+                const res = await test_agent
+                    .put(`/offers/${offer._id}/archive`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("isArchived", true);
+
+                limitNotReached =
+                    await concurrentOffersNotExceeded(Offer)(test_company._id.toString(), offer.publishDate, offer.publishEndDate);
+
+                expect(limitNotReached).toEqual(true);
             });
         });
     });

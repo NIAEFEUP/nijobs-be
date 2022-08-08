@@ -123,7 +123,7 @@ export default (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.isExistingOffer,
         validators.offerOwnerNotBlocked,
-        validators.offerOwnerNotDisabled,
+        offerMiddleware.isOwnerNotDisabled,
         validators.canBeManaged,
         validators.edit,
         (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
@@ -154,7 +154,7 @@ export default (app) => {
         validators.validOfferId,
         validators.isExistingOffer,
         (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
-        validators.offerOwnerNotDisabled,
+        offerMiddleware.isOwnerNotDisabled,
         validators.canHide,
         async (req, res, next) => {
             try {
@@ -181,7 +181,7 @@ export default (app) => {
         validators.disable,
         validators.isExistingOffer,
         validators.canDisable,
-        offerMiddleware.isOwnerNotDisabled,
+        validators.offerOwnerNotDisabled,
         async (req, res, next) => {
             try {
                 const offerService = new OfferService();
@@ -216,10 +216,35 @@ export default (app) => {
         validators.canBeEnabled,
         validators.canBeManaged,
         validators.offerOwnerNotBlocked,
-        offerMiddleware.isOwnerNotDisabled,
+        validators.offerOwnerNotDisabled,
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).enable(req.params.offerId);
+                return res.json(offer);
+            } catch (err) {
+                console.error(err);
+                return next(err);
+            }
+        });
+
+    /*
+     * Archives a given offer
+     *
+     * This action is irreversible
+     */
+    router.put("/:offerId/archive",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isAdmin,
+            authMiddleware.isGod,
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.isExistingOffer,
+        (req, res, next) => authMiddleware.hasOwnershipRights(req.params.offerId)(req, res, next),
+        offerMiddleware.isOwnerNotDisabled,
+        offerMiddleware.isOwnerNotBlocked,
+        async (req, res, next) => {
+            try {
+                const offer = await (new OfferService()).archive(req.params.offerId);
                 return res.json(offer);
             } catch (err) {
                 console.error(err);

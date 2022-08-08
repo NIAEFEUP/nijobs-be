@@ -164,6 +164,22 @@ class OfferService {
         return offer;
     }
 
+    async archive(_id) {
+        const offer = await Offer.findOneAndUpdate(
+            { _id },
+            {
+                isArchived: true,
+            },
+            { new: true },
+            (err) => {
+                if (err) {
+                    throw err;
+                }
+            }
+        );
+        return offer;
+    }
+
     _hideByCompany(owner, reason) {
         return Offer.updateMany(
             { owner, isHidden: false },
