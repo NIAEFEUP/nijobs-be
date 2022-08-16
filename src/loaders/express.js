@@ -77,13 +77,15 @@ export default (app) => {
 
     // Adding headers (CORS)
     app.use((req, res, next) => {
-        // Allow connections for all origins
+        // Allow connections for default specified connections
         res.setHeader("Access-Control-Allow-Origin", config.access_control_allow_origin);
 
-        // Allow requests from netlify preview in heroku deployed backend
-        const origin = req.header("origin").toLowerCase();
+        // Allow requests from connections specified by the regex
+        const origin = req.header("origin")?.toLowerCase();
 
-        if (config.is_heroku && origin.match(config.netlify_previews_regex)) {
+        if (config.access_control_allow_origin_regex &&
+                origin &&
+                origin.match(config.access_control_allow_origin_regex)) {
             res.setHeader("Access-Control-Allow-Origin", origin);
         }
 
