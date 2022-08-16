@@ -76,9 +76,17 @@ export default (app) => {
     }
 
     // Adding headers (CORS)
-    app.use((_, res, next) => {
+    app.use((req, res, next) => {
         // Allow connections for all origins
         res.setHeader("Access-Control-Allow-Origin", config.access_control_allow_origin);
+
+        // Allow requests from netlify preview in heroku deployed backend
+        const origin = req.header("origin").toLowerCase();
+
+        if (config.is_heroku && origin.match(config.netlify_previews_regex)) {
+            res.setHeader("Access-Control-Allow-Origin", origin);
+        }
+
         // Allowed request methods
         res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
         // Allowed request headers

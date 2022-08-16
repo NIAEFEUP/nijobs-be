@@ -30,6 +30,10 @@ export default Object.freeze({
     admin_password: process.env.ADMIN_PASSWORD,
     access_control_allow_origin: process.env.ACCESS_CONTROL_ALLOW_ORIGIN || "*",
 
+    // Deploy previews
+    is_heroku: process.env.IS_HEROKU,
+    netlify_previews_regex: process.env.NETLIFY_PREVIEWS_REGEX,
+
     // Mail
     mail_from: process.env.MAIL_FROM,
     mail_from_password: process.env.MAIL_FROM_PASSWORD,
