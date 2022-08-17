@@ -80,14 +80,18 @@ export default (app) => {
         // Allow connections for default specified connections
         res.setHeader("Access-Control-Allow-Origin", config.access_control_allow_origin);
 
-        // Allow requests from connections specified by the regex
+        // Allow requests from connections specified by the allow list regexes
         const origin = req.header("origin")?.toLowerCase();
-
-        if (config.access_control_allow_origin_regex &&
-                origin &&
-                origin.match(config.access_control_allow_origin_regex)) {
-            res.setHeader("Access-Control-Allow-Origin", origin);
+        if (origin) {
+            const originAllowed = config.access_control_allow_origin_regex_list.find((allowOrigin) => {
+                const matches = origin.match(RegExp(allowOrigin, "g"));
+                return matches && matches[0].length === origin.length;
+            });
+            if (originAllowed) {
+                res.setHeader("Access-Control-Allow-Origin", origin);
+            }
         }
+
 
         // Allowed request methods
         res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");

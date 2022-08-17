@@ -29,7 +29,7 @@ export default Object.freeze({
     admin_email: process.env.ADMIN_EMAIL,
     admin_password: process.env.ADMIN_PASSWORD,
     access_control_allow_origin: process.env.ACCESS_CONTROL_ALLOW_ORIGIN || "*",
-    access_control_allow_origin_regex: process.env.ACCESS_CONTROL_ALLOW_ORIGIN_REGEX,
+    access_control_allow_origin_regex_list: JSON.parse(process.env.ACCESS_CONTROL_ALLOW_ORIGIN_REGEX_LIST || "[]"),
 
     // Mail
     mail_from: process.env.MAIL_FROM,
