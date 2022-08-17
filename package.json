@@ -5,6 +5,7 @@
   "main": "src/index.js",
   "type": "module",
   "scripts": {
+    "heroku-prebuild": "cp .env.public.heroku .env",
     "start": "nodemon src/index.js",
     "prod": "NODE_ENV=production node src/index.js",
     "lint": "eslint src test --max-warnings 0",
