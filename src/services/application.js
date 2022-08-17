@@ -83,7 +83,7 @@ class CompanyApplicationService {
         };
     }
 
-    buildCompnayNameFilter(companyNameFilter) {
+    buildCompanyNameFilter(companyNameFilter) {
         return {
             // This allows for partial text matching.
             // If only full-text is needed, use $text query instead, which uses
@@ -112,7 +112,7 @@ class CompanyApplicationService {
     }) {
         const filterQueries = [];
 
-        if (companyName) filterQueries.push(this.buildCompnayNameFilter(companyName));
+        if (companyName) filterQueries.push(this.buildCompanyNameFilter(companyName));
 
         if (submissionDateFrom || submissionDateTo)
             filterQueries.push(this.buildSubmissionDateFilter({ from: submissionDateFrom, to: submissionDateTo }));
@@ -140,13 +140,13 @@ class CompanyApplicationService {
 
         if (!filters || Object.keys(filters).length === 0) return this.findAll(limit, offset, sortingOptions);
 
-        const totalDocCount = await CompanyApplication.estimatedDocumentCount();
+        const docCount = await CompanyApplication.estimatedDocumentCount();
 
         // Using .skip().limit() can be problematic if we get big data,
         // Once problems appear, consider using .cursor API
 
         return {
-            totalDocCount,
+            docCount,
             applications:
                 (await CompanyApplication.find(
                     Object.keys(queryFilters).length ? {
@@ -190,7 +190,7 @@ class CompanyApplicationService {
         } catch (err) {
             console.error(`Error creating account for approved Company Application, rolling back approval of ${application._id}`, err);
             application.undoApproval();
-            if (err.name === "MongoError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.errmsg)) {
+            if (err.name === "MongoServerError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.errmsg)) {
                 throw new CompanyApplicationEmailAlreadyInUse(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
             } else {
                 throw err;

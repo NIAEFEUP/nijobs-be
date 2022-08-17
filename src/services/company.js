@@ -72,13 +72,7 @@ class CompanyService {
                 isBlocked: true,
                 adminReason
             },
-            { new: true },
-            (err) => {
-                if (err) {
-                    console.error(err);
-                    throw err;
-                }
-            });
+            { new: true });
     }
 
     /**
@@ -89,15 +83,9 @@ class CompanyService {
             companyId,
             {
                 isBlocked: false,
-                $unset: { adminReason: undefined },
+                $unset: { adminReason: "" },
             },
-            { new: true },
-            (err) => {
-                if (err) {
-                    console.error(err);
-                    throw err;
-                }
-            });
+            { new: true });
     }
 
     /**
@@ -109,13 +97,7 @@ class CompanyService {
         return Company.findOneAndUpdate(
             { _id: company_id },
             attributes,
-            { new: true, omitUndefined: true },
-            (err) => {
-                if (err) {
-                    console.error(err);
-                    throw err;
-                }
-            });
+            { new: true });
     }
 
     /**

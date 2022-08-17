@@ -111,12 +111,7 @@ class OfferService {
         const offer = await Offer.findOneAndUpdate(
             { _id },
             edits,
-            { new: true, omitUndefined: true },
-            (err) => {
-                if (err) {
-                    throw err;
-                }
-            }
+            { new: true }
         );
 
         return offer;
@@ -134,12 +129,7 @@ class OfferService {
                 hiddenReason,
                 adminReason
             },
-            { new: true },
-            (err) => {
-                if (err) {
-                    throw err;
-                }
-            }
+            { new: true }
         );
         return offer;
     }
@@ -152,14 +142,9 @@ class OfferService {
             query,
             {
                 isHidden: false,
-                $unset: { hiddenReason: undefined, adminReason: undefined }, // Removing property from document.
+                $unset: { hiddenReason: "", adminReason: "" }, // Removing property from document.
             },
-            { new: true },
-            (err) => {
-                if (err) {
-                    throw err;
-                }
-            }
+            { new: true }
         );
         return offer;
     }
@@ -170,12 +155,7 @@ class OfferService {
             {
                 isArchived: true,
             },
-            { new: true },
-            (err) => {
-                if (err) {
-                    throw err;
-                }
-            }
+            { new: true }
         );
         return offer;
     }
@@ -194,7 +174,7 @@ class OfferService {
             { owner, isHidden: true, hiddenReason: reason },
             {
                 isHidden: false,
-                $unset: { hiddenReason: undefined, adminReason: undefined },
+                $unset: { hiddenReason: "", adminReason: "" },
             });
     }
 
