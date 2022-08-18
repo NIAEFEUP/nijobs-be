@@ -12,7 +12,6 @@ import Account from "../../src/models/Account";
 import Company from "../../src/models/Company";
 import hash from "../../src/lib/passwordHashing";
 import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
-import { Types } from "mongoose";
 import CompanyConstants from "../../src/models/constants/Company";
 import {
     MONTH_IN_MS,
@@ -740,7 +739,7 @@ describe("Offer endpoint tests", () => {
             });
 
             afterAll(async () => {
-                await Offer.deleteMany({ offer });
+                await Offer.deleteOne(offer);
             });
 
             test("should fail if 'publishDate' and 'publishEndDate' have the same value", async () => {
@@ -2427,7 +2426,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
             });
             test("should fail if an offer does not exist", async () => {
-                const id = Types.ObjectId("5facf0cdb8bc30016ee58952");
+                const id = "5facf0cdb8bc30016ee58952";
                 const res = await request()
                     .get(`/offers/${id}`);
                 expect(res.status).toBe(HTTPStatus.NOT_FOUND);
@@ -3021,7 +3020,7 @@ describe("Offer endpoint tests", () => {
             });
 
             afterAll(async () => {
-                await Offer.deleteMany({ offer });
+                await Offer.deleteOne(offer);
             });
 
             test("should fail if 'publishDate' and 'publishEndDate' have the same value", async () => {
@@ -3563,8 +3562,8 @@ describe("Offer endpoint tests", () => {
             });
 
             afterAll(async () => {
-                await Offer.deleteMany({ test_offer });
-                await Company.deleteMany({ disabled_test_company });
+                await Offer.deleteOne(test_offer);
+                await Company.deleteOne(disabled_test_company);
             });
 
             test("Should fail to disable offer is company is already disabled", async () => {
@@ -4161,7 +4160,7 @@ describe("Offer endpoint tests", () => {
             expect(res.body).toHaveProperty("isArchived", true);
         });
 
-        test("Should succeed if logged as owing company", async () => {
+        test("Should succeed if logged as owner company", async () => {
 
             await test_agent
                 .post("/auth/login")

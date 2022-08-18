@@ -1,5 +1,4 @@
 import { Router } from "express";
-import mongoose from "mongoose";
 import HTTPStatus from "http-status-codes";
 
 import * as authMiddleware from "../middleware/auth.js";
@@ -83,7 +82,7 @@ export default (app) => {
         async (req, res, next) => {
 
             try {
-                const { account } = await (new ApplicationService()).approve(mongoose.Types.ObjectId(req.params.id));
+                const { account } = await (new ApplicationService()).approve(req.params.id);
                 return res.json(account);
             } catch (err) {
                 console.error(err);
@@ -114,7 +113,7 @@ export default (app) => {
         async (req, res, next) => {
 
             try {
-                const application = await (new ApplicationService()).reject(mongoose.Types.ObjectId(req.params.id), req.body.rejectReason);
+                const application = await (new ApplicationService()).reject(req.params.id, req.body.rejectReason);
                 return res.json(application);
             } catch (err) {
                 console.error(err);

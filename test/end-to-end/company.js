@@ -1617,8 +1617,8 @@ describe("Company endpoint", () => {
                 .send(withGodToken());
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(await Company.exists({ _id: test_company_1._id })).toBe(false);
-            expect(await Account.exists({ company: test_company_1._id })).toBe(false);
+            expect(await Company.exists({ _id: test_company_1._id })).toBeNull();
+            expect(await Account.exists({ company: test_company_1._id })).toBeNull();
         });
 
         test("Should delete company if logged as the same company", async () => {
@@ -1632,8 +1632,8 @@ describe("Company endpoint", () => {
                 .post(`/company/${test_company_1._id}/delete`);
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(await Company.exists({ _id: test_company_1._id })).toBe(false);
-            expect(await Account.exists({ company: test_company_1._id })).toBe(false);
+            expect(await Company.exists({ _id: test_company_1._id })).toBeNull();
+            expect(await Account.exists({ company: test_company_1._id })).toBeNull();
         });
 
         test("Should delete company's offers when it is deleted", async () => {
@@ -1642,9 +1642,9 @@ describe("Company endpoint", () => {
                 .send(withGodToken());
 
             expect(res.status).toBe(HTTPStatus.OK);
-            expect(await Company.exists({ _id: test_company_2._id })).toBe(false);
-            expect(await Account.exists({ company: test_company_2._id })).toBe(false);
-            expect(await Offer.exists({ owner: test_company_2._id })).toBe(false);
+            expect(await Company.exists({ _id: test_company_2._id })).toBeNull();
+            expect(await Account.exists({ company: test_company_2._id })).toBeNull();
+            expect(await Offer.exists({ owner: test_company_2._id })).toBeNull();
         });
 
         test("should send an email to the company user when it is deleted", async () => {
