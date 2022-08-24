@@ -980,6 +980,22 @@ describe("Offer endpoint tests", () => {
 
                 expect(res.body).toHaveProperty("applyURL", applyURL);
             });
+
+            test("should fail if applyURL is an invalid HTTPS URL", async () => {
+                const applyURL = "https://invalid";
+                const offer_params = generateTestOffer({
+                    applyURL,
+                    owner: test_company._id,
+                });
+
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params))
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.BAD_APPLY_URL);
+            });
         });
 
     });
