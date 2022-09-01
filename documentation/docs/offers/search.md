@@ -10,21 +10,23 @@ import TabItem from '@theme/TabItem';
 
 import Highlight from "../../src/highlight.js"
 
-## Details 
+## Details
 
-This endpoint returns offers based on search criteria. It allows for _Full-Text Search_ as well as results filtering. Perfect for a search component!
+This endpoint returns offers based on search criteria. It allows for _Full-Text Search_ as well as results filtering.
+Perfect for a search component!
 
 **URL** : `/offers`
 
 **Method** : <Highlight level="info" inline>GET</Highlight>
 
 :::caution Authentication
-Auth is required to get hidden Offers. Only Admins or owners of hidden Offers will see them if `showHidden` is set to `true`.
+Auth is required to get hidden Offers. Only Admins or owners of hidden Offers will see them if `showHidden` is set
+to `true`.
 :::
 
-## Parameters 
+## Parameters
 
-### showHidden 
+### showHidden
 
 <Highlight level="info">Query Parameter</Highlight>
 
@@ -36,7 +38,7 @@ If active, will also return hidden offers, only for admin or offer owner.
 ### limit
 
 <Highlight level="info" inline>Query Parameter</Highlight>
-<Highlight level="success" inline>Optional</Highlight> 
+<Highlight level="success" inline>Optional</Highlight>
 <br/>
 <Highlight level="warning" inline>Default: 20</Highlight>
 <Highlight level="secondary" inline>Number</Highlight>
@@ -77,7 +79,8 @@ Query for full text search.
 Filters the search results to only include ones of given type.
 
 :::caution
-Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "RESEARCH GRANT", "OTHER"]`).
+Must be a valid Job Type (
+currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "RESEARCH GRANT", "OTHER"]`).
 :::
 
 ### jobMinDuration
@@ -101,7 +104,7 @@ Filters the search results to only include Offers with a `jobMinDuration` lower 
 ### fields
 
 <Highlight level="info" inline>Query Parameter</Highlight>
-<Highlight level="success" inline>Optional</Highlight> 
+<Highlight level="success" inline>Optional</Highlight>
 <br/>
 <Highlight level="secondary" inline>String</Highlight>
 <Highlight level="secondary" inline>Array</Highlight>
@@ -109,7 +112,8 @@ Filters the search results to only include Offers with a `jobMinDuration` lower 
 Filters the search results to only include Offers with at least one of `fields` being one of given values.
 
 :::caution
-Must be a valid Field Type (see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/FieldTypes.js)).
+Must be a valid Field Type (
+see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/FieldTypes.js)).
 :::
 
 :::info
@@ -119,7 +123,7 @@ If you pass multiple values like: `<url>/?fields=field1&fields=field2` it will b
 ### technologies
 
 <Highlight level="info" inline>Query Parameter</Highlight>
-<Highlight level="success" inline>Optional</Highlight> 
+<Highlight level="success" inline>Optional</Highlight>
 <br/>
 <Highlight level="secondary" inline>String</Highlight>
 <Highlight level="secondary" inline>Array</Highlight>
@@ -127,11 +131,12 @@ If you pass multiple values like: `<url>/?fields=field1&fields=field2` it will b
 Filters the search results to only include Offers with at least one of `technologies` being one of given values.
 
 :::caution
-Must be a valid Technology Type (see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/TechnologyTypes.js)).
+Must be a valid Technology Type (
+see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/TechnologyTypes.js)).
 :::
 
 :::info
-If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2` it will be parsed as a String array 
+If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2` it will be parsed as a String array
 :::
 
 ## Response
@@ -156,7 +161,6 @@ Token used to continue the search in a following request. It's needed to get the
 You can use this together with [limit](#limit-query-parameter) to achieve pagination
 :::
 
-
 ## Request examples
 
 ### Example 1 - Valid Request
@@ -164,13 +168,13 @@ You can use this together with [limit](#limit-query-parameter) to achieve pagina
 **Code** : <Highlight level="success" inline>200 OK</Highlight>
 
 <Tabs
-    defaultValue="request"
-    values={[
-        {label: 'Request', value: 'request'},
-        {label: 'Response', value: 'response'},
-    ]}
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
 >
-  
+
 <TabItem value="request">
 
 ```bash
@@ -271,13 +275,13 @@ You can use this together with [limit](#limit-query-parameter) to achieve pagina
 **Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
-    defaultValue="request"
-    values={[
-        {label: 'Request', value: 'request'},
-        {label: 'Response', value: 'response'},
-    ]}
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
 >
-  
+
 <TabItem value="request">
 
 ```bash
@@ -290,15 +294,15 @@ You can use this together with [limit](#limit-query-parameter) to achieve pagina
 
 ```json
 {
-    "error_code": 1,
-    "errors": [
-        {
-            "value": "fas",
-            "msg": "must-be-in:[FULL-TIME,PART-TIME,SUMMER INTERNSHIP,CURRICULAR INTERNSHIP,RESEARCH GRANT,OTHER]",
-            "param": "jobType",
-            "location": "query"
-        }
-    ]
+  "error_code": 1,
+  "errors": [
+    {
+      "value": "fas",
+      "msg": "must-be-in:[FULL-TIME,PART-TIME,SUMMER INTERNSHIP,CURRICULAR INTERNSHIP,RESEARCH GRANT,OTHER]",
+      "param": "jobType",
+      "location": "query"
+    }
+  ]
 }
 ```
 
@@ -312,13 +316,13 @@ You can use this together with [limit](#limit-query-parameter) to achieve pagina
 **Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
-    defaultValue="request"
-    values={[
-        {label: 'Request', value: 'request'},
-        {label: 'Response', value: 'response'},
-    ]}
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
 >
-  
+
 <TabItem value="request">
 
 ```bash
@@ -331,17 +335,17 @@ You can use this together with [limit](#limit-query-parameter) to achieve pagina
 
 ```json
 {
-    "error_code": 1,
-    "errors": [
-        {
-            "value": [
-                "fas"
-            ],
-            "msg": "must-be-in:[ARTIFICIAL INTELLIGENCE,BACKEND,BLOCKCHAIN,DEVOPS,FRONTEND,OTHER]",
-            "param": "fields",
-            "location": "query"
-        }
-    ]
+  "error_code": 1,
+  "errors": [
+    {
+      "value": [
+        "fas"
+      ],
+      "msg": "must-be-in:[ARTIFICIAL INTELLIGENCE,BACKEND,BLOCKCHAIN,DEVOPS,FRONTEND,OTHER]",
+      "param": "fields",
+      "location": "query"
+    }
+  ]
 }
 ```
 
@@ -355,13 +359,13 @@ You can use this together with [limit](#limit-query-parameter) to achieve pagina
 **Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
-    defaultValue="request"
-    values={[
-        {label: 'Request', value: 'request'},
-        {label: 'Response', value: 'response'},
-    ]}
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
 >
-  
+
 <TabItem value="request">
 
 ```bash
@@ -374,17 +378,17 @@ You can use this together with [limit](#limit-query-parameter) to achieve pagina
 
 ```json
 {
-    "error_code": 1,
-    "errors": [
-        {
-            "value": [
-                "fas"
-            ],
-            "msg": "must-be-in:[.NET,Angular,Go,Haskell,NodeJS,Rust,Spring,Unity,Windows,Other]",
-            "param": "technologies",
-            "location": "query"
-        }
-    ]
+  "error_code": 1,
+  "errors": [
+    {
+      "value": [
+        "fas"
+      ],
+      "msg": "must-be-in:[.NET,Angular,Go,Haskell,NodeJS,Rust,Spring,Unity,Windows,Other]",
+      "param": "technologies",
+      "location": "query"
+    }
+  ]
 }
 ```
 
@@ -398,13 +402,13 @@ You can use this together with [limit](#limit-query-parameter) to achieve pagina
 **Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
-    defaultValue="request"
-    values={[
-        {label: 'Request', value: 'request'},
-        {label: 'Response', value: 'response'},
-    ]}
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
 >
-  
+
 <TabItem value="request">
 
 ```bash
@@ -417,15 +421,15 @@ You can use this together with [limit](#limit-query-parameter) to achieve pagina
 
 ```json
 {
-    "error_code": 1,
-    "errors": [
-        {
-            "value": "fas",
-            "msg": "must-be-int",
-            "param": "limit",
-            "location": "query"
-        }
-    ]
+  "error_code": 1,
+  "errors": [
+    {
+      "value": "fas",
+      "msg": "must-be-int",
+      "param": "limit",
+      "location": "query"
+    }
+  ]
 }
 ```
 

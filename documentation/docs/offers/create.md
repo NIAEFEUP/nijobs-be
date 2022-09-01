@@ -10,12 +10,13 @@ import TabItem from '@theme/TabItem';
 
 import Highlight from "../../src/highlight.js"
 
-## Details 
+## Details
 
 This endpoint is used to create offers. Both Admins and Companies can use it.
 
 :::info
-If the logged-in user is a Company, that account will be the Offer owner. Otherwise, the creation will be done in admin/god mode, which requires permissions.
+If the logged-in user is a Company, that account will be the Offer owner. Otherwise, the creation will be done in
+admin/god mode, which requires permissions.
 :::
 
 **URL** : `/offers/new`
@@ -23,14 +24,16 @@ If the logged-in user is a Company, that account will be the Offer owner. Otherw
 **Method** : <Highlight level="info" inline>POST</Highlight>
 
 :::caution Authentication
-Auth is required to create an Offer as a Company. Otherwise, [owner](#owner-body-parameter) and (if in god mode) [god_token](#god_token-body-parameter) must be provided.
+Auth is required to create an Offer as a Company. Otherwise, [owner](#owner-body-parameter) and (if in god
+mode) [god_token](#god_token-body-parameter) must be provided.
 :::
 
 :::caution Concurrent Offers
-The time when the offer is published must not make the respective company exceed the maximum number of concurrent active offers.
+The time when the offer is published must not make the respective company exceed the maximum number of concurrent active
+offers.
 :::
 
-## Parameters 
+## Parameters
 
 ### god_token
 
@@ -39,7 +42,8 @@ The time when the offer is published must not make the respective company exceed
 <Highlight level="success" inline>Optional</Highlight>
 <Highlight level="secondary" inline>String</Highlight>
 
-If set, will use this for validating the usage of god mode (in case no session details are available, i.e., no logged-in user).
+If set, will use this for validating the usage of god mode (in case no session details are available, i.e., no logged-in
+user).
 
 ### owner
 
@@ -168,7 +172,8 @@ Number of vacancies available.
 Type of the offer.
 
 :::caution
-Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "RESEARCH GRANT", "OTHER"]`).
+Must be a valid Job Type (
+currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "RESEARCH GRANT", "OTHER"]`).
 :::
 
 ### fields
@@ -183,7 +188,8 @@ Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSH
 Specifies the fields (areas) the offer corresponds to.
 
 :::caution
-Must be a valid Field Type (see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/FieldTypes.js)).
+Must be a valid Field Type (
+see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/FieldTypes.js)).
 :::
 
 ### technologies
@@ -198,7 +204,8 @@ Must be a valid Field Type (see [list](https://github.com/NIAEFEUP/nijobs-be/blo
 Specifies the technologies the offer is looking for.
 
 :::caution
-Must be a valid Technology Type (see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/TechnologyTypes.js)).
+Must be a valid Technology Type (
+see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/TechnologyTypes.js)).
 :::
 
 ### isHidden
@@ -209,7 +216,8 @@ Must be a valid Technology Type (see [list](https://github.com/NIAEFEUP/nijobs-b
 <Highlight level="warning" inline>Default: false</Highlight>
 <Highlight level="secondary" inline>Boolean</Highlight>
 
-If true, the offer will not show up in search by default. However, the owner and admins can still see it, by activating the `showHidden` flag when searching.
+If true, the offer will not show up in search by default. However, the owner and admins can still see it, by activating
+the `showHidden` flag when searching.
 
 ### location
 
@@ -255,30 +263,40 @@ URL that users can use to apply to the offer. Must use http, https or mailto pro
 **Code** : <Highlight level="success" inline>200 OK</Highlight>
 
 <Tabs
-    defaultValue="request"
-    values={[
-        {label: 'Request', value: 'request'},
-        {label: 'Response', value: 'response'},
-    ]}
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
 >
-  
+
 <TabItem value="request">
 
 ```json
 {
-    "contacts": ["contact@company.com"],
-	"location": "Porto, Portugal",
-	"jobStartDate": "2022-06",
-    "jobMinDuration": "2",
-    "jobMaxDuration": "4",
-    "publishEndDate": "2022-02-20T00:00:00+01:00",
-	"title": "Software fixer",
-    "description": "A nice description for this offer",
-	"jobType": "SUMMER INTERNSHIP",
-	"fields": ["DEVOPS", "MACHINE LEARNING"],
-	"technologies": ["Java", "C#"],
-    "requirements": ["A good hammer"],
-    "applyURL": "https://company.com/apply"
+  "contacts": [
+    "contact@company.com"
+  ],
+  "location": "Porto, Portugal",
+  "jobStartDate": "2022-06",
+  "jobMinDuration": "2",
+  "jobMaxDuration": "4",
+  "publishEndDate": "2022-02-20T00:00:00+01:00",
+  "title": "Software fixer",
+  "description": "A nice description for this offer",
+  "jobType": "SUMMER INTERNSHIP",
+  "fields": [
+    "DEVOPS",
+    "MACHINE LEARNING"
+  ],
+  "technologies": [
+    "Java",
+    "C#"
+  ],
+  "requirements": [
+    "A good hammer"
+  ],
+  "applyURL": "https://company.com/apply"
 }
 ```
 
@@ -288,33 +306,37 @@ URL that users can use to apply to the offer. Must use http, https or mailto pro
 
 ```json
 {
-    "contacts": [
-        "contact@company.com"
-    ],
-    "fields": [
-        "DEVOPS",
-        "MACHINE LEARNING"
-    ],
-    "technologies": [
-        "Java",
-        "C#"
-    ],
-    "isHidden": false,
-    "_id": "600eb922c6fd54ac97a9b18c",
-    "title": "Software fixer",
-    "publishDate": "2022-01-25T12:27:14.112Z",
-    "publishEndDate": "2022-02-19T23:00:00.000Z",
-    "jobMinDuration": 2,
-    "jobMaxDuration": 4,
-    "jobStartDate": "2022-06-01T00:00:00.000Z",
-    "jobType": "SUMMER INTERNSHIP",
-    "description": "A nice description for this offer",
-    "owner": "5ff38a150188759f34e69723", // This is automatically inferred from the logged-in account
-    "ownerName": "Company Ltd.", // This is automatically inferred from the logged-in account
-    "location": "Porto, Portugal",
-    "applyURL": "https://company.com/apply",
-    "requirements": ["A good hammer"],
-    "__v": 0
+  "contacts": [
+    "contact@company.com"
+  ],
+  "fields": [
+    "DEVOPS",
+    "MACHINE LEARNING"
+  ],
+  "technologies": [
+    "Java",
+    "C#"
+  ],
+  "isHidden": false,
+  "_id": "600eb922c6fd54ac97a9b18c",
+  "title": "Software fixer",
+  "publishDate": "2022-01-25T12:27:14.112Z",
+  "publishEndDate": "2022-02-19T23:00:00.000Z",
+  "jobMinDuration": 2,
+  "jobMaxDuration": 4,
+  "jobStartDate": "2022-06-01T00:00:00.000Z",
+  "jobType": "SUMMER INTERNSHIP",
+  "description": "A nice description for this offer",
+  "owner": "5ff38a150188759f34e69723",
+  // This is automatically inferred from the logged-in account
+  "ownerName": "Company Ltd.",
+  // This is automatically inferred from the logged-in account
+  "location": "Porto, Portugal",
+  "applyURL": "https://company.com/apply",
+  "requirements": [
+    "A good hammer"
+  ],
+  "__v": 0
 }
 ```
 
@@ -328,31 +350,41 @@ URL that users can use to apply to the offer. Must use http, https or mailto pro
 **Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
-    defaultValue="request"
-    values={[
-        {label: 'Request', value: 'request'},
-        {label: 'Response', value: 'response'},
-    ]}
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
 >
-  
+
 <TabItem value="request">
 
 ```json
 {
-    "contacts": ["contact@company.com"],
-	"location": "Porto, Portugal",
-	"jobStartDate": "2022-06",
-    "jobMinDuration": "2",
-    "jobMaxDuration": "4",
-    "publishDate": "2022-02-20T00:00:00+01:00",
-    "publishEndDate": "2022-08-19T00:00:00+01:00",
-	"title": "Software fixer",
-    "description": "A nice description for this offer",
-	"jobType": "SUMMER INTERNSHIP",
-	"fields": ["DEVOPS", "MACHINE LEARNING"],
-	"technologies": ["Java", "C#"],
-    "requirements": ["A good hammer"],
-    "applyURL": "https://company.com/apply"
+  "contacts": [
+    "contact@company.com"
+  ],
+  "location": "Porto, Portugal",
+  "jobStartDate": "2022-06",
+  "jobMinDuration": "2",
+  "jobMaxDuration": "4",
+  "publishDate": "2022-02-20T00:00:00+01:00",
+  "publishEndDate": "2022-08-19T00:00:00+01:00",
+  "title": "Software fixer",
+  "description": "A nice description for this offer",
+  "jobType": "SUMMER INTERNSHIP",
+  "fields": [
+    "DEVOPS",
+    "MACHINE LEARNING"
+  ],
+  "technologies": [
+    "Java",
+    "C#"
+  ],
+  "requirements": [
+    "A good hammer"
+  ],
+  "applyURL": "https://company.com/apply"
 }
 ```
 
@@ -362,15 +394,15 @@ URL that users can use to apply to the offer. Must use http, https or mailto pro
 
 ```json
 {
-    "error_code": 1,
-    "errors": [
-        {
-            "value": "2022-02-20T00:00:00+01:00",
-            "msg": "date-already-past",
-            "param": "publishDate",
-            "location": "body"
-        }
-    ]
+  "error_code": 1,
+  "errors": [
+    {
+      "value": "2022-02-20T00:00:00+01:00",
+      "msg": "date-already-past",
+      "param": "publishDate",
+      "location": "body"
+    }
+  ]
 }
 ```
 
@@ -384,31 +416,41 @@ URL that users can use to apply to the offer. Must use http, https or mailto pro
 **Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
-    defaultValue="request"
-    values={[
-        {label: 'Request', value: 'request'},
-        {label: 'Response', value: 'response'},
-    ]}
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
 >
-  
+
 <TabItem value="request">
 
 ```json
 {
-    "contacts": ["contact@company.com"],
-	"location": "Porto, Portugal",
-	"jobStartDate": "2022-06",
-    "jobMinDuration": "2",
-    "jobMaxDuration": "4",
-    "publishDate": "2022-05-20T00:00:00+01:00",
-    "publishEndDate": "2022-12-20T00:00:00+01:00",
-	"title": "Software fixer",
-    "description": "A nice description for this offer",
-	"jobType": "SUMMER INTERNSHIP",
-	"fields": ["DEVOPS", "MACHINE LEARNING"],
-	"technologies": ["Java", "C#"],
-    "requirements": ["A good hammer"],
-    "applyURL": "https://company.com/apply"
+  "contacts": [
+    "contact@company.com"
+  ],
+  "location": "Porto, Portugal",
+  "jobStartDate": "2022-06",
+  "jobMinDuration": "2",
+  "jobMaxDuration": "4",
+  "publishDate": "2022-05-20T00:00:00+01:00",
+  "publishEndDate": "2022-12-20T00:00:00+01:00",
+  "title": "Software fixer",
+  "description": "A nice description for this offer",
+  "jobType": "SUMMER INTERNSHIP",
+  "fields": [
+    "DEVOPS",
+    "MACHINE LEARNING"
+  ],
+  "technologies": [
+    "Java",
+    "C#"
+  ],
+  "requirements": [
+    "A good hammer"
+  ],
+  "applyURL": "https://company.com/apply"
 }
 ```
 
@@ -418,15 +460,15 @@ URL that users can use to apply to the offer. Must use http, https or mailto pro
 
 ```json
 {
-    "error_code": 1,
-    "errors": [
-        {
-            "value": "2022-12-20T00:00:00+01:00",
-            "msg": "must-be-before:2022-11-18T11:28:48.000Z",
-            "param": "publishEndDate",
-            "location": "body"
-        }
-    ]
+  "error_code": 1,
+  "errors": [
+    {
+      "value": "2022-12-20T00:00:00+01:00",
+      "msg": "must-be-before:2022-11-18T11:28:48.000Z",
+      "param": "publishEndDate",
+      "location": "body"
+    }
+  ]
 }
 ```
 
@@ -440,31 +482,41 @@ URL that users can use to apply to the offer. Must use http, https or mailto pro
 **Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
-    defaultValue="request"
-    values={[
-        {label: 'Request', value: 'request'},
-        {label: 'Response', value: 'response'},
-    ]}
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
 >
-  
+
 <TabItem value="request">
 
 ```json
 {
-    "contacts": ["contact@company.com"],
-	"location": "Porto, Portugal",
-	"jobStartDate": "2022-06",
-    "jobMinDuration": "2",
-    "jobMaxDuration": "4",
-    "publishDate": "2022-08-20T00:00:00+01:00",
-    "publishEndDate": "2022-12-20T00:00:00+01:00",
-	"title": "Software fixer",
-    "description": "A nice description for this offer",
-	"jobType": "SUMMER INTERNSHIP",
-	"fields": ["DEVOPS", "MACHINE LEARNING"],
-	"technologies": ["Java", "C#"],
-    "requirements": ["A good hammer"],
-    "applyURL": "https://company.com/apply"
+  "contacts": [
+    "contact@company.com"
+  ],
+  "location": "Porto, Portugal",
+  "jobStartDate": "2022-06",
+  "jobMinDuration": "2",
+  "jobMaxDuration": "4",
+  "publishDate": "2022-08-20T00:00:00+01:00",
+  "publishEndDate": "2022-12-20T00:00:00+01:00",
+  "title": "Software fixer",
+  "description": "A nice description for this offer",
+  "jobType": "SUMMER INTERNSHIP",
+  "fields": [
+    "DEVOPS",
+    "MACHINE LEARNING"
+  ],
+  "technologies": [
+    "Java",
+    "C#"
+  ],
+  "requirements": [
+    "A good hammer"
+  ],
+  "applyURL": "https://company.com/apply"
 }
 ```
 
@@ -474,12 +526,12 @@ URL that users can use to apply to the offer. Must use http, https or mailto pro
 
 ```json
 {
-    "error_code": 1,
-    "errors": [
-      {
-        "msg": "max-concurrent-offers-reached:5"
-      }
-    ]
+  "error_code": 1,
+  "errors": [
+    {
+      "msg": "max-concurrent-offers-reached:5"
+    }
+  ]
 }
 ```
 
@@ -504,7 +556,9 @@ values={[
 
 ```json
 {
-  "contacts": ["contact@company.com"],
+  "contacts": [
+    "contact@company.com"
+  ],
   "location": "Porto, Portugal",
   "jobStartDate": "2022-06",
   "jobMinDuration": "2",
@@ -514,9 +568,17 @@ values={[
   "title": "Software fixer",
   "description": "A nice description for this offer",
   "jobType": "SUMMER INTERNSHIP",
-  "fields": ["DEVOPS", "MACHINE LEARNING"],
-  "technologies": ["Java", "C#"],
-  "requirements": ["A good hammer"],
+  "fields": [
+    "DEVOPS",
+    "MACHINE LEARNING"
+  ],
+  "technologies": [
+    "Java",
+    "C#"
+  ],
+  "requirements": [
+    "A good hammer"
+  ],
   "applyURL": "https://company.com/apply",
   "owner": "62601cb7cb39d3001b3664d9"
 }
@@ -558,9 +620,9 @@ values={[
 
 ```json
 {
-    "publishEndDate": "2021-12-20T00:00:00+01:00",
-    "god_token": "token",
-    "owner": "62601cb7cb39d3001b3664d9"
+  "publishEndDate": "2021-12-20T00:00:00+01:00",
+  "god_token": "token",
+  "owner": "62601cb7cb39d3001b3664d9"
 }
 ```
 
@@ -570,12 +632,12 @@ values={[
 
 ```json
 {
-    "error_code": 3,
-    "errors": [
-      {
-        "msg": "offer-blocked-by-admin"
-      }
-    ]
+  "error_code": 3,
+  "errors": [
+    {
+      "msg": "offer-blocked-by-admin"
+    }
+  ]
 }
 ```
 

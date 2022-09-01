@@ -10,24 +10,25 @@ import TabItem from '@theme/TabItem';
 
 import Highlight from "../../src/highlight.js"
 
-## Details 
+## Details
 
 This endpoint is used to edit offers. Both Admins and Companies can use it.
-
 
 **URL** : `/offers/edit/:offerId`
 
 **Method** : <Highlight level="info" inline>POST</Highlight>
 
 :::caution Authentication
-Auth is required to edit an Offer as a Company or Admin. Otherwise, if in god mode, [god_token](#god_token) must be provided.
+Auth is required to edit an Offer as a Company or Admin. Otherwise, if in god mode, [god_token](#god_token) must be
+provided.
 :::
 
 :::caution Concurrent Offers
-The time when the offer is published must not make the respective company exceed the maximum number of concurrent active offers.
+The time when the offer is published must not make the respective company exceed the maximum number of concurrent active
+offers.
 :::
 
-## Parameters 
+## Parameters
 
 ### god_token
 
@@ -36,7 +37,8 @@ The time when the offer is published must not make the respective company exceed
 <Highlight level="success" inline>Optional</Highlight>
 <Highlight level="secondary" inline>String</Highlight>
 
-If set, will use this for validating the usage of god mode (in case no session details are available, i.e., no logged-in user).
+If set, will use this for validating the usage of god mode (in case no session details are available, i.e., no logged-in
+user).
 
 ### owner
 
@@ -81,7 +83,7 @@ The date when the offer will be "hidden" from the application (will be invisible
 
 * Must be after `now` (in the future).
 * Must be after the [publishDate](#publishdate), if present.
-* * Must not exceed 6 months after [publishDate](#publishdate).
+* Must not exceed 6 months after [publishDate](#publishdate).
 
 ### jobMinDuration
 
@@ -166,7 +168,8 @@ Number of vacancies available.
 Type of offer.
 
 :::caution
-Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "RESEARCH GRANT", "OTHER"]`).
+Must be a valid Job Type (
+currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHIP", "RESEARCH GRANT", "OTHER"]`).
 :::
 
 ### fields
@@ -181,7 +184,8 @@ Must be a valid Job Type (currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSH
 Specifies the fields (areas) the offer corresponds to.
 
 :::caution
-Must be a valid Field Type (see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/FieldTypes.js)).
+Must be a valid Field Type (
+see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/FieldTypes.js)).
 :::
 
 ### technologies
@@ -196,7 +200,8 @@ Must be a valid Field Type (see [list](https://github.com/NIAEFEUP/nijobs-be/blo
 Specifies the technologies the offer is looking for.
 
 :::caution
-Must be a valid Technology Type (see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/TechnologyTypes.js)).
+Must be a valid Technology Type (
+see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constants/TechnologyTypes.js)).
 :::
 
 ### isHidden
@@ -206,7 +211,8 @@ Must be a valid Technology Type (see [list](https://github.com/NIAEFEUP/nijobs-b
 <Highlight level="success" inline>Optional</Highlight>
 <Highlight level="secondary" inline>Boolean</Highlight>
 
-If true, the offer will not show up in search by default. However, the owner and admins can still see it, by activating the `showHidden` flag when searching.
+If true, the offer will not show up in search by default. However, the owner and admins can still see it, by activating
+the `showHidden` flag when searching.
 
 ### location
 
@@ -245,7 +251,6 @@ An array of strings containing job requirements in list form. Useful to list the
 
 URL that users can use to apply to the offer. Must use http, https or mailto protocols.
 
-
 ## Request examples
 
 ### Example 1 - Valid Request (Logged-in as Company)
@@ -264,9 +269,12 @@ values={[
 
 ```json
 {
-    "contacts": ["contact@company.com", "contact-me@company.com"],
-	"title": "QA Engineer",
-    "applyURL": "https://company.com/newApply/apply"
+  "contacts": [
+    "contact@company.com",
+    "contact-me@company.com"
+  ],
+  "title": "QA Engineer",
+  "applyURL": "https://company.com/newApply/apply"
 }
 ```
 
@@ -331,8 +339,8 @@ values={[
 
 ```json
 {
-    "publishDate": "2022-02-20T00:00:00+01:00",
-    "publishEndDate": "2022-10-20T00:00:00+01:00"
+  "publishDate": "2022-02-20T00:00:00+01:00",
+  "publishEndDate": "2022-10-20T00:00:00+01:00"
 }
 ```
 
@@ -342,15 +350,15 @@ values={[
 
 ```json
 {
-    "error_code": 1,
-    "errors": [
-        {
-            "value": "2022-02-20T00:00:00+01:00",
-            "msg": "date-already-past",
-            "param": "publishDate",
-            "location": "body"
-        }
-    ]
+  "error_code": 1,
+  "errors": [
+    {
+      "value": "2022-02-20T00:00:00+01:00",
+      "msg": "date-already-past",
+      "param": "publishDate",
+      "location": "body"
+    }
+  ]
 }
 ```
 
@@ -375,8 +383,8 @@ values={[
 
 ```json
 {
-    "publishDate": "2022-05-20T00:00:00+01:00",
-    "publishEndDate": "2022-12-20T00:00:00+01:00"
+  "publishDate": "2022-05-20T00:00:00+01:00",
+  "publishEndDate": "2022-12-20T00:00:00+01:00"
 }
 ```
 
@@ -386,15 +394,15 @@ values={[
 
 ```json
 {
-    "error_code": 1,
-    "errors": [
-        {
-            "value": "2021-12-20T00:00:00+01:00",
-            "msg": "must-be-before:2022-11-18T11:28:48.000Z",
-            "param": "publishEndDate",
-            "location": "body"
-        }
-    ]
+  "error_code": 1,
+  "errors": [
+    {
+      "value": "2021-12-20T00:00:00+01:00",
+      "msg": "must-be-before:2022-11-18T11:28:48.000Z",
+      "param": "publishEndDate",
+      "location": "body"
+    }
+  ]
 }
 ```
 
@@ -419,7 +427,7 @@ values={[
 
 ```json
 {
-    "publishEndDate": "2021-12-20T00:00:00+01:00"
+  "publishEndDate": "2021-12-20T00:00:00+01:00"
 }
 ```
 
@@ -429,12 +437,12 @@ values={[
 
 ```json
 {
-    "error_code": 1,
-    "errors": [
-      {
-        "msg": "max-concurrent-offers-reached:5"
-      }
-    ]
+  "error_code": 1,
+  "errors": [
+    {
+      "msg": "max-concurrent-offers-reached:5"
+    }
+  ]
 }
 ```
 
@@ -459,8 +467,8 @@ values={[
 
 ```json
 {
-    "publishEndDate": "2021-12-20T00:00:00+01:00",
-    "owner": "62601cb7cb39d3001b3664d9"
+  "publishEndDate": "2021-12-20T00:00:00+01:00",
+  "owner": "62601cb7cb39d3001b3664d9"
 }
 ```
 
@@ -470,12 +478,12 @@ values={[
 
 ```json
 {
-    "error_code": 3,
-    "errors": [
-      {
-        "msg": "company-disabled"
-      }
-    ]
+  "error_code": 3,
+  "errors": [
+    {
+      "msg": "company-disabled"
+    }
+  ]
 }
 ```
 
@@ -500,9 +508,9 @@ values={[
 
 ```json
 {
-    "publishEndDate": "2021-12-20T00:00:00+01:00",
-    "god_token": "token",
-    "owner": "62601cb7cb39d3001b3664d9"
+  "publishEndDate": "2021-12-20T00:00:00+01:00",
+  "god_token": "token",
+  "owner": "62601cb7cb39d3001b3664d9"
 }
 ```
 
@@ -512,12 +520,12 @@ values={[
 
 ```json
 {
-    "error_code": 3,
-    "errors": [
-      {
-        "msg": "offer-blocked-by-admin"
-      }
-    ]
+  "error_code": 3,
+  "errors": [
+    {
+      "msg": "offer-blocked-by-admin"
+    }
+  ]
 }
 ```
 
