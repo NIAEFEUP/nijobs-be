@@ -8,8 +8,6 @@ slug: /offers/edit
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-import  "./search.module.css";
-
 import Highlight from "../../src/highlight.js"
 
 ## Details 
