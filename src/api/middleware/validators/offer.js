@@ -568,7 +568,7 @@ export const canDisable = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     if (offer.isHidden && offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
-        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
     }
 
     return next();
