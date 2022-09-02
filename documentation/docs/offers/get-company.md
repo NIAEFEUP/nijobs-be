@@ -20,8 +20,20 @@ This endpoint returns offers from the company specified by companyId.
 
 :::caution Authentication
 Auth is required to get hidden Offers. Only Admins or owners of hidden Offers will see them if `isHidden` is set
-to `true`.
+to `true`. Otherwise, if in god mode, [god_token](#god_token) must be provided.
 :::
+
+## Parameters
+
+### god_token
+
+<Highlight level="info">Body Parameter</Highlight>
+
+<Highlight level="success" inline>Optional</Highlight>
+<Highlight level="secondary" inline>String</Highlight>
+
+If set, will use this for validating the usage of god mode (in case no session details are available, i.e., no logged-in
+user).
 
 ## Request examples
 
