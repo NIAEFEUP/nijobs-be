@@ -13,7 +13,8 @@ module.exports = {
             "offers/search",
             "offers/create",
             "offers/edit",
-            "offers/get"
+            "offers/get",
+            "offers/get-company"
         ],
     },
 };
