@@ -15,7 +15,8 @@ module.exports = {
             "offers/edit",
             "offers/get",
             "offers/get-company",
-            "offers/hide"
+            "offers/hide",
+            "offers/disable"
         ],
     },
 };
