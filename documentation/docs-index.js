@@ -23,7 +23,8 @@ module.exports = {
         Companies: [
             "companies/list",
             "companies/finish-registration",
-            "companies/block"
+            "companies/block",
+            "companies/unblock"
         ]
     },
 };
