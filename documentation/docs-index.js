@@ -26,7 +26,8 @@ module.exports = {
             "companies/block",
             "companies/unblock",
             "companies/disable",
-            "companies/enable"
+            "companies/enable",
+            "companies/delete"
         ]
     },
 };
