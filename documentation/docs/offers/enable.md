@@ -1,8 +1,8 @@
 ---
-id: disable
-title: Disable Offer
-sidebar_label: Disable Offer
-slug: /offers/disable
+id: enable
+title: Enable Offer
+sidebar_label: Enable Offer
+slug: /offers/enable
 ---
 
 import Tabs from '@theme/Tabs';
@@ -12,19 +12,20 @@ import Highlight from "../../src/highlight.js"
 
 ## Details
 
-This endpoint disables the offer specified by offerId.
+This endpoint enables the offer specified by offerId.
 
-**URL** : `/offers/:offerId/disable`
+**URL** : `/offers/:offerId/enable`
 
-**Method** : <Highlight level="info" inline>POST</Highlight>
-
-:::info
-This is an action that cannot be reverted by the company. If you're looking for a less serious action, check [hide](./hide).
-:::
+**Method** : <Highlight level="info" inline>PUT</Highlight>
 
 :::caution Authentication
-Auth is required to disable an Offer as an Admin. Otherwise, if in god mode, [god_token](#god_token) must be
-provided.
+Auth is required to hide an Offer as a Company or Admin. Otherwise, if in god mode, [god_token](#god_token) must be
+provided. If the offer was disabled by an admin, then the company cannot enable it.
+:::
+
+:::caution Concurrent Offers
+The time when the offer is enabled must not make the respective company exceed the maximum number of concurrent active
+offers.
 :::
 
 ## Parameters
@@ -38,16 +39,6 @@ provided.
 
 If set, will use this for validating the usage of god mode (in case no session details are available, i.e., no logged-in
 user).
-
-### adminReason
-
-<Highlight level="info">Body Parameter</Highlight>
-
-<Highlight level="danger" inline>Required</Highlight>
-<Highlight level="secondary" inline>String</Highlight>
-
-Reason for the admin to disable the offer. This should only be used for admins, it's not intended to show to the
-company or the public.
 
 ## Request examples
 
@@ -65,10 +56,8 @@ values={[
 
 <TabItem value="request">
 
-```json
-{
-  "adminReason": "Offer violates the website's rules"
-}
+```bash
+/offers/62601cb7cb39d3001b3664d9/enable
 ```
 
 </TabItem>
@@ -88,7 +77,7 @@ values={[
     "React",
     "JavaScript"
   ],
-  "isHidden": true,
+  "isHidden": false,
   "isArchived": false,
   "requirements": [
     "Ambitious people with a passion for this area",
@@ -110,16 +99,14 @@ values={[
   "location": "Porto, Portugal",
   "createdAt": "2022-04-20T14:46:15.281Z",
   "updatedAt": "2022-04-20T14:46:15.281Z",
-  "__v": 0,
-  "hiddenReason": "ADMIN_REQUEST",
-  "adminReason": "Offer violates the website's rules"
+  "__v": 0
 }
 ```
 
 </TabItem>
 </Tabs>
 
-### Example 2 - Missing Admin Reason
+### Example 2 - Non-Existing Offer
 
 **Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
@@ -133,48 +120,8 @@ values={[
 
 <TabItem value="request">
 
-```json
-{}
-```
-
-</TabItem>
-
-<TabItem value="response">
-
-```json
-{
-  "error_code": 1,
-  "errors": [
-    {
-      "msg": "required",
-      "param": "adminReason",
-      "location": "body"
-    }
-  ]
-}
-```
-
-</TabItem>
-</Tabs>
-
-### Example 3 - Non-Existing Offer
-
-**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
-
-<Tabs
-defaultValue="request"
-values={[
-{label: 'Request', value: 'request'},
-{label: 'Response', value: 'response'},
-]}
->
-
-<TabItem value="request">
-
-```json
-{
-  "adminReason": "Offer violates the website's rules"
-}
+```bash
+/offers/62601cb7cb39d3001b3664d9/enable
 ```
 
 </TabItem>
@@ -198,7 +145,7 @@ values={[
 </TabItem>
 </Tabs>
 
-### Example 4 - Blocked Offer
+### Example 3 - Blocked Offer (Logged-in as the Company)
 
 **Code** : <Highlight level="danger" inline>403 FORBIDDEN</Highlight>
 
@@ -212,10 +159,8 @@ values={[
 
 <TabItem value="request">
 
-```json
-{
-  "adminReason": "Offer violates the website's rules"
-}
+```bash
+/offers/62601cb7cb39d3001b3664d9/enable
 ```
 
 </TabItem>
@@ -228,6 +173,140 @@ values={[
   "errors": [
     {
       "msg": "offer-blocked-by-admin"
+    }
+  ]
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example 4 - Disabled Company
+
+**Code** : <Highlight level="danger" inline>403 FORBIDDEN</Highlight>
+
+<Tabs
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
+>
+
+<TabItem value="request">
+
+```bash
+/offers/62601cb7cb39d3001b3664d9/enable
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+  "error_code": 3,
+  "errors": [
+    {
+      "msg": "company-disabled"
+    }
+  ]
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example 5 - Maximum number of concurrent offers exceeded
+
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
+
+<Tabs
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
+>
+
+<TabItem value="request">
+
+```bash
+/offers/62601cb7cb39d3001b3664d9/enable
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+  "error_code": 1,
+  "errors": [
+    {
+      "msg": "max-concurrent-offers-reached:5"
+    }
+  ]
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example 6 - Logged-in as a Different Company
+
+**Code** : <Highlight level="danger" inline>403 FORBIDDEN</Highlight>
+
+<Tabs
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
+>
+
+<TabItem value="request">
+
+```bash
+/offers/62601cb7cb39d3001b3664d9/enable
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+  "error_code": 3,
+  "errors": [
+    {
+      "msg": "insufficient-permissions"
+    }
+  ],
+  "or": [
+    {
+      "error_code": 3,
+      "errors": [
+        {
+          "msg": "not-offer-owner:63121296c00865e9956545e8"
+        }
+      ]
+    },
+    {
+      "error_code": 3,
+      "errors": [
+        {
+          "msg": "must-be-god"
+        }
+      ]
+    },
+    {
+      "error_code": 3,
+      "errors": [
+        {
+          "msg": "must-be-admin"
+        }
+      ]
     }
   ]
 }
