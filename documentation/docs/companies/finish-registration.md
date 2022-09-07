@@ -19,7 +19,7 @@ This endpoint finishes a previously created company application.
 **Method** : <Highlight level="info" inline>POST</Highlight>
 
 :::caution Authentication
-Auth as a company is required to finish an application.
+Auth as a Company is required to finish an Application.
 :::
 
 ## Parameters (form data)

@@ -21,6 +21,7 @@ module.exports = {
             "offers/archive"
         ],
         Companies: [
+            "companies/list",
             "companies/finish-registration"
         ]
     },
