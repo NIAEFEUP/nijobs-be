@@ -20,5 +20,8 @@ module.exports = {
             "offers/enable",
             "offers/archive"
         ],
+        Companies: [
+            "companies/finish-registration"
+        ]
     },
 };
