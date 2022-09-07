@@ -27,7 +27,8 @@ module.exports = {
             "companies/unblock",
             "companies/disable",
             "companies/enable",
-            "companies/delete"
+            "companies/delete",
+            "companies/concurrent-offers"
         ]
     },
 };
