@@ -73,6 +73,7 @@ values={[
   ],
   "hasFinishedRegistration": true,
   "isBlocked": false,
+  // highlight-next-line
   "isDisabled": true,
   "__v": 0,
   "bio": "We disabled our own account",

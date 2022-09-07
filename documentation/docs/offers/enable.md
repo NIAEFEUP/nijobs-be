@@ -77,6 +77,7 @@ values={[
     "React",
     "JavaScript"
   ],
+  // highlight-next-line
   "isHidden": false,
   "isArchived": false,
   "requirements": [

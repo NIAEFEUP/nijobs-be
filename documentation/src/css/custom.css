@@ -72,7 +72,7 @@ tertiary: {
 }
 
 .docusaurus-highlight-code-line {
-  background-color: rgb(79, 19, 21);
+  background-color: rgba(110, 19, 21, 0.6);
   display: block;
   margin: 0 calc(-1 * var(--ifm-pre-padding));
   padding: 0 var(--ifm-pre-padding);

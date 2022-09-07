@@ -68,6 +68,7 @@ values={[
     "unblocked@company.com"
   ],
   "hasFinishedRegistration": true,
+  // highlight-next-line
   "isBlocked": false,
   "isDisabled": false,
   "__v": 0,

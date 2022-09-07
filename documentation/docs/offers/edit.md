@@ -286,10 +286,14 @@ values={[
 {
   "isArchived": false,
   "_id": "62601cb7cb39d3001b3664d9",
+  // highlight-start
+  "title": "QA Engineer",
   "contacts": [
     "contact@company.com",
     "contact-me@company.com"
   ],
+  "applyURL": "https://company.com/newApply/apply",
+  // highlight-end
   "fields": [
     "DEVOPS",
     "OTHER"
@@ -302,7 +306,6 @@ values={[
     "Ambitious people with a passion for this area",
     "Degree in Computer Engineering or similar"
   ],
-  "title": "QA Engineer",
   "publishDate": "2022-04-09T10:48:35.206Z",
   "publishEndDate": "2022-06-12T00:00:00.000Z",
   "description": "We are an amazing company with amazing job opportunities. We're currently looking for amazing engineers",
@@ -311,7 +314,6 @@ values={[
   "ownerName": "Company Name",
   "ownerLogo": "https://res.cloudinary.com/coolimage.jpg",
   "location": "Porto, Portugal",
-  "applyURL": "https://company.com/newApply/apply",
   "createdAt": "2022-04-09T10:48:35.261Z",
   "updatedAt": "2022-09-01T09:17:18.744Z",
   "__v": 0

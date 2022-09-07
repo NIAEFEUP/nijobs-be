@@ -84,8 +84,10 @@ values={[
     "blocked@company.com"
   ],
   "hasFinishedRegistration": true,
+  // highlight-start
   "isBlocked": true,
   "adminReason": "Not respectful to the students",
+  // highlight-end
   "isDisabled": false,
   "__v": 0,
   "bio": "We were blocked because we broke the rules",

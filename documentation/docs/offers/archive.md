@@ -78,7 +78,8 @@ values={[
     "JavaScript"
   ],
   "isHidden": false,
-  "isArchived": false,
+  // highlight-next-line
+  "isArchived": true,
   "requirements": [
     "Ambitious people with a passion for this area",
     "Degree in Computer Engineering or similar"

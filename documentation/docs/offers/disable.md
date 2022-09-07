@@ -88,7 +88,11 @@ values={[
     "React",
     "JavaScript"
   ],
+  // highlight-start
   "isHidden": true,
+  "hiddenReason": "ADMIN_REQUEST",
+  "adminReason": "Offer violates the website's rules",
+  // highlight-end
   "isArchived": false,
   "requirements": [
     "Ambitious people with a passion for this area",
@@ -110,9 +114,7 @@ values={[
   "location": "Porto, Portugal",
   "createdAt": "2022-04-20T14:46:15.281Z",
   "updatedAt": "2022-04-20T14:46:15.281Z",
-  "__v": 0,
-  "hiddenReason": "ADMIN_REQUEST",
-  "adminReason": "Offer violates the website's rules"
+  "__v": 0
 }
 ```
 

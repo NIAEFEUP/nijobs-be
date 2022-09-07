@@ -76,7 +76,10 @@ values={[
     "React",
     "JavaScript"
   ],
+  // highlight-start
   "isHidden": true,
+  "hiddenReason": "COMPANY_REQUEST",
+  // highlight-end
   "isArchived": false,
   "requirements": [
     "Ambitious people with a passion for this area",
@@ -98,8 +101,7 @@ values={[
   "location": "Porto, Portugal",
   "createdAt": "2022-04-20T14:46:15.281Z",
   "updatedAt": "2022-04-20T14:46:15.281Z",
-  "__v": 0,
-  "hiddenReason": "COMPANY_REQUEST"
+  "__v": 0
 }
 ```
 
