@@ -189,3 +189,42 @@ values={[
 
 </TabItem>
 </Tabs>
+
+### Example 4 - Non-Existing Company
+
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
+
+<Tabs
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
+>
+
+<TabItem value="request">
+
+```bash
+/company/62601cb7cb39d3001b3664d9/block
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+  "error_code": 1,
+  "errors": [
+    {
+      "value": "62601cb7cb39d3001b3664d9",
+      "msg": "no-company-found-with-id:62601cb7cb39d3001b3664d9",
+      "param": "companyId",
+      "location": "params"
+    }
+  ]
+}
+```
+
+</TabItem>
+</Tabs>
