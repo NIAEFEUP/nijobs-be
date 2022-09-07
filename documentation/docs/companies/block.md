@@ -13,7 +13,7 @@ import Highlight from "../../src/highlight.js"
 ## Details
 
 This endpoint blocks the company specified by companyId.
-Also disabled all the companies' offers using the same adminReason.
+Also disabled all the company's offers using the same adminReason.
 
 **URL** : `/company/:companyId/block`
 

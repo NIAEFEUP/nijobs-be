@@ -25,7 +25,8 @@ module.exports = {
             "companies/finish-registration",
             "companies/block",
             "companies/unblock",
-            "companies/disable"
+            "companies/disable",
+            "companies/enable"
         ]
     },
 };

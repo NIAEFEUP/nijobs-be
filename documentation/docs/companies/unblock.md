@@ -13,7 +13,7 @@ import Highlight from "../../src/highlight.js"
 ## Details
 
 This endpoint unblocks the company specified by companyId.
-Also enables all the offers previously disabled with the same adminReason.
+Also enables all the company's offers previously disabled with the same adminReason.
 
 **URL** : `/company/:companyId/unblock`
 

@@ -1,8 +1,8 @@
 ---
-id: disable
-title: Disable Company
-sidebar_label: Disable Company
-slug: /company/disable
+id: enable
+title: Enable Company
+sidebar_label: Enable Company
+slug: /company/enable
 ---
 
 import Tabs from '@theme/Tabs';
@@ -12,19 +12,15 @@ import Highlight from "../../src/highlight.js"
 
 ## Details
 
-This endpoint disables the company specified by companyId.
-Also hides all the company's offers.
+This endpoint enables the company specified by companyId.
+Also enables all the company's offers that were hidden when the company was disabled.
 
-**URL** : `/company/:companyId/disable`
+**URL** : `/company/:companyId/enable`
 
 **Method** : <Highlight level="info" inline>PUT</Highlight>
 
-:::info
-This is an action that can be reverted by the company. If you're looking for a more permanent action, check [block](./block).
-:::
-
 :::caution Authentication
-Auth is required as a Company to disable it. Otherwise, if in god mode, [god_token](#god_token) must be
+Auth is required to enable a Company as the Company or Admin. Otherwise, if in god mode, [god_token](#god_token) must be
 provided.
 :::
 
@@ -57,7 +53,7 @@ values={[
 <TabItem value="request">
 
 ```bash
-/company/431859ea531e53a45a443de0/disable
+/company/431859ea531e53a45a443de0/enable
 ```
 
 </TabItem>
@@ -67,26 +63,26 @@ values={[
 ```json
 {
   "_id": "431859ea531e53a45a443de0",
-  "name": "Disabled Company",
+  "name": "Enabled Company",
   "contacts": [
-    "disable@company.com"
+    "enable@company.com"
   ],
   "hasFinishedRegistration": true,
   "isBlocked": false,
   // highlight-next-line
-  "isDisabled": true,
+  "isDisabled": false,
   "__v": 0,
-  "bio": "We disabled our own account",
-  "logo": "https://res.cloudinary.com/disabled.jpg"
+  "bio": "We enabled our own account",
+  "logo": "https://res.cloudinary.com/enable.jpg"
 }
 ```
 
 </TabItem>
 </Tabs>
 
-### Example 2 - Logged-in as an Admin
+### Example 2 - Valid Request (Logged-in as Admin)
 
-**Code** : <Highlight level="danger" inline>401 UNAUTHORIZED</Highlight>
+**Code** : <Highlight level="success" inline>200 OK</Highlight>
 
 <Tabs
 defaultValue="request"
@@ -99,7 +95,7 @@ values={[
 <TabItem value="request">
 
 ```bash
-/company/431859ea531e53a45a443de0/disable
+/company/431859ea531e53a45a443de0/enable
 ```
 
 </TabItem>
@@ -108,30 +104,18 @@ values={[
 
 ```json
 {
-  "error_code": 3,
-  "errors": [
-    {
-      "msg": "insufficient-permissions"
-    }
+  "_id": "431859ea531e53a45a443de0",
+  "name": "Enabled Company",
+  "contacts": [
+    "enable@company.com"
   ],
-  "or": [
-    {
-      "error_code": 3,
-      "errors": [
-        {
-          "msg": "must-be-company"
-        }
-      ]
-    },
-    {
-      "error_code": 3,
-      "errors": [
-        {
-          "msg": "must-be-god"
-        }
-      ]
-    }
-  ]
+  "hasFinishedRegistration": true,
+  "isBlocked": false,
+  // highlight-next-line
+  "isDisabled": false,
+  "__v": 0,
+  "bio": "Our account was enabled by an admin",
+  "logo": "https://res.cloudinary.com/enable.jpg"
 }
 ```
 
@@ -153,7 +137,7 @@ values={[
 <TabItem value="request">
 
 ```bash
-/company/62601cb7cb39d3001b3664d9/disable
+/company/62601cb7cb39d3001b3664d9/enable
 ```
 
 </TabItem>
@@ -192,7 +176,7 @@ values={[
 <TabItem value="request">
 
 ```bash
-/company/62601cb7cb39d3001b3664d9/disable
+/company/62601cb7cb39d3001b3664d9/enable
 ```
 
 </TabItem>
