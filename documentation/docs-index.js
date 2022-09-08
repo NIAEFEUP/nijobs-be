@@ -29,6 +29,9 @@ module.exports = {
             "companies/enable",
             "companies/delete",
             "companies/concurrent-offers"
+        ],
+        Applications: [
+            "applications/create"
         ]
     },
 };

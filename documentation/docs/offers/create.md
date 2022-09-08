@@ -1,7 +1,7 @@
 ---
 id: create
-title: Create Offers
-sidebar_label: Create Offers
+title: Create Offer
+sidebar_label: Create Offer
 slug: /offers/create
 ---
 

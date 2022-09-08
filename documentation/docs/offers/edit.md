@@ -1,7 +1,7 @@
 ---
 id: edit
-title: Edit Offers
-sidebar_label: Edit Offers
+title: Edit Offer
+sidebar_label: Edit Offer
 slug: /offers/edit
 ---
 
