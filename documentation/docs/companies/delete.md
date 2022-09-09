@@ -41,6 +41,10 @@ provided.
 If set, will use this for validating the usage of god mode (in case no session details are available, i.e., no logged-in
 user).
 
+## Response
+
+Object representing the company before being deleted.
+
 ## Request examples
 
 ### Example 1 - Valid Request

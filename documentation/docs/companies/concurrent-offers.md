@@ -55,6 +55,15 @@ The start date to consider when calculating the maximum concurrent offers.
 
 The end date to consider when calculating the maximum concurrent offers. Must be after [publishDate](#publishdate).
 
+## Response
+
+### maxOffersReached
+
+<Highlight level="info" inline>Response Field</Highlight>
+<Highlight level="secondary" inline>Boolean</Highlight>
+
+Informs if the company has reached the maximum amount of concurrent offers between the specified dates.
+
 ## Request examples
 
 ### Example 1 - Valid Request (max concurrent offers reached)

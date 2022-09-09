@@ -111,7 +111,7 @@ Each field must be one of `["email", "password", "companyName", "motivation", "s
 <Highlight level="info" inline>Response Field</Highlight>
 <Highlight level="secondary" inline>Array</Highlight>
 
-Array of objects containing the applications found by the search
+Array of objects containing the applications found by the search.
 
 ### docCount
 

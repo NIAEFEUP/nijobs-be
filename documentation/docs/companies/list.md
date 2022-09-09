@@ -58,6 +58,22 @@ Limits the number of companies returned.
 
 Number of companies to skip.
 
+## Response
+
+### companies
+
+<Highlight level="info" inline>Response Field</Highlight>
+<Highlight level="secondary" inline>Array</Highlight>
+
+Array of objects containing the companies listed.
+
+### totalDocCount
+
+<Highlight level="info" inline>Response Field</Highlight>
+<Highlight level="secondary" inline>Number</Highlight>
+
+Number of companies listed.
+
 ## Request examples
 
 ### Example 1 - Valid Request (Regular User)
