@@ -143,9 +143,7 @@ If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2`
 
 ### results
 
-<Highlight level="info">Response Field</Highlight>
-
-<Highlight level="secondary" inline>Object</Highlight>
+<Highlight level="info" inline>Response Field</Highlight>
 <Highlight level="secondary" inline>Array</Highlight>
 
 Array of objects containing the offers found by the search

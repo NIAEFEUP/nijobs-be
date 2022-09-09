@@ -31,7 +31,8 @@ module.exports = {
             "companies/concurrent-offers"
         ],
         Applications: [
-            "applications/create"
+            "applications/create",
+            "applications/search"
         ]
     },
 };
