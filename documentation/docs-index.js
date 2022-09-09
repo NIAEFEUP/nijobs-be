@@ -33,7 +33,8 @@ module.exports = {
         Applications: [
             "applications/create",
             "applications/search",
-            "applications/approve"
+            "applications/approve",
+            "applications/reject"
         ]
     },
 };
