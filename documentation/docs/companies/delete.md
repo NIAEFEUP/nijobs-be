@@ -43,6 +43,8 @@ user).
 
 ## Response
 
+<Highlight level="secondary" inline>Object</Highlight>
+
 Object representing the company before being deleted.
 
 ## Request examples

@@ -32,7 +32,8 @@ module.exports = {
         ],
         Applications: [
             "applications/create",
-            "applications/search"
+            "applications/search",
+            "applications/approve"
         ]
     },
 };
