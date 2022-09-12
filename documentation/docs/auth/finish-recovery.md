@@ -116,7 +116,7 @@ values={[
 
 ```json
 {
-  "password": "newpassword"
+  "password": "new_password"
 }
 ```
 

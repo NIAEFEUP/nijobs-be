@@ -256,6 +256,8 @@ An array of strings containing job requirements in list form. Useful to list the
 
 URL that users can use to apply to the offer. Must use http, https or mailto protocol.
 
+Must respect the following regex: `https?://S+.\S+`
+
 ## Request examples
 
 ### Example 1 - Valid Request (Logged-in as Company)
