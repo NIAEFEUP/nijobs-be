@@ -35,6 +35,9 @@ module.exports = {
             "applications/search",
             "applications/approve",
             "applications/reject"
+        ],
+        Auth: [
+            "auth/me"
         ]
     },
 };
