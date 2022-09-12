@@ -41,7 +41,8 @@ module.exports = {
             "auth/me",
             "auth/logout",
             "auth/register",
-            "auth/recover"
+            "auth/recover",
+            "auth/token"
         ]
     },
 };
