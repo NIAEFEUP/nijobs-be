@@ -40,7 +40,8 @@ module.exports = {
             "auth/login",
             "auth/me",
             "auth/logout",
-            "auth/register"
+            "auth/register",
+            "auth/recover"
         ]
     },
 };
