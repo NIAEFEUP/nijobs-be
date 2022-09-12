@@ -38,7 +38,8 @@ module.exports = {
         ],
         Auth: [
             "auth/login",
-            "auth/me"
+            "auth/me",
+            "auth/logout"
         ]
     },
 };
