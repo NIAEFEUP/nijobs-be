@@ -42,7 +42,8 @@ module.exports = {
             "auth/logout",
             "auth/register",
             "auth/recover",
-            "auth/token"
+            "auth/confirm",
+            "auth/finish-recovery"
         ]
     },
 };

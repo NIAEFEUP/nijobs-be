@@ -21,6 +21,10 @@ Returns 200 status even if the account doesn't exist (for safety purposes).
 
 **Method** : <Highlight level="info" inline>POST</Highlight>
 
+:::info Following steps
+To continue the flow of recovering an account, see [confirm token](./confirm) and [finish recovery](./finish-recovery).
+:::
+
 ## Parameters
 
 ### email
