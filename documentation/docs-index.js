@@ -39,7 +39,8 @@ module.exports = {
         Auth: [
             "auth/login",
             "auth/me",
-            "auth/logout"
+            "auth/logout",
+            "auth/register"
         ]
     },
 };
