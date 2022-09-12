@@ -37,6 +37,7 @@ module.exports = {
             "applications/reject"
         ],
         Auth: [
+            "auth/login",
             "auth/me"
         ]
     },
