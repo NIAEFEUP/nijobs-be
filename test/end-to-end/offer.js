@@ -91,6 +91,19 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
                 });
 
+                test("should fail if not logged in, even if target owner is specified", async () => {
+                    const params = { owner: test_company._id };
+                    const offer = generateTestOffer(params);
+
+                    const res = await request()
+                        .post("/offers/new")
+                        .send(offer);
+
+                    expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
+                });
+
                 test("should succeed if logged to admin account", async () => {
                     // Login
                     await test_agent
@@ -2389,6 +2402,22 @@ describe("Offer endpoint tests", () => {
                     );
             });
 
+            test("should return non-hidden offers, even if target owner is set", async () => {
+                const res = await test_agent
+                    .get(`/offers/company/${test_company._id}`)
+                    .send({
+                        owner: test_company._id
+                    });
+
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extractedData = res.body;
+                expect(extractedData.map((offer) => offer._id).sort())
+                    .toMatchObject(
+                        test_offers.filter((offer) => offer.isHidden === false).map((offer) => offer._id).sort()
+                    );
+            });
+
             test("should return hidden company offers as admin", async () => {
                 // Login with test_user_company
                 await test_agent
@@ -2515,6 +2544,16 @@ describe("Offer endpoint tests", () => {
 
             test("should fail if not admin or owner", async () => {
                 const res = await test_agent.get(`/offers/${test_offers[2]._id}`);
+                expect(res.status).toBe(HTTPStatus.NOT_FOUND);
+            });
+
+            test("should fail if not admin or owner, even if target owner is set", async () => {
+                const res = await test_agent
+                    .get(`/offers/${test_offers[2]._id}`)
+                    .send({
+                        owner: test_offers[2].owner,
+                    });
+
                 expect(res.status).toBe(HTTPStatus.NOT_FOUND);
             });
 
@@ -3850,6 +3889,21 @@ describe("Offer endpoint tests", () => {
             expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
         });
 
+        test("should fail to enable if not logged in, even if target owner is set", async () => {
+            await test_agent
+                .del("/auth/login");
+
+            const res = await test_agent
+                .put(`/offers/${test_offer._id}/enable`)
+                .send({ owner: test_offer.owner })
+                .expect(HTTPStatus.UNAUTHORIZED);
+
+            expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
+        });
+
         test("should enable successfully if admin and offer hidden by default as an admin", async () => {
             await test_agent
                 .post("/auth/login")
@@ -4129,6 +4183,18 @@ describe("Offer endpoint tests", () => {
 
             const res = await test_agent
                 .put(`/offers/${test_offer1._id}/archive`)
+                .expect(HTTPStatus.UNAUTHORIZED);
+
+            expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+            expect(res.body).toHaveProperty("errors");
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.INSUFFICIENT_PERMISSIONS });
+        });
+
+        test("Should fail to archive offer if unauthenticated, even if target owner is set", async () => {
+
+            const res = await test_agent
+                .put(`/offers/${test_offer1._id}/archive`)
+                .send({ owner: test_offer1.owner })
                 .expect(HTTPStatus.UNAUTHORIZED);
 
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
