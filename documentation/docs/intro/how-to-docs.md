@@ -14,6 +14,15 @@ The documentation is built from the `documentation/` folder in the [repository](
 
 The `docs/` folder contains all the content of these pages. The `docusaurus.config.js` contains configuration values but, in general, you shouldn't need to touch those. The `docs-index.js`, however, should be changed every time you add or remove a page, since it controls what is shown on the left index of the website. The `docs/` folder contains sub-folders according to the separation of topics. When referencing a page, it will have its folder path, followed by its id defined in the beginning of the document, e.g., the `search.md` file, which has an id of `search` and is on `docs/offers/` will be referenced (reflected in the url) by `offers/search`.
 
+## How to build and run
+
+In order to build the documentation locally and have hot-reload enabled while writing it, one must first install
+the respective dependencies by running `npm install` inside the `documentation` folder. The documentation uses
+the same version of node as the main project.
+
+Afterwards, to run the documentation, one can simply run `npm run docs` in the main scope of `nijobs-be`. Alternatively,
+one can also run `npm start` inside the `documentation` folder.
+
 ## Guidelines
 
 In general, you should separate the documentation according to the Route area. Offer related routes go into the offer sub-folder, Company related routes go into the company sub-folder, and so on...
