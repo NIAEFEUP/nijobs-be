@@ -1,7 +1,7 @@
 # NIJobs - BackEnd
 
 [![API Docs - Master](https://img.shields.io/badge/Docs-main-blue?style=for-the-badge)](https://nijobs-docs.netlify.app/)
-[![API Docs - Dev](https://img.shields.io/badge/Docs-dev-blueviolet?style=for-the-badge)](https://nijobs-docs-develop.netlify.app)
+[![API Docs - Dev](https://img.shields.io/badge/Docs-dev-blueviolet?style=for-the-badge)](https://develop--nijobs-docs.netlify.app)
 
 
 ![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/NIAEFEUP/nijobs-be/CI/master?label=BUILD%20-%20Master&style=for-the-badge)
