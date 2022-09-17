@@ -20,9 +20,7 @@ export default (app) => {
     router.use(offerMiddleware.setTargetOwner);
 
     /**
-     * Gets active offers based on passed filters and full-text search.
-     * Returns the offers found and a queryToken used for pagination.
-     * Also takes queryToken and limit as query params.
+     * Searches currently active offers
      */
     router.get("/", validators.get, async (req, res, next) => {
         try {

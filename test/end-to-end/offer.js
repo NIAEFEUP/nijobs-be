@@ -3493,7 +3493,7 @@ describe("Offer endpoint tests", () => {
                 .expect(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_HIDDEN });
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.OFFER_BLOCKED_ADMIN });
         });
 
         test("should allow disabling if offer hidden by default", async () => {
