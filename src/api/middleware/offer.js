@@ -19,7 +19,7 @@ export const isOwnerNotBlocked = async (req, res, next) => {
 };
 
 export const setTargetOwner = (req, res, next) => {
-    const wantedTargetOwner = req.hasAdminPrivileges && req.body.owner;
+    const adminTargetOwner = req.hasAdminPrivileges && req.body.owner;
     req.targetOwner = req.user?.company?._id.toString() || wantedTargetOwner || undefined;
 
     return next();
