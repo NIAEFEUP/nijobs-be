@@ -2754,7 +2754,7 @@ describe("Offer endpoint tests", () => {
                 });
             });
 
-            describe("testing dates editing", () => {
+            describe("testing publish dates editing", () => {
                 test("should fail if publishDate after offer publishEndDate", async () => {
                     const res = await test_agent
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
@@ -2883,6 +2883,15 @@ describe("Offer endpoint tests", () => {
                         .expect(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("applyURL", applyURL);
                 });
+
+                test("Should edit if applyURL is specified as null", async () => {
+                    const applyURL = null;
+                    const res = await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ applyURL }))
+                        .expect(HTTPStatus.OK);
+                    expect(res.body).toHaveProperty("applyURL", applyURL);
+                });
             });
 
             describe("testing other validations", () => {
@@ -2944,17 +2953,32 @@ describe("Offer endpoint tests", () => {
                         .expect(HTTPStatus.OK);
                 });
 
-                test("Should fail to edit an offer if jobStartDate is specified as null", async () => {
-                    const res = await test_agent
+                test("Should edit if jobStartDate is specified as null", async () => {
+                    await test_agent
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
-                        .send(withGodToken({ jobStartDate: null }));
+                        .send(withGodToken({ jobStartDate: null }))
+                        .expect(HTTPStatus.OK);
+                });
 
-                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
-                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                    expect(res.body.errors).toHaveLength(1);
-                    expect(res.body.errors[0]).toHaveProperty("param", "jobStartDate");
-                    expect(res.body.errors[0]).toHaveProperty("location", "body");
-                    expect(res.body.errors[0].msg).toEqual(ValidationReasons.DATE);
+                test("Should edit if isPaid is specified as null", async () => {
+                    await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ isPaid: null }))
+                        .expect(HTTPStatus.OK);
+                });
+
+                test("Should edit if vacancies is specified as null", async () => {
+                    await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ vacancies: null }))
+                        .expect(HTTPStatus.OK);
+                });
+
+                test("Should edit if coordinates is specified as null", async () => {
+                    await test_agent
+                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .send(withGodToken({ coordinates: null }))
+                        .expect(HTTPStatus.OK);
                 });
 
                 describe("Input validation", () => {
