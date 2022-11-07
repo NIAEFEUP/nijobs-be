@@ -3,7 +3,6 @@ import { StatusCodes as HTTPStatus } from "http-status-codes";
 import Account from "../../src/models/Account";
 import Company from "../../src/models/Company";
 import Offer from "../../src/models/Offer";
-import OfferService from "../../src/services/offer";
 import hash from "../../src/lib/passwordHashing";
 import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
 import CompanyConstants from "../../src/models/constants/Company";
@@ -238,401 +237,569 @@ describe("Company endpoint", () => {
                 expect(res.body.totalDocCount).toEqual(1);
             });
         });
+    });
 
-        describe("GET /company/:companyId/profile", () => {
-            let test_company, test_company_2, test_company_3, test_company_4, hidden_offer_company,
-                disabled_offer_company, disabled_company, blocked_company, unfinished_registration_company;
-            const test_user = {
-                email: "user@email.com",
-                password: "password123"
-            };
-            const test_unfinished_company_user = {
-                email: "unfinished@email.com",
-                password: "password123"
-            };
-            const test_user_admin = {
-                email: "admin@email.com",
-                password: "password123",
-                isAdmin: true
-            };
-            const test_company_data = {
-                name: "test-company",
-                hasFinishedRegistration: true,
-                logo: "http://awebsite.com/alogo.jpg",
-            };
-            const disabled_company_data = {
-                name: "test-company",
-                hasFinishedRegistration: true,
-                logo: "http://awebsite.com/alogo.jpg",
-                isDisabled: true,
-            };
-            const blocked_company_data = {
-                name: "test-company",
-                hasFinishedRegistration: true,
-                logo: "http://awebsite.com/alogo.jpg",
-                isBlocked: true,
-            };
-            const unfinished_registration_company_data = {
-                name: "test-company",
-                hasFinishedRegistration: false,
-                logo: "http://awebsite.com/alogo.jpg",
-            };
+    describe("GET /company/:companyId", () => {
+        let test_company_without_offers,
+            test_company_with_offers_below_limit,
+            test_company_with_offers_at_limit,
+            test_company_with_offers_above_limit,
+            test_company_with_hidden_offer,
+            test_offer_hidden,
+            test_company_disabled,
+            test_company_blocked,
+            test_company_with_unfinished_registration;
 
-            const test_agent = agent();
-            const adminReason = "yes.";
+        const test_user_with_unfinished_registration = {
+            email: "unfinished@email.com",
+            password: "password123",
+        };
+        const test_user_with_hidden_offer = {
+            email: "hidden@email.com",
+            password: "password123",
+        };
+        const test_user_admin = {
+            email: "admin@email.com",
+            password: "password123",
+            isAdmin: true,
+        };
+        const test_user_disabled_company = {
+            email: "disabled@email.com",
+            password: "password123",
+        };
+        const test_user_blocked_company = {
+            email: "blocked@email.com",
+            password: "password123",
+        };
+        const test_company_data = {
+            name: "test-company",
+            hasFinishedRegistration: true,
+            logo: "http://awebsite.com/alogo.jpg",
+        };
 
-            beforeAll(async () => {
-                await Company.deleteMany({});
+        const test_agent = agent();
 
-                [test_company, test_company_2, test_company_3, test_company_4, hidden_offer_company,
-                    disabled_offer_company, disabled_company, blocked_company, unfinished_registration_company] =
-                await Company.create(
-                    [test_company_data, test_company_data, test_company_data, test_company_data, test_company_data,
-                        test_company_data, disabled_company_data, blocked_company_data, unfinished_registration_company_data]);
+        const createTestOffers = (length, company) =>
+            Promise.all(
+                Array.from({ length }, () =>
+                    Offer.create(
+                        generateTestOffer({
+                            publishDate: new Date(
+                                Date.now() - DAY_TO_MS
+                            ).toISOString(),
+                            publishEndDate: new Date(
+                                Date.now() + DAY_TO_MS
+                            ).toISOString(),
+                            owner: company._id,
+                            ownerName: company.name,
+                            ownerLogo: company.logo,
+                        })
+                    )
+                )
+            );
 
-                await Account.deleteMany({});
+        beforeAll(async () => {
+            await Company.deleteMany({});
 
-                await Account.create({
+            [
+                test_company_without_offers,
+                test_company_with_offers_below_limit,
+                test_company_with_offers_at_limit,
+                test_company_with_offers_above_limit,
+                test_company_with_hidden_offer,
+                test_company_disabled,
+                test_company_blocked,
+                test_company_with_unfinished_registration,
+            ] = await Company.create([
+                test_company_data,
+                test_company_data,
+                test_company_data,
+                test_company_data,
+                test_company_data,
+                { ...test_company_data, isDisabled: true },
+                { ...test_company_data, isBlocked: true },
+                { ...test_company_data, hasFinishedRegistration: false },
+            ]);
+
+            await Account.deleteMany({});
+
+            await Promise.all([
+                Account.create({
                     email: test_user_admin.email,
                     password: await hash(test_user_admin.password),
-                    isAdmin: true
-                });
+                    isAdmin: true,
+                }),
+                Account.create({
+                    email: test_user_with_unfinished_registration.email,
+                    password: await hash(
+                        test_user_with_unfinished_registration.password
+                    ),
+                    company: test_company_with_unfinished_registration._id,
+                }),
+                Account.create({
+                    email: test_user_with_hidden_offer.email,
+                    password: await hash(test_user_with_hidden_offer.password),
+                    company: test_company_with_hidden_offer._id,
+                }),
+                Account.create({
+                    email: test_user_disabled_company.email,
+                    password: await hash(test_user_disabled_company.password),
+                    company: test_company_disabled._id,
+                }),
+                Account.create({
+                    email: test_user_blocked_company.email,
+                    password: await hash(test_user_blocked_company.password),
+                    company: test_company_blocked._id,
+                }),
+            ]);
 
-                await Account.create({
-                    email: test_user.email,
-                    password: await hash(test_user.password),
-                    company: test_company_4._id
-                });
+            test_offer_hidden = await Offer.create(
+                generateTestOffer({
+                    isHidden: true,
+                    owner: test_company_with_hidden_offer._id.toString(),
+                    ownerName: test_company_with_hidden_offer.name,
+                    ownerLogo: test_company_with_hidden_offer.logo,
+                })
+            );
+        });
 
-                await Account.create({
-                    email: test_unfinished_company_user.email,
-                    password: await hash(test_unfinished_company_user.password),
-                    company: unfinished_registration_company._id
-                });
-            });
+        afterEach(async () => {
+            await test_agent.delete("/auth/login").expect(HTTPStatus.OK);
+        });
 
-            afterEach(async () => {
-                await test_agent
-                    .delete("/auth/login")
-                    .expect(HTTPStatus.OK);
-            });
-
-            test("should fail if not a valid id", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(HTTPStatus.OK);
-
+        describe("Without Auth", () => {
+            test("should fail if invalid id", async () => {
                 const res = await test_agent
-                    .get("/company/123/profile")
-                    .send({ adminReason })
+                    .get("/company/123")
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "companyId");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+
+                expect(res.body).toHaveProperty(
+                    "error_code",
+                    ErrorTypes.VALIDATION_ERROR
+                );
+                expect(res.body).toHaveProperty(
+                    "errors",
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            param: "companyId",
+                            msg: ValidationReasons.OBJECT_ID,
+                        }),
+                    ])
+                );
             });
 
             test("should fail if company does not exist", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(HTTPStatus.OK);
-
                 const id = "111111111111111111111111";
                 const res = await test_agent
-                    .get(`/company/${id}/profile`)
-                    .send({ adminReason })
+                    .get(`/company/${id}`)
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "companyId");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
+
+                expect(res.body).toHaveProperty(
+                    "error_code",
+                    ErrorTypes.VALIDATION_ERROR
+                );
+                expect(res.body).toHaveProperty(
+                    "errors",
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            param: "companyId",
+                            msg: ValidationReasons.COMPANY_NOT_FOUND(id),
+                        }),
+                    ])
+                );
             });
 
             test("should succeed when the company has no offers", async () => {
                 const res = await test_agent
-                    .get(`/company/${test_company_2.id}/profile`)
+                    .get(`/company/${test_company_without_offers.id}`)
                     .expect(HTTPStatus.OK);
-                expect(res.body).toHaveProperty("offers");
-                expect(res.body.offers).toHaveProperty("length", 0);
 
-                expect(res.body).toHaveProperty("company");
-                expect(res.body.company).toHaveProperty("_id");
-                expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(test_company_2._id));
-                expect(res.body.company).toHaveProperty("name");
-                expect(res.body.company.name).toEqual(test_company_2.name);
+                expect(res.body).toHaveProperty("offers", []);
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_without_offers._id.toString()
+                );
             });
 
-            test("should return all company offers when company has less offers than the limit", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(HTTPStatus.OK);
-
-                const offers = await Promise.all(Array(CompanyConstants.offers.max_profile_visible - 1).fill(null).map((_) =>
-                    Offer.create(
-                        generateTestOffer({
-                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
-                            owner: test_company_2._id,
-                            ownerName: test_company_2.name,
-                            ownerLogo: test_company_2.logo
-                        })
-                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
-
-
-                const res = await test_agent
-                    .get(`/company/${test_company_2._id}/profile`)
-                    .expect(HTTPStatus.OK);
-                expect(res.body).toHaveProperty("offers");
-                expect(res.body.offers.length).toEqual(CompanyConstants.offers.max_profile_visible - 1);
-                offers.forEach((val, idx) => {
-                    expect(res.body.offers[idx].owner.toString()).toEqual(val.owner.toString());
-                    expect(res.body.offers[idx].ownerName.toString()).toEqual(val.ownerName.toString());
-                    expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
-                });
-
-                expect(res.body).toHaveProperty("company");
-                expect(res.body.company).toHaveProperty("_id");
-                expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(test_company_2._id));
-                expect(res.body.company).toHaveProperty("name");
-                expect(res.body.company.name).toEqual(test_company_2.name);
-            });
-
-            test("should return all company offers when company has the same amount of offers as the limit", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(HTTPStatus.OK);
-
-                const offers = await Promise.all(Array(CompanyConstants.offers.max_profile_visible).fill(null).map((_) =>
-                    Offer.create(
-                        generateTestOffer({
-                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
-                            owner: test_company._id,
-                            ownerName: test_company.name,
-                            ownerLogo: test_company.logo
-                        })
-                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
-
-                const res = await test_agent
-                    .get(`/company/${test_company._id}/profile`)
-                    .expect(HTTPStatus.OK);
-                expect(res.body).toHaveProperty("offers");
-                expect(res.body.offers.length).toEqual(CompanyConstants.offers.max_profile_visible);
-                offers.forEach((val, idx) => {
-                    expect(res.body.offers[idx].owner.toString()).toEqual(val.owner.toString());
-                    expect(res.body.offers[idx].ownerName.toString()).toEqual(val.ownerName.toString());
-                    expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
-                });
-
-                expect(res.body).toHaveProperty("company");
-                expect(res.body.company).toHaveProperty("_id");
-                expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(test_company._id));
-                expect(res.body.company).toHaveProperty("name");
-                expect(res.body.company.name).toEqual(test_company.name);
-            });
-
-            test("should return the same amount of company offers as the limit when they exceed it", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(HTTPStatus.OK);
-
-                const offers = await Promise.all(Array(CompanyConstants.offers.max_profile_visible + 1).fill(null).map((_) =>
-                    Offer.create(
-                        generateTestOffer({
-                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
-                            owner: test_company_3._id,
-                            ownerName: test_company_3.name,
-                            ownerLogo: test_company_3.logo
-                        })
-                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
-
-                const res = await test_agent
-                    .get(`/company/${test_company_3._id}/profile`)
-                    .expect(HTTPStatus.OK);
-                expect(res.body).toHaveProperty("offers");
-                expect(res.body.offers.length).toEqual(CompanyConstants.offers.max_profile_visible);
-                for (let idx = 0; idx < CompanyConstants.offers.max_concurrent; idx++) {
-                    const val = offers[idx];
-
-                    expect(res.body.offers[idx].owner.toString()).toEqual(val.owner.toString());
-                    expect(res.body.offers[idx].ownerName.toString()).toEqual(val.ownerName.toString());
-                    expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
-                }
-
-                expect(res.body).toHaveProperty("company");
-                expect(res.body.company).toHaveProperty("_id");
-                expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(test_company_3._id));
-                expect(res.body.company).toHaveProperty("name");
-                expect(res.body.company.name).toEqual(test_company_3.name);
-            });
-
-            test("Should return no hidden offers when viewing company profile as unprivileged user", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user)
-                    .expect(HTTPStatus.OK);
-
-                await Offer.create(
-                    generateTestOffer({
-                        isHidden: true,
-                        owner: hidden_offer_company._id.toString(),
-                        ownerName: hidden_offer_company.name,
-                        ownerLogo: hidden_offer_company.logo,
-                    })
+            test("should return all offers when below limit", async () => {
+                const offers = await createTestOffers(
+                    CompanyConstants.offers.max_profile_visible - 1,
+                    test_company_with_offers_below_limit
                 );
 
                 const res = await test_agent
-                    .get(`/company/${hidden_offer_company._id}/profile`)
+                    .get(`/company/${test_company_with_offers_below_limit._id}`)
                     .expect(HTTPStatus.OK);
+
                 expect(res.body).toHaveProperty("offers");
-                expect(res.body.offers.length).toEqual(0);
-
-                expect(res.body).toHaveProperty("company");
-                expect(res.body.company).toHaveProperty("_id");
-                expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(hidden_offer_company._id));
-                expect(res.body.company).toHaveProperty("name");
-                expect(res.body.company.name).toEqual(hidden_offer_company.name);
-            });
-
-            test("should return no disabled offers when viewing company profile as unprivileged user", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user)
-                    .expect(HTTPStatus.OK);
-
-                const disabled_test_offer = await Offer.create(
-                    generateTestOffer({
-                        owner: disabled_offer_company._id.toString(),
-                        ownerName: disabled_offer_company.name,
-                        ownerLogo: disabled_offer_company.logo,
-                    })
+                expect(res.body.offers).toHaveLength(
+                    CompanyConstants.offers.max_profile_visible - 1
+                );
+                expect(res.body.offers.map((x) => x._id).sort()).toEqual(
+                    offers.map((x) => x._id.toString()).sort()
                 );
 
-                await (new OfferService()).disable(disabled_test_offer._id, OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_with_offers_below_limit._id.toString()
+                );
+            });
+
+            test("should return all offers when at limit", async () => {
+                const offers = await createTestOffers(
+                    CompanyConstants.offers.max_profile_visible,
+                    test_company_with_offers_at_limit
+                );
 
                 const res = await test_agent
-                    .get(`/company/${disabled_offer_company._id}/profile`)
+                    .get(`/company/${test_company_with_offers_at_limit._id}`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
-                expect(res.body.offers.length).toEqual(0);
+                expect(res.body.offers).toHaveLength(
+                    CompanyConstants.offers.max_profile_visible
+                );
+                expect(res.body.offers.map((x) => x._id).sort()).toEqual(
+                    offers.map((x) => x._id.toString()).sort()
+                );
 
-                expect(res.body).toHaveProperty("company");
-                expect(res.body.company).toHaveProperty("_id");
-                expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(disabled_offer_company._id));
-                expect(res.body.company).toHaveProperty("name");
-                expect(res.body.company.name).toEqual(disabled_offer_company.name);
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_with_offers_at_limit._id.toString()
+                );
             });
 
-            test("should fail to retrieve details if company is disabled", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user)
-                    .expect(HTTPStatus.OK);
-
-                await Promise.all(Array(CompanyConstants.offers.max_profile_visible - 1).fill(null).map((_) =>
-                    Offer.create(
-                        generateTestOffer({
-                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
-                            owner: disabled_company._id,
-                            ownerName: disabled_company.name,
-                            ownerLogo: disabled_company.logo
-                        })
-                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
+            test("should limit number of offers", async () => {
+                const offers = await createTestOffers(
+                    CompanyConstants.offers.max_profile_visible + 10,
+                    test_company_with_offers_above_limit
+                );
 
                 const res = await test_agent
-                    .get(`/company/${disabled_company._id}/profile`)
-                    .expect(HTTPStatus.FORBIDDEN);
+                    .get(`/company/${test_company_with_offers_above_limit._id}`)
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("offers");
+                expect(res.body.offers).toHaveLength(
+                    CompanyConstants.offers.max_profile_visible
+                );
+                expect(offers.map((x) => x._id.toString())).toEqual(
+                    expect.arrayContaining(res.body.offers.map((x) => x._id))
+                );
 
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_DISABLED);
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_with_offers_above_limit._id.toString()
+                );
             });
 
-            test("should fail to retrieve details if company is blocked", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user)
+            test("should not return hidden offers", async () => {
+                const res = await test_agent
+                    .get(`/company/${test_company_with_hidden_offer._id}`)
                     .expect(HTTPStatus.OK);
 
-                await Promise.all(Array(CompanyConstants.offers.max_profile_visible - 1).fill(null).map((_) =>
-                    Offer.create(
-                        generateTestOffer({
-                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
-                            owner: blocked_company._id,
-                            ownerName: blocked_company.name,
-                            ownerLogo: blocked_company.logo
-                        })
-                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
-
-                const res = await test_agent
-                    .get(`/company/${blocked_company._id}/profile`)
-                    .expect(HTTPStatus.FORBIDDEN);
-
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+                expect(res.body).toHaveProperty("offers", []);
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_with_hidden_offer._id.toString()
+                );
             });
 
-            test("should fail to retrieve details if company hasn't finished registration (user)", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user)
-                    .expect(HTTPStatus.OK);
-
-                await Promise.all(Array(CompanyConstants.offers.max_profile_visible - 1).fill(null).map((_) =>
-                    Offer.create(
-                        generateTestOffer({
-                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
-                            owner: blocked_company._id,
-                            ownerName: blocked_company.name,
-                            ownerLogo: blocked_company.logo
-                        })
-                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
-
+            test("should fail if company is disabled", async () => {
                 const res = await test_agent
-                    .get(`/company/${unfinished_registration_company._id}/profile`)
-                    .expect(HTTPStatus.FORBIDDEN);
+                    .get(`/company/${test_company_disabled._id}`)
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
-                console.info(res.body);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                expect(res.body).toHaveProperty(
+                    "error_code",
+                    ErrorTypes.VALIDATION_ERROR
+                );
+                expect(res.body).toHaveProperty(
+                    "errors",
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            param: "companyId",
+                            msg: ValidationReasons.COMPANY_NOT_FOUND(
+                                test_company_disabled._id
+                            ),
+                        }),
+                    ])
+                );
             });
 
-            test("should fail to retrieve details if company hasn't finished registration (company)", async () => {
+            test("should fail if company is blocked", async () => {
+                const res = await test_agent
+                    .get(`/company/${test_company_blocked._id}`)
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body).toHaveProperty(
+                    "error_code",
+                    ErrorTypes.VALIDATION_ERROR
+                );
+                expect(res.body).toHaveProperty(
+                    "errors",
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            param: "companyId",
+                            msg: ValidationReasons.COMPANY_NOT_FOUND(
+                                test_company_blocked._id
+                            ),
+                        }),
+                    ])
+                );
+            });
+
+            test("should fail if company hasn't finished registration", async () => {
+                const res = await test_agent
+                    .get(
+                        `/company/${test_company_with_unfinished_registration._id}`
+                    )
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body).toHaveProperty(
+                    "error_code",
+                    ErrorTypes.VALIDATION_ERROR
+                );
+                expect(res.body).toHaveProperty(
+                    "errors",
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            param: "companyId",
+                            msg: ValidationReasons.COMPANY_NOT_FOUND(
+                                test_company_with_unfinished_registration._id
+                            ),
+                        }),
+                    ])
+                );
+            });
+        });
+
+        describe("With Auth", () => {
+            test("should return hidden offers when user is owner", async () => {
                 await test_agent
                     .post("/auth/login")
-                    .send(test_unfinished_company_user)
+                    .send(test_user_with_hidden_offer)
                     .expect(HTTPStatus.OK);
 
-                await Promise.all(Array(CompanyConstants.offers.max_profile_visible - 1).fill(null).map((_) =>
-                    Offer.create(
-                        generateTestOffer({
-                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
-                            owner: blocked_company._id,
-                            ownerName: blocked_company.name,
-                            ownerLogo: blocked_company.logo
-                        })
-                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
+                const res = await test_agent
+                    .get(`/company/${test_company_with_hidden_offer._id}`)
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("offers", [
+                    expect.objectContaining({
+                        _id: test_offer_hidden._id.toString(),
+                    }),
+                ]);
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_with_hidden_offer._id.toString()
+                );
+            });
+
+            test("should succeed if company is disabled and user is owner", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_disabled_company)
+                    .expect(HTTPStatus.OK);
 
                 const res = await test_agent
-                    .get(`/company/${unfinished_registration_company._id}/profile`)
+                    .get(`/company/${test_company_disabled._id}`)
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_disabled._id.toString()
+                );
+            });
+
+            test("should fail if company is blocked and user is owner", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_blocked_company)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .get(`/company/${test_company_blocked._id}`)
                     .expect(HTTPStatus.FORBIDDEN);
 
-                console.info(res.body);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.REGISTRATION_NOT_FINISHED);
+                expect(res.body).toHaveProperty(
+                    "error_code",
+                    ErrorTypes.FORBIDDEN
+                );
+                expect(res.body).toHaveProperty(
+                    "errors",
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            msg: ValidationReasons.COMPANY_BLOCKED,
+                        }),
+                    ])
+                );
+            });
+
+            test("should fail if company hasn't finished registration and user is owner", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_with_unfinished_registration)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .get(
+                        `/company/${test_company_with_unfinished_registration._id}`
+                    )
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body).toHaveProperty(
+                    "error_code",
+                    ErrorTypes.FORBIDDEN
+                );
+                expect(res.body).toHaveProperty(
+                    "errors",
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            msg: ValidationReasons.REGISTRATION_NOT_FINISHED,
+                        }),
+                    ])
+                );
+            });
+
+            test("should return hidden offers when user is admin", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .get(`/company/${test_company_with_hidden_offer._id}`)
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("offers", [
+                    expect.objectContaining({
+                        _id: test_offer_hidden._id.toString(),
+                    }),
+                ]);
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_with_hidden_offer._id.toString()
+                );
+            });
+
+            test("should succeed if company is disabled and user is admin", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .get(`/company/${test_company_disabled._id}`)
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_disabled._id.toString()
+                );
+            });
+
+            test("should succeed if company is blocked and user is admin", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .get(`/company/${test_company_blocked._id}`)
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_blocked._id.toString()
+                );
+            });
+
+            test("should fail if company hasn't finished registration and user is admin", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .get(
+                        `/company/${test_company_with_unfinished_registration._id}`
+                    )
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body).toHaveProperty(
+                    "error_code",
+                    ErrorTypes.FORBIDDEN
+                );
+                expect(res.body).toHaveProperty(
+                    "errors",
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            msg: ValidationReasons.REGISTRATION_NOT_FINISHED,
+                        }),
+                    ])
+                );
+            });
+
+            test("should return hidden offers when user is god", async () => {
+                const res = await test_agent
+                    .get(`/company/${test_company_with_hidden_offer._id}`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("offers", [
+                    expect.objectContaining({
+                        _id: test_offer_hidden._id.toString(),
+                    }),
+                ]);
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_with_hidden_offer._id.toString()
+                );
+            });
+
+            test("should succeed if company is disabled and user is god", async () => {
+                const res = await test_agent
+                    .get(`/company/${test_company_disabled._id}`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_disabled._id.toString()
+                );
+            });
+
+            test("should succeed if company is blocked and user is god", async () => {
+                const res = await test_agent
+                    .get(`/company/${test_company_blocked._id}`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty(
+                    "company._id",
+                    test_company_blocked._id.toString()
+                );
+            });
+
+            test("should fail if company hasn't finished registration and user is god", async () => {
+                const res = await test_agent
+                    .get(
+                        `/company/${test_company_with_unfinished_registration._id}`
+                    )
+                    .send(withGodToken())
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body).toHaveProperty(
+                    "error_code",
+                    ErrorTypes.FORBIDDEN
+                );
+                expect(res.body).toHaveProperty(
+                    "errors",
+                    expect.arrayContaining([
+                        expect.objectContaining({
+                            msg: ValidationReasons.REGISTRATION_NOT_FINISHED,
+                        }),
+                    ])
+                );
             });
         });
     });

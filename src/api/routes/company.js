@@ -73,7 +73,7 @@ export default (app) => {
 
     });
 
-    router.get("/:companyId/profile",
+    router.get("/:companyId",
         validators.profile,
         (req, res, next) => companyMiddleware.restrictedAccess(req.params.companyId)(req, res, next),
         (req, res, next) => companyMiddleware.registrationStatus(req.params.companyId)(req, res, next),
