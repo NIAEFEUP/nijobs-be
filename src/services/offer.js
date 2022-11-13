@@ -160,22 +160,25 @@ class OfferService {
         return offer;
     }
 
-    _hideByCompany(owner, reason) {
-        return Offer.updateMany(
+    async _hideByCompany(owner, reason) {
+        const offer = await Offer.updateMany(
             { owner, isHidden: false },
             {
                 isHidden: true,
                 hiddenReason: reason,
             });
+        return offer;
     }
 
-    _unhideByCompany(owner, reason) {
-        return Offer.updateMany(
+    async _unhideByCompany(owner, reason) {
+
+        const offer = await Offer.updateMany(
             { owner, isHidden: true, hiddenReason: reason },
             {
                 isHidden: false,
                 $unset: { hiddenReason: "", adminReason: "" },
             });
+        return offer;
     }
 
     blockByCompany(owner) {
@@ -348,7 +351,7 @@ class OfferService {
     }
 
     /**
-     * Encodes a query token, by taking the an id and FTS score if present, and encoding them in safe url base64
+     * Encodes a query token, by taking an id and FTS score if present, and encoding them in safe url base64
      * @param {*} id
      * @param {*} score
      */
