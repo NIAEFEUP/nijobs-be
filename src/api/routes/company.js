@@ -75,14 +75,23 @@ export default (app) => {
 
     router.get("/:companyId",
         validators.profile,
-        (req, res, next) => companyMiddleware.restrictedAccess(req.params.companyId)(req, res, next),
-        (req, res, next) => companyMiddleware.registrationStatus(req.params.companyId)(req, res, next),
+        (req, res, next) => companyMiddleware.canAccessProfile(req.params.companyId)(req, res, next),
         async (req, res) => {
-            const company = await new CompanyService().findById(req.params.companyId, req.hasAdminPrivileges, req.hasAdminPrivileges);
-            const offers = (await new OfferService()
-                .getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges, {
-                    sort: { publishDate: "desc" }, limit: CompanyConstants.offers.max_profile_visible
-                })
+            const company = await new CompanyService().findById(
+                req.params.companyId,
+                // Can be safely set to true, as the middleware takes
+                // care of validation for us
+                true,
+                req.hasAdminPrivileges
+            );
+            const offers = await new OfferService().getOffersByCompanyId(
+                req.params.companyId,
+                req.targetOwner,
+                req.hasAdminPrivileges,
+                {
+                    sort: { publishDate: "desc" },
+                    limit: CompanyConstants.offers.max_profile_visible,
+                }
             );
             return res.json({ company, offers });
         }

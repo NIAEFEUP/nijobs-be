@@ -85,45 +85,41 @@ export const profileComplete = async (req, res, next) => {
     return next();
 };
 
-export const restrictedAccess = (owner) => async (req, res, next) => {
-    const company = await (new CompanyService()).findById(owner, true);
-    let error = {};
+export const canAccessProfile = (companyId) => async (req, res, next) => {
+    const company = await new CompanyService().findById(companyId, true);
 
-    if (req.params?.companyId === req.user.company) {
-        let reason = ValidationReasons.UNKNOWN;
-
-        if (company.isBlocked)
-            reason = ValidationReasons.COMPANY_BLOCKED;
-        else if (company.isDisabled)
-            reason = ValidationReasons.COMPANY_DISABLED;
-
-        error = new APIError(
-            HTTPStatus.OK,
+    const notFound = () =>
+        new APIError(
+            HTTPStatus.UNPROCESSABLE_ENTITY,
             ErrorTypes.VALIDATION_ERROR,
-            reason,
-            { company: company }
+            [
+                {
+                    value: companyId,
+                    msg: ValidationReasons.COMPANY_NOT_FOUND(companyId),
+                    param: "companyId",
+                    location: "params",
+                },
+            ]
         );
-    } else {
-        error = new APIError(
-            HTTPStatus.FORBIDDEN,
-            ErrorTypes.FORBIDDEN,
-            ValidationReasons.NOT_FOUND
+
+    const errorOrNotFound = (reason) =>
+        companyId === req.user?.company?.toString() || req.hasAdminPrivileges
+            ? new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, reason)
+            : notFound();
+
+    if (!company.hasFinishedRegistration)
+        return next(
+            errorOrNotFound(ValidationReasons.REGISTRATION_NOT_FINISHED)
         );
-    }
 
-    return next(error);
-};
+    if (req.hasAdminPrivileges)
+        return next();
 
-export const registrationStatus = (owner) => async (req, res, next) => {
-    const company = await (new CompanyService()).findById(owner, true);
+    if (company.isBlocked)
+        return next(errorOrNotFound(ValidationReasons.COMPANY_BLOCKED));
 
-    if (!company.hasFinishedRegistration) {
-        return next(new APIError(
-            HTTPStatus.FORBIDDEN,
-            ErrorTypes.FORBIDDEN,
-            (req.params?.companyId !== req.user.company) ? ValidationReasons.NOT_FOUND : ValidationReasons.REGISTRATION_NOT_FINISHED
-        ));
-    }
+    if (company.isDisabled && companyId !== req.user?.company?.toString())
+        return next(notFound());
 
     return next();
 };
