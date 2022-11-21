@@ -31,6 +31,7 @@ services:
     volumes:
       - ./src:/usr/src/nijobs-be/src
       - ./test:/usr/src/nijobs-be/test
+      - ./coverage:/usr/src/app/coverage
     depends_on:
       - mongo
   mongo:
