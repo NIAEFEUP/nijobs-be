@@ -29,8 +29,8 @@ services:
     environment:
       - DB_HOST=mongo
     volumes:
-      - ./src:/usr/src/nijobs-be/src
-      - ./test:/usr/src/nijobs-be/test
+      - ./src:/usr/src/app/src
+      - ./test:/usr/src/app/test
       - ./coverage:/usr/src/app/coverage
     depends_on:
       - mongo
