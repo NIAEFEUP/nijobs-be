@@ -54,8 +54,9 @@ class CompanyApplicationService {
         return application.toObject();
     }
 
-    findById(id) {
-        return CompanyApplication.findById(id).exec();
+    async findById(id) {
+        const company = await CompanyApplication.findById(id).exec();
+        return company;
     }
 
     /**
