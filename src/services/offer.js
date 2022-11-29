@@ -230,7 +230,8 @@ class OfferService {
         const results = await offers
             .sort(queryValue ? { score: { "$meta": "textScore" }, _id: 1 } : { _id: 1 })
             .limit(limit)
-        ;
+            .sort({ publishDate: -1 })
+            ;
 
         if (results.length > 0) {
             const lastOffer = results[results.length - 1];
