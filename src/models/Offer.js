@@ -33,13 +33,11 @@ const OfferSchema = new Schema({
 
     jobMinDuration: {
         type: Number,
-        required: function() {
-            // jobMinDuration is required if jobMaxDuration was specified
-            return !!this.jobMaxDuration;
-        },
+        required: true,
     },
     jobMaxDuration: {
         type: Number,
+        required: true,
         validate: [
             validateJobMaxDuration,
             "`jobMaxDuration` must be larger than `jobMinDuration`",

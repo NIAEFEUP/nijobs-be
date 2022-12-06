@@ -372,6 +372,27 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
             });
         });
     },
+
+    mustBeGreaterThanOrEqualToField: (field_name2) => {
+        test(`should be greater than or equal to ${field_name2}`, async () => {
+            const params = {
+                [field_name]: 1,
+                [field_name2]: 2,
+            };
+
+            const res = await requestEndpoint(params);
+
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.MUST_BE_GREATER_THAN_OR_EQUAL_TO(field_name2),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            });
+        });
+    },
 });
 
 export default ValidatorTester;
