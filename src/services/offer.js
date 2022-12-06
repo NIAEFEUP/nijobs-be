@@ -228,10 +228,14 @@ class OfferService {
         }
 
         const results = await offers
-            .sort(queryValue ? { score: { "$meta": "textScore" }, _id: 1 } : { _id: 1 })
-            .limit(limit)
-            .sort({ publishDate: -1 })
-            ;
+            .select("-publishEndDate -jobStartDate -description -contacts -jobType -fields -isHidden -isArchived -owner -requirements \
+            -ownerName -ownerLogo -location -createdAt -updatedAt -__v")
+            .sort({
+                ...(queryValue ? { score: { "$meta": "textScore" } } : {}),
+                publishDate: -1,
+                _id: 1,
+            })
+            .limit(limit);
 
         if (results.length > 0) {
             const lastOffer = results[results.length - 1];
