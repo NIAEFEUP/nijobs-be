@@ -127,6 +127,28 @@ describe("# Offer Schema tests", () => {
                     expect(err.errors.requirements).toHaveProperty("message", "There must be at least one requirement");
                 }
             });
+
+            test("'jobMinDuration' is required", async () => {
+                const offer = new Offer({});
+                try {
+                    await offer.validate();
+                } catch (err) {
+                    expect(err.errors.jobMinDuration).toBeDefined();
+                    expect(err.errors.jobMinDuration).toHaveProperty("kind", "required");
+                    expect(err.errors.jobMinDuration).toHaveProperty("message", "`jobMinDuration` is required.");
+                }
+            });
+
+            test("'jobMaxDuration' is required", async () => {
+                const offer = new Offer({});
+                try {
+                    await offer.validate();
+                } catch (err) {
+                    expect(err.errors.jobMaxDuration).toBeDefined();
+                    expect(err.errors.jobMaxDuration).toHaveProperty("kind", "required");
+                    expect(err.errors.jobMaxDuration).toHaveProperty("message", "`jobMaxDuration` is required.");
+                }
+            });
         });
 
         describe("required using custom validators (checking for array lengths, etc)", () => {
@@ -272,29 +294,7 @@ describe("# Offer Schema tests", () => {
 
         describe("special cases", () => {
             describe("'jobMinDuration' is required if 'jobMaxDuration' exists, but is not otherwise", () => {
-                test("'jobMaxDuration' exists, should be required", async () => {
-                    const offer = new Offer({
-                        jobMaxDuration: 8,
-                    });
 
-                    try {
-                        await offer.validate();
-                    } catch (err) {
-                        expect(err.errors.jobMinDuration).toBeDefined();
-                        expect(err.errors.jobMinDuration).toHaveProperty("kind", "required");
-                        expect(err.errors.jobMinDuration).toHaveProperty("message", "Path `jobMinDuration` is required.");
-                    }
-                });
-
-                test("'jobMaxDuration' does not exist, should not be required", async () => {
-                    const offer = new Offer({});
-
-                    try {
-                        await offer.validate();
-                    } catch (err) {
-                        expect(err.errors.jobMinDuration).toBeFalsy();
-                    }
-                });
             });
         });
     });

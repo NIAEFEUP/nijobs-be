@@ -39,6 +39,8 @@ describe("Company endpoint", () => {
         description: "For Testing Purposes",
         contacts: ["geral@niaefeup.pt", "229417766"],
         jobType: "SUMMER INTERNSHIP",
+        jobMinDuration: 1,
+        jobMaxDuration: 6,
         fields: ["DEVOPS", "BACKEND", "OTHER"],
         technologies: ["React", "CSS"],
         location: "Testing Street, Test City, 123",
