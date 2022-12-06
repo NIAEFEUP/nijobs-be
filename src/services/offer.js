@@ -228,8 +228,6 @@ class OfferService {
         }
 
         const results = await offers
-            .select("-publishEndDate -jobStartDate -description -contacts -jobType -fields -isHidden -isArchived -owner -requirements \
-            -ownerName -ownerLogo -location -createdAt -updatedAt -__v")
             .sort({
                 ...(queryValue ? { score: { "$meta": "textScore" } } : {}),
                 publishDate: -1,
