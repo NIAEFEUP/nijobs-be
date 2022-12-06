@@ -30,6 +30,8 @@ describe("Offer endpoint tests", () => {
         publishEndDate: (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
         description: "For Testing Purposes",
         contacts: ["geral@niaefeup.pt", "229417766"],
+        jobMinDuration: 1,
+        jobMaxDuration: 6,
         jobType: "SUMMER INTERNSHIP",
         fields: ["DEVOPS", "BACKEND", "OTHER"],
         technologies: ["React", "CSS"],
