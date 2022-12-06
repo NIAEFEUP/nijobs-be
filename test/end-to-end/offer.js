@@ -240,6 +240,7 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMaxDuration");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeNumber();
+                FieldValidatorTester.mustBeGreaterThanOrEqualToField("jobMinDuration");
             });
 
             describe("jobStartDate", () => {
@@ -692,7 +693,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_GREATER_THAN_OR_EQUAL_TO("jobMinDuration"));
             });
 
             test("should succeed if jobMaxDuration is greater than jobMinDuration", async () => {

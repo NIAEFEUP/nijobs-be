@@ -19,22 +19,12 @@ import * as companyMiddleware from "../company.js";
 import config from "../../../config/env.js";
 import { validApplyURL } from "../../../models/modelUtils.js";
 
-const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
-
-    const { jobMinDuration } = req.body;
-
-    if (!jobMinDuration) {
-        throw new Error(ValidationReasons.JOB_MIN_DURATION_NOT_SPECIFIED);
-    }
-    return true;
-};
-
 const jobMaxDurationGreaterOrEqualThanJobMinDuration = (jobMaxDuration, { req }) => {
 
     const { jobMinDuration } = req.body;
 
-    if (jobMinDuration > jobMaxDuration) {
-        throw new Error(ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
+    if (jobMinDuration >= jobMaxDuration) {
+        throw new Error(ValidationReasons.MUST_BE_GREATER_THAN_OR_EQUAL_TO("jobMinDuration"));
     }
     return true;
 };
@@ -91,13 +81,12 @@ export const create = useExpressValidators([
 
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
-        .exists()
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isInt().withMessage(ValidationReasons.INT),
 
     body("jobMaxDuration", ValidationReasons.DEFAULT)
-        .exists()
-        .isInt().withMessage(ValidationReasons.INT)
-        .custom(mustSpecifyJobMinDurationIfJobMaxDurationSpecified).bail()
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .isInt().withMessage(ValidationReasons.INT).bail()
         .custom(jobMaxDurationGreaterOrEqualThanJobMinDuration),
 
     body("jobStartDate", ValidationReasons.DEFAULT)
