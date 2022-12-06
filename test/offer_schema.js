@@ -135,7 +135,7 @@ describe("# Offer Schema tests", () => {
                 } catch (err) {
                     expect(err.errors.jobMinDuration).toBeDefined();
                     expect(err.errors.jobMinDuration).toHaveProperty("kind", "required");
-                    expect(err.errors.jobMinDuration).toHaveProperty("message", "`jobMinDuration` is required.");
+                    expect(err.errors.jobMinDuration).toHaveProperty("message", "Path `jobMinDuration` is required.");
                 }
             });
 
@@ -146,7 +146,7 @@ describe("# Offer Schema tests", () => {
                 } catch (err) {
                     expect(err.errors.jobMaxDuration).toBeDefined();
                     expect(err.errors.jobMaxDuration).toHaveProperty("kind", "required");
-                    expect(err.errors.jobMaxDuration).toHaveProperty("message", "`jobMaxDuration` is required.");
+                    expect(err.errors.jobMaxDuration).toHaveProperty("message", "Path `jobMaxDuration` is required.");
                 }
             });
         });
