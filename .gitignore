@@ -1,5 +1,6 @@
 # Env related
 # Ignoring the local configuration files. However .env.ENVIRONMENT (and .env) SHOULD be version controlled! See dotenv-flow's docs for details: https://www.npmjs.com/package/dotenv-flow
+.env
 .env*.local
 
 # Extras
