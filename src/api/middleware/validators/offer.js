@@ -1,5 +1,5 @@
 import { body, query, param } from "express-validator";
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 
 import { useExpressValidators, APIError, ErrorTypes } from "../errorHandler.js";
 import ValidationReasons from "./validationReasons.js";

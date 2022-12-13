@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 
 import { ErrorTypes } from "../../src/api/middleware/errorHandler";
 import ValidationReasons from "../../src/api/middleware/validators/validationReasons";

@@ -1,4 +1,4 @@
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 import Offer from "../../src/models/Offer";
 import JobTypes from "../../src/models/constants/JobTypes";
 import * as FieldConstants from "../../src/models/constants/FieldTypes";

@@ -1,4 +1,4 @@
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 import lodash from "lodash";
 import { APIError, ErrorTypes, hideInsecureError } from "./errorHandler.js";
 import ValidationReasons from "./validators/validationReasons.js";

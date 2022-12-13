@@ -1,5 +1,5 @@
 import { Router } from "express";
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 
 import * as authMiddleware from "../middleware/auth.js";
 import * as companyMiddleware from "../middleware/company.js";

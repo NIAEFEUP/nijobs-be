@@ -1,5 +1,5 @@
 import { Router } from "express";
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 
 import config from "../../config/env.js";
 import * as validators from "../middleware/validators/company.js";

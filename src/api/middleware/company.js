@@ -1,4 +1,4 @@
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 import { ErrorTypes, APIError } from "./errorHandler.js";
 import { concurrentOffersNotExceeded } from "./validators/validatorUtils.js";
 import ValidationReasons from "./validators/validationReasons.js";

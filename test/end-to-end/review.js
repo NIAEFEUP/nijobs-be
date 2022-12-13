@@ -1,7 +1,7 @@
 jest.mock("../../src/lib/emailService");
 import EmailService, { EmailService as EmailServiceClass } from "../../src/lib/emailService";
 jest.spyOn(EmailServiceClass.prototype, "verifyConnection").mockImplementation(() => Promise.resolve());
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 import CompanyApplication, { CompanyApplicationRules } from "../../src/models/CompanyApplication";
 import hash from "../../src/lib/passwordHashing";
 import Account from "../../src/models/Account";
