@@ -111,12 +111,7 @@ class OfferService {
         const offer = await Offer.findOneAndUpdate(
             { _id },
             edits,
-            { new: true, omitUndefined: true },
-            (err) => {
-                if (err) {
-                    throw err;
-                }
-            }
+            { new: true }
         );
 
         return offer;
@@ -134,12 +129,7 @@ class OfferService {
                 hiddenReason,
                 adminReason
             },
-            { new: true },
-            (err) => {
-                if (err) {
-                    throw err;
-                }
-            }
+            { new: true }
         );
         return offer;
     }
@@ -152,34 +142,43 @@ class OfferService {
             query,
             {
                 isHidden: false,
-                $unset: { hiddenReason: undefined, adminReason: undefined }, // Removing property from document.
+                $unset: { hiddenReason: "", adminReason: "" }, // Removing property from document.
             },
-            { new: true },
-            (err) => {
-                if (err) {
-                    throw err;
-                }
-            }
+            { new: true }
         );
         return offer;
     }
 
-    _hideByCompany(owner, reason) {
-        return Offer.updateMany(
+    async archive(_id) {
+        const offer = await Offer.findOneAndUpdate(
+            { _id },
+            {
+                isArchived: true,
+            },
+            { new: true }
+        );
+        return offer;
+    }
+
+    async _hideByCompany(owner, reason) {
+        const offer = await Offer.updateMany(
             { owner, isHidden: false },
             {
                 isHidden: true,
                 hiddenReason: reason,
             });
+        return offer;
     }
 
-    _unhideByCompany(owner, reason) {
-        return Offer.updateMany(
+    async _unhideByCompany(owner, reason) {
+
+        const offer = await Offer.updateMany(
             { owner, isHidden: true, hiddenReason: reason },
             {
                 isHidden: false,
-                $unset: { hiddenReason: undefined, adminReason: undefined },
+                $unset: { hiddenReason: "", adminReason: "" },
             });
+        return offer;
     }
 
     blockByCompany(owner) {
@@ -352,7 +351,7 @@ class OfferService {
     }
 
     /**
-     * Encodes a query token, by taking the an id and FTS score if present, and encoding them in safe url base64
+     * Encodes a query token, by taking an id and FTS score if present, and encoding them in safe url base64
      * @param {*} id
      * @param {*} score
      */

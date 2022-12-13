@@ -14,9 +14,6 @@ export default async () => {
         user: config.db_user,
         pass: config.db_pass,
         dbName: config.db_name,
-        useNewUrlParser: true,
-        useCreateIndex: true,
-        useFindAndModify: false,
     };
 
     try {

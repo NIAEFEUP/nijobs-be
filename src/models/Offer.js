@@ -85,6 +85,10 @@ const OfferSchema = new Schema({
         type: Boolean,
         default: false
     },
+    isArchived: {
+        type: Boolean,
+        default: false
+    },
     owner: {
         type: Types.ObjectId,
         ref: "Company",
@@ -165,6 +169,13 @@ OfferSchema.query.current = function() {
 OfferSchema.statics.filterNonHidden = () => ({ isHidden: false });
 OfferSchema.query.withoutHidden = function() {
     return this.where(this.model.filterNonHidden());
+};
+
+/**
+ * Currently active and non-archived Offers
+ */
+OfferSchema.query.withoutArchived = function() {
+    return this.where({ isArchived: false });
 };
 
 const Offer = mongoose.model("Offer", OfferSchema);

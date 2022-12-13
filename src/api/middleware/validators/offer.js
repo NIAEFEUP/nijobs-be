@@ -17,7 +17,6 @@ import {
 } from "../../../models/constants/TimeConstants.js";
 import * as companyMiddleware from "../company.js";
 import config from "../../../config/env.js";
-import { when } from "../utils.js";
 import { validApplyURL } from "../../../models/modelUtils.js";
 
 const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
@@ -371,7 +370,7 @@ export const edit = useExpressValidators([
         .custom(jobMaxDurationEditable),
 
     body("jobStartDate", ValidationReasons.DEFAULT)
-        .optional()
+        .optional({ nullable: true })
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
         .customSanitizer(normalizeDate)
         .toDate(),
@@ -388,11 +387,11 @@ export const edit = useExpressValidators([
         .withMessage(ValidationReasons.TOO_SHORT(OfferConstants.contacts.min_length)),
 
     body("isPaid", ValidationReasons.DEFAULT)
-        .optional()
+        .optional({ nullable: true })
         .custom(checkBooleanField).withMessage(ValidationReasons.BOOLEAN),
 
     body("vacancies", ValidationReasons.DEFAULT)
-        .optional()
+        .optional({ nullable: true })
         .isInt({ min: OfferConstants.vacancies.min })
         .withMessage(ValidationReasons.MIN(OfferConstants.vacancies.min)),
 
@@ -430,11 +429,11 @@ export const edit = useExpressValidators([
     // TODO: Figure out how to handle this field
     // We should probably only receive the array part and inject the type that PointSchema requires in a custom sanitizer
     body("coordinates", ValidationReasons.DEFAULT)
-        .optional()
+        .optional({ nullable: true })
         .isArray(),
 
     body("applyURL", ValidationReasons.DEFAULT)
-        .optional()
+        .optional({ nullable: true })
         .isString().withMessage(ValidationReasons.STRING).bail()
         .custom(validApplyURL).withMessage(ValidationReasons.BAD_APPLY_URL),
 ]);
@@ -569,7 +568,7 @@ export const canDisable = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
     if (offer.isHidden && offer.hiddenReason === OfferConstants.HiddenOfferReasons.ADMIN_BLOCK) {
-        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_HIDDEN));
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.OFFER_BLOCKED_ADMIN));
     }
 
     return next();
@@ -584,8 +583,5 @@ export const offerOwnerNotBlocked = async (req, res, next) => {
 export const offerOwnerNotDisabled = async (req, res, next) => {
     const offer = await Offer.findById(req.params.offerId);
 
-    return when(
-        // if we are a company editing/hiding an offer, we can't be disabled, but admins/gods can do so on our behalf
-        !req.hasAdminPrivileges,
-        (req, res, next) => companyMiddleware.isNotDisabled(offer.owner)(req, res, next))(req, res, next);
+    return companyMiddleware.isNotDisabled(offer.owner)(req, res, next);
 };

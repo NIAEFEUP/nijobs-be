@@ -53,51 +53,42 @@ class CompanyService {
     /**
      * @param {*} company_id Id of the company
      * @param {*} showHidden weather to show the company if it is hidden, defaults to false
-     * @param {*} showAdminReason weahter to show the admin reason given to hide this company, defaults to false
+     * @param {*} showAdminReason weather to show the admin reason given to hide this company, defaults to false
      */
-    findById(company_id, showHidden = false, showAdminReason = false) {
+    async findById(company_id, showHidden = false, showAdminReason = false) {
         const query = Company.findById(company_id);
         if (!showHidden) query.withoutBlocked().withoutDisabled();
         if (!showAdminReason) query.hideAdminReason();
-        return query;
+        const company = await query;
+        return  company;
     }
 
     /**
      * @param {@param} companyId Id of the company
      */
-    block(companyId, adminReason) {
-        return Company.findByIdAndUpdate(
+    async block(companyId, adminReason) {
+        const company =  await Company.findByIdAndUpdate(
             companyId,
             {
                 isBlocked: true,
                 adminReason
             },
-            { new: true },
-            (err) => {
-                if (err) {
-                    console.error(err);
-                    throw err;
-                }
-            });
+            { new: true });
+        return company;
     }
 
     /**
      * @param {@param} companyId Id of the company
      */
-    unblock(companyId) {
-        return Company.findByIdAndUpdate(
+    async unblock(companyId) {
+        const company = await Company.findByIdAndUpdate(
             companyId,
             {
                 isBlocked: false,
-                $unset: { adminReason: undefined },
+                $unset: { adminReason: "" },
             },
-            { new: true },
-            (err) => {
-                if (err) {
-                    console.error(err);
-                    throw err;
-                }
-            });
+            { new: true });
+        return company;
     }
 
     /**
@@ -105,17 +96,12 @@ class CompanyService {
      * @param {*} company_id id of the company
      * @param {*} attributes object containing the attributes to change in company
      */
-    changeAttributes(company_id, attributes) {
-        return Company.findOneAndUpdate(
+    async changeAttributes(company_id, attributes) {
+        const company = await Company.findOneAndUpdate(
             { _id: company_id },
             attributes,
-            { new: true, omitUndefined: true },
-            (err) => {
-                if (err) {
-                    console.error(err);
-                    throw err;
-                }
-            });
+            { new: true });
+        return company;
     }
 
     /**

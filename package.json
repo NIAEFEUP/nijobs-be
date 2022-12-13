@@ -11,7 +11,8 @@
     "lint-fix": "npm run lint -- --fix",
     "test": "NODE_ENV=test jest --runInBand --coverage --verbose false",
     "ci": "npm run lint && npm test",
-    "audit": "npm audit --production --audit-level=high --json | npm-audit-helper --prod-only"
+    "audit": "npm audit --production --audit-level=high --json | npm-audit-helper --prod-only",
+    "docs": "npm start --prefix documentation/"
   },
   "repository": {
     "type": "git",
@@ -25,7 +26,7 @@
     "babel-plugin-transform-import-meta": "^2.1.0",
     "eslint": "^8.0.1",
     "jest": "^27.2.5",
-    "nodemon": "^2.0.13",
+    "nodemon": "^2.0.19",
     "npm-audit-helper": "^2.3.24",
     "supertest": "^4.0.2"
   },
@@ -42,15 +43,16 @@
     "express-validator": "^6.9.2",
     "helmet": "^3.21.2",
     "http-status-codes": "^1.4.0",
+    "jsonwebtoken": "^8.5.1",
     "linkedom": "^0.11.1",
     "lodash": "^4.17.20",
-    "mongoose": "^5.13.11",
-    "mongoose-unique-array": "^0.3.1",
+    "mongoose": "^6.5.2",
+    "mongoose-unique-array": "^0.4.2",
     "morgan": "^1.9.1",
     "multer": "^1.4.4-lts.1",
     "nodemailer": "^6.7.2",
     "nodemailer-express-handlebars": "^5.0.0",
-    "passport": "^0.4.0",
+    "passport": "^0.6.0",
     "passport-local": "^1.0.0",
     "rate-limit-mongo": "^2.1.0"
   }

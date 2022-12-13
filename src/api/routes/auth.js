@@ -2,7 +2,7 @@ import HTTPStatus from "http-status-codes";
 import { Router } from "express";
 import passport from "passport";
 
-import { authRequired, isGod } from "../middleware/auth.js";
+import { authRequired, isGod, validToken } from "../middleware/auth.js";
 import * as validators from "../middleware/validators/auth.js";
 import AccountService from "../../services/account.js";
 import Company from "../../models/Company.js";
@@ -38,8 +38,13 @@ export default (app) => {
     router.post("/login", validators.login, passport.authenticate("local"), (req, res) => res.status(HTTPStatus.OK).json({}));
 
     // Logout endpoint
-    router.delete("/login", (req, res) => {
-        if (req.isAuthenticated()) req.logout();
+    router.delete("/login", (req, res, next) => {
+        if (req.isAuthenticated()) req.logout((err) => {
+            if (err) {
+                console.error(err);
+                next(err);
+            }
+        });
 
         return res.status(HTTPStatus.OK).json({});
     });
@@ -60,4 +65,39 @@ export default (app) => {
             return next(err);
         }
     });
+
+    router.post("/recover/request", validators.recover, async (req, res, next) => {
+        try {
+            const accountService = new AccountService();
+
+            const account = await accountService.findByEmail(req.body.email);
+
+            if (account === null) {
+                return res.status(HTTPStatus.OK).json({});
+            }
+
+            const link = accountService.buildPasswordRecoveryLink(account);
+            accountService.sendPasswordRecoveryNotification(account, link);
+
+            return res.status(HTTPStatus.OK).json({});
+        } catch (err) {
+            console.error(err);
+            return next(err);
+        }
+    });
+
+    router.get("/recover/:token/confirm", validators.confirmRecover, validToken, (req, res) => res.status(HTTPStatus.OK).json({}));
+
+    router.post("/recover/:token/confirm", validators.finishRecover, validToken, async (req, res, next) => {
+        const { email } = req.locals.token;
+
+        try {
+            await new AccountService().updatePassword(email, req.body.password);
+            return res.status(HTTPStatus.OK).json({});
+        } catch (err) {
+            console.error(err);
+            return next(err);
+        }
+    });
+
 };

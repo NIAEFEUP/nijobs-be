@@ -6,9 +6,9 @@ import ValidationReasons from "./validationReasons.js";
 import { checkDuplicatedEmail, valuesInSet, ensureArray } from "./validatorUtils.js";
 import CompanyApplicationConstants from "../../../models/constants/CompanyApplication.js";
 import CompanyConstants from "../../../models/constants/Company.js";
-import AccountConstants from "../../../models/constants/Account.js";
 import { applicationUniqueness, CompanyApplicationProps } from "../../../models/CompanyApplication.js";
 import ApplicationStatus from "../../../models/constants/ApplicationStatus.js";
+import { password } from "./auth.js";
 
 export const MAX_LIMIT_RESULTS = 100;
 
@@ -20,13 +20,7 @@ export const create = useExpressValidators([
         .custom(checkDuplicatedEmail).bail()
         .custom(applicationUniqueness)
         .trim(),
-
-    body("password", ValidationReasons.DEFAULT)
-        .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isString().withMessage(ValidationReasons.STRING)
-        .isLength({ min: AccountConstants.password.min_length })
-        .withMessage(ValidationReasons.TOO_SHORT(AccountConstants.password.min_length))
-        .matches(/\d/).withMessage(ValidationReasons.HAS_NUMBER),
+    password,
 
     body("motivation", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()

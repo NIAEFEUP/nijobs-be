@@ -71,6 +71,7 @@ export const concurrentOffersNotExceeded = (OfferModel) => async (owner, publish
     const offersInTimePeriod = await (new CompanyService())
         .getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel)
         .withoutHidden()
+        .withoutArchived()
         .find(offerId ? { _id: { $ne: offerId } } : {});
 
     const offerNumber = offersInTimePeriod.length;
