@@ -1,4 +1,4 @@
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 import fs from "fs";
 import path from "path";
 import util from "util";

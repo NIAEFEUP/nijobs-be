@@ -1,4 +1,4 @@
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 import { ErrorTypes, APIError } from "./errorHandler.js";
 import config from "../../config/env.js";
 import OfferService from "../../services/offer.js";

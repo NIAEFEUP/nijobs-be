@@ -1,5 +1,5 @@
 import config from "../../src/config/env";
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 import Account from "../../src/models/Account";
 import Company from "../../src/models/Company";
 import Offer from "../../src/models/Offer";

@@ -3,7 +3,7 @@ import express from "express";
 import session from "express-session";
 import morgan from "morgan";
 import helmet from "helmet";
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 import RateLimit from "express-rate-limit";
 import MongoStore from "rate-limit-mongo";
 

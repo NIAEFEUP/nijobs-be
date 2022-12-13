@@ -1,4 +1,4 @@
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 import { ErrorTypes } from "../../src/api/middleware/errorHandler";
 import Account from "../../src/models/Account";
 import ValidatorTester from "../utils/ValidatorTester";

@@ -1,5 +1,5 @@
 import EmailService from "../../src/lib/emailService";
-import HTTPStatus from "http-status-codes";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 import CompanyApplication, { CompanyApplicationRules } from "../../src/models/CompanyApplication";
 import Account from "../../src/models/Account";
 import ValidatorTester from "../utils/ValidatorTester";
