@@ -55,9 +55,9 @@ class AccountService {
         return `${env.password_recovery_link}/${token}`;
     }
 
-    sendPasswordRecoveryNotification(account, link) {
+    async sendPasswordRecoveryNotification(account, link) {
         try {
-            EmailService.sendMail({
+            await EmailService.sendMail({
                 to: account.email,
                 ...REQUEST_ACCOUNT_RECOVERY(link),
             });
