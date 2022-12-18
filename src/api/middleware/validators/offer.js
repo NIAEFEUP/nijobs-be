@@ -516,6 +516,16 @@ export const get = useExpressValidators([
         .customSanitizer(ensureArray)
         .isArray().withMessage(ValidationReasons.ARRAY).bail()
         .custom(valuesInSet((TechnologyTypes))),
+
+    query("sortBy", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .isIn(OfferConstants.SortableFields).withMessage(ValidationReasons.IN_ARRAY(OfferConstants.SortableFields)),
+
+    query("descending", ValidationReasons.DEFAULT)
+        .optional()
+        .isBoolean().withMessage(ValidationReasons.BOOLEAN)
+        .toBoolean(),
 ]);
 
 export const validOfferId = useExpressValidators([

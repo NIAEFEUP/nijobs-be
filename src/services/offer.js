@@ -208,9 +208,9 @@ class OfferService {
      * jobType: Array of jobTypes allowed
      */
     async get({ value = "", queryToken = null, limit = OfferService.MAX_OFFERS_PER_QUERY,
-        showHidden = false, showAdminReason = false, ...filters }) {
+        showHidden = false, showAdminReason = false, sortBy, descending = false, ...filters }) {
 
-        let offers, queryValue = value, queryFilters = filters;
+        let offers, queryValue = value, queryFilters = filters, querySort = sortBy, queryDescending = descending;
 
         if (queryToken) {
             const {
@@ -228,10 +228,17 @@ class OfferService {
             offers = this._buildInitialSearchQuery(queryValue, showHidden, showAdminReason, queryFilters);
         }
 
+        if (!querySort) {
+            querySort = "publishDate";
+            queryDescending = true;
+        }
+        const sortOrder = queryDescending ? -1 : 1;
+
         const results = await offers
+            .collation({ locale: "en" }) // Case-insensitive
             .sort({
                 ...(queryValue ? { score: { "$meta": "textScore" } } : {}),
-                publishDate: -1,
+                [querySort]: sortOrder,
                 _id: 1,
             })
             .limit(limit);
