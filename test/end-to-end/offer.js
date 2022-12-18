@@ -26,7 +26,7 @@ import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOf
 describe("Offer endpoint tests", () => {
     const generateTestOffer = (params) => ({
         title: "Test Offer",
-        publishDate: (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+        publishDate: (new Date(Date.now())).toISOString(),
         publishEndDate: (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
         description: "For Testing Purposes",
         contacts: ["geral@niaefeup.pt", "229417766"],
@@ -218,6 +218,7 @@ describe("Offer endpoint tests", () => {
             describe("publishDate", () => {
                 const FieldValidatorTester = BodyValidatorTester("publishDate");
                 FieldValidatorTester.mustBeDate();
+                FieldValidatorTester.mustBeFuture();
             });
 
             describe("publishEndDate", () => {
@@ -320,7 +321,7 @@ describe("Offer endpoint tests", () => {
 
             test("Should fail to create an offer due to publish end date being after publish date more than the limit", async () => {
                 const offer = generateTestOffer();
-                const publishDate = new Date(Date.now() - (DAY_TO_MS));
+                const publishDate = new Date(Date.now());
                 const offer_params = {
                     ...offer,
                     owner: test_company._id,
@@ -439,7 +440,7 @@ describe("Offer endpoint tests", () => {
         describe("Before reaching the offers limit while having past offers", () => {
             const testOffers = Array(CompanyConstants.offers.max_concurrent - 1)
                 .fill(generateTestOffer({
-                    "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                    "publishDate": (new Date(Date.now())).toISOString(),
                     "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
                 }));
 
@@ -486,7 +487,7 @@ describe("Offer endpoint tests", () => {
         describe("After reaching the offers limit", () => {
             const testOffers = Array(CompanyConstants.offers.max_concurrent)
                 .fill(generateTestOffer({
-                    "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                    "publishDate": (new Date(Date.now())).toISOString(),
                     "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
                 }));
 
@@ -4486,7 +4487,7 @@ describe("Offer endpoint tests", () => {
                             owner: test_company._id.toString(),
                             ownerName: test_company.name,
                             ownerLogo: test_company.logo,
-                            publishDate: (new Date(now - (DAY_TO_MS))).toISOString(),
+                            publishDate: (new Date(now)).toISOString(),
                             publishEndDate: (new Date(now + (DAY_TO_MS))).toISOString()
                         }));
                 }
@@ -4496,7 +4497,7 @@ describe("Offer endpoint tests", () => {
                         owner: test_company._id.toString(),
                         ownerName: test_company.name,
                         ownerLogo: test_company.logo,
-                        publishDate: (new Date(now - (DAY_TO_MS))).toISOString(),
+                        publishDate: (new Date(now)).toISOString(),
                         publishEndDate: (new Date(now + (DAY_TO_MS))).toISOString()
                     }));
 
