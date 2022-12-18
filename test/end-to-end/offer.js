@@ -1026,6 +1026,16 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = QueryValidatorTester("technologies");
                 FieldValidatorTester.mustHaveValuesInRange(TechnologyConstants.TechnologyTypes, TechnologyConstants.MIN_TECHNOLOGIES + 1);
             });
+
+            describe("sortBy", () => {
+                const FieldValidatorTester = QueryValidatorTester("sortBy");
+                FieldValidatorTester.mustBeInArray(OfferConstants.SortableFields);
+            });
+
+            describe("descending", () => {
+                const FieldValidatorTester = QueryValidatorTester("descending");
+                FieldValidatorTester.mustBeBoolean();
+            });
         });
 
         describe("Using already created offer(s)", () => {
