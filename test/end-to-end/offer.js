@@ -2628,6 +2628,215 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.results[0].requirements).toEqual(test_offer.requirements);
                 });
             });
+
+            describe("Offer sorting", () => {
+                beforeAll(async () => {
+                    await Offer.deleteMany();
+                    await Offer.create(test_offer);
+
+                    await Offer.create({
+                        ...test_offer,
+                        title: "Amazing offer",
+                        publishDate: "2019-11-23T00:00:00.000Z",
+                        publishEndDate: "2019-11-29T00:00:00.000Z",
+                        description: "Ability to have an incredible job",
+                        jobType: "OTHER",
+                        location: "Aveiro",
+                        vacancies: 2,
+                        ownerName: "Awesome Company",
+                    });
+                });
+
+                afterAll(async () => {
+                    await Offer.deleteMany({});
+                });
+
+                test("should sort by publishDate by default", async () => {
+                    const res = await request()
+                        .get("/offers");
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by title ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "title" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by title descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "title", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by publishDate ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "publishDate" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by publishDate descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "publishDate", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by publishEndDate ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "publishEndDate" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by publishEndDate descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "publishEndDate", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by description ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "description" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by description descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "description", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by jobType ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "jobType" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by jobType descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "jobType", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by location ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "location" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by location descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "location", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by vacancies ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "vacancies" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by vacancies descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "vacancies", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by ownerName ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "ownerName" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by ownerName descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "ownerName", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+            });
         });
     });
 
