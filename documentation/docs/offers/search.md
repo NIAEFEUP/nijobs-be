@@ -139,6 +139,41 @@ see [list](https://github.com/NIAEFEUP/nijobs-be/blob/develop/src/models/constan
 If you pass multiple values like: `<url>/?technologies=tech1&technologies=tech2` it will be parsed as a String array
 :::
 
+### sortBy
+
+<Highlight level="info" inline>Query Parameter</Highlight>
+<Highlight level="success" inline>Optional</Highlight>
+<br/>
+<Highlight level="warning" inline>Default: "publishDate"</Highlight>
+<Highlight level="secondary" inline>String</Highlight>
+
+Sorts the results by the given field.
+
+:::caution
+Must be a sortable Offer field (currently `[
+    "title",
+    "publishDate",
+    "publishEndDate",
+    "jobMinDuration",
+    "jobMaxDuration",
+    "description",
+    "vacancies",
+    "jobType",
+    "ownerName",
+    "location",
+]`).
+:::
+
+### descending
+
+<Highlight level="info" inline>Query Parameter</Highlight>
+<Highlight level="success" inline>Optional</Highlight>
+<br/>
+<Highlight level="warning" inline>Default: false</Highlight>
+<Highlight level="secondary" inline>Boolean</Highlight>
+
+If active, will sort the results in descending order.
+
 ## Response
 
 ### results
