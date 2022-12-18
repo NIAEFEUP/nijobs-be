@@ -34,7 +34,7 @@ describe("Company endpoint", () => {
 
     const generateTestOffer = (params) => ({
         title: "Test Offer",
-        publishDate: (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+        publishDate: (new Date()).toISOString(),
         publishEndDate: (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
         description: "For Testing Purposes",
         contacts: ["geral@niaefeup.pt", "229417766"],
@@ -646,7 +646,7 @@ describe("Company endpoint", () => {
 
                 const offers = Array(3).fill(await Offer.create({
                     ...generateTestOffer({
-                        "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                        "publishDate": (new Date(Date.now())).toISOString(),
                         "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
                     }),
                     owner: test_company._id,
@@ -674,7 +674,7 @@ describe("Company endpoint", () => {
 
                 const offer = await Offer.create({
                     ...generateTestOffer({
-                        "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                        "publishDate": (new Date(Date.now())).toISOString(),
                         "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
                     }),
                     owner: test_company._id,
@@ -887,7 +887,7 @@ describe("Company endpoint", () => {
 
                 const offers = Array(3).fill(await Offer.create({
                     ...generateTestOffer({
-                        "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                        "publishDate": (new Date(Date.now())).toISOString(),
                         "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
                     }),
                     owner: test_company._id,
@@ -912,7 +912,7 @@ describe("Company endpoint", () => {
 
                 const offer = await Offer.create({
                     ...generateTestOffer({
-                        "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                        "publishDate": (new Date(Date.now())).toISOString(),
                         "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
                     }),
                     owner: test_company._id,
@@ -939,7 +939,7 @@ describe("Company endpoint", () => {
 
                 const offer = await Offer.create({
                     ...generateTestOffer({
-                        "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                        "publishDate": (new Date(Date.now())).toISOString(),
                         "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
                     }),
                     owner: test_company._id,
@@ -1069,7 +1069,7 @@ describe("Company endpoint", () => {
 
             const offer = {
                 title: "Test Offer",
-                publishDate: new Date(Date.now() - (DAY_TO_MS)),
+                publishDate: new Date(Date.now()),
                 publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
                 description: "For Testing Purposes",
                 contacts: ["geral@niaefeup.pt", "229417766"],
@@ -1314,7 +1314,7 @@ describe("Company endpoint", () => {
 
             const offer = {
                 title: "Test Offer",
-                publishDate: new Date(Date.now() - (DAY_TO_MS)),
+                publishDate: new Date(Date.now()),
                 publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
                 description: "For Testing Purposes",
                 contacts: ["geral@niaefeup.pt", "229417766"],
@@ -1683,7 +1683,7 @@ describe("Company endpoint", () => {
 
         const test_agent = agent();
 
-        const publishDate = (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString();
+        const publishDate = (new Date(Date.now())).toISOString();
         const publishEndDate = (new Date(Date.now() + (2 * DAY_TO_MS))).toISOString();
 
         beforeEach(async () => {
@@ -1726,7 +1726,7 @@ describe("Company endpoint", () => {
                     owner: test_company_2._id,
                     ownerName: test_company_2.name,
                     ownerLogo: test_company_2.logo,
-                    "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                    "publishDate": (new Date(Date.now())).toISOString(),
                     "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
                 }));
 

@@ -79,6 +79,7 @@ export const create = useExpressValidators([
     body("publishDate", ValidationReasons.DEFAULT)
         .optional()
         .isISO8601({ strict: true }).withMessage(ValidationReasons.DATE).bail()
+        .isAfter().withMessage(ValidationReasons.DATE_EXPIRED).bail()
         .customSanitizer(normalizeDate),
 
     body("publishEndDate", ValidationReasons.DEFAULT)
