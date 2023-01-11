@@ -216,12 +216,13 @@ class OfferService {
             const {
                 id: lastOfferId,
                 score: lastOfferScore,
+                publishDate: lastPublishDate,
                 ...searchInfo
             } = this.decodeQueryToken(queryToken);
 
             [queryValue, queryFilters] = [searchInfo.value, searchInfo.filters];
 
-            offers = this._buildSearchContinuationQuery(lastOfferId, lastOfferScore, queryValue,
+            offers = this._buildSearchContinuationQuery(lastOfferId, lastOfferScore, lastPublishDate, queryValue,
                 showHidden, showAdminReason, queryFilters);
         } else {
             offers = this._buildInitialSearchQuery(queryValue, showHidden, showAdminReason, queryFilters);
@@ -242,6 +243,7 @@ class OfferService {
                 queryToken: this.encodeQueryToken(
                     lastOffer._id,
                     lastOffer.score || lastOffer._doc?.score,
+                    lastOffer.publishDate,
                     queryValue, queryFilters
                 ),
             };
@@ -269,8 +271,9 @@ class OfferService {
      * Builds a search continuation query. Only use this when loading more offers.
      * Otherwise, use _buildInitialSearchQuery().
      */
-    _buildSearchContinuationQuery(lastOfferId, lastOfferScore, value, showHidden, showAdminReason, filters) {
+    _buildSearchContinuationQuery(lastOfferId, lastOfferScore, lastPublishDate, value, showHidden, showAdminReason, filters) {
         let offers;
+
         if (value) {
             offers = Offer.aggregate([
                 { $match: { $text: { $search: value } } },
@@ -281,7 +284,8 @@ class OfferService {
                 } },
                 { $match: { "$or": [
                     { score: { "$lt": lastOfferScore } },
-                    { score: lastOfferScore, _id: { "$gt": ObjectId(lastOfferId) } }
+                    { score: lastOfferScore, publishDate: { "$lt": lastPublishDate } },
+                    { score: lastOfferScore, publishDate: lastPublishDate, _id: { "$gt": ObjectId(lastOfferId) } }
                 ] } },
                 { $match: Offer.filterCurrent() },
                 { $match: showHidden ? {} : Offer.filterNonHidden() }
@@ -289,7 +293,10 @@ class OfferService {
         } else {
             offers = Offer.find({ "$and": [
                 this._buildFilterQuery(filters),
-                { _id: { "$gt": ObjectId(lastOfferId) } }
+                { "$or": [
+                    { publishDate: { "$lt": lastPublishDate } },
+                    { publishDate: lastPublishDate, _id: { "$gt": ObjectId(lastOfferId) } }
+                ] }
             ] });
 
             this.selectSearchOffers(offers, showHidden, showAdminReason);
@@ -357,10 +364,11 @@ class OfferService {
      * Encodes a query token, by taking an id and FTS score if present, and encoding them in safe url base64
      * @param {*} id
      * @param {*} score
+     * @param {*} publishDate
      */
-    encodeQueryToken(id, score, value, filters) {
+    encodeQueryToken(id, score, publishDate, value, filters) {
         return base64url.encode(JSON.stringify({
-            id, score, value, filters
+            id, score, publishDate: publishDate.toISOString(), value, filters
         }));
     }
 
@@ -373,7 +381,8 @@ class OfferService {
 
         return {
             ...tokenInfo,
-            score: Number(tokenInfo.score)
+            score: Number(tokenInfo.score),
+            publishDate: new Date(Date.parse(tokenInfo.publishDate))
         };
     }
 
