@@ -6,7 +6,7 @@ import ValidationReasons from "./validationReasons.js";
 import { checkDuplicatedEmail, valuesInSet, ensureArray } from "./validatorUtils.js";
 import CompanyApplicationConstants from "../../../models/constants/CompanyApplication.js";
 import CompanyConstants from "../../../models/constants/Company.js";
-import { applicationUniqueness, CompanyApplicationProps } from "../../../models/CompanyApplication.js";
+import { applicationUniqueness, exceededCreationTimeLimit, CompanyApplicationProps } from "../../../models/CompanyApplication.js";
 import ApplicationStatus from "../../../models/constants/ApplicationStatus.js";
 import { password } from "./auth.js";
 
@@ -19,6 +19,7 @@ export const create = useExpressValidators([
         .bail()
         .custom(checkDuplicatedEmail).bail()
         .custom(applicationUniqueness)
+        .custom(exceededCreationTimeLimit)
         .trim(),
     password,
 
