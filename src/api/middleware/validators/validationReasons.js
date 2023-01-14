@@ -50,6 +50,7 @@ const ValidationReasons = Object.freeze({
     OFFER_HIDDEN: "offer-is-hidden",
     FILE_TOO_LARGE: (max) => `file-cant-be-larger-than-${max}MB`,
     MUST_BE_GREATER_THAN_OR_EQUAL_TO: (field) => `must-be-greater-than-or-equal-to:${field}`,
+    APPLICATION_RECENTLY_CREATED: "application-created-in-less-than-five-minutes-ago",
 });
 
 export default ValidationReasons;

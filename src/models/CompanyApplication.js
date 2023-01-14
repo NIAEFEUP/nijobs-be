@@ -80,6 +80,10 @@ export const CompanyApplicationProps = {
             return !!this.rejectedAt;
         },
     },
+    isVerified: {
+        type: Boolean,
+        default: false,
+    },
 };
 
 const CompanyApplicationSchema = new Schema(CompanyApplicationProps);
@@ -116,8 +120,9 @@ function validateMutuallyExclusiveEvents(field) {
 export const applicationUniqueness = async (email) => {
     const existingApplications = await CompanyApplication.find({ email });
     if (existingApplications.some((application) =>
-        application.state === ApplicationStatus.PENDING ||
-    application.state === ApplicationStatus.APPROVED)
+        (application.state === ApplicationStatus.PENDING ||
+    application.state === ApplicationStatus.APPROVED) &&
+    application.isVerified)
     ) {
         throw new Error(CompanyApplicationRules.ONLY_ONE_APPLICATION_ACTIVE_PER_EMAIL.msg);
     }

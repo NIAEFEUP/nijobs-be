@@ -35,6 +35,7 @@ const AccountSchema = new Schema({
 
         },
     },
+
 });
 
 AccountSchema.methods.validatePassword = async function(password) {
