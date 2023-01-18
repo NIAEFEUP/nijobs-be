@@ -87,7 +87,7 @@ currently `["FULL-TIME", "PART-TIME", "SUMMER INTERNSHIP", "CURRICULAR INTERNSHI
 
 <Highlight level="info">Query Parameter</Highlight>
 
-<Highlight level="success" inline>Optional</Highlight>
+<Highlight level="danger" inline>Required</Highlight>
 <Highlight level="secondary" inline>Number</Highlight>
 
 Filters the search results to only include Offers with a `jobMinDuration` greater than given value.
@@ -96,7 +96,7 @@ Filters the search results to only include Offers with a `jobMinDuration` greate
 
 <Highlight level="info">Query Parameter</Highlight>
 
-<Highlight level="success" inline>Optional</Highlight>
+<Highlight level="danger" inline>Required</Highlight>
 <Highlight level="secondary" inline>Number</Highlight>
 
 Filters the search results to only include Offers with a `jobMinDuration` lower than given value.

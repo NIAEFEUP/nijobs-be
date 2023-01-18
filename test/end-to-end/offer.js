@@ -30,6 +30,8 @@ describe("Offer endpoint tests", () => {
         publishEndDate: (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
         description: "For Testing Purposes",
         contacts: ["geral@niaefeup.pt", "229417766"],
+        jobMinDuration: 1,
+        jobMaxDuration: 6,
         jobType: "SUMMER INTERNSHIP",
         fields: ["DEVOPS", "BACKEND", "OTHER"],
         technologies: ["React", "CSS"],
@@ -231,12 +233,15 @@ describe("Offer endpoint tests", () => {
 
             describe("jobMinDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMinDuration");
+                FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeNumber();
             });
 
             describe("jobMaxDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMaxDuration");
+                FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeNumber();
+                FieldValidatorTester.mustBeGreaterThanOrEqualToField("jobMinDuration");
             });
 
             describe("jobStartDate", () => {
@@ -643,6 +648,8 @@ describe("Offer endpoint tests", () => {
                     description: "For Testing Purposes",
                     contacts: ["geral@niaefeup.pt", "229417766"],
                     jobType: "SUMMER INTERNSHIP",
+                    jobMinDuration: 1,
+                    jobMaxDuration: 6,
                     fields: ["DEVOPS", "BACKEND", "OTHER"],
                     technologies: ["React", "CSS"],
                     owner: test_company._id,
@@ -687,43 +694,13 @@ describe("Offer endpoint tests", () => {
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_GREATER_THAN_OR_EQUAL_TO("jobMinDuration"));
             });
 
             test("should succeed if jobMaxDuration is greater than jobMinDuration", async () => {
                 const offer_params = generateTestOffer({
                     jobMinDuration: 8,
                     jobMaxDuration: 10,
-                    owner: test_company._id,
-                });
-
-                const res = await request()
-                    .post("/offers/new")
-                    .send(withGodToken(offer_params));
-
-                expect(res.status).toBe(HTTPStatus.OK);
-            });
-
-            test("should fail if jobMaxDuration is specified and jobMinDuration isn't", async () => {
-                const offer_params = generateTestOffer({
-                    jobMaxDuration: 8,
-                    owner: test_company._id,
-                });
-
-                const res = await request()
-                    .post("/offers/new")
-                    .send(withGodToken(offer_params));
-
-                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.JOB_MIN_DURATION_NOT_SPECIFIED);
-            });
-
-            test("should succeed if jobMinDuration is specified and jobMaxDuration isn't", async () => {
-                const offer_params = generateTestOffer({
-                    jobMinDuration: 8,
                     owner: test_company._id,
                 });
 

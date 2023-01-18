@@ -89,19 +89,18 @@ The date when the offer will be "hidden" from the application (will be invisible
 
 <Highlight level="info">Body Parameter</Highlight>
 
-<Highlight level="success" inline>Optional</Highlight>
+<Highlight level="danger" inline>Required</Highlight>
 <Highlight level="secondary" inline>Number</Highlight>
 
 The duration of the work itself (in months).
 
 * Must be an Integer (positive).
-* Is Required if [jobMaxDuration](#jobmaxduration) is set.
 
 ### jobMaxDuration
 
 <Highlight level="info">Body Parameter</Highlight>
 
-<Highlight level="success" inline>Optional</Highlight>
+<Highlight level="danger" inline>Required</Highlight>
 <Highlight level="secondary" inline>Number</Highlight>
 
 The duration of the work itself (in months).
