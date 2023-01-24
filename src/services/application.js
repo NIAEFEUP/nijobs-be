@@ -1,5 +1,8 @@
 import CompanyApplication, { CompanyApplicationRules } from "../models/CompanyApplication.js";
+import { generateToken } from "../lib/token.js";
 import hash from "../lib/passwordHashing.js";
+import { RECOVERY_LINK_EXPIRATION } from "../models/constants/ApplicationStatus.js";
+import { APPLICATION_CONFIRMATION } from "../email-templates/companyApplicationConfirmation.js";
 import AccountService from "./account.js";
 import EmailService from "../lib/emailService.js";
 import {
@@ -214,6 +217,23 @@ class CompanyApplicationService {
         } catch (e) {
             console.error(e);
             throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+        }
+    }
+
+    buildConfirmationLink(id) {
+        const token = generateToken({ _id: id }, config.jwt_secret, RECOVERY_LINK_EXPIRATION);
+        return `${config.application_confirmation_link}/${token}`;
+    }
+
+    async sendConfirmationNotification(email, link) {
+        try {
+            await EmailService.sendMail({
+                to: email,
+                ...APPLICATION_CONFIRMATION(link),
+            });
+        } catch (err) {
+            console.error(err);
+            throw err;
         }
     }
 }

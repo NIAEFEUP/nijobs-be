@@ -5,3 +5,5 @@ const ApplicationStatus = Object.freeze({
 });
 
 export default ApplicationStatus;
+
+export const RECOVERY_LINK_EXPIRATION = 300;

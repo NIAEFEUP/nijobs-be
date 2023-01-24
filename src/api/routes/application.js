@@ -21,8 +21,11 @@ export default (app) => {
 
 
         try {
+            const applicationService = new ApplicationService();
             // This is safe since the service is destructuring the passed object and the fields have been validated
-            const application = await (new ApplicationService()).create(req.body);
+            const application = await applicationService.create(req.body);
+            const link = applicationService.buildConfirmationLink(application._id); // ObjectId(application)
+            applicationService.sendConfirmationNotification(application.email, link);
             return res.json(application);
         } catch (err) {
             console.error(err);
