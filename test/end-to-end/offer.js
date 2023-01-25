@@ -1111,7 +1111,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is not a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, "hello", mockCurrentDate, "test");
+                        .encodeQueryToken(testOfferId, "hello", "test", "test", false, "test");
 
                     const res = await request()
                         .get("/offers")
@@ -1145,7 +1145,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's value is present and score is missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, undefined, mockCurrentDate, "test");
+                        .encodeQueryToken(testOfferId, undefined, "test", "test", false, "test");
 
                     const res = await request()
                         .get("/offers")
@@ -1227,7 +1227,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when the queryToken's value is present and score is a valid number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, 5, mockCurrentDate, "test");
+                        .encodeQueryToken(testOfferId, 5, "test", "test", false, "test");
 
                     const res = await request()
                         .get("/offers")
@@ -1239,7 +1239,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when value is present and queryToken's score can be parsed as a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, "3.5", mockCurrentDate, "test");
+                        .encodeQueryToken(testOfferId, "3.5", "test", "test", false, "test");
 
                     const res = await request()
                         .get("/offers")
