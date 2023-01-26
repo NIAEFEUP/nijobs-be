@@ -124,8 +124,8 @@ export const applicationUniqueness = async (email) => {
     const existingApplications = await CompanyApplication.find({ email });
     if (existingApplications.some((application) =>
         (application.state === ApplicationStatus.PENDING ||
-    application.state === ApplicationStatus.APPROVED) &&
-    application.isVerified)
+            application.state === ApplicationStatus.APPROVED) &&
+        application.isVerified)
     ) {
         throw new Error(CompanyApplicationRules.ONLY_ONE_APPLICATION_ACTIVE_PER_EMAIL.msg);
     }
@@ -162,6 +162,7 @@ export const isRejectable = (application) => {
 CompanyApplicationSchema.methods.companyValidation = function() {
     if (this.isVerified) throw new Error("Application was already validated by the company");
     this.isVerified = true;
+    return this.save({ validateModifiedOnly: true });
 };
 
 CompanyApplicationSchema.methods.approve = function() {

@@ -4,8 +4,6 @@ import ApplicationService from "../../services/application.js";
 import * as applicationMiddleware from "../middleware/application.js";
 import { validToken } from "../middleware/auth.js";
 import { StatusCodes as HTTPStatus } from "http-status-codes/build/cjs/status-codes.js";
-import * as validatorsd from "../middleware/validators/auth.js";
-
 
 const router = Router();
 
@@ -30,10 +28,11 @@ export default (app) => {
             return next(err);
         }
     });
-    router.get("/recover/:token/confirm", validatorsd.confirmRecover, validToken, (req, res) => res.status(HTTPStatus.OK).json({}));
 
-    router.post("/recover/:token/confirm", validatorsd.finishRecover, validToken, async (req, res, next) => {
-        const { id } = req.locals.token;
+    router.get("/validate/:token/confirm", validators.confirmValidation, validToken, (req, res) => res.status(HTTPStatus.OK).json({}));
+
+    router.post("/validate/:token/confirm", validators.finishValidation, validToken, async (req, res, next) => {
+        const { _id: id } = req.locals.token;
         try {
             await new ApplicationService().applicationValidation(id);
             return res.status(HTTPStatus.OK).json({});

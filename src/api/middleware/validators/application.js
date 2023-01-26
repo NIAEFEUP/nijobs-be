@@ -112,3 +112,17 @@ export const search = useExpressValidators([
         .custom(sortByParamValidator)
         .customSanitizer(parseSortByField),
 ]);
+
+
+export const token = param("token", ValidationReasons.DEFAULT)
+    .exists().withMessage(ValidationReasons.REQUIRED).bail()
+    .isString().withMessage(ValidationReasons.STRING)
+    .trim();
+
+export const confirmValidation =  useExpressValidators([
+    token,
+]);
+
+export const finishValidation = useExpressValidators([
+    token,
+]);
