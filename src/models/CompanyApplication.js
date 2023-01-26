@@ -34,9 +34,8 @@ export const CompanyApplicationRules = Object.freeze({
         msg: "company-application-already-reviewed",
     },
     APPLICATION_RECENTLY_CREATED: {
-        validator: validateExceededCreationTimeLimit,
-        msg: "application-created-in-less-than-five-minutes-ago"
-    }
+        msg: "company-application-already-created-less-than-5-minutes-ago",
+    },
 });
 
 export const CompanyApplicationProps = {
@@ -134,23 +133,6 @@ export const applicationUniqueness = async (email) => {
     return true;
 };
 
-export const exceededCreationTimeLimit = async (email) => {
-    const cursor = await CompanyApplication.findOne({ email, isVerified: false }).exec();
-    if (cursor !== null && Date.now() - cursor.submittedAt < 5000 * 60) {
-        throw new Error(CompanyApplicationRules.APPLICATION_RECENTLY_CREATED.msg);
-    }
-    return true;
-};
-
-async function validateExceededCreationTimeLimit(value) {
-    try {
-        await applicationUniqueness(value);
-    } catch (e) {
-        return false;
-    }
-    return true;
-}
-
 async function validateSingleActiveApplication(value) {
     try {
         await applicationUniqueness(value);
@@ -174,6 +156,12 @@ export const isRejectable = (application) => {
         throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
 
     return true;
+};
+
+
+CompanyApplicationSchema.methods.companyValidation = function() {
+    if (this.isVerified) throw new Error("Application was already validated by the company");
+    this.isVerified = true;
 };
 
 CompanyApplicationSchema.methods.approve = function() {

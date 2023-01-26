@@ -236,6 +236,10 @@ class CompanyApplicationService {
             throw err;
         }
     }
+    async applicationValidation(id) {
+        const application = await this.findById(id);
+        application.companyValidation();
+    }
 }
 
 export default CompanyApplicationService;
