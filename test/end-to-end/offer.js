@@ -21,6 +21,7 @@ import OfferService from "../../src/services/offer";
 import EmailService from "../../src/lib/emailService";
 import { concurrentOffersNotExceeded } from "../../src/api/middleware/validators/validatorUtils";
 import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
+import base64url from "base64url";
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -1069,7 +1070,7 @@ describe("Offer endpoint tests", () => {
 
             describe("queryToken validation", () => {
                 test("should fail if queryToken does not contain a valid id", async () => {
-                    const queryToken = (new OfferService()).encodeQueryToken("123", 10, mockCurrentDate, "test");
+                    const queryToken = (new OfferService()).encodeQueryToken("123", 5, mockCurrentDate, "test");
 
                     const res = await request()
                         .get("/offers")
@@ -1084,7 +1085,7 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test("should fail if the queryToken's offer does not exist", async () => {
-                    const queryToken = (new OfferService()).encodeQueryToken("5facf0cdb8bc30016ee58952", 10, mockCurrentDate, "test");
+                    const queryToken = (new OfferService()).encodeQueryToken("5facf0cdb8bc30016ee58952", 5, mockCurrentDate, "test");
                     const res = await request()
                         .get("/offers")
                         .query({ queryToken });
@@ -1152,6 +1153,42 @@ describe("Offer endpoint tests", () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
                         .encodeQueryToken(testOfferId, 5, mockCurrentDate);
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's publishDate is not a date", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = base64url.encode(JSON.stringify({
+                        testOfferId, publishDate: 3
+                    }));
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's publishDate is missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = base64url.encode(JSON.stringify({
+                        testOfferId, publishDate: 3
+                    }));
 
                     const res = await request()
                         .get("/offers")
