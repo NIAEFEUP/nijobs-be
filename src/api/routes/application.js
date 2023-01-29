@@ -20,17 +20,12 @@ export default (app) => {
             const applicationService = new ApplicationService();
             // This is safe since the service is destructuring the passed object and the fields have been validated
             const application = await applicationService.create(req.body);
-            const link = applicationService.buildConfirmationLink(application._id); // ObjectId(application)
-            await applicationService.sendConfirmationNotification(application.email, link);
             return res.json(application);
         } catch (err) {
             console.error(err);
             return next(err);
         }
     });
-
-    router.get("/validate/:token/confirm", validators.confirmValidation, validToken, (req, res) => res.status(HTTPStatus.OK).json({}));
-
     router.post("/validate/:token/confirm", validators.finishValidation, validToken, async (req, res, next) => {
         const { _id: id } = req.locals.token;
         try {

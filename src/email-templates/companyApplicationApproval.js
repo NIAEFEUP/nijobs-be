@@ -8,6 +8,11 @@ export const NEW_COMPANY_APPLICATION_COMPANY = (companyName, applicationId) => (
     template: "new_company_application_company",
     context: { companyName, applicationId },
 });
+export const APPLICATION_CONFIRMATION = (link) => ({
+    subject: "Confirm your NIJobs application",
+    template: "confirm-application",
+    context: { link },
+});
 export const APPROVAL_NOTIFICATION = (companyName) => ({
     subject: "Welcome to NIJobs!",
     template: "approval_notification",
@@ -18,3 +23,4 @@ export const REJECTION_NOTIFICATION = (companyName) => ({
     template: "rejection_notification",
     context: { companyName },
 });
+

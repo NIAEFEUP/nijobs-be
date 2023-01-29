@@ -85,7 +85,7 @@ export const CompanyApplicationProps = {
     },
     isVerified: {
         type: Boolean,
-        default: false,
+        default: true,
     },
 };
 

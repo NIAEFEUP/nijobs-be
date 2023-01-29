@@ -17,6 +17,7 @@ export class EmailService {
             },
             connectionTimeout: 30000
         });
+        console.log("transporter");
 
         transporter.use("compile", hbs({
             viewEngine: {

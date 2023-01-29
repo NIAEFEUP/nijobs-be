@@ -42,18 +42,15 @@ class CompanyApplicationService {
             companyName,
             motivation,
             submittedAt: Date.now(),
+            isVerified: false,
         });
-
+        console.log("criar");
+        const link = this.buildConfirmationLink(application._id);
         await EmailService.sendMail({
-            to: config.mail_from,
-            ...NEW_COMPANY_APPLICATION_ADMINS(application.email, companyName, motivation)
+            to: email,
+            ...APPLICATION_CONFIRMATION(link),
         });
-
-        await EmailService.sendMail({
-            to: application.email,
-            ...NEW_COMPANY_APPLICATION_COMPANY(companyName, application._id.toString())
-        });
-
+        console.log("Criado");
         return application.toObject();
     }
 
@@ -76,7 +73,7 @@ class CompanyApplicationService {
         return {
             totalDocCount,
             applications:
-                [...(await CompanyApplication.find({})
+                [...(await CompanyApplication.find({ isVerified: true })
                     .sort(sortingOptions || { submittedAt: "desc" })
                     .skip(offset)
                     .limit(limit)
@@ -120,6 +117,7 @@ class CompanyApplicationService {
 
         if (submissionDateFrom || submissionDateTo)
             filterQueries.push(this.buildSubmissionDateFilter({ from: submissionDateFrom, to: submissionDateTo }));
+        filterQueries.push({ isVerify: true });
 
         return filterQueries;
     }
@@ -222,7 +220,7 @@ class CompanyApplicationService {
 
     buildConfirmationLink(id) {
         const token = generateToken({ _id: id }, config.jwt_secret, RECOVERY_LINK_EXPIRATION);
-        return `${config.application_confirmation_link}/${token}`;
+        return `${config.application_confirmation_link}/${token}/confirm`;
     }
 
     async sendConfirmationNotification(email, link) {
@@ -239,6 +237,15 @@ class CompanyApplicationService {
     async applicationValidation(id) {
         const application = await this.findById(id);
         application.companyValidation();
+        await EmailService.sendMail({
+            to: config.mail_from,
+            ...NEW_COMPANY_APPLICATION_ADMINS(application.email, application.companyName, application.motivation)
+        });
+
+        await EmailService.sendMail({
+            to: application.email,
+            ...NEW_COMPANY_APPLICATION_COMPANY(application.companyName, application._id.toString())
+        });
     }
 }
 
