@@ -77,6 +77,7 @@ export default (app) => {
             }
 
             const link = accountService.buildPasswordRecoveryLink(account);
+
             accountService.sendPasswordRecoveryNotification(account, link);
 
             return res.status(HTTPStatus.OK).json({});
