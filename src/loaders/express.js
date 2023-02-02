@@ -49,7 +49,7 @@ export default (app) => {
 
     // Set the API call rate limit only on production
     if (process.env.NODE_ENV === "production") {
-        const api_rate_limiter = new RateLimit({
+        const api_rate_limiter = RateLimit({
             store: new MongoStore({
                 uri: config.db_uri,
                 user: config.db_user,
