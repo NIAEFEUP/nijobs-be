@@ -1014,6 +1014,45 @@ describe("Company endpoint", () => {
             });
 
 
+            describe("social", () => {
+                test("should return an error because the social media is too long", async () => {
+                    const social = new Array(CompanyConstants.social.max_length + 1)
+                        .fill("social");
+                    const res = await test_agent
+                        .post("/company/application/finish")
+                        .attach("logo", "test/data/logo-niaefeup.png")
+                        .field("social", social)
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                    expect(res.body.errors).toContainEqual({
+                        "location": "body",
+                        "msg": ValidationReasons.ARRAY_SIZE(CompanyConstants.social.min_length, CompanyConstants.social.max_length),
+                        "param": "social",
+                        "value": social
+                    });
+                });
+            });
+
+            describe("images", () => {
+                test("should return an error because the social media is too long", async () => {
+                    const images = new Array(CompanyConstants.images.max_length + 1)
+                        .fill("images");
+                    const res = await test_agent
+                        .post("/company/application/finish")
+                        .attach("logo", "test/data/logo-niaefeup.png")
+                        .field("images", images)
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                    expect(res.body.errors).toContainEqual({
+                        "location": "body",
+                        "msg": ValidationReasons.ARRAY_SIZE(CompanyConstants.images.min_length, CompanyConstants.images.max_length),
+                        "param": "images",
+                        "value": images
+                    });
+                });
+            });
+
+
         });
     });
 

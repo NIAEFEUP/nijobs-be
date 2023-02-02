@@ -101,3 +101,90 @@ export const cloudSave = async (req, res, next) => {
     return next();
 
 };
+
+export const parseArrayOfFiles = (field_name, max_count) => (req, res, next) => {
+    const upload = multerConfig.array(field_name, max_count);
+    upload(req, res, (error) => {
+        if (error || !req.files) {
+            let message = "required";
+            let param = field_name;
+            if (error) {
+                message = error instanceof MulterError ?
+                    parseError(error.message) : error.message;
+
+                if (error.code === "LIMIT_FILE_COUNT")
+                    message = ValidationReasons.ARRAY_SIZE(0, max_count);
+
+                param = error.field ? error.field : param;
+            }
+            return next(new APIError(
+                HTTPStatus.UNPROCESSABLE_ENTITY,
+                ErrorTypes.VALIDATION_ERROR,
+                [{
+                    location: "body",
+                    param,
+                    msg: message
+                }]
+
+            ));
+        } else {
+            return next();
+        }
+    });
+};
+
+export const localSaveArray = async (req, res, next) => {
+    for (const file of req.files) {
+        const buffer = file.buffer;
+        const extension = file.mimetype.substr(file.mimetype.indexOf("/") + 1);
+        const filename = `${req.user.company}.${extension}`;
+        const file_path = path.join(config.upload_folder, filename);
+        file.filename = filename;
+        try {
+            await fs.promises.writeFile(file_path, buffer);
+        } catch (error) {
+            console.error(error);
+            return next(new APIError(
+                HTTPStatus.UNPROCESSABLE_ENTITY,
+                ErrorTypes.FILE_ERROR,
+                [{
+                    location: "body",
+                    param: file.fieldname,
+                    msg: ValidationReasons.FAILED_SAVE
+                }]
+            ));
+        }
+    }
+    return next();
+};
+
+export const cloudSaveArray = async (req, res, next) => {
+    for (const file of req.files) {
+        const filename = file.filename;
+        const file_path = path.join(config.upload_folder, filename);
+        try {
+            if (config.cloudinary_url) {
+                const resp = await upload(file_path,
+                    {
+                        resource_type: "image",
+                        public_id: filename,
+                        overwrite: true
+                    });
+                await fs.promises.unlink(file_path);
+                file.url = resp.secure_url;
+            }
+        } catch (err) {
+            console.error(err);
+            await fs.promises.unlink(file_path);
+            return next(new APIError(
+                HTTPStatus.UNPROCESSABLE_ENTITY,
+                ErrorTypes.FILE_ERROR,
+                [{
+                    location: "body",
+                    param: file.fieldname,
+                    msg: ValidationReasons.FAILED_SAVE
+                }]));
+        }
+    }
+    return next();
+};

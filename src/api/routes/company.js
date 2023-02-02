@@ -40,10 +40,10 @@ export default (app) => {
 
             try {
                 const companyService = new CompanyService();
-                const { bio, contacts } = req.body;
+                const { bio, contacts, social } = req.body;
                 const logo = req?.file?.url || `${config.webserver_host}/static/${req.file.filename}`;
                 const company_id = req.user.company;
-                await companyService.changeAttributes(company_id, { bio, contacts, logo, hasFinishedRegistration: true });
+                await companyService.changeAttributes(company_id, { bio, contacts, social, logo, hasFinishedRegistration: true });
                 return res.json({});
             } catch (err) {
                 console.error(err);

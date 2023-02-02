@@ -19,7 +19,15 @@ export const finish = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .customSanitizer(ensureArray)
         .isArray({ min: CompanyConstants.contacts.min_length, max: CompanyConstants.contacts.max_length })
-        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length))
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length)),
+    body("social", ValidationReasons.DEFAULT)
+        .optional()
+        .isArray({ min: CompanyConstants.social.min_length, max: CompanyConstants.social.max_length })
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.social.min_length, CompanyConstants.social.max_length)),
+    body("images", ValidationReasons.DEFAULT)
+        .optional()
+        .isArray({ min: CompanyConstants.images.min_length, max: CompanyConstants.images.max_length })
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.images.min_length, CompanyConstants.images.max_length))
 ]);
 
 export const list = useExpressValidators([

@@ -13,5 +13,13 @@ export default Object.freeze({
     contacts: {
         min_length: 1,
         max_length: 10
+    },
+    social: {
+        min_length: 0,
+        max_length: 5,
+    },
+    images: {
+        min_length: 0,
+        max_length: 5,
     }
 });

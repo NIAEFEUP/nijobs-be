@@ -20,6 +20,16 @@ const CompanySchema = new Schema({
         type: String,
         maxlength: CompanyConstants.bio.max_length,
     },
+    social: {
+        type: [String],
+        minlength: CompanyConstants.social.min_length,
+        maxlength: CompanyConstants.social.max_length,
+    },
+    images: {
+        type: [String],
+        minlength: CompanyConstants.images.min_length,
+        maxlength: CompanyConstants.images.max_length,
+    },
     hasFinishedRegistration: {
         type: Boolean,
         default: false
@@ -38,6 +48,7 @@ const CompanySchema = new Schema({
         type: Boolean,
         default: false
     }
+
 });
 
 // Update offers from this company on name change
