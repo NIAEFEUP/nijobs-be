@@ -105,7 +105,7 @@ export default (app) => {
     });
 
     // Health check endpoint
-    app.get("/", (_, res) => res.status(HTTPStatus.OK).json({ "online": true }));
+    app.get("/", (_, res) => res.status(HTTPStatus.OK).send("OK"));
 
     // enhance endpoint requests with common parameters like having admin privileges
     enhanceRequests(app);
