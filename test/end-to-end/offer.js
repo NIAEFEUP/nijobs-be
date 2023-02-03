@@ -1454,6 +1454,125 @@ describe("Offer endpoint tests", () => {
                         expect(res4.status).toBe(HTTPStatus.OK);
                         expect(res4.body?.results).toHaveLength(0);
                     });
+
+                    describe("When offers have different publish dates", () => {
+                        beforeAll(async () => {
+                            Date.now = () => mockCurrentDate.getTime();
+
+                            const least_recent_offer = generateTestOffer({
+                                "publishDate": (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString(),
+                                "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                            });
+
+                            const middle_offer1 = generateTestOffer({
+                                "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                                "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                            });
+
+                            const most_recent_offer = generateTestOffer({
+                                "publishDate": (new Date(Date.now())).toISOString(),
+                                "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                            });
+
+                            Date.now = RealDateNow;
+
+                            [least_recent_offer, middle_offer1, middle_offer1, most_recent_offer]
+                                .forEach((offer) => {
+                                    offer.owner = test_company._id;
+                                    offer.ownerName = test_company.name;
+                                    offer.ownerLogo = test_company.logo;
+                                });
+
+                            await Offer.deleteMany({});
+                            await Offer.create([least_recent_offer, middle_offer1, middle_offer1, most_recent_offer]);
+
+                            await test_agent
+                                .post("/auth/login")
+                                .send({
+                                    email: test_user_company.email,
+                                    password: test_user_company.password,
+                                });
+                        });
+
+                        afterAll(async () => {
+                            await test_agent
+                                .delete("/auth/login");
+                            await Offer.deleteMany({});
+                            await Offer.create([test_offer, { ...test_offer, jobType: "FULL-TIME" },
+                                expired_test_offer, future_test_offer]);
+                        });
+
+                        test("Offers should be sorted by publishDate in descending order and then by id", async () => {
+                            const res = await test_agent
+                                .get("/offers");
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body.results).toHaveLength(4);
+
+                            for (let i = 0; i < res.body.results.length - 1; i++) {
+                                try {
+                                    expect((new Date(res.body.results[i].publishDate)).getTime())
+                                        .toBeGreaterThan((new Date(res.body.results[i + 1].publishDate)).getTime());
+                                } catch {
+                                    expect(res.body.results[i].publishDate)
+                                        .toBe(res.body.results[i + 1].publishDate);
+
+                                    // eslint-disable-next-line no-undef
+                                    expect(BigInt(`0x${res.body.results[i]._id}`))
+                                        // eslint-disable-next-line no-undef
+                                        .toBeLessThan(BigInt(`0x${res.body.results[i + 1]._id}`));
+                                }
+                            }
+                        });
+
+                        test("Should return next most recent offer", async () => {
+                            const res1 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    limit: 3
+                                });
+
+                            expect(res1.status).toBe(HTTPStatus.OK);
+                            expect(res1.body.results).toHaveLength(3);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    queryToken: res1.body.queryToken,
+                                    limit: 1
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body.results).toHaveLength(1);
+                            expect((new Date(res2.body.results[0].publishDate)).getTime())
+                                .toBeLessThan((new Date(res1.body.results[2].publishDate)).getTime());
+                        });
+
+                        test("Should return next offer that is as recent but with a higher id", async () => {
+                            const res1 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    limit: 2
+                                });
+
+                            expect(res1.status).toBe(HTTPStatus.OK);
+                            expect(res1.body.results).toHaveLength(2);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    queryToken: res1.body.queryToken,
+                                    limit: 1
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body.results).toHaveLength(1);
+                            // eslint-disable-next-line no-undef
+                            expect(BigInt(`0x${res2.body.results[0]._id}`))
+                                // eslint-disable-next-line no-undef
+                                .toBeGreaterThan(BigInt(`0x${res1.body.results[1]._id}`));
+                        });
+                    });
                 });
 
                 describe("When showHidden is active", () => {
