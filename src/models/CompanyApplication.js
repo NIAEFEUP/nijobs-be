@@ -94,7 +94,8 @@ const CompanyApplicationSchema = new Schema(CompanyApplicationProps);
 CompanyApplicationSchema.index({ companyName: "text" });
 
 CompanyApplicationSchema.virtual("state").get(function() {
-    if (!this.approvedAt && !this.rejectedAt) return ApplicationStatus.PENDING;
+    if (!this.isVerified) return ApplicationStatus.UNVERIFIED;
+    else if (!this.approvedAt && !this.rejectedAt) return ApplicationStatus.PENDING;
     else if (this.approvedAt) return ApplicationStatus.APPROVED;
     else return ApplicationStatus.REJECTED;
 });

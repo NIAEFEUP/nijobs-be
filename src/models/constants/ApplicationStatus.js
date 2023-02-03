@@ -1,4 +1,5 @@
 const ApplicationStatus = Object.freeze({
+    "UNVERIFIED": "UNVERIFIED",
     "PENDING": "PENDING",
     "APPROVED": "APPROVED",
     "REJECTED": "REJECTED",

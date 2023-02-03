@@ -73,7 +73,7 @@ class CompanyApplicationService {
         return {
             totalDocCount,
             applications:
-                [...(await CompanyApplication.find({ isVerified: true })
+                [...(await CompanyApplication.find({})
                     .sort(sortingOptions || { submittedAt: "desc" })
                     .skip(offset)
                     .limit(limit)
@@ -117,7 +117,6 @@ class CompanyApplicationService {
 
         if (submissionDateFrom || submissionDateTo)
             filterQueries.push(this.buildSubmissionDateFilter({ from: submissionDateFrom, to: submissionDateTo }));
-        filterQueries.push({ isVerify: true });
 
         return filterQueries;
     }
