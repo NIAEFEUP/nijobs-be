@@ -219,11 +219,13 @@ export default (app) => {
         (req, res, next) => companyMiddleware.canManageAccountSettings(req.params.companyId)(req, res, next),
         async (req, res, next) => {
             try {
-                const service = new CompanyService();
-                const company = await service.editCompanyDetails(req.params.companyId, req.body);
+                const companyService = new CompanyService();
+                const company = await companyService.editCompanyDetails(req.params.companyId, req.body);
+                await companyService.sendCompanyEditedNotification(req.params.companyId);
                 return res.json(company);
             } catch (err) {
                 return next(err);
             }
-    });
+        }
+    );
 };
