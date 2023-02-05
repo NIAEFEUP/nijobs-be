@@ -202,4 +202,28 @@ export default (app) => {
                 return next(err);
             }
         });
+
+
+    /**
+     * Edit company details.
+     * Company or admin can edit.
+     */
+
+    router.patch("/:companyId/edit",
+        or([
+            authMiddleware.isCompany,
+            authMiddleware.isAdmin,
+            authMiddleware.isGod
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.edit,
+        (req, res, next) => companyMiddleware.canManageAccountSettings(req.params.companyId)(req, res, next),
+        async (req, res, next) => {
+            try {
+                const service = new CompanyService();
+                const company = await service.edit(req.params.companyId, req.body);
+                return res.json(company);
+            } catch (err) {
+                return next(err);
+            }
+    });
 };
