@@ -71,6 +71,10 @@ export const enable = useExpressValidators([
     existingCompanyParamValidator,
 ]);
 
+export const edit = useExpressValidators([
+    existingCompanyParamValidator,
+]);
+
 export const deleteCompany = useExpressValidators([
     existingCompanyParamValidator,
 ]);
