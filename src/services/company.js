@@ -2,7 +2,8 @@ import { COMPANY_BLOCKED_NOTIFICATION,
     COMPANY_UNBLOCKED_NOTIFICATION,
     COMPANY_DISABLED_NOTIFICATION,
     COMPANY_ENABLED_NOTIFICATION,
-    COMPANY_DELETED_NOTIFICATION
+    COMPANY_DELETED_NOTIFICATION,
+    COMPANY_EDIT_NOTIFICATION,
 } from "../email-templates/companyManagement.js";
 import EmailService from "../lib/emailService.js";
 import Account from "../models/Account.js";
@@ -195,7 +196,6 @@ class CompanyService {
      * @param {*} companyId ID of the company
      * @param {*} companyDetails company details to be updated
      */
-    
     async editCompanyDetails(companyId, companyDetails) {
         try {
             const company = await Company.findById(companyId);
@@ -215,9 +215,8 @@ class CompanyService {
 
     /**
      * Sends a notification that the company has been updated
-     * @param {*} companyId ID of the company 
+     * @param {*} companyId ID of the company
      */
-
     async sendCompanyEditedNotification(companyId) {
         await this._sendCompanyNotification(companyId, COMPANY_EDIT_NOTIFICATION);
     }
