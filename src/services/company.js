@@ -212,6 +212,15 @@ class CompanyService {
         }
     }
 
+
+    /**
+     * Sends a notification that the company has been updated
+     * @param {*} companyId ID of the company 
+     */
+
+    async sendCompanyEditedNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_EDIT_NOTIFICATION);
+    }
 }
 
 export default CompanyService;

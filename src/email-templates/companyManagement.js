@@ -24,3 +24,8 @@ export const COMPANY_DELETED_NOTIFICATION = (companyName) => ({
     template: "company_deleted_notification",
     context: { companyName },
 });
+export const COMPANY_EDIT_NOTIFICATION = (companyName) => ({
+    subject: "Your company account on NIJobs has been updated",
+    template: "company_edited_notification",
+    context: { companyName },
+});
