@@ -189,6 +189,29 @@ class CompanyService {
         }
     }
 
+
+    /**
+     * Edit company details by its ID and returns it
+     * @param {*} companyId ID of the company
+     * @param {*} companyDetails company details to be updated
+     */
+    
+    async editCompanyDetails(companyId, companyDetails) {
+        try {
+            const company = await Company.findById(companyId);
+            company.name = companyDetails.name;
+            company.contacts = companyDetails.contacts;
+            company.bio = companyDetails.bio;
+            company.logo = companyDetails.logo;
+
+            await company.save();
+            return company;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    }
+
 }
 
 export default CompanyService;
