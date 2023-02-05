@@ -209,7 +209,7 @@ export default (app) => {
      * Company or admin can edit.
      */
 
-    router.patch("/:companyId/edit",
+    router.put("/:companyId/edit",
         or([
             authMiddleware.isCompany,
             authMiddleware.isAdmin,
@@ -220,7 +220,7 @@ export default (app) => {
         async (req, res, next) => {
             try {
                 const service = new CompanyService();
-                const company = await service.edit(req.params.companyId, req.body);
+                const company = await service.editCompanyDetails(req.params.companyId, req.body);
                 return res.json(company);
             } catch (err) {
                 return next(err);
