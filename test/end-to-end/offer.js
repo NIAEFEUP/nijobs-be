@@ -1517,10 +1517,8 @@ describe("Offer endpoint tests", () => {
                                     expect(res.body.results[i].publishDate)
                                         .toBe(res.body.results[i + 1].publishDate);
 
-                                    // eslint-disable-next-line no-undef
-                                    expect(BigInt(`0x${res.body.results[i]._id}`))
-                                        // eslint-disable-next-line no-undef
-                                        .toBeLessThan(BigInt(`0x${res.body.results[i + 1]._id}`));
+                                    expect(res.body.results[i]._id < res.body.results[i + 1]._id)
+                                        .toBeTruthy();
                                 }
                             }
                         });
@@ -1567,10 +1565,8 @@ describe("Offer endpoint tests", () => {
 
                             expect(res2.status).toBe(HTTPStatus.OK);
                             expect(res2.body.results).toHaveLength(1);
-                            // eslint-disable-next-line no-undef
-                            expect(BigInt(`0x${res2.body.results[0]._id}`))
-                                // eslint-disable-next-line no-undef
-                                .toBeGreaterThan(BigInt(`0x${res1.body.results[1]._id}`));
+                            expect(res2.body.results[0]._id > res1.body.results[1]._id)
+                                .toBeTruthy();
                         });
                     });
                 });
@@ -2176,10 +2172,8 @@ describe("Offer endpoint tests", () => {
                                         expect(res.body.results[i].publishDate)
                                             .toBe(res.body.results[i + 1].publishDate);
 
-                                        // eslint-disable-next-line no-undef
-                                        expect(BigInt(`0x${res.body.results[i]._id}`))
-                                            // eslint-disable-next-line no-undef
-                                            .toBeLessThan(BigInt(`0x${res.body.results[i + 1]._id}`));
+                                        expect(res.body.results[i]._id < res.body.results[i + 1]._id)
+                                            .toBeTruthy();
                                     }
                                 }
                             }
@@ -2255,10 +2249,8 @@ describe("Offer endpoint tests", () => {
                             expect(res2.status).toBe(HTTPStatus.OK);
                             expect(res2.body.results).toHaveLength(1);
 
-                            // eslint-disable-next-line no-undef
-                            expect(BigInt(`0x${res2.body.results[0]._id}`))
-                                // eslint-disable-next-line no-undef
-                                .toBeGreaterThan(BigInt(`0x${res1.body.results[3]._id}`));
+                            expect(res2.body.results[0]._id > res1.body.results[3]._id)
+                                .toBeTruthy();
                         });
 
                         test("Should succeed if there are no more offers after the last one", async () => {
