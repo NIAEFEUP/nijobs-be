@@ -12,7 +12,7 @@ import ValidationReasons from "../middleware/validators/validationReasons.js";
 import { concurrentOffersNotExceeded } from "../middleware/validators/validatorUtils.js";
 
 import { or } from "../middleware/utils.js";
-
+import Company from "../../models/constants/Company.js";
 import * as fileMiddleware  from "../middleware/files.js";
 import OfferService from "../../services/offer.js";
 import AccountService from "../../services/account.js";
@@ -33,17 +33,21 @@ export default (app) => {
         authMiddleware.isCompany,
         companyMiddleware.profileNotComplete,
         fileMiddleware.parseSingleFile("logo"),
+        fileMiddleware.parseArrayOfFiles("images", Company.images.max_length),
         validators.finish,
         fileMiddleware.localSave,
+        fileMiddleware.localSaveArray,
         fileMiddleware.cloudSave,
+        fileMiddleware.cloudSaveArray,
         async (req, res, next) => {
 
             try {
                 const companyService = new CompanyService();
                 const { bio, contacts, social } = req.body;
                 const logo = req?.file?.url || `${config.webserver_host}/static/${req.file.filename}`;
+                const images = req.files.map((file) => file.url || `${config.webserver_host}/static/${file.filename}`);
                 const company_id = req.user.company;
-                await companyService.changeAttributes(company_id, { bio, contacts, social, logo, hasFinishedRegistration: true });
+                await companyService.changeAttributes(company_id, { bio, contacts, social, logo, images, hasFinishedRegistration: true });
                 return res.json({});
             } catch (err) {
                 console.error(err);
