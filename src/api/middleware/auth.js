@@ -78,15 +78,16 @@ export const hasAdminPrivileges = async (req, res, next) => {
 };
 
 export const validToken = (req, res, next) => {
-    const decoded = verifyAndDecodeToken(req.params.token, config.jwt_secret);
+    try {
+        const decoded = verifyAndDecodeToken(req.params.token, config.jwt_secret, next);
 
-    if (!decoded) {
-        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.INVALID_TOKEN));
+        storeInLocals(req, {
+            token: decoded,
+        });
+
+        return next();
+    } catch (err) {
+        console.log(err);
+        return next(err);
     }
-
-    storeInLocals(req, {
-        token: decoded,
-    });
-
-    return next();
 };

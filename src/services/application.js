@@ -5,6 +5,7 @@ import { RECOVERY_LINK_EXPIRATION } from "../models/constants/ApplicationStatus.
 import { APPLICATION_CONFIRMATION } from "../email-templates/companyApplicationConfirmation.js";
 import AccountService from "./account.js";
 import EmailService from "../lib/emailService.js";
+import { StatusCodes as HTTPStatus } from "http-status-codes/build/cjs/status-codes.js";
 import {
     NEW_COMPANY_APPLICATION_ADMINS,
     NEW_COMPANY_APPLICATION_COMPANY,
@@ -12,6 +13,8 @@ import {
     REJECTION_NOTIFICATION,
 } from "../email-templates/companyApplicationApproval.js";
 import config from "../config/env.js";
+import { APIError, ErrorTypes } from "../api/middleware/errorHandler.js";
+import ValidationReasons from "../api/middleware/validators/validationReasons.js";
 
 export class CompanyApplicationNotFound extends Error {
     constructor(msg) {
@@ -44,13 +47,11 @@ class CompanyApplicationService {
             submittedAt: Date.now(),
             isVerified: false,
         });
-        console.log("criar");
         const link = this.buildConfirmationLink(application._id);
         await EmailService.sendMail({
             to: email,
             ...APPLICATION_CONFIRMATION(link),
         });
-        console.log("Criado");
         return application.toObject();
     }
 

@@ -1,9 +1,10 @@
 import CompanyApplication, { CompanyApplicationRules } from "../../models/CompanyApplication.js";
-
+import { APIError, ErrorTypes } from "./errorHandler.js";
+import { StatusCodes as HTTPStatus } from "http-status-codes/build/cjs/status-codes.js";
 export const exceededCreationTimeLimit = async (email) => {
     const cursor = await CompanyApplication.findOne({ email, isVerified: false }).exec();
     if (cursor !== null && Date.now() - cursor.submittedAt < 5000 * 60) {
-        throw new Error(CompanyApplicationRules.APPLICATION_RECENTLY_CREATED.msg);
+        throw new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, CompanyApplicationRules.APPLICATION_RECENTLY_CREATED);
     }
     return true;
 };

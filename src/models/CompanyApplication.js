@@ -2,6 +2,9 @@ import mongoose from "mongoose";
 import ApplicationStatus from "./constants/ApplicationStatus.js";
 import CompanyApplicationConstants from "./constants/CompanyApplication.js";
 import { checkDuplicatedEmail } from "../api/middleware/validators/validatorUtils.js";
+import { APIError, ErrorTypes } from "../api/middleware/errorHandler.js";
+import { StatusCodes as HTTPStatus } from "http-status-codes/build/cjs/status-codes.js";
+import ValidationReasons from "../api/middleware/validators/validationReasons.js";
 
 const { Schema } = mongoose;
 
@@ -161,7 +164,7 @@ export const isRejectable = (application) => {
 
 
 CompanyApplicationSchema.methods.companyValidation = function() {
-    if (this.isVerified) throw new Error("Application was already validated by the company");
+    if (this.isVerified) throw new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.ALREADY_VALIDATED);
     this.isVerified = true;
     return this.save({ validateModifiedOnly: true });
 };

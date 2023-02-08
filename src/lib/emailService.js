@@ -6,7 +6,7 @@ export class EmailService {
 
     async init({ email: user, password: pass }) {
         this.email = user;
-        const transporter = await nodemailer.createTransport({
+        /* const transporter = await nodemailer.createTransport({
             pool: true,
             host: "smtp.gmail.com",
             port: 465,
@@ -17,7 +17,15 @@ export class EmailService {
             },
             connectionTimeout: 30000
         });
-        console.log("transporter");
+        console.log("transporter");*/
+        const transporter = nodemailer.createTransport({
+            host: "smtp.ethereal.email",
+            port: 587,
+            auth: {
+                user: "naomie.koelpin2@ethereal.email",
+                pass: "NGEVbMnTZzyA3MQD3V"
+            }
+        });
 
         transporter.use("compile", hbs({
             viewEngine: {

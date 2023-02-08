@@ -119,10 +119,6 @@ export const token = param("token", ValidationReasons.DEFAULT)
     .isString().withMessage(ValidationReasons.STRING)
     .trim();
 
-export const confirmValidation =  useExpressValidators([
-    token,
-]);
-
 export const finishValidation = useExpressValidators([
-    token,
+    token.exists().withMessage(ValidationReasons.NON_EXISTING_APPLICATION).bail(),
 ]);

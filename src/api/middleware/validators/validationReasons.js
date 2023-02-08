@@ -41,6 +41,7 @@ const ValidationReasons = Object.freeze({
     OFFER_EDIT_PERIOD_OVER: (value) => `offer-edit-period-over:${value}-hours`,
     INVALID_QUERY_TOKEN: "invalid-query-token",
     INVALID_TOKEN: "invalid-token",
+    EXPIRED_TOKEN: "expired-token",
     JOB_MIN_DURATION_NOT_SPECIFIED: "job-max-duration-requires-job-min-duration",
     REGISTRATION_FINISHED: "registration-already-finished",
     REGISTRATION_NOT_FINISHED: "registration-not-finished-yet",
