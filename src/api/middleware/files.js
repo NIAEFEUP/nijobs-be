@@ -134,10 +134,12 @@ export const parseArrayOfFiles = (field_name, max_count) => (req, res, next) => 
 };
 
 export const localSaveArray = async (req, res, next) => {
+    let sequenceNumber = 0;
     for (const file of req.files) {
         const buffer = file.buffer;
         const extension = file.mimetype.substr(file.mimetype.indexOf("/") + 1);
-        const filename = `${req.user.company}.${extension}`;
+        const filename = `${req.user.company}-${sequenceNumber}.${extension}`;
+        sequenceNumber++;
         const file_path = path.join(config.upload_folder, filename);
         file.filename = filename;
         try {
