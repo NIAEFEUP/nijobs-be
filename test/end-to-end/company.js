@@ -2074,6 +2074,7 @@ describe("Company endpoint", () => {
                     .put(`/company/${test_company._id}/edit`)
                     .send(withGodToken({
                         bio: "Cool company bio",
+                        contacts: ["1"],
                         logo: "http://awebsite.com/alogo.jpg",
                     }))
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
@@ -2084,11 +2085,28 @@ describe("Company endpoint", () => {
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_MISSING);
             });
 
+            test("Should fail if no contacts are provided", async () => {
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .send(withGodToken({
+                        name: "Cool Company",
+                        bio: "Cool company bio",
+                        logo: "http://awebsite.com/alogo.jpg",
+                    }))
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors[0]).toHaveProperty("param", "contacts");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_MISSING);
+            });
+
             test("Should fail if no bio is provided", async () => {
                 const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
                     .send(withGodToken({
                         name: "Cool Company",
+                        contacts: ["1"],
                         logo: "http://awebsite.com/alogo.jpg",
                     }))
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
@@ -2105,6 +2123,7 @@ describe("Company endpoint", () => {
                     .send(withGodToken({
                         name: "Cool Company",
                         bio: "Cool company bio",
+                        contacts: ["1"],
                     }))
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
@@ -2122,6 +2141,7 @@ describe("Company endpoint", () => {
                     .send({
                         name: "Cool Company",
                         bio: "Cool company bio",
+                        contacts: ["1"],
                         logo: "http://awebsite.com/alogo.jpg",
                     })
                     .expect(HTTPStatus.UNAUTHORIZED);
@@ -2133,7 +2153,7 @@ describe("Company endpoint", () => {
             });
         });
 
-        describe("Should fail if different user", () => {
+        describe("Should fail if different user/company", () => {
             test("Should fail if different user", async () => {
                 await test_agent
                     .post("/auth/login")
@@ -2145,6 +2165,7 @@ describe("Company endpoint", () => {
                     .send({
                         name: "Changing Company",
                         bio: "Without permission",
+                        contacts: ["1"],
                         logo: "http://awebsite.com/otherlogo.jpg",
                     })
                     .expect(HTTPStatus.UNAUTHORIZED);
@@ -2156,6 +2177,105 @@ describe("Company endpoint", () => {
             });
         });
 
-        
+        describe("Should pass if god", () => {
+            test("Should pass if god", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .send(withGodToken({
+                        name: "Changing Company",
+                        bio: "As god",
+                        contacts: ["1"],
+                        logo: "http://awebsite.com/otherlogo.jpg",
+                    }))
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("name", "Changing Company");
+                expect(res.body).toHaveProperty("bio", "As god");
+                expect(res.body).toHaveProperty("contacts", ["1"]);
+                expect(res.body).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
+            });
+        });
+
+        describe("Should pass if same user/company", () => {
+            test("Should pass if same user", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .send({
+                        name: "Changing Company",
+                        bio: "As company itself",
+                        contacts: ["1"],
+                        logo: "http://awebsite.com/otherlogo.jpg",
+                    })
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("name", "Changing Company");
+                expect(res.body).toHaveProperty("bio", "As company itself");
+                expect(res.body).toHaveProperty("contacts", ["1"]);
+                expect(res.body).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
+            });
+        });
+
+        describe("Should pass if admin", () => {
+            test("Should pass if admin", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .send({
+                        name: "Changing Company",
+                        bio: "As admin",
+                        contacts: ["1"],
+                        logo: "http://awebsite.com/otherlogo.jpg",
+                    })
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("name", "Changing Company");
+                expect(res.body).toHaveProperty("bio", "As admin");
+                expect(res.body).toHaveProperty("contacts", ["1"]);
+                expect(res.body).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
+            });
+        });
+
+        describe("Offers should reflect changes", () => {
+            test("Should reflect changes in offers", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .send({
+                        name: "Changing Company",
+                        bio: "As admin",
+                        contacts: ["1"],
+                        logo: "http://awebsite.com/otherlogo.jpg",
+                    })
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .get(`/offer/${test_offer._id}`)
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("company");
+                expect(res.body.company).toHaveProperty("name", "Changing Company");
+                expect(res.body.company).toHaveProperty("bio", "As admin");
+                expect(res.body.company).toHaveProperty("contacts", ["1"]);
+                expect(res.body.company).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
+            });
+        });
     });
 });
