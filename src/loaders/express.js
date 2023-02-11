@@ -77,11 +77,10 @@ export default (app) => {
 
     // Adding headers (CORS)
     app.use((req, res, next) => {
-        // Allow connections for default specified connections
         res.setHeader("Access-Control-Allow-Origin", "null");
 
         // Allow requests from connections specified by the allow list regexes
-        const origin = req.header("origin")?.toLowerCase();
+        const origin = req.header("origin");
         if (origin) {
             const originAllowed = config.access_control_allow_origins.find(
                 (allowOrigin) => origin.match(new RegExp(`^${allowOrigin}$`, "g")) // Match full string using ^ and $
@@ -105,7 +104,7 @@ export default (app) => {
     });
 
     // Health check endpoint
-    app.get("/", (_, res) => res.status(HTTPStatus.OK).send("OK"));
+    app.get("/", (_, res) => res.status(HTTPStatus.OK).json({ "online": true }));
 
     // enhance endpoint requests with common parameters like having admin privileges
     enhanceRequests(app);
