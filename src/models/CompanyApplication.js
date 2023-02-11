@@ -2,9 +2,7 @@ import mongoose from "mongoose";
 import ApplicationStatus from "./constants/ApplicationStatus.js";
 import CompanyApplicationConstants from "./constants/CompanyApplication.js";
 import { checkDuplicatedEmail } from "../api/middleware/validators/validatorUtils.js";
-import { APIError, ErrorTypes } from "../api/middleware/errorHandler.js";
-import { StatusCodes as HTTPStatus } from "http-status-codes/build/cjs/status-codes.js";
-import ValidationReasons from "../api/middleware/validators/validationReasons.js";
+
 
 const { Schema } = mongoose;
 
@@ -37,8 +35,11 @@ export const CompanyApplicationRules = Object.freeze({
         msg: "company-application-already-reviewed",
     },
     APPLICATION_RECENTLY_CREATED: {
-        msg: "company-application-already-created-less-than-5-minutes-ago",
+        msg: "company-application-recently-created",
     },
+    APPLICATION_ALREADY_VALIDATED: {
+        msg: "application-already-validated",
+    }
 });
 
 export const CompanyApplicationProps = {
@@ -127,9 +128,8 @@ function validateMutuallyExclusiveEvents(field) {
 export const applicationUniqueness = async (email) => {
     const existingApplications = await CompanyApplication.find({ email });
     if (existingApplications.some((application) =>
-        (application.state === ApplicationStatus.PENDING ||
-            application.state === ApplicationStatus.APPROVED) &&
-        application.isVerified)
+        application.state === ApplicationStatus.PENDING ||
+            application.state === ApplicationStatus.APPROVED)
     ) {
         throw new Error(CompanyApplicationRules.ONLY_ONE_APPLICATION_ACTIVE_PER_EMAIL.msg);
     }
@@ -164,7 +164,9 @@ export const isRejectable = (application) => {
 
 
 CompanyApplicationSchema.methods.companyValidation = function() {
-    if (this.isVerified) throw new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.ALREADY_VALIDATED);
+    if (this.isVerified)
+        throw new Error(CompanyApplicationRules.APPLICATION_ALREADY_VALIDATED.msg);
+
     this.isVerified = true;
     return this.save({ validateModifiedOnly: true });
 };

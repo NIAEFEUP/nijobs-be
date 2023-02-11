@@ -79,15 +79,19 @@ export const hasAdminPrivileges = async (req, res, next) => {
 
 export const validToken = (req, res, next) => {
     try {
-        const decoded = verifyAndDecodeToken(req.params.token, config.jwt_secret, next);
+        const decoded = verifyAndDecodeToken(req.params.token, config.jwt_secret);
 
         storeInLocals(req, {
             token: decoded,
         });
 
         return next();
-    } catch (err) {
-        console.log(err);
-        return next(err);
+    } catch (jwtErr) {
+        console.log(jwtErr);
+        if (jwtErr.name === "TokenExpiredError") {
+            return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.EXPIRED_TOKEN));
+        } else {
+            return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.INVALID_TOKEN));
+        }
     }
 };

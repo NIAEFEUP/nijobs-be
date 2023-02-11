@@ -23,4 +23,3 @@ export const REJECTION_NOTIFICATION = (companyName) => ({
     template: "rejection_notification",
     context: { companyName },
 });
-
