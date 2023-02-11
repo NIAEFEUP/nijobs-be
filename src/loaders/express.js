@@ -78,15 +78,15 @@ export default (app) => {
     // Adding headers (CORS)
     app.use((req, res, next) => {
         // Allow connections for default specified connections
-        res.setHeader("Access-Control-Allow-Origin", config.access_control_allow_origin);
+        res.setHeader("Access-Control-Allow-Origin", "null");
 
         // Allow requests from connections specified by the allow list regexes
         const origin = req.header("origin")?.toLowerCase();
         if (origin) {
-            const originAllowed = config.access_control_allow_origin_regex_list.find((allowOrigin) => {
-                const matches = origin.match(RegExp(allowOrigin, "g"));
-                return matches && matches[0].length === origin.length;
-            });
+            const originAllowed = config.access_control_allow_origins.find(
+                (allowOrigin) => origin.match(new RegExp(`^${allowOrigin}$`, "g")) // Match full string using ^ and $
+            );
+
             if (originAllowed) {
                 res.setHeader("Access-Control-Allow-Origin", origin);
             }
