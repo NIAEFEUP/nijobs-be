@@ -21,6 +21,7 @@ import OfferService from "../../src/services/offer";
 import EmailService from "../../src/lib/emailService";
 import { concurrentOffersNotExceeded } from "../../src/api/middleware/validators/validatorUtils";
 import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
+import base64url from "base64url";
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -1069,7 +1070,7 @@ describe("Offer endpoint tests", () => {
 
             describe("queryToken validation", () => {
                 test("should fail if queryToken does not contain a valid id", async () => {
-                    const queryToken = (new OfferService()).encodeQueryToken("123");
+                    const queryToken = (new OfferService()).encodeQueryToken("123", 5, mockCurrentDate, "test");
 
                     const res = await request()
                         .get("/offers")
@@ -1084,7 +1085,7 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test("should fail if the queryToken's offer does not exist", async () => {
-                    const queryToken = (new OfferService()).encodeQueryToken("5facf0cdb8bc30016ee58952");
+                    const queryToken = (new OfferService()).encodeQueryToken("5facf0cdb8bc30016ee58952", 5, mockCurrentDate, "test");
                     const res = await request()
                         .get("/offers")
                         .query({ queryToken });
@@ -1100,7 +1101,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is not a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, "hello", "test");
+                        .encodeQueryToken(testOfferId, "hello", mockCurrentDate, "test");
 
                     const res = await request()
                         .get("/offers")
@@ -1117,7 +1118,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is negative", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, -5, "test");
+                        .encodeQueryToken(testOfferId, -5, mockCurrentDate, "test");
 
                     const res = await request()
                         .get("/offers")
@@ -1134,7 +1135,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's value is present and score is missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, undefined, "test");
+                        .encodeQueryToken(testOfferId, undefined, mockCurrentDate, "test");
 
                     const res = await request()
                         .get("/offers")
@@ -1151,7 +1152,43 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is present and value is missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, 5);
+                        .encodeQueryToken(testOfferId, 5, mockCurrentDate);
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's publishDate is not a date", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = base64url.encode(JSON.stringify({
+                        testOfferId, publishDate: 3
+                    }));
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's publishDate is missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = base64url.encode(JSON.stringify({
+                        testOfferId, publishDate: 3
+                    }));
 
                     const res = await request()
                         .get("/offers")
@@ -1168,7 +1205,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when the queryToken's value and score are missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId);
+                        .encodeQueryToken(testOfferId, undefined, mockCurrentDate, undefined);
 
                     const res = await request()
                         .get("/offers")
@@ -1180,7 +1217,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when the queryToken's value is present and score is a valid number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, 5, "test");
+                        .encodeQueryToken(testOfferId, 5, mockCurrentDate, "test");
 
                     const res = await request()
                         .get("/offers")
@@ -1192,7 +1229,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when value is present and queryToken's score can be parsed as a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, "3.5", "test");
+                        .encodeQueryToken(testOfferId, "3.5", mockCurrentDate, "test");
 
                     const res = await request()
                         .get("/offers")
@@ -1416,6 +1453,121 @@ describe("Offer endpoint tests", () => {
 
                         expect(res4.status).toBe(HTTPStatus.OK);
                         expect(res4.body?.results).toHaveLength(0);
+                    });
+
+                    describe("When offers have different publish dates", () => {
+                        beforeAll(async () => {
+                            Date.now = () => mockCurrentDate.getTime();
+
+                            const least_recent_offer = generateTestOffer({
+                                "publishDate": (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString(),
+                                "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                            });
+
+                            const middle_offer1 = generateTestOffer({
+                                "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                                "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                            });
+
+                            const most_recent_offer = generateTestOffer({
+                                "publishDate": (new Date(Date.now())).toISOString(),
+                                "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                            });
+
+                            Date.now = RealDateNow;
+
+                            [least_recent_offer, middle_offer1, middle_offer1, most_recent_offer]
+                                .forEach((offer) => {
+                                    offer.owner = test_company._id;
+                                    offer.ownerName = test_company.name;
+                                    offer.ownerLogo = test_company.logo;
+                                });
+
+                            await Offer.deleteMany({});
+                            await Offer.create([least_recent_offer, middle_offer1, middle_offer1, most_recent_offer]);
+
+                            await test_agent
+                                .post("/auth/login")
+                                .send({
+                                    email: test_user_company.email,
+                                    password: test_user_company.password,
+                                });
+                        });
+
+                        afterAll(async () => {
+                            await test_agent
+                                .delete("/auth/login");
+                            await Offer.deleteMany({});
+                            await Offer.create([test_offer, { ...test_offer, jobType: "FULL-TIME" },
+                                expired_test_offer, future_test_offer]);
+                        });
+
+                        test("Offers should be sorted by publishDate in descending order and then by id", async () => {
+                            const res = await test_agent
+                                .get("/offers");
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body.results).toHaveLength(4);
+
+                            for (let i = 0; i < res.body.results.length - 1; i++) {
+                                try {
+                                    expect((new Date(res.body.results[i].publishDate)).getTime())
+                                        .toBeGreaterThan((new Date(res.body.results[i + 1].publishDate)).getTime());
+                                } catch {
+                                    expect(res.body.results[i].publishDate)
+                                        .toBe(res.body.results[i + 1].publishDate);
+
+                                    expect(res.body.results[i]._id < res.body.results[i + 1]._id)
+                                        .toBeTruthy();
+                                }
+                            }
+                        });
+
+                        test("Should return next most recent offer", async () => {
+                            const res1 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    limit: 3
+                                });
+
+                            expect(res1.status).toBe(HTTPStatus.OK);
+                            expect(res1.body.results).toHaveLength(3);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    queryToken: res1.body.queryToken,
+                                    limit: 1
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body.results).toHaveLength(1);
+                            expect((new Date(res2.body.results[0].publishDate)).getTime())
+                                .toBeLessThan((new Date(res1.body.results[2].publishDate)).getTime());
+                        });
+
+                        test("Should return next offer that is as recent but with a higher id", async () => {
+                            const res1 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    limit: 2
+                                });
+
+                            expect(res1.status).toBe(HTTPStatus.OK);
+                            expect(res1.body.results).toHaveLength(2);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    queryToken: res1.body.queryToken,
+                                    limit: 1
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body.results).toHaveLength(1);
+                            expect(res2.body.results[0]._id > res1.body.results[1]._id)
+                                .toBeTruthy();
+                        });
                     });
                 });
 
@@ -1946,6 +2098,180 @@ describe("Offer endpoint tests", () => {
 
                         expect(res2.status).toBe(HTTPStatus.OK);
                         expect(res2.body?.results).toHaveLength(1);
+                    });
+
+                    describe("With offers with different publish dates", () => {
+                        beforeAll(async () => {
+                            Date.now = () => mockCurrentDate.getTime();
+
+                            const bestScoreMostRecent = {
+                                ...test_offer,
+                                title: "This offer is from Porto",
+                                "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                                "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                            };
+
+                            const bestScoreLeastRecent = {
+                                ...test_offer,
+                                title: "This offer is from Porto",
+                                "publishDate": (new Date(Date.now() - (2 * DAY_TO_MS))).toISOString(),
+                                "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                            };
+
+                            const worstScore = {
+                                ...test_offer,
+                                title: "This offer is from Braga",
+                                location: "Porto",
+                                "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                                "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                            };
+
+                            Date.now = RealDateNow;
+
+                            await Offer.deleteMany({});
+                            await Offer.create([bestScoreMostRecent, bestScoreMostRecent, bestScoreLeastRecent, worstScore, worstScore]);
+
+                            await test_agent
+                                .post("/auth/login")
+                                .send({
+                                    email: test_user_company.email,
+                                    password: test_user_company.password,
+                                });
+                        });
+
+                        afterAll(async () => {
+                            await Offer.deleteMany({});
+                            await Offer.create([portoBackend, portoFrontend, lisboaBackend, niaefeupOffer]);
+                            await test_agent
+                                .delete("/auth/login");
+                        });
+
+                        test("Offers should be ordered by score, publishDate and id in that order", async () => {
+                            const res = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "Porto"
+                                });
+
+                            expect(res.status).toBe(HTTPStatus.OK);
+                            expect(res.body.results).toHaveLength(5);
+
+                            for (let i = 0; i < res.body.results.length - 1; i++) {
+                                try {
+                                    expect(Number(res.body.results[i].score))
+                                        .toBeGreaterThan(Number(res.body.results[i + 1].score));
+                                } catch {
+                                    try {
+                                        expect(res.body.results[i].score)
+                                            .toBe(res.body.results[i + 1].score);
+                                        expect((new Date(res.body.results[i].publishDate)).getTime())
+                                            .toBeGreaterThan((new Date(res.body.results[i + 1].publishDate)).getTime());
+                                    } catch {
+                                        expect(res.body.results[i].score)
+                                            .toBe(res.body.results[i + 1].score);
+                                        expect(res.body.results[i].publishDate)
+                                            .toBe(res.body.results[i + 1].publishDate);
+
+                                        expect(res.body.results[i]._id < res.body.results[i + 1]._id)
+                                            .toBeTruthy();
+                                    }
+                                }
+                            }
+                        });
+
+                        test("Should return next offer with less score", async () => {
+                            const res1 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "Porto",
+                                    limit: 3
+                                });
+
+                            expect(res1.status).toBe(HTTPStatus.OK);
+                            expect(res1.body.results).toHaveLength(3);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    queryToken: res1.body.queryToken,
+                                    limit: 1
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body.results).toHaveLength(1);
+                            expect(Number(res2.body.results[0].score))
+                                .toBeLessThan(Number(res1.body.results[2].score));
+                        });
+
+
+                        test("Should return next offer with same score but least recent", async () => {
+                            const res1 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "Porto",
+                                    limit: 2
+                                });
+
+                            expect(res1.status).toBe(HTTPStatus.OK);
+                            expect(res1.body.results).toHaveLength(2);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    queryToken: res1.body.queryToken,
+                                    limit: 1
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body.results).toHaveLength(1);
+                            expect((new Date(res2.body.results[0].publishDate)).getTime())
+                                .toBeLessThan((new Date(res1.body.results[1].publishDate)).getTime());
+                        });
+
+                        test("Should return next offer with same score and publishDate but higher id", async () => {
+                            const res1 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "Porto",
+                                    limit: 4
+                                });
+
+                            expect(res1.status).toBe(HTTPStatus.OK);
+                            expect(res1.body.results).toHaveLength(4);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    queryToken: res1.body.queryToken,
+                                    limit: 1
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body.results).toHaveLength(1);
+
+                            expect(res2.body.results[0]._id > res1.body.results[3]._id)
+                                .toBeTruthy();
+                        });
+
+                        test("Should succeed if there are no more offers after the last one", async () => {
+                            const res1 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    value: "Porto"
+                                });
+
+                            expect(res1.status).toBe(HTTPStatus.OK);
+                            expect(res1.body.results).toHaveLength(5);
+
+                            const res2 = await test_agent
+                                .get("/offers")
+                                .query({
+                                    queryToken: res1.body.queryToken
+                                });
+
+                            expect(res2.status).toBe(HTTPStatus.OK);
+                            expect(res2.body.results).toHaveLength(0);
+                        });
                     });
 
                     describe("With not current offers", () => {

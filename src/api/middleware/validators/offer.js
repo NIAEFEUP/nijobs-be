@@ -444,9 +444,17 @@ export const setDefaultValuesCreate = (req, res, next) => {
 
 const validGetQueryToken = async (queryToken, { req }) => {
     try {
-        const { id, score, value } = (new OfferService()).decodeQueryToken(queryToken);
+        const { id, score, publishDate, value } = (new OfferService()).decodeQueryToken(queryToken);
         if (!isObjectId(id)) throw new Error(ValidationReasons.OBJECT_ID);
         await existingOfferId(id, { req });
+
+        if (typeof publishDate === "undefined") {
+            throw new Error(ValidationReasons.REQUIRED);
+        }
+
+        if (!(publishDate instanceof Date)) {
+            throw new Error(ValidationReasons.DATE);
+        }
 
         if (value) {
             if (isNaN(score)) throw new Error(ValidationReasons.NUMBER);
