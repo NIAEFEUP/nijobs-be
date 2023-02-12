@@ -49,7 +49,7 @@ export default (app) => {
 
     // Set the API call rate limit only on production
     if (process.env.NODE_ENV === "production") {
-        const api_rate_limiter = new RateLimit({
+        const api_rate_limiter = RateLimit({
             store: new MongoStore({
                 uri: config.db_uri,
                 user: config.db_user,
@@ -76,9 +76,22 @@ export default (app) => {
     }
 
     // Adding headers (CORS)
-    app.use((_, res, next) => {
-        // Allow connections for all origins
-        res.setHeader("Access-Control-Allow-Origin", config.access_control_allow_origin);
+    app.use((req, res, next) => {
+        res.setHeader("Access-Control-Allow-Origin", "null");
+
+        // Allow requests from connections specified by the allow list regexes
+        const origin = req.header("origin");
+        if (origin) {
+            const originAllowed = config.access_control_allow_origins.find(
+                (allowOrigin) => origin.match(new RegExp(`^${allowOrigin}$`, "g")) // Match full string using ^ and $
+            );
+
+            if (originAllowed) {
+                res.setHeader("Access-Control-Allow-Origin", origin);
+            }
+        }
+
+
         // Allowed request methods
         res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
         // Allowed request headers

@@ -34,6 +34,16 @@ To start developing, copy `.env` to `.env.local` (by running `cp .env .env.local
 
 Then, you can override the variable's values, according to their explanation in `.env`.
 
+Whenever the file is updated, the server needs to be restarted for changes to have effect.
+
+
+### Cors Setup
+
+In order to allow requests from multiple clients, an array of URL's or regexes can be defined by `ACCESS_CONTROL_ALLOW_ORIGINS`. This is an important step regarding connecting the frontend and the backend of the project. It is crucial that all URL's have no trailing `/`. Example:
+
+```
+ACCESS_CONTROL_ALLOW_ORIGINS=["https:\/\/localhost:3000", "https:\\/\\/deploy-preview-\\d+--nijobs\\.netlify\\.app", "https://nijobs.netlify.app"]
+```
 
 ## Usage
 

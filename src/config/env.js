@@ -28,7 +28,7 @@ export default Object.freeze({
     test_log_requests: JSON.parse(process.env.TEST_LOG_REQUESTS),
     admin_email: process.env.ADMIN_EMAIL,
     admin_password: process.env.ADMIN_PASSWORD,
-    access_control_allow_origin: process.env.ACCESS_CONTROL_ALLOW_ORIGIN || "*",
+    access_control_allow_origins: JSON.parse(process.env.ACCESS_CONTROL_ALLOW_ORIGINS || "[]"),
 
     // Mail
     mail_from: process.env.MAIL_FROM,

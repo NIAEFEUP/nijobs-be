@@ -27,4 +27,5 @@ Made with ❤️ by NIAEFEUP.
 To start developing, please check the [documentation](https://nijobs-docs.netlify.app/intro/getting-started) on how to configure your local development.
 
 ## License
+
 [GNU General Public License v3.0](https://choosealicense.com/licenses/gpl-3.0/)
