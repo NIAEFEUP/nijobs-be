@@ -1033,6 +1033,25 @@ describe("Company endpoint", () => {
                 });
             });
 
+            describe("locations", () => {
+                test("should return an error because the locations array is too long", async () => {
+                    const locations = new Array(CompanyConstants.locations.max_length + 1)
+                        .fill("locations");
+                    const res = await test_agent
+                        .post("/company/application/finish")
+                        .attach("logo", "test/data/logo-niaefeup.png")
+                        .field("locations", locations)
+                        .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                    expect(res.body.errors).toContainEqual({
+                        "location": "body",
+                        "msg": ValidationReasons.ARRAY_SIZE(CompanyConstants.locations.min_length, CompanyConstants.locations.max_length),
+                        "param": "locations",
+                        "value": locations
+                    });
+                });
+            });
+
             describe("images", () => {
                 test("should return an error because the social media is too long", async () => {
                     const images = new Array(CompanyConstants.images.max_length + 1)

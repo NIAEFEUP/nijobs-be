@@ -43,11 +43,12 @@ export default (app) => {
 
             try {
                 const companyService = new CompanyService();
-                const { bio, contacts, social } = req.body;
+                const { bio, contacts, social, locations } = req.body;
                 const logo = req?.file?.url || `${config.webserver_host}/static/${req.file.filename}`;
                 const images = req.files.map((file) => file.url || `${config.webserver_host}/static/${file.filename}`);
                 const company_id = req.user.company;
-                await companyService.changeAttributes(company_id, { bio, contacts, social, logo, images, hasFinishedRegistration: true });
+                await companyService.changeAttributes(company_id, { bio, contacts, social,
+                    locations, logo, images, hasFinishedRegistration: true });
                 return res.json({});
             } catch (err) {
                 console.error(err);

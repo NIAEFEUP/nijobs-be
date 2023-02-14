@@ -24,6 +24,10 @@ export const finish = useExpressValidators([
         .optional()
         .isArray({ min: CompanyConstants.social.min_length, max: CompanyConstants.social.max_length })
         .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.social.min_length, CompanyConstants.social.max_length)),
+    body("locations", ValidationReasons.DEFAULT)
+        .optional()
+        .isArray({ min: CompanyConstants.locations.min_length, max: CompanyConstants.locations.max_length })
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.locations.min_length, CompanyConstants.locations.max_length)),
     body("images", ValidationReasons.DEFAULT)
         .optional()
         .isArray({ min: CompanyConstants.images.min_length, max: CompanyConstants.images.max_length })

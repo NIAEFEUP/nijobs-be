@@ -16,10 +16,14 @@ export default Object.freeze({
     },
     social: {
         min_length: 0,
-        max_length: 5,
+        max_length: 5
+    },
+    locations: {
+        min_length: 0,
+        max_length: 5
     },
     images: {
         min_length: 0,
-        max_length: 5,
+        max_length: 5
     }
 });
