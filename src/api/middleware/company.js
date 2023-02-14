@@ -110,15 +110,28 @@ export const isNotDisabled = (owner) => async (req, res, next) => {
 };
 
 export const canManageAccountSettings = (companyId) => async (req, res, next) => {
-    const company = await (new CompanyService()).findById(companyId, true);
+    try {
+        const company = await (new CompanyService()).findById(companyId, true);
 
-    // only god or the same company can change account settings
-    if (!req.hasAdminPrivileges && company._id.toString() !== req.targetOwner) {
-        return next(new APIError(
-            HTTPStatus.FORBIDDEN,
-            ErrorTypes.FORBIDDEN,
-            ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS
-        ));
+        // company not found
+        if (!company) {
+            return next(new APIError(
+                HTTPStatus.NOT_FOUND,
+                ErrorTypes.VALIDATION_ERROR,
+                ValidationReasons.COMPANY_NOT_FOUND
+            ));
+        }
+        // only god or the same company can change account settings
+        if (!req.hasAdminPrivileges && company._id.toString() !== req.targetOwner) {
+            return next(new APIError(
+                HTTPStatus.FORBIDDEN,
+                ErrorTypes.FORBIDDEN,
+                ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS
+            ));
+        }
+        return next();
+    } catch (err) {
+        console.error(err);
+        return next(err);
     }
-    return next();
 };

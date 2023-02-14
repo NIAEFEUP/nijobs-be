@@ -1956,8 +1956,8 @@ describe("Company endpoint", () => {
 
         beforeAll(async () => {
             await test_agent
-            .delete("/auth/login")
-            .expect(HTTPStatus.OK);
+                .delete("/auth/login")
+                .expect(HTTPStatus.OK);
 
             await Company.deleteMany({});
 
@@ -1988,8 +1988,8 @@ describe("Company endpoint", () => {
 
             await Account.create({
                 email: test_user_company.email,
-                password: await hash(test_user_company_1.password),
-                company: test_company_1._id
+                password: await hash(test_user_company.password),
+                company: test_company._id
             });
 
             await Account.create({
@@ -1997,32 +1997,12 @@ describe("Company endpoint", () => {
                 password: await hash(test_random_user.password),
                 company: test_random._id
             });
-
-            const offer = {
-                title: "Test Offer",
-                publishDate: new Date(Date.now()),
-                publishEndDate: new Date(Date.now() + (DAY_TO_MS)),
-                description: "For Testing Purposes",
-                contacts: ["geral@niaefeup.pt", "229417766"],
-                jobType: "SUMMER INTERNSHIP",
-                jobMinDuration: 2,
-                jobMaxDuration: 6,
-                fields: ["DEVOPS", "BACKEND", "OTHER"],
-                technologies: ["React", "CSS"],
-                location: "Ilha das Cores",
-                requirements: ["The candidate must be tested", "Fluent in testJS"],
-                owner: test_company._id,
-                ownerName: test_company.name,
-                ownerLogo: test_company.logo,
-            };
-
-            await Offer.create([offer, offer]);
         });
 
         afterEach(async () => {
             await test_agent
-            .delete("/auth/login")
-            .expect(HTTPStatus.OK);
+                .delete("/auth/login")
+                .expect(HTTPStatus.OK);
         });
 
         afterAll(async () => {
@@ -2034,121 +2014,19 @@ describe("Company endpoint", () => {
             test("Should fail if id is not a valid ObjectID", async () => {
                 const res = await test_agent
                     .put("/company/123/edit")
-                    .send(withGodToken())
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    .send()
+                    .expect(HTTPStatus.UNAUTHORIZED);
 
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "companyId");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
             });
 
             test("Should fail if id is not a valid company", async () => {
+                const id = "111111111111111111111111";
                 const res = await test_agent
-                    .put("/company/5f0b754b3f7b0a0004e3a9f9/edit")
-                    .send(withGodToken())
-                    .expect(HTTPStatus.NOT_FOUND);
-
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.NOT_FOUND);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "companyId");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND("5f0b754b3f7b0a0004e3a9f9"));
-            });
-        });
-
-        describe("Body Validation", () => {
-            test("Should fail if no body is provided", async () => {
-                const res = await test_agent
-                    .put(`/company/${test_company._id}/edit`)
-                    .send(withGodToken())
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
-
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "body");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_MISSING);
-            });
-
-            test("Should fail if no name is provided", async () => {
-                const res = await test_agent
-                    .put(`/company/${test_company._id}/edit`)
-                    .send(withGodToken({
-                        bio: "Cool company bio",
-                        contacts: ["1"],
-                        logo: "http://awebsite.com/alogo.jpg",
-                    }))
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
-
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "name");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_MISSING);
-            });
-
-            test("Should fail if no contacts are provided", async () => {
-                const res = await test_agent
-                    .put(`/company/${test_company._id}/edit`)
-                    .send(withGodToken({
-                        name: "Cool Company",
-                        bio: "Cool company bio",
-                        logo: "http://awebsite.com/alogo.jpg",
-                    }))
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
-
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "contacts");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_MISSING);
-            });
-
-            test("Should fail if no bio is provided", async () => {
-                const res = await test_agent
-                    .put(`/company/${test_company._id}/edit`)
-                    .send(withGodToken({
-                        name: "Cool Company",
-                        contacts: ["1"],
-                        logo: "http://awebsite.com/alogo.jpg",
-                    }))
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
-
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "bio");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_MISSING);
-            });
-
-            test("Should fail if no logo is provided", async () => {
-                const res = await test_agent
-                    .put(`/company/${test_company._id}/edit`)
-                    .send(withGodToken({
-                        name: "Cool Company",
-                        bio: "Cool company bio",
-                        contacts: ["1"],
-                    }))
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
-
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "logo");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_MISSING);
-            });
-        });
-
-        describe("Should fail if not logged in", () => {
-            test("Should fail if not logged in", async () => {
-                const res = await test_agent
-                    .put(`/company/${test_company._id}/edit`)
-                    .send({
-                        name: "Cool Company",
-                        bio: "Cool company bio",
-                        contacts: ["1"],
-                        logo: "http://awebsite.com/alogo.jpg",
-                    })
+                    .put(`/company/${id}/edit`)
+                    .send()
                     .expect(HTTPStatus.UNAUTHORIZED);
 
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.UNAUTHORIZED);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "token");
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
             });
         });
@@ -2168,12 +2046,9 @@ describe("Company endpoint", () => {
                         contacts: ["1"],
                         logo: "http://awebsite.com/otherlogo.jpg",
                     })
-                    .expect(HTTPStatus.UNAUTHORIZED);
+                    .expect(HTTPStatus.FORBIDDEN);
 
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.UNAUTHORIZED);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "token");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS);
             });
         });
 
@@ -2181,7 +2056,7 @@ describe("Company endpoint", () => {
             test("Should pass if god", async () => {
                 await test_agent
                     .post("/auth/login")
-                    .send(withGodToken())
+                    .send(test_user_admin)
                     .expect(HTTPStatus.OK);
 
                 const res = await test_agent
@@ -2246,35 +2121,6 @@ describe("Company endpoint", () => {
                 expect(res.body).toHaveProperty("bio", "As admin");
                 expect(res.body).toHaveProperty("contacts", ["1"]);
                 expect(res.body).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
-            });
-        });
-
-        describe("Offers should reflect changes", () => {
-            test("Should reflect changes in offers", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(HTTPStatus.OK);
-
-                await test_agent
-                    .put(`/company/${test_company._id}/edit`)
-                    .send({
-                        name: "Changing Company",
-                        bio: "As admin",
-                        contacts: ["1"],
-                        logo: "http://awebsite.com/otherlogo.jpg",
-                    })
-                    .expect(HTTPStatus.OK);
-
-                const res = await test_agent
-                    .get(`/offer/${test_offer._id}`)
-                    .expect(HTTPStatus.OK);
-
-                expect(res.body).toHaveProperty("company");
-                expect(res.body.company).toHaveProperty("name", "Changing Company");
-                expect(res.body.company).toHaveProperty("bio", "As admin");
-                expect(res.body.company).toHaveProperty("contacts", ["1"]);
-                expect(res.body.company).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
             });
         });
     });

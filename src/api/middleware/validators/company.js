@@ -1,10 +1,12 @@
 import { body, query, param } from "express-validator";
-import { useExpressValidators } from "../errorHandler.js";
+import { useExpressValidators, APIError, ErrorTypes } from "../errorHandler.js";
 import ValidationReasons from "./validationReasons.js";
 import CompanyConstants from "../../../models/constants/Company.js";
+import * as companyMiddleware from "../company.js";
 import { ensureArray, isObjectId, normalizeDate } from "./validatorUtils.js";
 import CompanyService from "../../../services/company.js";
 import { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } from "../../../models/constants/TimeConstants.js";
+import { StatusCodes as HTTPStatus } from "http-status-codes";
 
 export const MAX_LIMIT_RESULTS = 100;
 const DEFAULT_PUBLISH_DATE = new Date(Date.now()).toISOString();
@@ -45,6 +47,10 @@ export const companyExists = async (companyId) => {
     return true;
 };
 
+export const companyEnabled = (companyId, req, res, next) => companyMiddleware.isNotDisabled(companyId)(req, res, next);
+
+export const companyNotBlocked = (companyId, req, res, next) => companyMiddleware.isNotBlocked(companyId)(req, res, next);
+
 const publishEndDateAfterPublishDate = (publishEndDateCandidate, { req }) => {
     const publishDate = req.body?.publishDate || DEFAULT_PUBLISH_DATE;
     return publishEndDateCandidate > publishDate;
@@ -71,9 +77,11 @@ export const enable = useExpressValidators([
     existingCompanyParamValidator,
 ]);
 
-export const edit = useExpressValidators([
-    existingCompanyParamValidator,
-]);
+export const canBeEditedBy = (req, res, next) => {
+    if (!req.user?.isAdmin && req.user?.companyId !== req.params.companyId)
+        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.UNAUTHORIZED));
+    return next();
+};
 
 export const deleteCompany = useExpressValidators([
     existingCompanyParamValidator,
