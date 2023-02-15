@@ -3025,7 +3025,7 @@ describe("Offer endpoint tests", () => {
                 const res = await test_agent
                     .post(`/offers/edit/${_id}`)
                     .send(withGodToken())
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    .expect(HTTPStatus.NOT_FOUND);
                 expect(res.body.errors[0]).toHaveProperty("param", "offerId");
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OFFER_NOT_FOUND(_id));
             });
@@ -4501,7 +4501,7 @@ describe("Offer endpoint tests", () => {
             const res = await test_agent
                 .put(`/offers/${_id}/archive`)
                 .send(withGodToken())
-                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                .expect(HTTPStatus.NOT_FOUND);
 
             expect(res.body.errors[0]).toHaveProperty("param", "offerId");
             expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OFFER_NOT_FOUND(_id));
