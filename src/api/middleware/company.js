@@ -6,6 +6,7 @@ import CompanyConstants from "../../models/constants/Company.js";
 import Offer from "../../models/Offer.js";
 import CompanyService from "../../services/company.js";
 import OfferService from "../../services/offer.js";
+import { existingModel } from "./utils.js";
 
 export const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate, offerId) => async (req, res, next) => {
 
@@ -122,3 +123,15 @@ export const canManageAccountSettings = (companyId) => async (req, res, next) =>
     }
     return next();
 };
+
+export const existingCompany = existingModel(
+    (param, req) =>
+        new CompanyService().findById(
+            param,
+            req.hasAdminPrivileges,
+            req.hasAdminPrivileges
+        ),
+    "companyId",
+    "company",
+    ValidationReasons.COMPANY_NOT_FOUND
+);
