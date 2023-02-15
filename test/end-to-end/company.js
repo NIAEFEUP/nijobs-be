@@ -844,11 +844,13 @@ describe("Company endpoint", () => {
                     .post("/company/application/finish")
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
+                    .field("locations", ["Lisbon", "London"])
                     .field("contacts", ["contact1", "contact2"])
                     .expect(HTTPStatus.OK);
 
                 const test_company = [... await Company.find({})][0];
                 expect([...test_company.contacts]).toEqual(["contact1", "contact2"]);
+                expect([...test_company.locations]).toEqual(["Lisbon", "London"]);
                 expect(test_company.hasFinishedRegistration).toBe(true);
                 expect(test_company.bio).toBe("A very interesting and compelling bio");
                 const filename = path.join(`${config.upload_folder}/${test_company.id}.png`);
@@ -859,6 +861,7 @@ describe("Company endpoint", () => {
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", ["contact1", "contact2"])
+                    .field("locations", ["Lisbon", "London"])
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual(
@@ -874,11 +877,13 @@ describe("Company endpoint", () => {
                     .post("/company/application/finish")
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
+                    .field("locations", ["Lisbon", "London"])
                     .field("contacts", "contact1")
                     .expect(HTTPStatus.OK);
 
                 const test_company = [... await Company.find({})][0];
                 expect([...test_company.contacts]).toEqual(["contact1"]);
+                expect([...test_company.locations]).toEqual(["Lisbon", "London"]);
                 expect(test_company.hasFinishedRegistration).toBe(true);
                 expect(test_company.bio).toBe("A very interesting and compelling bio");
                 const filename = path.join(`${config.upload_folder}/${test_company.id}.png`);
@@ -888,6 +893,7 @@ describe("Company endpoint", () => {
                     .post("/company/application/finish")
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
+                    .field("locations", ["Lisbon", "London"])
                     .field("contacts", "contact2")
                     .expect(HTTPStatus.FORBIDDEN);
 
@@ -1034,26 +1040,22 @@ describe("Company endpoint", () => {
             });
 
             describe("locations", () => {
-                test("should return an error because the locations array is too long", async () => {
-                    const locations = new Array(CompanyConstants.locations.max_length + 1)
-                        .fill("locations");
+                test("should return an error because the at least one location is required", async () => {
                     const res = await test_agent
                         .post("/company/application/finish")
                         .attach("logo", "test/data/logo-niaefeup.png")
-                        .field("locations", locations)
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
                     expect(res.body.errors).toContainEqual({
                         "location": "body",
-                        "msg": ValidationReasons.ARRAY_SIZE(CompanyConstants.locations.min_length, CompanyConstants.locations.max_length),
+                        "msg": ValidationReasons.REQUIRED,
                         "param": "locations",
-                        "value": locations
                     });
                 });
             });
 
             describe("images", () => {
-                test("should return an error because the social media is too long", async () => {
+                test("should return an error because the image array is too long", async () => {
                     const images = new Array(CompanyConstants.images.max_length + 1)
                         .fill("images");
                     const res = await test_agent

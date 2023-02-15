@@ -105,7 +105,7 @@ export const cloudSave = async (req, res, next) => {
 export const parseArrayOfFiles = (field_name, max_count) => (req, res, next) => {
     const upload = multerConfig.array(field_name, max_count);
     upload(req, res, (error) => {
-        if (error || !req.files) {
+        if (error) {
             let message = "required";
             let param = field_name;
             if (error) {

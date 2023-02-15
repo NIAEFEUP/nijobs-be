@@ -28,7 +28,6 @@ const CompanySchema = new Schema({
     locations: {
         type: [String],
         minlength: CompanyConstants.locations.min_length,
-        maxlength: CompanyConstants.locations.max_length,
     },
     images: {
         type: [String],

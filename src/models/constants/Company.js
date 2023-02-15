@@ -19,8 +19,7 @@ export default Object.freeze({
         max_length: 5
     },
     locations: {
-        min_length: 0,
-        max_length: 5
+        min_length: 1,
     },
     images: {
         min_length: 0,
