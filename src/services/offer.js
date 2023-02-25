@@ -386,7 +386,7 @@ class OfferService {
      * @param {*} filters offer filters
      */
     encodeQueryToken(id, score, sortField, sortValue, sortDescending, value, filters) {
-        const parsedSortValue = this._isFieldDate(sortField) ? sortValue.toISOString() : sortValue;
+        const parsedSortValue = this.isFieldDate(sortField) ? sortValue.toISOString() : sortValue;
 
         return base64url.encode(JSON.stringify({
             id, score, sortField, sortValue: parsedSortValue, sortDescending, value, filters
@@ -403,11 +403,11 @@ class OfferService {
         return {
             ...tokenInfo,
             score: Number(tokenInfo.score),
-            sortValue: this._isFieldDate(tokenInfo.sortField) ? new Date(tokenInfo.sortValue) : tokenInfo.sortValue
+            sortValue: this.isFieldDate(tokenInfo.sortField) ? new Date(tokenInfo.sortValue) : tokenInfo.sortValue
         };
     }
 
-    _isFieldDate(field) {
+    isFieldDate(field) {
         return field === "publishDate" || field === "publishEndDate";
     }
 

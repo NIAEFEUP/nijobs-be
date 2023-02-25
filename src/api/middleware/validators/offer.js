@@ -444,16 +444,19 @@ export const setDefaultValuesCreate = (req, res, next) => {
 
 const validGetQueryToken = async (queryToken, { req }) => {
     try {
-        const { id, score, sortField, sortValue, sortDescending, value } = (new OfferService()).decodeQueryToken(queryToken);
+        const offerService = new OfferService();
+
+        const { id, score, sortField, sortValue, sortDescending, value } = offerService.decodeQueryToken(queryToken);
         if (!isObjectId(id)) throw new Error(ValidationReasons.OBJECT_ID);
         await existingOfferId(id, { req });
 
-        // TODO ugly
-        if (typeof sortField === "undefined" || typeof sortValue === "undefined" || typeof sortDescending === "undefined") {
+        if ([sortField, sortValue, sortDescending].includes(undefined)) {
             throw new Error(ValidationReasons.REQUIRED);
         }
 
-        // TODO check if date fields have date values, test it
+        if (offerService.isFieldDate(sortField) && isNaN(sortValue.getTime())) {
+            throw new Error(ValidationReasons.DATE);
+        }
 
         if (value) {
             if (isNaN(score)) throw new Error(ValidationReasons.NUMBER);
