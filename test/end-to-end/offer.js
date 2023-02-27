@@ -2695,7 +2695,7 @@ describe("Offer endpoint tests", () => {
                         description: "Ability to have an incredible job",
                         jobType: "OTHER",
                         location: "Aveiro",
-                        vacancies: 2,
+                        vacancies: 1,
                         ownerName: "Awesome Company",
                     });
                 });
@@ -2853,8 +2853,8 @@ describe("Offer endpoint tests", () => {
 
                     expect(res.status).toBe(HTTPStatus.OK);
                     expect(res.body?.results).toHaveLength(2);
-                    expect(res.body.results[0].title).toBe(test_offer.title);
-                    expect(res.body.results[1].title).toBe("Amazing offer");
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
                 });
 
                 test("should sort by vacancies descending", async () => {
