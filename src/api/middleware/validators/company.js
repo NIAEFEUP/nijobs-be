@@ -47,10 +47,6 @@ export const companyExists = async (companyId) => {
     return true;
 };
 
-export const companyEnabled = (companyId, req, res, next) => companyMiddleware.isNotDisabled(companyId)(req, res, next);
-
-export const companyNotBlocked = (companyId, req, res, next) => companyMiddleware.isNotBlocked(companyId)(req, res, next);
-
 const publishEndDateAfterPublishDate = (publishEndDateCandidate, { req }) => {
     const publishDate = req.body?.publishDate || DEFAULT_PUBLISH_DATE;
     return publishEndDateCandidate > publishDate;
