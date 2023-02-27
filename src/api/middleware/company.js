@@ -112,15 +112,7 @@ export const isNotDisabled = (owner) => async (req, res, next) => {
 export const canManageAccountSettings = (companyId) => async (req, res, next) => {
     try {
         const company = await (new CompanyService()).findById(companyId, true);
-
-        // company not found
-        if (!company) {
-            return next(new APIError(
-                HTTPStatus.NOT_FOUND,
-                ErrorTypes.VALIDATION_ERROR,
-                ValidationReasons.COMPANY_NOT_FOUND
-            ));
-        }
+        
         // only god or the same company can change account settings
         if (!req.hasAdminPrivileges && company._id.toString() !== req.targetOwner) {
             return next(new APIError(
