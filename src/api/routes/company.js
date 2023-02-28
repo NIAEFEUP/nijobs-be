@@ -215,6 +215,7 @@ export default (app) => {
             authMiddleware.isAdmin,
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.edit,
         (req, res, next) => companyMiddleware.canManageAccountSettings(req.params.companyId)(req, res, next),
         (req, res, next) => companyMiddleware.isNotBlocked(req.params.companyId)(req, res, next),
         (req, res, next) => companyMiddleware.isNotDisabled(req.params.companyId)(req, res, next),
