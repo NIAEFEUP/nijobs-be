@@ -1935,7 +1935,7 @@ describe("Company endpoint", () => {
     });
 
     describe("PUT /company/edit", () => {
-        let test_company, test_random;
+        let test_company, test_random, test_offer;
 
         const test_user_admin = {
             email: "admin@email.com",
@@ -1954,7 +1954,7 @@ describe("Company endpoint", () => {
 
         const test_agent = agent();
 
-        beforeAll(async () => {
+        beforeEach(async () => {
             await test_agent
                 .delete("/auth/login")
                 .expect(HTTPStatus.OK);
@@ -1977,6 +1977,14 @@ describe("Company endpoint", () => {
                 logo: "http://awebsite.com/alogo.jpg",
                 hasFinishedRegistration: true
             });
+
+            const test_offer_data = generateTestOffer({
+                owner: test_company._id,
+                ownerName: test_company.name,
+                ownerLogo: test_company.logo,
+            });
+
+            test_offer = await Offer.create(test_offer_data);
 
             await Account.deleteMany({});
 
@@ -2012,22 +2020,32 @@ describe("Company endpoint", () => {
 
         describe("ID Validation", () => {
             test("Should fail if id is not a valid ObjectID", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
                 const res = await test_agent
                     .put("/company/123/edit")
                     .send()
-                    .expect(HTTPStatus.UNAUTHORIZED);
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
             });
 
             test("Should fail if id is not a valid company", async () => {
                 const id = "111111111111111111111111";
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
                 const res = await test_agent
                     .put(`/company/${id}/edit`)
                     .send()
-                    .expect(HTTPStatus.UNAUTHORIZED);
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
             });
         });
 
@@ -2096,9 +2114,28 @@ describe("Company endpoint", () => {
 
                 expect(res.body).toHaveProperty("name", "Changing Company");
                 expect(res.body).toHaveProperty("bio", "As company itself");
-                expect(res.body).toHaveProperty("contacts", ["1"]);
                 expect(res.body).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
             });
+        });
+
+        test("Offer should be updated", async () => {
+            await test_agent
+                .post("/auth/login")
+                .send(test_user_company)
+                .expect(HTTPStatus.OK);
+
+            const res = await test_agent
+                .put(`/company/${test_company._id}/edit`)
+                .send({
+                    name: "Changing Company",
+                    contacts: ["122"],
+                })
+                .expect(HTTPStatus.OK);
+
+            test_offer = await Offer.findById(test_offer._id);
+            expect(res.body).toHaveProperty("contacts", ["122"]);
+            expect(test_offer.ownerName).toEqual("Changing Company");
+            expect(test_offer.contacts).toEqual(["122"]);
         });
 
         describe("Should fail if company is blocked or disabled", () => {
@@ -2140,7 +2177,7 @@ describe("Company endpoint", () => {
                         logo: "http://awebsite.com/otherlogo.jpg",
                     })
                     .expect(HTTPStatus.FORBIDDEN);
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_DISABLED);
             });
 
             test("Should fail if company is blocked (user)", async () => {
@@ -2182,7 +2219,7 @@ describe("Company endpoint", () => {
                     })
                     .expect(HTTPStatus.FORBIDDEN);
 
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_DISABLED);
             });
         });
     });
