@@ -28,11 +28,7 @@ export const finish = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .customSanitizer(ensureArray)
         .isArray({ min: CompanyConstants.locations.min_length })
-        .withMessage(ValidationReasons.TOO_SHORT(CompanyConstants.locations.min_length)),
-    body("images", ValidationReasons.DEFAULT)
-        .optional()
-        .isArray({ min: CompanyConstants.images.min_length, max: CompanyConstants.images.max_length })
-        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.images.min_length, CompanyConstants.images.max_length))
+        .withMessage(ValidationReasons.TOO_SHORT(CompanyConstants.locations.min_length))
 ]);
 
 export const list = useExpressValidators([

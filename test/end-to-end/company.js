@@ -1066,7 +1066,7 @@ describe("Company endpoint", () => {
 
                     expect(res.body.errors).toContainEqual({
                         "location": "body",
-                        "msg": ValidationReasons.ARRAY_SIZE(CompanyConstants.images.min_length, CompanyConstants.images.max_length),
+                        "msg": ValidationReasons.TOO_LONG(CompanyConstants.images.max_length),
                         "param": "images",
                         "value": images
                     });
