@@ -2070,7 +2070,12 @@ describe("Company endpoint", () => {
             test("Should pass if god", async () => {
                 await test_agent
                     .put(`/company/${test_company._id}/edit`)
-                    .send(withGodToken())
+                    .send(withGodToken({
+                        name: "Changing Company",
+                        bio: "As god",
+                        contacts: ["1"],
+                        logo: "http://awebsite.com/otherlogo.jpg",
+                    }))
                     .expect(HTTPStatus.OK);
             });
 
@@ -2085,7 +2090,6 @@ describe("Company endpoint", () => {
                     .send({
                         name: "Changing Company",
                         bio: "As company itself",
-                        contacts: ["1"],
                         logo: "http://awebsite.com/otherlogo.jpg",
                     })
                     .expect(HTTPStatus.OK);
