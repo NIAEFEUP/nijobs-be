@@ -97,12 +97,19 @@ class CompanyService {
      * @param {*} company_id id of the company
      * @param {*} attributes object containing the attributes to change in company
      */
-    async changeAttributes(company_id, attributes) {
-        const company = await Company.findOneAndUpdate(
-            { _id: company_id },
-            attributes,
-            { new: true });
-        return company;
+    async changeAttributes(companyId, companyDetails) {
+        try {
+            const company = await Company.findOneAndUpdate(
+                { _id: companyId },
+                companyDetails,
+                { new: true }
+            );
+
+            return company;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
 
     /**
@@ -183,27 +190,6 @@ class CompanyService {
         try {
             const company = await Company.findById(companyId);
             await Company.findByIdAndRemove(companyId);
-            return company;
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    }
-
-
-    /**
-     * Edit company details by its ID and returns it
-     * @param {*} companyId ID of the company
-     * @param {*} companyDetails company details to be updated
-     */
-    async editCompanyDetails(companyId, companyDetails) {
-        try {
-            const company = await Company.findOneAndUpdate(
-                { _id: companyId },
-                companyDetails,
-                { new: true }
-            );
-
             return company;
         } catch (err) {
             console.error(err);
