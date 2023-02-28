@@ -208,30 +208,43 @@ class OfferService {
      * jobType: Array of jobTypes allowed
      */
     async get({ value = "", queryToken = null, limit = OfferService.MAX_OFFERS_PER_QUERY,
-        showHidden = false, showAdminReason = false, ...filters }) {
+        showHidden = false, showAdminReason = false, sortBy, descending = false, ...filters }) {
 
-        let offers, queryValue = value, queryFilters = filters;
+        let offers, queryValue = value, queryFilters = filters, querySort = sortBy, queryDescending = descending;
 
         if (queryToken) {
             const {
                 id: lastOfferId,
                 score: lastOfferScore,
-                publishDate: lastPublishDate,
+                sortField: lastSortField,
+                sortValue: lastSortValue,
+                sortDescending: lastSortDescending,
                 ...searchInfo
             } = this.decodeQueryToken(queryToken);
 
             [queryValue, queryFilters] = [searchInfo.value, searchInfo.filters];
 
-            offers = this._buildSearchContinuationQuery(lastOfferId, lastOfferScore, lastPublishDate, queryValue,
-                showHidden, showAdminReason, queryFilters);
+            offers = this._buildSearchContinuationQuery(lastOfferId, lastOfferScore, lastSortField, lastSortValue,
+                lastSortDescending, queryValue, showHidden, showAdminReason, queryFilters);
+
+            querySort = lastSortField;
+            queryDescending = lastSortDescending;
         } else {
             offers = this._buildInitialSearchQuery(queryValue, showHidden, showAdminReason, queryFilters);
+
+            if (!querySort) {
+                querySort = "publishDate";
+                queryDescending = true;
+            }
         }
 
+        const sortOrder = queryDescending ? -1 : 1;
+
         const results = await offers
+            .collation({ locale: "en" }) // Case-insensitive
             .sort({
                 ...(queryValue ? { score: { "$meta": "textScore" } } : {}),
-                publishDate: -1,
+                [querySort]: sortOrder,
                 _id: 1,
             })
             .limit(limit);
@@ -243,7 +256,7 @@ class OfferService {
                 queryToken: this.encodeQueryToken(
                     lastOffer._id,
                     lastOffer.score || lastOffer._doc?.score,
-                    lastOffer.publishDate,
+                    querySort, lastOffer[querySort], queryDescending,
                     queryValue, queryFilters
                 ),
             };
@@ -271,7 +284,9 @@ class OfferService {
      * Builds a search continuation query. Only use this when loading more offers.
      * Otherwise, use _buildInitialSearchQuery().
      */
-    _buildSearchContinuationQuery(lastOfferId, lastOfferScore, lastPublishDate, value, showHidden, showAdminReason, filters) {
+    _buildSearchContinuationQuery(lastOfferId, lastOfferScore, lastSortField, lastSortValue, lastSortDescending,
+        value, showHidden, showAdminReason, filters) {
+        const sortFieldOperator = lastSortDescending ? "$lt" : "$gt";
         let offers;
 
         if (value) {
@@ -284,8 +299,8 @@ class OfferService {
                 } },
                 { $match: { "$or": [
                     { score: { "$lt": lastOfferScore } },
-                    { score: lastOfferScore, publishDate: { "$lt": lastPublishDate } },
-                    { score: lastOfferScore, publishDate: lastPublishDate, _id: { "$gt": ObjectId(lastOfferId) } }
+                    { score: lastOfferScore, [lastSortField]: { [sortFieldOperator]: lastSortValue } },
+                    { score: lastOfferScore, [lastSortField]: lastSortValue, _id: { "$gt": ObjectId(lastOfferId) } }
                 ] } },
                 { $match: Offer.filterCurrent() },
                 { $match: showHidden ? {} : Offer.filterNonHidden() }
@@ -294,8 +309,8 @@ class OfferService {
             offers = Offer.find({ "$and": [
                 this._buildFilterQuery(filters),
                 { "$or": [
-                    { publishDate: { "$lt": lastPublishDate } },
-                    { publishDate: lastPublishDate, _id: { "$gt": ObjectId(lastOfferId) } }
+                    { [lastSortField]: { [sortFieldOperator]: lastSortValue } },
+                    { [lastSortField]: lastSortValue, _id: { "$gt": ObjectId(lastOfferId) } }
                 ] }
             ] });
 
@@ -362,13 +377,19 @@ class OfferService {
 
     /**
      * Encodes a query token, by taking an id and FTS score if present, and encoding them in safe url base64
-     * @param {*} id
-     * @param {*} score
-     * @param {*} publishDate
+     * @param {*} id id of last offer
+     * @param {*} score full-text search score
+     * @param {*} sortField field that's being sorted
+     * @param {*} sortValue value of the field that's being sorted
+     * @param {*} sortDescending whether the sort is descending
+     * @param {*} value full-text search value
+     * @param {*} filters offer filters
      */
-    encodeQueryToken(id, score, publishDate, value, filters) {
+    encodeQueryToken(id, score, sortField, sortValue, sortDescending, value, filters) {
+        const parsedSortValue = this.isFieldDate(sortField) ? sortValue.toISOString() : sortValue;
+
         return base64url.encode(JSON.stringify({
-            id, score, publishDate: publishDate.toISOString(), value, filters
+            id, score, sortField, sortValue: parsedSortValue, sortDescending, value, filters
         }));
     }
 
@@ -382,8 +403,12 @@ class OfferService {
         return {
             ...tokenInfo,
             score: Number(tokenInfo.score),
-            publishDate: new Date(Date.parse(tokenInfo.publishDate))
+            sortValue: this.isFieldDate(tokenInfo.sortField) ? new Date(tokenInfo.sortValue) : tokenInfo.sortValue
         };
+    }
+
+    isFieldDate(field) {
+        return field === "publishDate" || field === "publishEndDate";
     }
 
     /**

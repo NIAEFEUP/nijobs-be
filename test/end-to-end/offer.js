@@ -40,6 +40,7 @@ describe("Offer endpoint tests", () => {
         isHidden: false,
         isArchived: false,
         requirements: ["The candidate must be tested", "Fluent in testJS"],
+        vacancies: 2,
         ...params,
     });
 
@@ -1026,6 +1027,16 @@ describe("Offer endpoint tests", () => {
                 const FieldValidatorTester = QueryValidatorTester("technologies");
                 FieldValidatorTester.mustHaveValuesInRange(TechnologyConstants.TechnologyTypes, TechnologyConstants.MIN_TECHNOLOGIES + 1);
             });
+
+            describe("sortBy", () => {
+                const FieldValidatorTester = QueryValidatorTester("sortBy");
+                FieldValidatorTester.mustBeInArray(OfferConstants.SortableFields);
+            });
+
+            describe("descending", () => {
+                const FieldValidatorTester = QueryValidatorTester("descending");
+                FieldValidatorTester.mustBeBoolean();
+            });
         });
 
         describe("Using already created offer(s)", () => {
@@ -1070,7 +1081,7 @@ describe("Offer endpoint tests", () => {
 
             describe("queryToken validation", () => {
                 test("should fail if queryToken does not contain a valid id", async () => {
-                    const queryToken = (new OfferService()).encodeQueryToken("123", 5, mockCurrentDate, "test");
+                    const queryToken = (new OfferService()).encodeQueryToken("123", 5, "publishDate", mockCurrentDate, false, "test", {});
 
                     const res = await request()
                         .get("/offers")
@@ -1085,7 +1096,8 @@ describe("Offer endpoint tests", () => {
                 });
 
                 test("should fail if the queryToken's offer does not exist", async () => {
-                    const queryToken = (new OfferService()).encodeQueryToken("5facf0cdb8bc30016ee58952", 5, mockCurrentDate, "test");
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken("5facf0cdb8bc30016ee58952", 5, "publishDate", mockCurrentDate, false, "test", {});
                     const res = await request()
                         .get("/offers")
                         .query({ queryToken });
@@ -1101,7 +1113,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is not a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, "hello", mockCurrentDate, "test");
+                        .encodeQueryToken(testOfferId, "hello", "test", "test", false, "test", {});
 
                     const res = await request()
                         .get("/offers")
@@ -1118,7 +1130,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is negative", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, -5, mockCurrentDate, "test");
+                        .encodeQueryToken(testOfferId, -5, "publishDate", mockCurrentDate, false, "test", {});
 
                     const res = await request()
                         .get("/offers")
@@ -1135,7 +1147,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's value is present and score is missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, undefined, mockCurrentDate, "test");
+                        .encodeQueryToken(testOfferId, undefined, "test", "test", false, "test", {});
 
                     const res = await request()
                         .get("/offers")
@@ -1152,7 +1164,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's score is present and value is missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, 5, mockCurrentDate);
+                        .encodeQueryToken(testOfferId, 5, "publishDate", mockCurrentDate, false, undefined, {});
 
                     const res = await request()
                         .get("/offers")
@@ -1169,7 +1181,7 @@ describe("Offer endpoint tests", () => {
                 test("should fail if the queryToken's publishDate is not a date", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = base64url.encode(JSON.stringify({
-                        testOfferId, publishDate: 3
+                        id: testOfferId, score: 5, sortField: "publishDate", sortValue: "help", sortDescending: true, value: 5
                     }));
 
                     const res = await request()
@@ -1184,11 +1196,62 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors[0]).toHaveProperty("location", "query");
                 });
 
-                test("should fail if the queryToken's publishDate is missing", async () => {
+                test("should fail if the queryToken's publishEndDate is not a date", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = base64url.encode(JSON.stringify({
-                        testOfferId, publishDate: 3
+                        id: testOfferId, score: 5, sortField: "publishEndDate", sortValue: "help", sortDescending: true, value: 5
                     }));
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's sortValue is missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId, 5, "test", undefined, true, undefined, {});
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's sortField is missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId, 5, undefined, "test", true, undefined, {});
+
+                    const res = await request()
+                        .get("/offers")
+                        .query({ queryToken });
+
+                    expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                    expect(res.body).toHaveProperty("errors");
+                    expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_QUERY_TOKEN);
+                    expect(res.body.errors[0]).toHaveProperty("param", "queryToken");
+                    expect(res.body.errors[0]).toHaveProperty("location", "query");
+                });
+
+                test("should fail if the queryToken's sortDescending is missing", async () => {
+                    const testOfferId = (await Offer.findOne({}))._id;
+                    const queryToken = (new OfferService())
+                        .encodeQueryToken(testOfferId, 5, "test", "test", undefined, undefined, {});
 
                     const res = await request()
                         .get("/offers")
@@ -1205,7 +1268,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when the queryToken's value and score are missing", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, undefined, mockCurrentDate, undefined);
+                        .encodeQueryToken(testOfferId, undefined, "publishDate", mockCurrentDate, true, undefined, {});
 
                     const res = await request()
                         .get("/offers")
@@ -1217,7 +1280,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when the queryToken's value is present and score is a valid number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, 5, mockCurrentDate, "test");
+                        .encodeQueryToken(testOfferId, 5, "test", "test", false, "test", {});
 
                     const res = await request()
                         .get("/offers")
@@ -1229,7 +1292,7 @@ describe("Offer endpoint tests", () => {
                 test("should succeed when value is present and queryToken's score can be parsed as a number", async () => {
                     const testOfferId = (await Offer.findOne({}))._id;
                     const queryToken = (new OfferService())
-                        .encodeQueryToken(testOfferId, "3.5", mockCurrentDate, "test");
+                        .encodeQueryToken(testOfferId, "3.5", "test", "test", false, "test", {});
 
                     const res = await request()
                         .get("/offers")
@@ -2616,6 +2679,364 @@ describe("Offer endpoint tests", () => {
                     expect(res.status).toBe(HTTPStatus.OK);
                     expect(res.body?.results).toHaveLength(1);
                     expect(res.body.results[0].requirements).toEqual(test_offer.requirements);
+                });
+            });
+
+            describe("Offer sorting", () => {
+                beforeAll(async () => {
+                    await Offer.deleteMany();
+                    await Offer.create(test_offer);
+
+                    await Offer.create({
+                        ...test_offer,
+                        title: "Amazing offer",
+                        publishDate: "2019-11-23T00:00:00.000Z",
+                        publishEndDate: "2019-11-29T00:00:00.000Z",
+                        description: "Ability to have an incredible job",
+                        jobType: "OTHER",
+                        location: "Aveiro",
+                        vacancies: 1,
+                        ownerName: "Awesome Company",
+                    });
+                });
+
+                afterAll(async () => {
+                    await Offer.deleteMany({});
+                });
+
+                test("should sort by publishDate by default", async () => {
+                    const res = await request()
+                        .get("/offers");
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by title ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "title" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by title descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "title", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by publishDate ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "publishDate" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by publishDate descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "publishDate", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by publishEndDate ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "publishEndDate" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by publishEndDate descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "publishEndDate", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by description ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "description" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by description descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "description", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by jobType ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "jobType" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by jobType descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "jobType", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by location ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "location" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by location descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "location", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by vacancies ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "vacancies" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by vacancies descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "vacancies", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                test("should sort by ownerName ascending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "ownerName" });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe("Amazing offer");
+                    expect(res.body.results[1].title).toBe(test_offer.title);
+                });
+
+                test("should sort by ownerName descending", async () => {
+                    const res = await request()
+                        .get("/offers")
+                        .query({ sortBy: "ownerName", descending: true });
+
+                    expect(res.status).toBe(HTTPStatus.OK);
+                    expect(res.body?.results).toHaveLength(2);
+                    expect(res.body.results[0].title).toBe(test_offer.title);
+                    expect(res.body.results[1].title).toBe("Amazing offer");
+                });
+
+                describe("Using pagination", () => {
+                    beforeAll(async () => {
+                        await Offer.deleteMany();
+                        await Offer.create(test_offer);
+
+                        await Offer.create({
+                            ...test_offer,
+                            title: "Amazing offer",
+                            publishDate: "2019-11-23T00:00:00.000Z",
+                            publishEndDate: "2019-11-29T00:00:00.000Z",
+                            description: "Ability to have an incredible job",
+                            jobType: "OTHER",
+                            location: "Aveiro",
+                            ownerName: "Awesome Company",
+                            vacancies: 3,
+                        });
+                    });
+
+                    afterAll(async () => {
+                        await Offer.deleteMany({});
+                    });
+
+                    test("should sort by title in multiple pages", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({ sortBy: "title", limit: 1 });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].title).toBe("Amazing offer");
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ limit: 1, queryToken: res.body.queryToken });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                        expect(res2.body.results[0].title).toBe(test_offer.title);
+                    });
+
+                    test("should sort by publishEndDate in multiple pages", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({ sortBy: "publishEndDate", limit: 1 });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].title).toBe(test_offer.title);
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ limit: 1, queryToken: res.body.queryToken });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                        expect(res2.body.results[0].title).toBe("Amazing offer");
+                    });
+
+                    test("should sort by description in multiple pages", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({ sortBy: "description", limit: 1 });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].title).toBe("Amazing offer");
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ limit: 1, queryToken: res.body.queryToken });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                        expect(res2.body.results[0].title).toBe(test_offer.title);
+                    });
+
+                    test("should sort by jobType in multiple pages", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({ sortBy: "jobType", limit: 1 });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].title).toBe("Amazing offer");
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ limit: 1, queryToken: res.body.queryToken });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                        expect(res2.body.results[0].title).toBe(test_offer.title);
+                    });
+
+                    test("should sort by location in multiple pages", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({ sortBy: "location", limit: 1 });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].title).toBe("Amazing offer");
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ limit: 1, queryToken: res.body.queryToken });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                        expect(res2.body.results[0].title).toBe(test_offer.title);
+                    });
+
+                    test("should sort by vacancies in multiple pages", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({ sortBy: "vacancies", limit: 1 });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].title).toBe(test_offer.title);
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ limit: 1, queryToken: res.body.queryToken });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                        expect(res2.body.results[0].title).toBe("Amazing offer");
+                    });
+
+                    test("should sort by ownerName in multiple pages", async () => {
+                        const res = await request()
+                            .get("/offers")
+                            .query({ sortBy: "ownerName", limit: 1 });
+
+                        expect(res.status).toBe(HTTPStatus.OK);
+                        expect(res.body?.results).toHaveLength(1);
+                        expect(res.body.results[0].title).toBe("Amazing offer");
+
+                        const res2 = await request()
+                            .get("/offers")
+                            .query({ limit: 1, queryToken: res.body.queryToken });
+
+                        expect(res2.status).toBe(HTTPStatus.OK);
+                        expect(res2.body?.results).toHaveLength(1);
+                        expect(res2.body.results[0].title).toBe(test_offer.title);
+                    });
                 });
             });
         });

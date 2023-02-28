@@ -21,4 +21,16 @@ export default Object.freeze({
         COMPANY_BLOCKED: "COMPANY_BLOCKED",
         COMPANY_DISABLED: "COMPANY_DISABLED",
     },
+    SortableFields: [
+        "title",
+        "publishDate",
+        "publishEndDate",
+        "jobMinDuration",
+        "jobMaxDuration",
+        "description",
+        "vacancies",
+        "jobType",
+        "ownerName",
+        "location",
+    ]
 });

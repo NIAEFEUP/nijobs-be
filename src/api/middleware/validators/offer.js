@@ -444,15 +444,17 @@ export const setDefaultValuesCreate = (req, res, next) => {
 
 const validGetQueryToken = async (queryToken, { req }) => {
     try {
-        const { id, score, publishDate, value } = (new OfferService()).decodeQueryToken(queryToken);
+        const offerService = new OfferService();
+
+        const { id, score, sortField, sortValue, sortDescending, value } = offerService.decodeQueryToken(queryToken);
         if (!isObjectId(id)) throw new Error(ValidationReasons.OBJECT_ID);
         await existingOfferId(id, { req });
 
-        if (typeof publishDate === "undefined") {
+        if ([sortField, sortValue, sortDescending].includes(undefined)) {
             throw new Error(ValidationReasons.REQUIRED);
         }
 
-        if (!(publishDate instanceof Date)) {
+        if (offerService.isFieldDate(sortField) && isNaN(sortValue.getTime())) {
             throw new Error(ValidationReasons.DATE);
         }
 
@@ -516,6 +518,16 @@ export const get = useExpressValidators([
         .customSanitizer(ensureArray)
         .isArray().withMessage(ValidationReasons.ARRAY).bail()
         .custom(valuesInSet((TechnologyTypes))),
+
+    query("sortBy", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .isIn(OfferConstants.SortableFields).withMessage(ValidationReasons.IN_ARRAY(OfferConstants.SortableFields)),
+
+    query("descending", ValidationReasons.DEFAULT)
+        .optional()
+        .isBoolean().withMessage(ValidationReasons.BOOLEAN)
+        .toBoolean(),
 ]);
 
 export const validOfferId = useExpressValidators([
