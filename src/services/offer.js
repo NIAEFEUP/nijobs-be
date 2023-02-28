@@ -468,14 +468,13 @@ class OfferService {
         await Offer.deleteMany({ owner: companyId });
     }
 
-    async updateAllOffersByCompanyId(id, company) {
+    async updateAllOffersByCompanyId(company) {
         const offer = {
-            owner: id,
             ownerName: company.name,
             ownerLogo: company.logo,
-            contacts: company.contacts.slice(),
+            contacts: company.contacts,
         };
-        await Offer.updateMany({ owner: id }, offer);
+        await Offer.updateMany({ owner: company._id }, offer);
     }
 }
 
