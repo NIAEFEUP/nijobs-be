@@ -474,7 +474,8 @@ class OfferService {
             ownerLogo: company.logo,
             contacts: company.contacts,
         };
-        await Offer.updateMany({ owner: company._id }, offer);
+        const offers = await Offer.updateMany({ owner: company._id }, offer, { new: true });
+        return offers;
     }
 }
 
