@@ -2031,7 +2031,7 @@ describe("Company endpoint", () => {
             });
         });
 
-        describe("Should fail if different user/company", () => {
+        describe("Should fail if bad user", () => {
             test("Should fail if different user", async () => {
                 await test_agent
                     .post("/auth/login")
@@ -2050,34 +2050,31 @@ describe("Company endpoint", () => {
 
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS);
             });
-        });
 
-        describe("Should pass if god", () => {
-            test("Should pass if god", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(HTTPStatus.OK);
-
+            test("Should fail if not logged in", async () => {
                 const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
-                    .send(withGodToken({
+                    .send({
                         name: "Changing Company",
-                        bio: "As god",
+                        bio: "Without login",
                         contacts: ["1"],
                         logo: "http://awebsite.com/otherlogo.jpg",
-                    }))
-                    .expect(HTTPStatus.OK);
+                    })
+                    .expect(HTTPStatus.UNAUTHORIZED);
 
-                expect(res.body).toHaveProperty("name", "Changing Company");
-                expect(res.body).toHaveProperty("bio", "As god");
-                expect(res.body).toHaveProperty("contacts", ["1"]);
-                expect(res.body).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
             });
         });
 
-        describe("Should pass if same user/company", () => {
-            test("Should pass if same user", async () => {
+        describe("Should pass if good user", () => {
+            test("Should pass if god", async () => {
+                await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .send(withGodToken())
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("Should pass if same company", async () => {
                 await test_agent
                     .post("/auth/login")
                     .send(test_user_company)
@@ -2100,27 +2097,88 @@ describe("Company endpoint", () => {
             });
         });
 
-        describe("Should pass if admin", () => {
-            test("Should pass if admin", async () => {
+        describe("Should fail if company is blocked or disabled", () => {
+            test("Should fail if company is blocked (admin)", async () => {
                 await test_agent
                     .post("/auth/login")
                     .send(test_user_admin)
                     .expect(HTTPStatus.OK);
 
+                await Company.findByIdAndUpdate(test_company._id, { isBlocked: true });
+
                 const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
                     .send({
-                        name: "Changing Company",
+                        name: "Changing Blocked Company",
                         bio: "As admin",
                         contacts: ["1"],
                         logo: "http://awebsite.com/otherlogo.jpg",
                     })
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+            });
+
+            test("Should fail if company is disabled (admin)", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
                     .expect(HTTPStatus.OK);
 
-                expect(res.body).toHaveProperty("name", "Changing Company");
-                expect(res.body).toHaveProperty("bio", "As admin");
-                expect(res.body).toHaveProperty("contacts", ["1"]);
-                expect(res.body).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
+                await Company.findByIdAndUpdate(test_company._id, { isDisabled: true });
+
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .send({
+                        name: "Changing Disabled Company",
+                        bio: "As admin",
+                        contacts: ["1"],
+                        logo: "http://awebsite.com/otherlogo.jpg",
+                    })
+                    .expect(HTTPStatus.FORBIDDEN);
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+            });
+
+            test("Should fail if company is blocked (user)", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+                await Company.findByIdAndUpdate(test_company._id, { isBlocked: true });
+
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .send({
+                        name: "Changing Blocked Company",
+                        bio: "As user",
+                        contacts: ["1"],
+                        logo: "http://awebsite.com/otherlogo.jpg",
+                    })
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+            });
+
+            test("Should fail if company is disabled (user)", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+                await Company.findByIdAndUpdate(test_company._id, { isDisabled: true });
+
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .send({
+                        name: "Changing Disabled Company",
+                        bio: "As user",
+                        contacts: ["1"],
+                        logo: "http://awebsite.com/otherlogo.jpg",
+                    })
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
             });
         });
     });
