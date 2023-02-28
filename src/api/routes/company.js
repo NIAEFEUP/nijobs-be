@@ -222,7 +222,7 @@ export default (app) => {
             try {
                 const companyService = new CompanyService();
                 const offerService = new OfferService();
-                const company = await companyService.editCompanyDetails(req.params.companyId, req.body);
+                const company = await companyService.changeAttributes(req.params.companyId, req.body);
                 await offerService.updateAllOffersByCompanyId(company);
                 return res.json(company);
             } catch (err) {
