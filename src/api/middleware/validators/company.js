@@ -1,12 +1,10 @@
 import { body, query, param } from "express-validator";
-import { useExpressValidators, APIError, ErrorTypes } from "../errorHandler.js";
+import { useExpressValidators } from "../errorHandler.js";
 import ValidationReasons from "./validationReasons.js";
 import CompanyConstants from "../../../models/constants/Company.js";
-import * as companyMiddleware from "../company.js";
 import { ensureArray, isObjectId, normalizeDate } from "./validatorUtils.js";
 import CompanyService from "../../../services/company.js";
 import { MONTH_IN_MS, OFFER_MAX_LIFETIME_MONTHS } from "../../../models/constants/TimeConstants.js";
-import { StatusCodes as HTTPStatus } from "http-status-codes";
 
 export const MAX_LIMIT_RESULTS = 100;
 const DEFAULT_PUBLISH_DATE = new Date(Date.now()).toISOString();
@@ -73,16 +71,9 @@ export const enable = useExpressValidators([
     existingCompanyParamValidator,
 ]);
 
-export const canBeEditedBy = (req, res, next) => {
-    if (!req.user?.isAdmin && req.user?.companyId !== req.params.companyId)
-        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.UNAUTHORIZED));
-    return next();
-};
-
 export const deleteCompany = useExpressValidators([
     existingCompanyParamValidator,
 ]);
-
 
 export const getOffers = useExpressValidators([
     existingCompanyParamValidator,
