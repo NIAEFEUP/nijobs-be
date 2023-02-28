@@ -221,7 +221,9 @@ export default (app) => {
         async (req, res, next) => {
             try {
                 const companyService = new CompanyService();
+                const offerService = new OfferService();
                 const company = await companyService.editCompanyDetails(req.params.companyId, req.body);
+                await offerService.updateAllOffersByCompanyId(req.params.companyId, company);
                 return res.json(company);
             } catch (err) {
                 return next(err);
