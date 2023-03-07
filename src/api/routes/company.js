@@ -10,7 +10,6 @@ import CompanyService from "../../services/company.js";
 import { ErrorTypes } from "../middleware/errorHandler.js";
 import ValidationReasons from "../middleware/validators/validationReasons.js";
 import { concurrentOffersNotExceeded } from "../middleware/validators/validatorUtils.js";
-import CompanyConstants from "../../models/constants/Company.js";
 
 import { or } from "../middleware/utils.js";
 
@@ -87,11 +86,7 @@ export default (app) => {
             const offers = await new OfferService().getOffersByCompanyId(
                 req.params.companyId,
                 req.targetOwner,
-                req.hasAdminPrivileges,
-                {
-                    sort: { publishDate: "desc" },
-                    limit: CompanyConstants.offers.max_profile_visible,
-                }
+                req.hasAdminPrivileges
             );
             return res.json({ company, offers });
         }

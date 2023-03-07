@@ -5,6 +5,7 @@ import Account  from "../models/Account.js";
 import EmailService  from "../lib/emailService.js";
 import { OFFER_DISABLED_NOTIFICATION }  from "../email-templates/companyOfferDisabled.js";
 import OfferConstants  from "../models/constants/Offer.js";
+import CompanyConstants from "../models/constants/Company.js";
 import base64url from "base64url";
 
 const { ObjectId } = mongoose.Types;
@@ -413,7 +414,7 @@ class OfferService {
 
     /**
      * Checks whether a given offer is visible to a specific userCompanyId.
-     * Unpublished/Unactive offers may still be visible
+     * Unpublished/inactive offers may still be visible
      * @param {*} offer
      * @param {*} hasAdminPrivileges
      * @param {*} userCompanyId
@@ -437,17 +438,29 @@ class OfferService {
 
     /**
      * Gets all the offers from a specific company that are visible to a specific user
-     * Note: This function will show even unpublished/unactive offers
+     * Note: This function will show even unpublished/inactive offers
      * @param {*} companyId
      * @param {*} userCompanyId
      * @param {*} hasAdminPrivileges
+     * @param {*} limit
+     * @param {*} sortByPublishDate
      * @returns Visible offers
      */
-    async getOffersByCompanyId(companyId, userCompanyId, hasAdminPrivileges, filters = {}) {
-        return (await Offer.find({ owner: companyId }, null, filters))
-            .filter((offer) =>
-                this.isVisibleOffer(offer, hasAdminPrivileges, userCompanyId)
-            );
+    async getOffersByCompanyId(
+        companyId,
+        userCompanyId,
+        hasAdminPrivileges,
+        limit = CompanyConstants.offers.max_profile_visible,
+        sortByPublishDate = true
+    ) {
+        return (
+            await Offer.find({ owner: companyId }, null, {
+                limit,
+                sort: (sortByPublishDate && { publishDate: "desc" }) || undefined,
+            })
+        ).filter((offer) =>
+            this.isVisibleOffer(offer, hasAdminPrivileges, userCompanyId)
+        );
     }
 
     async sendOfferDisabledNotification(offerId) {
