@@ -2049,7 +2049,7 @@ describe("Company endpoint", () => {
             });
         });
 
-        describe("Should fail if bad user", () => {
+        describe("Using a bad user", () => {
             test("Should fail if different user", async () => {
                 await test_agent
                     .post("/auth/login")
@@ -2084,7 +2084,7 @@ describe("Company endpoint", () => {
             });
         });
 
-        describe("Should pass if good user", () => {
+        describe("Using a good user", () => {
             test("Should pass if god", async () => {
                 await test_agent
                     .put(`/company/${test_company._id}/edit`)
@@ -2138,7 +2138,7 @@ describe("Company endpoint", () => {
             expect(test_offer.contacts).toEqual(["122"]);
         });
 
-        describe("Should fail if company is blocked or disabled", () => {
+        describe("Using disabled/blocked company", () => {
             test("Should fail if company is blocked (admin)", async () => {
                 await test_agent
                     .post("/auth/login")
