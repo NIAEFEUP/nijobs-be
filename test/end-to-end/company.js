@@ -1935,7 +1935,35 @@ describe("Company endpoint", () => {
     });
 
     describe("PUT /company/edit", () => {
-        let test_company, test_random, test_offer;
+        let test_company, test_blocked_company, test_disabled_company, test_random, test_offer;
+
+        const test_company_map = {
+            name: "Test Company",
+            bio: "Test Company Bio",
+            logo: "http://awebsite.com/alogo.jpg",
+            contacts: ["112", "122"],
+        };
+
+        const test_blocked_company_map = {
+            name: "Test Blocked Company",
+            bio: "Test Blocked Company Bio",
+            logo: "http://awebsite.com/alogo.jpg",
+            contacts: ["112", "122"],
+        };
+
+        const test_disabled_company_map = {
+            name: "Test Disabled Company",
+            bio: "Test Disabled Company Bio",
+            logo: "http://awebsite.com/alogo.jpg",
+            contacts: ["112", "122"],
+        };
+
+        const test_random_company_map = {
+            name: "Test Random Company",
+            bio: "Test Random Company Bio",
+            logo: "http://awebsite.com/alogo.jpg",
+            contacts: ["112", "122"],
+        };
 
         const test_user_admin = {
             email: "admin@email.com",
@@ -1947,6 +1975,16 @@ describe("Company endpoint", () => {
             password: "password123",
         };
 
+        const test_blocked_user = {
+            email: "blocked@email.com",
+            password: "password123",
+        };
+
+        const test_disabled_user = {
+            email: "disabled@email.com",
+            password: "password123",
+        };
+
         const test_random_user = {
             email: "random@email.com",
             password: "password123",
@@ -1954,27 +1992,39 @@ describe("Company endpoint", () => {
 
         const test_agent = agent();
 
-        beforeEach(async () => {
-            await test_agent
-                .delete("/auth/login")
-                .expect(HTTPStatus.OK);
-
-            await Company.deleteMany({});
-
+        beforeAll(async () => {
 
             test_company = await Company.create({
-                name: "Cool Company",
-                contacts: ["112", "122"],
-                bio: "Cool company bio",
-                logo: "http://awebsite.com/alogo.jpg",
-                hasFinishedRegistration: true
+                name: test_company_map.name,
+                contacts: test_company_map.contacts,
+                bio: test_company_map.bio,
+                logo: test_company_map.logo,
+                hasFinishedRegistration: true,
+            });
+
+            test_blocked_company = await Company.create({
+                name: test_blocked_company_map.name,
+                contacts: test_blocked_company_map.contacts,
+                bio: test_blocked_company_map.bio,
+                logo: test_blocked_company_map.logo,
+                hasFinishedRegistration: true,
+                isBlocked: true
+            });
+
+            test_disabled_company = await Company.create({
+                name: test_disabled_company_map.name,
+                contacts: test_disabled_company_map.contacts,
+                bio: test_disabled_company_map.bio,
+                logo: test_disabled_company_map.logo,
+                hasFinishedRegistration: true,
+                isDisabled: true
             });
 
             test_random = await Company.create({
-                name: "Random Company",
-                contacts: ["112", "122"],
-                bio: "Random company bio",
-                logo: "http://awebsite.com/alogo.jpg",
+                name: test_random_company_map.name,
+                contacts: test_random_company_map.contacts,
+                bio: test_random_company_map.bio,
+                logo: test_random_company_map.logo,
                 hasFinishedRegistration: true
             });
 
@@ -2001,6 +2051,18 @@ describe("Company endpoint", () => {
             });
 
             await Account.create({
+                email: test_blocked_user.email,
+                password: await hash(test_blocked_user.password),
+                company: test_blocked_company._id
+            });
+
+            await Account.create({
+                email: test_disabled_user.email,
+                password: await hash(test_disabled_user.password),
+                company: test_disabled_company._id
+            });
+
+            await Account.create({
                 email: test_random_user.email,
                 password: await hash(test_random_user.password),
                 company: test_random._id
@@ -2019,12 +2081,14 @@ describe("Company endpoint", () => {
         });
 
         describe("ID Validation", () => {
-            test("Should fail if id is not a valid ObjectID", async () => {
+            beforeEach(async () => {
                 await test_agent
                     .post("/auth/login")
-                    .send(test_user_company)
+                    .send(test_user_admin)
                     .expect(HTTPStatus.OK);
+            });
 
+            test("Should fail if id is not a valid ObjectID", async () => {
                 const res = await test_agent
                     .put("/company/123/edit")
                     .send()
@@ -2035,10 +2099,6 @@ describe("Company endpoint", () => {
 
             test("Should fail if id is not a valid company", async () => {
                 const id = "111111111111111111111111";
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_company)
-                    .expect(HTTPStatus.OK);
 
                 const res = await test_agent
                     .put(`/company/${id}/edit`)
@@ -2060,41 +2120,45 @@ describe("Company endpoint", () => {
                     .put(`/company/${test_company._id}/edit`)
                     .send({
                         name: "Changing Company",
-                        bio: "Without permission",
-                        contacts: ["1"],
-                        logo: "http://awebsite.com/otherlogo.jpg",
                     })
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS);
+                expect(test_company.name).toBe(test_company_map.name);
             });
 
             test("Should fail if not logged in", async () => {
                 const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
                     .send({
-                        name: "Changing Company",
                         bio: "Without login",
                         contacts: ["1"],
-                        logo: "http://awebsite.com/otherlogo.jpg",
                     })
                     .expect(HTTPStatus.UNAUTHORIZED);
 
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                expect(test_company.bio).toBe(test_company_map.bio);
+                expect(test_company.contacts).toEqual(test_company_map.contacts);
             });
         });
 
         describe("Using a good user", () => {
             test("Should pass if god", async () => {
-                await test_agent
+                const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
                     .send(withGodToken({
                         name: "Changing Company",
-                        bio: "As god",
-                        contacts: ["1"],
                         logo: "http://awebsite.com/otherlogo.jpg",
                     }))
                     .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("name", "Changing Company");
+                expect(res.body).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
+
+                const changed_company = await Company.findById(test_company._id);
+
+                expect(changed_company.name).toBe("Changing Company");
+                expect(changed_company.logo).toBe("http://awebsite.com/otherlogo.jpg");
             });
 
             test("Should pass if same company", async () => {
@@ -2107,14 +2171,12 @@ describe("Company endpoint", () => {
                     .put(`/company/${test_company._id}/edit`)
                     .send({
                         name: "Changing Company",
-                        bio: "As company itself",
-                        logo: "http://awebsite.com/otherlogo.jpg",
                     })
                     .expect(HTTPStatus.OK);
 
                 expect(res.body).toHaveProperty("name", "Changing Company");
-                expect(res.body).toHaveProperty("bio", "As company itself");
-                expect(res.body).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
+                const changed_company = await Company.findById(test_company._id);
+                expect(changed_company.name).toBe("Changing Company");
             });
         });
 
@@ -2138,88 +2200,62 @@ describe("Company endpoint", () => {
             expect(test_offer.contacts).toEqual(["122"]);
         });
 
-        describe("Using disabled/blocked company", () => {
-            test("Should fail if company is blocked (admin)", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(HTTPStatus.OK);
-
-                await Company.findByIdAndUpdate(test_company._id, { isBlocked: true });
-
+        describe("Using disabled/blocked company (god)", () => {
+            test("Should fail if company is blocked (god)", async () => {
                 const res = await test_agent
-                    .put(`/company/${test_company._id}/edit`)
-                    .send({
+                    .put(`/company/${test_blocked_company._id}/edit`)
+                    .send(withGodToken({
                         name: "Changing Blocked Company",
-                        bio: "As admin",
-                        contacts: ["1"],
-                        logo: "http://awebsite.com/otherlogo.jpg",
-                    })
+                    }))
                     .expect(HTTPStatus.FORBIDDEN);
-
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+                expect(test_blocked_company.name).toBe(test_blocked_company_map.name);
             });
 
-            test("Should fail if company is disabled (admin)", async () => {
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(HTTPStatus.OK);
-
-                await Company.findByIdAndUpdate(test_company._id, { isDisabled: true });
-
+            test("Should fail if company is disabled (god)", async () => {
                 const res = await test_agent
-                    .put(`/company/${test_company._id}/edit`)
-                    .send({
+                    .put(`/company/${test_disabled_company._id}/edit`)
+                    .send(withGodToken({
                         name: "Changing Disabled Company",
-                        bio: "As admin",
-                        contacts: ["1"],
-                        logo: "http://awebsite.com/otherlogo.jpg",
-                    })
+                    }))
                     .expect(HTTPStatus.FORBIDDEN);
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_DISABLED);
+                expect(test_disabled_company.name).toBe(test_disabled_company_map.name);
             });
+        });
 
+        describe("Using disabled/blocked company (user)", () => {
             test("Should fail if company is blocked (user)", async () => {
                 await test_agent
                     .post("/auth/login")
-                    .send(test_user_company)
+                    .send(test_blocked_user)
                     .expect(HTTPStatus.OK);
 
-                await Company.findByIdAndUpdate(test_company._id, { isBlocked: true });
-
                 const res = await test_agent
-                    .put(`/company/${test_company._id}/edit`)
+                    .put(`/company/${test_blocked_company._id}/edit`)
                     .send({
                         name: "Changing Blocked Company",
-                        bio: "As user",
-                        contacts: ["1"],
-                        logo: "http://awebsite.com/otherlogo.jpg",
                     })
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+                expect(test_blocked_company.name).toBe(test_blocked_company_map.name);
             });
 
             test("Should fail if company is disabled (user)", async () => {
                 await test_agent
                     .post("/auth/login")
-                    .send(test_user_company)
+                    .send(test_disabled_user)
                     .expect(HTTPStatus.OK);
 
-                await Company.findByIdAndUpdate(test_company._id, { isDisabled: true });
-
                 const res = await test_agent
-                    .put(`/company/${test_company._id}/edit`)
+                    .put(`/company/${test_disabled_company._id}/edit`)
                     .send({
-                        name: "Changing Disabled Company",
                         bio: "As user",
-                        contacts: ["1"],
-                        logo: "http://awebsite.com/otherlogo.jpg",
                     })
                     .expect(HTTPStatus.FORBIDDEN);
-
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_DISABLED);
+                expect(test_disabled_company.bio).toBe(test_disabled_company_map.bio);
             });
         });
     });
