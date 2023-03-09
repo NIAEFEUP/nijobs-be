@@ -469,12 +469,12 @@ class OfferService {
     }
 
     async updateAllOffersByCompanyId(company) {
-        const offer = {
+        const changes = {
             ownerName: company.name,
             ownerLogo: company.logo,
             contacts: company.contacts,
         };
-        const offers = await Offer.updateMany({ owner: company._id }, offer, { new: true });
+        const offers = await Offer.updateMany({ owner: company._id }, changes, { new: true });
         return offers;
     }
 }
