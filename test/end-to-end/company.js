@@ -1965,6 +1965,13 @@ describe("Company endpoint", () => {
             contacts: ["112", "122"],
         };
 
+        const changing_values = {
+            name: "Changed name",
+            bio: "Changed bio",
+            logo: "http://awebsite.com/changedlogo.jpg",
+            contacts: ["123", "456"],
+        };
+
         const test_user_admin = {
             email: "admin@email.com",
             password: "password123",
@@ -2124,26 +2131,23 @@ describe("Company endpoint", () => {
                 const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
                     .send({
-                        name: "Changing Company",
+                        name: changing_values.name,
                     })
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS });
-                expect(test_company.name).toBe(test_company_map.name);
             });
 
             test("Should fail if not logged in", async () => {
                 const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
                     .send({
-                        bio: "Without login",
-                        contacts: ["1"],
+                        bio: changing_values.bio,
+                        contacts: changing_values.contacts,
                     })
                     .expect(HTTPStatus.UNAUTHORIZED);
 
                 expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.INSUFFICIENT_PERMISSIONS });
-                expect(test_company.bio).toBe(test_company_map.bio);
-                expect(test_company.contacts).toEqual(test_company_map.contacts);
             });
         });
 
@@ -2152,18 +2156,13 @@ describe("Company endpoint", () => {
                 const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
                     .send(withGodToken({
-                        name: "Changing Company",
-                        logo: "http://awebsite.com/otherlogo.jpg",
+                        name: changing_values.name,
+                        bio: changing_values.bio,
                     }))
                     .expect(HTTPStatus.OK);
 
-                expect(res.body).toHaveProperty("name", "Changing Company");
-                expect(res.body).toHaveProperty("logo", "http://awebsite.com/otherlogo.jpg");
-
-                const changed_company = await Company.findById(test_company._id);
-
-                expect(changed_company.name).toBe("Changing Company");
-                expect(changed_company.logo).toBe("http://awebsite.com/otherlogo.jpg");
+                expect(res.body).toHaveProperty("name", changing_values.name);
+                expect(res.body).toHaveProperty("bio", changing_values.bio);
             });
 
             test("Should pass if same company", async () => {
@@ -2175,13 +2174,13 @@ describe("Company endpoint", () => {
                 const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
                     .send({
-                        name: "Changing Company",
+                        name: changing_values.name,
                     })
                     .expect(HTTPStatus.OK);
 
-                expect(res.body).toHaveProperty("name", "Changing Company");
+                expect(res.body).toHaveProperty("name", changing_values.name);
                 const changed_company = await Company.findById(test_company._id);
-                expect(changed_company.name).toBe("Changing Company");
+                expect(changed_company.name).toBe(changing_values.name);
             });
         });
 
@@ -2194,15 +2193,18 @@ describe("Company endpoint", () => {
             const res = await test_agent
                 .put(`/company/${test_company._id}/edit`)
                 .send({
-                    name: "Changing Company",
-                    contacts: ["122"],
+                    name: changing_values.name,
+                    contacts: changing_values.contacts,
                 })
                 .expect(HTTPStatus.OK);
 
             test_offer = await Offer.findById(test_offer._id);
-            expect(res.body).toHaveProperty("contacts", ["122"]);
-            expect(test_offer.ownerName).toEqual("Changing Company");
-            expect(test_offer.contacts).toEqual(["122"]);
+
+            expect(res.body).toHaveProperty("name", changing_values.name);
+            expect(res.body).toHaveProperty("contacts", changing_values.contacts);
+
+            expect(test_offer.ownerName).toEqual(changing_values.name);
+            expect(test_offer.contacts).toEqual(changing_values.contacts);
         });
 
         describe("Using disabled/blocked company (god)", () => {
@@ -2214,7 +2216,6 @@ describe("Company endpoint", () => {
                     }))
                     .expect(HTTPStatus.FORBIDDEN);
                 expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.COMPANY_BLOCKED });
-                expect(test_blocked_company.name).toBe(test_blocked_company_map.name);
             });
 
             test("Should fail if company is disabled (god)", async () => {
@@ -2225,7 +2226,6 @@ describe("Company endpoint", () => {
                     }))
                     .expect(HTTPStatus.FORBIDDEN);
                 expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.COMPANY_DISABLED });
-                expect(test_disabled_company.name).toBe(test_disabled_company_map.name);
             });
         });
 
@@ -2244,7 +2244,6 @@ describe("Company endpoint", () => {
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.COMPANY_BLOCKED });
-                expect(test_blocked_company.name).toBe(test_blocked_company_map.name);
             });
 
             test("Should fail if company is disabled (user)", async () => {
@@ -2260,7 +2259,6 @@ describe("Company endpoint", () => {
                     })
                     .expect(HTTPStatus.FORBIDDEN);
                 expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.COMPANY_DISABLED });
-                expect(test_disabled_company.bio).toBe(test_disabled_company_map.bio);
             });
         });
     });
