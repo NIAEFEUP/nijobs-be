@@ -2089,12 +2089,15 @@ describe("Company endpoint", () => {
             });
 
             test("Should fail if id is not a valid ObjectID", async () => {
+                const id = "123";
                 const res = await test_agent
-                    .put("/company/123/edit")
+                    .put(`/company/${id}/edit`)
                     .send()
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+                expect(res.body.errors).toContainEqual(
+                    { "location": "params", "msg": ValidationReasons.OBJECT_ID, "param": "companyId", "value": id }
+                );
             });
 
             test("Should fail if id is not a valid company", async () => {
@@ -2105,7 +2108,9 @@ describe("Company endpoint", () => {
                     .send()
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
+                expect(res.body.errors).toContainEqual(
+                    { "location": "params", "msg": ValidationReasons.COMPANY_NOT_FOUND(id), "param": "companyId", "value": id }
+                );
             });
         });
 
@@ -2123,7 +2128,7 @@ describe("Company endpoint", () => {
                     })
                     .expect(HTTPStatus.FORBIDDEN);
 
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS);
+                expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.INSUFFICIENT_PERMISSIONS_COMPANY_SETTINGS });
                 expect(test_company.name).toBe(test_company_map.name);
             });
 
@@ -2136,7 +2141,7 @@ describe("Company endpoint", () => {
                     })
                     .expect(HTTPStatus.UNAUTHORIZED);
 
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
+                expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.INSUFFICIENT_PERMISSIONS });
                 expect(test_company.bio).toBe(test_company_map.bio);
                 expect(test_company.contacts).toEqual(test_company_map.contacts);
             });
@@ -2208,7 +2213,7 @@ describe("Company endpoint", () => {
                         name: "Changing Blocked Company",
                     }))
                     .expect(HTTPStatus.FORBIDDEN);
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+                expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.COMPANY_BLOCKED });
                 expect(test_blocked_company.name).toBe(test_blocked_company_map.name);
             });
 
@@ -2219,7 +2224,7 @@ describe("Company endpoint", () => {
                         name: "Changing Disabled Company",
                     }))
                     .expect(HTTPStatus.FORBIDDEN);
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_DISABLED);
+                expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.COMPANY_DISABLED });
                 expect(test_disabled_company.name).toBe(test_disabled_company_map.name);
             });
         });
@@ -2238,7 +2243,7 @@ describe("Company endpoint", () => {
                     })
                     .expect(HTTPStatus.FORBIDDEN);
 
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+                expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.COMPANY_BLOCKED });
                 expect(test_blocked_company.name).toBe(test_blocked_company_map.name);
             });
 
@@ -2254,7 +2259,7 @@ describe("Company endpoint", () => {
                         bio: "As user",
                     })
                     .expect(HTTPStatus.FORBIDDEN);
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_DISABLED);
+                expect(res.body.errors).toContainEqual({ "msg": ValidationReasons.COMPANY_DISABLED });
                 expect(test_disabled_company.bio).toBe(test_disabled_company_map.bio);
             });
         });
