@@ -49,6 +49,15 @@ describe("Company endpoint", () => {
         ...params,
     });
 
+    const generateTestCompany = (params) => ({
+        name: "Big Company",
+        bio: "Big Company Bio",
+        logo: "http://awebsite.com/alogo.jpg",
+        contacts: ["112", "122"],
+        hasFinishedRegistration: true,
+        ...params,
+    });
+
 
     describe("GET /company", () => {
         beforeAll(async () => {
@@ -1935,35 +1944,9 @@ describe("Company endpoint", () => {
     });
 
     describe("PUT /company/edit", () => {
-        let test_company, test_blocked_company, test_disabled_company, test_random, test_offer;
-
-        const test_company_map = {
-            name: "Test Company",
-            bio: "Test Company Bio",
-            logo: "http://awebsite.com/alogo.jpg",
-            contacts: ["112", "122"],
-        };
-
-        const test_blocked_company_map = {
-            name: "Test Blocked Company",
-            bio: "Test Blocked Company Bio",
-            logo: "http://awebsite.com/alogo.jpg",
-            contacts: ["112", "122"],
-        };
-
-        const test_disabled_company_map = {
-            name: "Test Disabled Company",
-            bio: "Test Disabled Company Bio",
-            logo: "http://awebsite.com/alogo.jpg",
-            contacts: ["112", "122"],
-        };
-
-        const test_random_company_map = {
-            name: "Test Random Company",
-            bio: "Test Random Company Bio",
-            logo: "http://awebsite.com/alogo.jpg",
-            contacts: ["112", "122"],
-        };
+        let test_companies;
+        let test_company, test_company_blocked, test_company_disabled;
+        let test_offer;
 
         const changing_values = {
             name: "Changed name",
@@ -1972,108 +1955,53 @@ describe("Company endpoint", () => {
             contacts: ["123", "456"],
         };
 
-        const test_user_admin = {
-            email: "admin@email.com",
+        /* Admin, Company, Blocked, Disabled*/
+        const test_users = Array(4).fill({}).map((_c, idx) => ({
+            email: `test_email_${idx}@email.com`,
             password: "password123",
-        };
+        }));
 
-        const test_user_company = {
-            email: "company@email.com",
-            password: "password123",
-        };
-
-        const test_blocked_user = {
-            email: "blocked@email.com",
-            password: "password123",
-        };
-
-        const test_disabled_user = {
-            email: "disabled@email.com",
-            password: "password123",
-        };
-
-        const test_random_user = {
-            email: "random@email.com",
-            password: "password123",
-        };
+        const [test_user_admin, test_user_company, test_user_company_blocked, test_user_company_disabled] = test_users;
 
         const test_agent = agent();
 
         beforeAll(async () => {
-
-            test_company = await Company.create({
-                name: test_company_map.name,
-                contacts: test_company_map.contacts,
-                bio: test_company_map.bio,
-                logo: test_company_map.logo,
-                hasFinishedRegistration: true,
-            });
-
-            test_blocked_company = await Company.create({
-                name: test_blocked_company_map.name,
-                contacts: test_blocked_company_map.contacts,
-                bio: test_blocked_company_map.bio,
-                logo: test_blocked_company_map.logo,
-                hasFinishedRegistration: true,
-                isBlocked: true
-            });
-
-            test_disabled_company = await Company.create({
-                name: test_disabled_company_map.name,
-                contacts: test_disabled_company_map.contacts,
-                bio: test_disabled_company_map.bio,
-                logo: test_disabled_company_map.logo,
-                hasFinishedRegistration: true,
-                isDisabled: true
-            });
-
-            test_random = await Company.create({
-                name: test_random_company_map.name,
-                contacts: test_random_company_map.contacts,
-                bio: test_random_company_map.bio,
-                logo: test_random_company_map.logo,
-                hasFinishedRegistration: true
-            });
-
-            const test_offer_data = generateTestOffer({
-                owner: test_company._id,
-                ownerName: test_company.name,
-                ownerLogo: test_company.logo,
-            });
-
-            test_offer = await Offer.create(test_offer_data);
-
             await Account.deleteMany({});
 
-            await Account.create({
-                email: test_user_admin.email,
-                password: await hash(test_user_admin.password),
-                isAdmin: true
-            });
+            const test_company_data = await generateTestCompany();
+            const test_company_blocked_data = await generateTestCompany({ isBlocked: true });
+            const test_company_disabled_data = await generateTestCompany({ isDisabled: true });
 
-            await Account.create({
-                email: test_user_company.email,
-                password: await hash(test_user_company.password),
-                company: test_company._id
-            });
+            test_companies = await Company.create(
+                [test_company_data, test_company_blocked_data, test_company_disabled_data],
+                { session: null }
+            );
 
-            await Account.create({
-                email: test_blocked_user.email,
-                password: await hash(test_blocked_user.password),
-                company: test_blocked_company._id
-            });
+            [test_company, test_company_blocked, test_company_disabled] = test_companies;
 
-            await Account.create({
-                email: test_disabled_user.email,
-                password: await hash(test_disabled_user.password),
-                company: test_disabled_company._id
-            });
+            test_offer = await Offer.create(
+                generateTestOffer({
+                    owner: test_company._id,
+                    ownerName: test_company.name,
+                    ownerLogo: test_company.logo,
+                })
+            );
 
-            await Account.create({
-                email: test_random_user.email,
-                password: await hash(test_random_user.password),
-                company: test_random._id
-            });
+            for (let i = 0; i < test_users.length; i++) {
+                if (i === 0) {  // Admin
+                    await Account.create({
+                        email: test_users[i].email,
+                        password: await hash(test_users[i].password),
+                        isAdmin: true,
+                    });
+                } else {    // Company
+                    await Account.create({
+                        email: test_users[i].email,
+                        password: await hash(test_users[i].password),
+                        company: test_companies[i - 1]._id,
+                    });
+                }
+            }
         });
 
         afterEach(async () => {
@@ -2125,7 +2053,7 @@ describe("Company endpoint", () => {
             test("Should fail if different user", async () => {
                 await test_agent
                     .post("/auth/login")
-                    .send(test_random_user)
+                    .send(test_user_company_blocked)
                     .expect(HTTPStatus.OK);
 
                 const res = await test_agent
@@ -2163,6 +2091,22 @@ describe("Company endpoint", () => {
 
                 expect(res.body).toHaveProperty("name", changing_values.name);
                 expect(res.body).toHaveProperty("bio", changing_values.bio);
+            });
+
+            test("Should pass if admin", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .send({
+                        name: changing_values.name
+                    })
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("name", changing_values.name);
             });
 
             test("Should pass if same company", async () => {
@@ -2210,7 +2154,7 @@ describe("Company endpoint", () => {
         describe("Using disabled/blocked company (god)", () => {
             test("Should fail if company is blocked (god)", async () => {
                 const res = await test_agent
-                    .put(`/company/${test_blocked_company._id}/edit`)
+                    .put(`/company/${test_company_blocked._id}/edit`)
                     .send(withGodToken({
                         name: "Changing Blocked Company",
                     }))
@@ -2220,7 +2164,7 @@ describe("Company endpoint", () => {
 
             test("Should fail if company is disabled (god)", async () => {
                 const res = await test_agent
-                    .put(`/company/${test_disabled_company._id}/edit`)
+                    .put(`/company/${test_company_disabled._id}/edit`)
                     .send(withGodToken({
                         name: "Changing Disabled Company",
                     }))
@@ -2233,11 +2177,11 @@ describe("Company endpoint", () => {
             test("Should fail if company is blocked (user)", async () => {
                 await test_agent
                     .post("/auth/login")
-                    .send(test_blocked_user)
+                    .send(test_user_company_blocked)
                     .expect(HTTPStatus.OK);
 
                 const res = await test_agent
-                    .put(`/company/${test_blocked_company._id}/edit`)
+                    .put(`/company/${test_company_blocked._id}/edit`)
                     .send({
                         name: "Changing Blocked Company",
                     })
@@ -2249,11 +2193,11 @@ describe("Company endpoint", () => {
             test("Should fail if company is disabled (user)", async () => {
                 await test_agent
                     .post("/auth/login")
-                    .send(test_disabled_user)
+                    .send(test_user_company_disabled)
                     .expect(HTTPStatus.OK);
 
                 const res = await test_agent
-                    .put(`/company/${test_disabled_company._id}/edit`)
+                    .put(`/company/${test_company_disabled._id}/edit`)
                     .send({
                         bio: "As user",
                     })
