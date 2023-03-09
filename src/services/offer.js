@@ -468,6 +468,15 @@ class OfferService {
         await Offer.deleteMany({ owner: companyId });
     }
 
+    async updateAllOffersByCompanyId(company) {
+        const changes = {
+            ownerName: company.name,
+            ownerLogo: company.logo,
+            contacts: company.contacts,
+        };
+        const offers = await Offer.updateMany({ owner: company._id }, changes, { new: true });
+        return offers;
+    }
 }
 
 export default OfferService;

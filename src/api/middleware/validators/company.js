@@ -75,7 +75,6 @@ export const deleteCompany = useExpressValidators([
     existingCompanyParamValidator,
 ]);
 
-
 export const getOffers = useExpressValidators([
     existingCompanyParamValidator,
 ]);
@@ -106,3 +105,28 @@ export const setDefaultValuesConcurrent = (req, res, next) => {
     }
     return next();
 };
+
+export const edit = useExpressValidators([
+    existingCompanyParamValidator,
+    body("name", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .isLength({ min: CompanyConstants.companyName.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(CompanyConstants.companyName.min_length))
+        .isLength({ max: CompanyConstants.companyName.max_length })
+        .withMessage(ValidationReasons.TOO_LONG(CompanyConstants.companyName.max_length)),
+    body("bio", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .isLength({ max: CompanyConstants.bio.max_length })
+        .withMessage(ValidationReasons.TOO_LONG(CompanyConstants.bio.max_length)),
+    body("contacts", ValidationReasons.DEFAULT)
+        .optional()
+        .customSanitizer(ensureArray)
+        .isArray({ min: CompanyConstants.contacts.min_length, max: CompanyConstants.contacts.max_length })
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length)),
+    body("logo", ValidationReasons.DEFAULT)
+        .optional()
+        .isString().withMessage(ValidationReasons.STRING).bail()
+        .isURL().withMessage(ValidationReasons.URL),
+]);

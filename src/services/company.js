@@ -1,8 +1,9 @@
-import { COMPANY_BLOCKED_NOTIFICATION,
+import {
+    COMPANY_BLOCKED_NOTIFICATION,
     COMPANY_UNBLOCKED_NOTIFICATION,
     COMPANY_DISABLED_NOTIFICATION,
     COMPANY_ENABLED_NOTIFICATION,
-    COMPANY_DELETED_NOTIFICATION
+    COMPANY_DELETED_NOTIFICATION,
 } from "../email-templates/companyManagement.js";
 import EmailService from "../lib/emailService.js";
 import Account from "../models/Account.js";
@@ -60,14 +61,14 @@ class CompanyService {
         if (!showHidden) query.withoutBlocked().withoutDisabled();
         if (!showAdminReason) query.hideAdminReason();
         const company = await query;
-        return  company;
+        return company;
     }
 
     /**
      * @param {@param} companyId Id of the company
      */
     async block(companyId, adminReason) {
-        const company =  await Company.findByIdAndUpdate(
+        const company = await Company.findByIdAndUpdate(
             companyId,
             {
                 isBlocked: true,
@@ -96,12 +97,19 @@ class CompanyService {
      * @param {*} company_id id of the company
      * @param {*} attributes object containing the attributes to change in company
      */
-    async changeAttributes(company_id, attributes) {
-        const company = await Company.findOneAndUpdate(
-            { _id: company_id },
-            attributes,
-            { new: true });
-        return company;
+    async changeAttributes(companyId, companyDetails) {
+        try {
+            const company = await Company.findOneAndUpdate(
+                { _id: companyId },
+                companyDetails,
+                { new: true }
+            );
+
+            return company;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
     }
 
     /**
@@ -188,7 +196,6 @@ class CompanyService {
             throw err;
         }
     }
-
 }
 
 export default CompanyService;
