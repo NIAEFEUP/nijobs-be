@@ -72,6 +72,26 @@ export default (app) => {
 
     });
 
+    router.get("/:companyId",
+        validators.profile,
+        (req, res, next) => companyMiddleware.canAccessProfile(req.params.companyId)(req, res, next),
+        async (req, res) => {
+            const company = await new CompanyService().findById(
+                req.params.companyId,
+                // Can be safely set to true, as the middleware takes
+                // care of validation for us
+                true,
+                req.hasAdminPrivileges
+            );
+            const offers = await new OfferService().getOffersByCompanyId(
+                req.params.companyId,
+                req.targetOwner,
+                req.hasAdminPrivileges
+            );
+            return res.json({ company, offers });
+        }
+    );
+
     router.put(
         "/:companyId/block",
         or([

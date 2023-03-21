@@ -85,6 +85,45 @@ export const profileComplete = async (req, res, next) => {
     return next();
 };
 
+export const canAccessProfile = (companyId) => async (req, res, next) => {
+    const company = await new CompanyService().findById(companyId, true);
+
+    const notFound = () =>
+        new APIError(
+            HTTPStatus.UNPROCESSABLE_ENTITY,
+            ErrorTypes.VALIDATION_ERROR,
+            [
+                {
+                    value: companyId,
+                    msg: ValidationReasons.COMPANY_NOT_FOUND(companyId),
+                    param: "companyId",
+                    location: "params",
+                },
+            ]
+        );
+
+    const errorOrNotFound = (reason) =>
+        companyId === req.user?.company?.toString() || req.hasAdminPrivileges
+            ? new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, reason)
+            : notFound();
+
+    if (!company.hasFinishedRegistration)
+        return next(
+            errorOrNotFound(ValidationReasons.REGISTRATION_NOT_FINISHED)
+        );
+
+    if (req.hasAdminPrivileges)
+        return next();
+
+    if (company.isBlocked)
+        return next(errorOrNotFound(ValidationReasons.COMPANY_BLOCKED));
+
+    if (company.isDisabled && companyId !== req.user?.company?.toString())
+        return next(notFound());
+
+    return next();
+};
+
 export const isNotBlocked = (owner) => async (req, res, next) => {
     const company = await (new CompanyService()).findById(owner, true);
     if (company.isBlocked) {

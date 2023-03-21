@@ -68,7 +68,8 @@ export default (app) => {
      */
     router.get("/company/:companyId", companyValidators.getOffers, async (req, res, next) => {
         try {
-            const offers = await (new OfferService()).getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges);
+            const offers = await (new OfferService())
+                .getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges);
 
             return res.json(offers);
         } catch (err) {

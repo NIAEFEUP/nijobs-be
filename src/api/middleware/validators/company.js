@@ -75,6 +75,10 @@ export const deleteCompany = useExpressValidators([
     existingCompanyParamValidator,
 ]);
 
+export const profile = useExpressValidators([
+    existingCompanyParamValidator,
+]);
+
 export const getOffers = useExpressValidators([
     existingCompanyParamValidator,
 ]);
