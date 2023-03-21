@@ -101,68 +101,70 @@ export const cloudSave = async (req, res, next) => {
     return next();
 
 };
+
 export const parseArrayOfFiles = (field_name, max_count) => (req, res, next) => {
     const upload = multerConfig.array(field_name, max_count);
     upload(req, res, (error) => {
-        if (error) {
-            let message = "required";
-            let param = field_name;
-            message = error instanceof MulterError ?
-                parseError(error.message) : error.message;
-            if (error.code === "LIMIT_FILE_COUNT") {
-                if (!req.files) {
-                    return next();
-                }
-            }
-            param = error.field ? error.field : param;
-            if (req.files && req.files.length > max_count) {
-                message = ValidationReasons.TOO_LONG(max_count);
-                return next(new APIError(
-                    HTTPStatus.UNPROCESSABLE_ENTITY,
-                    ErrorTypes.VALIDATION_ERROR,
-                    [{
-                        location: "body",
-                        param,
-                        msg: message
-                    }]
-                ));
-            } else {
-                return next();
-            }
-        } else {
-            return next();
-        }
+      if (error) {
+        let message = error instanceof MulterError ? parseError(error.message) : error.message;
+        let param = field_name;
+        if (error.code === "LIMIT_FILE_SIZE")
+          message = ValidationReasons.FILE_TOO_LARGE(config.max_file_size);
+  
+        if (error.field) param = error.field;
+        return next(new APIError(
+          HTTPStatus.UNPROCESSABLE_ENTITY,
+          ErrorTypes.VALIDATION_ERROR,
+          [{
+            location: "body",
+            param,
+            msg: message,
+          }],
+        ));
+      } else {
+        return next();
+      }
     });
-};
+  };
 
 export const localSaveArray = async (req, res, next) => {
-    let sequenceNumber = 0;
-    if (!req.files)
-        return next();
-    else {
-        for (const file of req.files) {
-            const buffer = file.buffer;
-            const extension = file.mimetype.substr(file.mimetype.indexOf("/") + 1);
-            const filename = `${req.user.company}-${sequenceNumber}.${extension}`;
-            sequenceNumber++;
-            const file_path = path.join(config.upload_folder, filename);
-            file.filename = filename;
-            try {
-                await fs.promises.writeFile(file_path, buffer);
-            } catch (error) {
-                console.error(error);
-                return next(new APIError(
-                    HTTPStatus.UNPROCESSABLE_ENTITY,
-                    ErrorTypes.FILE_ERROR,
-                    [{
-                        location: "body",
-                        param: file.fieldname,
-                        msg: ValidationReasons.FAILED_SAVE
-                    }]
-                ));
-            }
-        }
-        return next();
+    const files = req.files;
+    if (!files || files.length === 0) {
+      return next();
+    }
+    try {
+      const savedFiles = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const buffer = file.buffer;
+        const extension = file.mimetype.substr(file.mimetype.indexOf("/") + 1);
+        const filename = `${req.user.company}_${i}.${extension}`;
+        const file_path = path.join(config.upload_folder, filename);
+        await fs.promises.writeFile(file_path, buffer);
+        savedFiles.push({
+          fieldname: file.fieldname,
+          originalname: file.originalname,
+          filename: filename,
+          url: `${config.upload_folder}/${filename}`,
+        });
+      }
+      req.savedFiles = savedFiles;
+      return next();
+    } catch (error) {
+      console.error(error);
+      return next(
+        new APIError(
+          HTTPStatus.UNPROCESSABLE_ENTITY,
+          ErrorTypes.FILE_ERROR,
+          [
+            {
+              location: "body",
+              param: req.file.fieldname,
+              msg: ValidationReasons.FAILED_SAVE,
+            },
+          ]
+        )
+      );
     }
 };
 
