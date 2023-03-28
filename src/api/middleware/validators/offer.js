@@ -80,7 +80,6 @@ export const create = useExpressValidators([
         .custom(publishEndDateAfterPublishDate)
         .custom(publishEndDateLimit),
 
-
     body("jobMinDuration", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isInt().withMessage(ValidationReasons.INT),
@@ -119,7 +118,7 @@ export const create = useExpressValidators([
     body("jobType", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING).bail()
-        .isIn(JobTypes).withMessage(ValidationReasons.IN_ARRAY(JobTypes)),
+        .isIn(JobTypes).withMessage((value) => ValidationReasons.IN_ARRAY(JobTypes, value)),
 
     body("fields", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
@@ -388,7 +387,7 @@ export const edit = useExpressValidators([
     body("jobType", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING).bail()
-        .isIn(JobTypes).withMessage(ValidationReasons.IN_ARRAY(JobTypes)),
+        .isIn(JobTypes).withMessage((value) => ValidationReasons.IN_ARRAY(JobTypes, value)),
 
     body("fields", ValidationReasons.DEFAULT)
         .optional()
@@ -495,7 +494,7 @@ export const get = useExpressValidators([
     query("jobType")
         .optional()
         .isString().withMessage(ValidationReasons.STRING).bail()
-        .isIn(JobTypes).withMessage(ValidationReasons.IN_ARRAY(JobTypes)),
+        .isIn(JobTypes).withMessage((value) => ValidationReasons.IN_ARRAY(JobTypes, value)),
 
     query("jobMinDuration", ValidationReasons.DEFAULT)
         .optional()
@@ -522,7 +521,7 @@ export const get = useExpressValidators([
     query("sortBy", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING).bail()
-        .isIn(OfferConstants.SortableFields).withMessage(ValidationReasons.IN_ARRAY(OfferConstants.SortableFields)),
+        .isIn(OfferConstants.SortableFields).withMessage((value) => ValidationReasons.IN_ARRAY(OfferConstants.SortableFields, value)),
 
     query("descending", ValidationReasons.DEFAULT)
         .optional()

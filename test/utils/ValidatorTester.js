@@ -88,7 +88,7 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
                     "location": location,
                     "msg": ValidationReasons.DATE,
                     "param": field_name,
-                    "value": params[field_name],
+                    "value": location === "query" ? params[field_name].toString() : params[field_name],
                 });
             });
         });
@@ -172,10 +172,10 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
         });
     },
 
-    mustBeInArray: (array) => {
-        test(`should be one of: [${array}]`, async () => {
+    mustBeArray: () => {
+        test("should be array", async () => {
             const params = {
-                [field_name]: "not_in_array",
+                [field_name]: "not_an_array",
             };
             const res = await requestEndpoint(params);
 
@@ -183,7 +183,29 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
                 checkCommonErrorResponse(res);
                 expect(res.body.errors).toContainEqual({
                     "location": location,
-                    "msg": ValidationReasons.IN_ARRAY(array),
+                    "msg": ValidationReasons.ARRAY,
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            });
+        });
+    },
+
+    mustBeInArray: (array) => {
+        test(`should be one of: [${array}]`, async () => {
+
+            const value = "not_in_array";
+
+            const params = {
+                [field_name]: value,
+            };
+            const res = await requestEndpoint(params);
+
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.IN_ARRAY(array, value),
                     "param": field_name,
                     "value": params[field_name],
                 });
@@ -346,6 +368,26 @@ const ValidatorTester = (requestEndpoint) => (location) => (field_name) => ({
                 expect(res.body.errors).toContainEqual({
                     "location": location,
                     "msg": ValidationReasons.MIN(min),
+                    "param": field_name,
+                    "value": params[field_name],
+                });
+            });
+        });
+    },
+
+    mustBeLessThanOrEqualTo: (max) => {
+        test(`should be less than or equal to ${max}`, async () => {
+            const params = {
+                [field_name]: max + 1,
+            };
+
+            const res = await requestEndpoint(params);
+
+            executeValidatorTestWithContext({ requestEndpoint, location, field_name }, () => {
+                checkCommonErrorResponse(res);
+                expect(res.body.errors).toContainEqual({
+                    "location": location,
+                    "msg": ValidationReasons.MAX(max),
                     "param": field_name,
                     "value": params[field_name],
                 });
