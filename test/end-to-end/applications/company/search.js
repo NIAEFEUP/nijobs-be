@@ -12,6 +12,7 @@ import ValidatorTester from "../../../utils/ValidatorTester";
 describe("GET /applications/company/search", () => {
 
     const test_agent = agent();
+
     const test_user_admin = {
         email: "admin@email.com",
         password: "password123",
@@ -44,12 +45,14 @@ describe("GET /applications/company/search", () => {
 
     beforeAll(async () => {
         await Account.deleteMany({});
-        await Account.create({ email: test_user_admin.email, password: await hash(test_user_admin.password), isAdmin: true });
+        await Account.create({
+            email: test_user_admin.email,
+            password: await hash(test_user_admin.password),
+            isAdmin: true
+        });
     });
 
     beforeEach(async () => {
-        await CompanyApplication.deleteMany({});
-
         // Login by default
         await test_agent
             .post("/auth/login")
@@ -119,30 +122,25 @@ describe("GET /applications/company/search", () => {
             .delete("/auth/login")
             .expect(StatusCodes.OK);
 
-        const res = await request()
-            .get("/applications/company/search");
-
-        expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
+        await request()
+            .get("/applications/company/search")
+            .expect(StatusCodes.UNAUTHORIZED);
     });
 
     test("Should return empty list if no applications exist", async () => {
-        const emptyRes = await test_agent
-            .get("/applications/company/search");
 
-        expect(emptyRes.status).toBe(StatusCodes.OK);
+        await CompanyApplication.deleteMany({});
+
+        const emptyRes = await test_agent
+            .get("/applications/company/search")
+            .expect(StatusCodes.OK);
+
         expect(emptyRes.body.applications).toEqual([]);
     });
 
     test("Should list existing applications", async () => {
-        const application = {
-            email: "test2@test.com",
-            password: "password123",
-            companyName: "Testing company",
-            motivation: "This company has a very valid motivation, because otherwise the tests would not exist.",
-        };
-
         await CompanyApplication.create({
-            ...application,
+            ...pendingApplication,
             submittedAt: Date.now(),
         });
 
@@ -151,11 +149,18 @@ describe("GET /applications/company/search", () => {
 
         expect(nonEmptyRes.status).toBe(StatusCodes.OK);
         expect(nonEmptyRes.body.applications.length).toBe(1);
-        expect(nonEmptyRes.body.applications[0]).toHaveProperty("email", application.email);
-
+        expect(nonEmptyRes.body.applications[0]).toHaveProperty("email", pendingApplication.email);
     });
 
     describe("Filter application results", () => {
+
+        beforeAll(async () => {
+            await CompanyApplication.deleteMany({});
+        });
+
+        afterAll(async () => {
+            await CompanyApplication.deleteMany({});
+        });
 
         beforeEach(async () => {
             await CompanyApplication.create([pendingApplication, approvedApplication, rejectedApplication]);
@@ -165,86 +170,132 @@ describe("GET /applications/company/search", () => {
             await CompanyApplication.deleteMany({});
         });
 
-        test("Should filter by company name", async () => {
-            const fullNameQuery = await test_agent
-                .get(`/applications/company/search?companyName=${"approved Testing company"}`);
+        describe("Should filter by company name", () => {
 
-            expect(fullNameQuery.status).toBe(StatusCodes.OK);
-            expect(fullNameQuery.body.applications).toHaveLength(1);
-            expect(fullNameQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
+            test("Should filter by company name with full name query", async () => {
+                const res = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        companyName: approvedApplication.companyName
+                    })
+                    .expect(StatusCodes.OK);
 
-            const partialNameQuery = await test_agent
-                .get(`/applications/company/search?companyName=${"Testing company"}`);
-
-            expect(partialNameQuery.status).toBe(StatusCodes.OK);
-            expect(partialNameQuery.body.applications).toHaveLength(3);
-            expect(partialNameQuery.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
-            expect(partialNameQuery.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
-            expect(partialNameQuery.body.applications[2]).toHaveProperty("companyName", rejectedApplication.companyName);
-        });
-
-        test("Should filter by state", async () => {
-
-            const wrongFormatQuery = await test_agent
-                .get(`/applications/company/search?state[]=<["${ApplicationStatus.APPROVED}"]`);
-
-            expect(wrongFormatQuery.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY);
-            expect(wrongFormatQuery.body.errors[0]).toStrictEqual({
-                location: "query",
-                msg: "must-be-in:[PENDING,APPROVED,REJECTED]", // FIXME: ValidationReasons.IN_ARRAY(ApplicationStatus),
-                param: "state",
-                value: [`<["${ApplicationStatus.APPROVED}"]`]
+                expect(res.body.applications).toHaveLength(1);
+                expect(res.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
             });
 
-            const singleStateQuery = await test_agent
-                .get(`/applications/company/search?state[]=${ApplicationStatus.APPROVED}`)
-                .expect(StatusCodes.OK);
+            test("Should filter by company name with partial name query", async () => {
+                const res = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        companyName: "Testing company"
+                    })
+                    .expect(StatusCodes.OK);
 
-            expect(singleStateQuery.body.applications.length).toBe(1);
-            expect(singleStateQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
-
-            const multiStateQuery = await test_agent
-                .get("/applications/company/search?").query({ state: [ApplicationStatus.APPROVED, ApplicationStatus.PENDING] });
-
-            expect(multiStateQuery.status).toBe(StatusCodes.OK);
-            expect(multiStateQuery.body.applications.length).toBe(2);
-            expect(multiStateQuery.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
-            expect(multiStateQuery.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.body.applications).toHaveLength(3);
+                expect(res.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(res.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.body.applications[2]).toHaveProperty("companyName", rejectedApplication.companyName);
+            });
         });
 
-        test("Should filter by date", async () => {
+        describe("Should filter by state", () => {
 
-            const afterQuery = await test_agent
-                .get(`/applications/company/search?submissionDateFrom=${approvedApplication.submittedAt}`)
-                .expect(StatusCodes.OK);
+            test("Should fail with badly formatted query", async () => {
 
-            expect(afterQuery.body.applications.length).toBe(2);
-            expect(afterQuery.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
-            expect(afterQuery.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
+                const wrongFormatQuery = await test_agent
+                    // FIXME: having only one element makes it so that state is parsed as a single value
+                    .get(`/applications/company/search?state[]=<["${ApplicationStatus.APPROVED}"]`)
+                    .expect(StatusCodes.UNPROCESSABLE_ENTITY);
 
-            const untilQuery = await test_agent
-                .get(`/applications/company/search?submissionDateTo=${approvedApplication.submittedAt}`)
-                .expect(StatusCodes.OK);
+                expect(wrongFormatQuery.body.errors[0]).toStrictEqual({
+                    location: "query",
+                    msg: "must-be-in:[PENDING,APPROVED,REJECTED]", // FIXME: ValidationReasons.IN_ARRAY(ApplicationStatus),
+                    param: "state",
+                    value: [`<["${ApplicationStatus.APPROVED}"]`]
+                });
+            });
 
-            expect(untilQuery.body.applications.length).toBe(2);
-            expect(untilQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
-            expect(untilQuery.body.applications[1]).toHaveProperty("companyName", rejectedApplication.companyName);
+            test("Should succeed with single state query", async () => {
 
-            const intervalQuery = await test_agent
-                .get("/applications/company/search?" +
-                    `submissionDateFrom=${approvedApplication.submittedAt}&` +
-                    `submissionDateTo=${approvedApplication.submittedAt}`);
+                const singleStateQuery = await test_agent
+                    .get(`/applications/company/search?state[]=${ApplicationStatus.APPROVED}`)
+                    .expect(StatusCodes.OK);
 
-            console.info(intervalQuery.body);
+                expect(singleStateQuery.body.applications.length).toBe(1);
+                expect(singleStateQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
 
-            expect(intervalQuery.status).toBe(StatusCodes.OK);
-            expect(intervalQuery.body.applications.length).toBe(1);
-            expect(intervalQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
+            });
 
+            test("Should succeed with multi state query", async () => {
+                const multiStateQuery = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        state: [
+                            ApplicationStatus.APPROVED,
+                            ApplicationStatus.PENDING
+                        ]
+                    })
+                    .expect(StatusCodes.OK);
+
+                expect(multiStateQuery.body.applications.length).toBe(2);
+                expect(multiStateQuery.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(multiStateQuery.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
+            });
+        });
+
+        describe("Should filter by date", () => {
+
+            test("Should succeed when searching after date", async () => {
+                const afterQuery = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        submissionDateFrom: approvedApplication.submittedAt
+                    })
+                    .expect(StatusCodes.OK);
+
+                expect(afterQuery.body.applications.length).toBe(2);
+                expect(afterQuery.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(afterQuery.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
+            });
+
+            test("Should succeed when searching before date", async () => {
+                const untilQuery = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        submissionDateTo: approvedApplication.submittedAt
+                    })
+                    .expect(StatusCodes.OK);
+
+                expect(untilQuery.body.applications.length).toBe(2);
+                expect(untilQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(untilQuery.body.applications[1]).toHaveProperty("companyName", rejectedApplication.companyName);
+            });
+
+            test("Should succeed when searching between dates", async () => {
+                const intervalQuery = await test_agent
+                    .get("/applications/company/search?" +
+                        `submissionDateFrom=${approvedApplication.submittedAt}&` +
+                        `submissionDateTo=${approvedApplication.submittedAt}`);
+
+                console.info(intervalQuery.body); // TODO: bruh ?
+
+                expect(intervalQuery.status).toBe(StatusCodes.OK);
+                expect(intervalQuery.body.applications.length).toBe(1);
+                expect(intervalQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
+            });
         });
     });
 
     describe("Sort application results", () => {
+
+        beforeAll(async () => {
+            await CompanyApplication.deleteMany({});
+        });
+
+        afterAll(async () => {
+            await CompanyApplication.deleteMany({});
+        });
 
         beforeEach(async () => {
             await CompanyApplication.create([pendingApplication, approvedApplication, rejectedApplication]);

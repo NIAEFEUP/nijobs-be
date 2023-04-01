@@ -62,7 +62,10 @@ export const reject = useExpressValidators([
 
 const isAfterSubmissionDateFrom = (submissionDateTo, { req }) => {
 
-    const { submissionDateFrom } = req.body;
+    const { submissionDateFrom } = req.query;
+
+    console.info(req.body);
+    console.info("Dates:", `\n\tFrom: ${submissionDateFrom};\n\tTo: ${submissionDateTo};`);
 
     return submissionDateFrom <= submissionDateTo;
 };
@@ -93,6 +96,11 @@ export const search = useExpressValidators([
         .optional()
         .isInt().withMessage(ValidationReasons.INT).bail()
         .toInt()
+        /*
+        Split validation checks in order to provide better error messages.
+        Another solution would be to return a "compound" error message, aka, one that contains both pieces of information.
+        The latter could help keep validation chains smaller.
+        */
         .isInt({ min: 1 }).withMessage(ValidationReasons.MIN(1)).bail()
         .isInt({ max: MAX_LIMIT_RESULTS }).withMessage(ValidationReasons.MAX(MAX_LIMIT_RESULTS)).bail()
         .toInt(),
@@ -118,7 +126,7 @@ export const search = useExpressValidators([
         .optional()
         .isISO8601().withMessage(ValidationReasons.DATE).bail()
         .toDate()
-        .if((submissionDateTo, { req }) => req.query.submissionDateFrom !== undefined)
+        .if((_, { req }) => req.query.submissionDateFrom !== undefined)
         .custom(isAfterSubmissionDateFrom).withMessage(ValidationReasons.MUST_BE_AFTER("submissionDateFrom")),
     query("sortBy", ValidationReasons.DEFAULT)
         .optional()
