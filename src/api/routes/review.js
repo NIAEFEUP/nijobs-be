@@ -82,6 +82,7 @@ export default (app) => {
         async (req, res, next) => {
 
             try {
+                /* TODO: check return account logic*/
                 const { account } = await (new ApplicationService()).approve(req.params.id);
                 return res.json(account);
             } catch (err) {

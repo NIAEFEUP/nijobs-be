@@ -12,6 +12,7 @@ import {
     REJECTION_NOTIFICATION,
 } from "../email-templates/companyApplicationApproval.js";
 import config from "../config/env.js";
+import Account from "../models/constants/Account.js";
 
 
 export class CompanyApplicationNotFound extends Error {
@@ -182,26 +183,9 @@ class CompanyApplicationService {
             console.error(e);
             throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
         }
+        return  Account.findOne({ email: application.email });
 
-        try {
-            const account = await (new AccountService()).registerCompany(application.email, application.password, application.companyName);
-
-            await EmailService.sendMail({
-                to: application.email,
-                ...APPROVAL_NOTIFICATION(application.companyName),
-            });
-
-            return { application, account };
-
-        } catch (err) {
-            console.error(`Error creating account for approved Company Application, rolling back approval of ${application._id}`, err);
-            application.undoApproval();
-            if (err.name === "MongoServerError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.errmsg)) {
-                throw new CompanyApplicationEmailAlreadyInUse(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
-            } else {
-                throw err;
-            }
-        }
+        /* TODO: Make offers unpending */
     }
 
     async reject(id, reason, options) {
@@ -256,6 +240,26 @@ class CompanyApplicationService {
         } catch (err) {
             console.error(err);
             throw new CompanyApplicationAlreadyValidated(CompanyApplicationRules.APPLICATION_ALREADY_VALIDATED.msg);
+        }
+
+        try {
+            const account = await (new AccountService()).registerCompany(application.email, application.password, application.companyName);
+
+            await EmailService.sendMail({
+                to: application.email,
+                ...APPROVAL_NOTIFICATION(application.companyName),
+            });
+
+            return { application, account };
+
+        } catch (err) {
+            console.error(`Error creating account for approved Company Application, rolling back approval of ${application._id}`, err);
+            application.undoApproval();
+            if (err.name === "MongoServerError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.errmsg)) {
+                throw new CompanyApplicationEmailAlreadyInUse(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
+            } else {
+                throw err;
+            }
         }
     }
 
