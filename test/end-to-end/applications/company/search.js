@@ -203,12 +203,12 @@ describe("GET /applications/company/search", () => {
 
             test("Should fail with badly formatted query", async () => {
 
-                const wrongFormatQuery = await test_agent
+                const res = await test_agent
                     // FIXME: having only one element makes it so that state is parsed as a single value
                     .get(`/applications/company/search?state[]=<["${ApplicationStatus.APPROVED}"]`)
                     .expect(StatusCodes.UNPROCESSABLE_ENTITY);
 
-                expect(wrongFormatQuery.body.errors[0]).toStrictEqual({
+                expect(res.body.errors[0]).toStrictEqual({
                     location: "query",
                     msg: "must-be-in:[PENDING,APPROVED,REJECTED]", // FIXME: ValidationReasons.IN_ARRAY(ApplicationStatus),
                     param: "state",
@@ -218,17 +218,17 @@ describe("GET /applications/company/search", () => {
 
             test("Should succeed with single state query", async () => {
 
-                const singleStateQuery = await test_agent
+                const res = await test_agent
                     .get(`/applications/company/search?state[]=${ApplicationStatus.APPROVED}`)
                     .expect(StatusCodes.OK);
 
-                expect(singleStateQuery.body.applications.length).toBe(1);
-                expect(singleStateQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.body.applications.length).toBe(1);
+                expect(res.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
 
             });
 
             test("Should succeed with multi state query", async () => {
-                const multiStateQuery = await test_agent
+                const res = await test_agent
                     .get("/applications/company/search")
                     .query({
                         state: [
@@ -238,56 +238,56 @@ describe("GET /applications/company/search", () => {
                     })
                     .expect(StatusCodes.OK);
 
-                expect(multiStateQuery.body.applications.length).toBe(2);
-                expect(multiStateQuery.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
-                expect(multiStateQuery.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.body.applications.length).toBe(2);
+                expect(res.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(res.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
             });
         });
 
         describe("Should filter by date", () => {
 
             test("Should succeed when searching after date", async () => {
-                const afterQuery = await test_agent
+                const res = await test_agent
                     .get("/applications/company/search")
                     .query({
                         submissionDateFrom: approvedApplication.submittedAt
                     })
                     .expect(StatusCodes.OK);
 
-                expect(afterQuery.body.applications.length).toBe(2);
-                expect(afterQuery.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
-                expect(afterQuery.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.body.applications.length).toBe(2);
+                expect(res.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(res.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
             });
 
             test("Should succeed when searching before date", async () => {
-                const untilQuery = await test_agent
+                const res = await test_agent
                     .get("/applications/company/search")
                     .query({
                         submissionDateTo: approvedApplication.submittedAt
                     })
                     .expect(StatusCodes.OK);
 
-                expect(untilQuery.body.applications.length).toBe(2);
-                expect(untilQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
-                expect(untilQuery.body.applications[1]).toHaveProperty("companyName", rejectedApplication.companyName);
+                expect(res.body.applications.length).toBe(2);
+                expect(res.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.body.applications[1]).toHaveProperty("companyName", rejectedApplication.companyName);
             });
 
             test("Should succeed when searching between dates", async () => {
-                const intervalQuery = await test_agent
+                const res = await test_agent
                     .get("/applications/company/search?" +
                         `submissionDateFrom=${approvedApplication.submittedAt}&` +
                         `submissionDateTo=${approvedApplication.submittedAt}`);
 
-                console.info(intervalQuery.body); // TODO: bruh ?
-
-                expect(intervalQuery.status).toBe(StatusCodes.OK);
-                expect(intervalQuery.body.applications.length).toBe(1);
-                expect(intervalQuery.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.status).toBe(StatusCodes.OK);
+                expect(res.body.applications.length).toBe(1);
+                expect(res.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
             });
         });
     });
 
     describe("Sort application results", () => {
+
+        const buildOrderingParam = (field, order = undefined) => `${field}${order ? `:${order}` : ""}`;
 
         beforeAll(async () => {
             await CompanyApplication.deleteMany({});
@@ -305,46 +305,94 @@ describe("GET /applications/company/search", () => {
             await CompanyApplication.deleteMany({});
         });
 
-        test("Should sort by company name ascending", async () => {
-            const query = await test_agent
-                .get("/applications/company/search?sortBy=companyName:asc");
+        describe("Should sort by company name", () => {
 
-            expect(query.status).toBe(StatusCodes.OK);
-            expect(query.body.applications.length).toBe(3);
-            expect(query.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
-            expect(query.body.applications[1]).toHaveProperty("companyName", rejectedApplication.companyName);
-            expect(query.body.applications[2]).toHaveProperty("companyName", pendingApplication.companyName);
+            test("Should sort by company name using default ordering", async () => {
+                const res = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        sortBy: buildOrderingParam("companyName")
+                    })
+                    .expect(StatusCodes.OK);
+
+                expect(res.body.applications).toHaveLength(3);
+                expect(res.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(res.body.applications[1]).toHaveProperty("companyName", rejectedApplication.companyName);
+                expect(res.body.applications[2]).toHaveProperty("companyName", approvedApplication.companyName);
+            });
+
+            test("Should sort by company name in descending order", async () => {
+                const res = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        sortBy: buildOrderingParam("companyName", "desc")
+                    })
+                    .expect(StatusCodes.OK);
+
+                expect(res.body.applications).toHaveLength(3);
+                expect(res.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(res.body.applications[1]).toHaveProperty("companyName", rejectedApplication.companyName);
+                expect(res.body.applications[2]).toHaveProperty("companyName", approvedApplication.companyName);
+            });
+
+            test("Should sort by company name in ascending order", async () => {
+                const res = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        sortBy: buildOrderingParam("companyName", "asc")
+                    })
+                    .expect(StatusCodes.OK);
+
+                expect(res.body.applications).toHaveLength(3);
+                expect(res.body.applications[0]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.body.applications[1]).toHaveProperty("companyName", rejectedApplication.companyName);
+                expect(res.body.applications[2]).toHaveProperty("companyName", pendingApplication.companyName);
+            });
         });
 
-        test("Should sort by company name descending", async () => {
-            const query = await test_agent
-                .get("/applications/company/search?sortBy=companyName:desc");
+        describe("Should sort by submission date", () => {
 
-            expect(query.status).toBe(StatusCodes.OK);
-            expect(query.body.applications.length).toBe(3);
-            expect(query.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
-            expect(query.body.applications[1]).toHaveProperty("companyName", rejectedApplication.companyName);
-            expect(query.body.applications[2]).toHaveProperty("companyName", approvedApplication.companyName);
-        });
+            test("Should sort by submission date using default ordering", async () => {
+                const res = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        sortBy: buildOrderingParam("submittedAt")
+                    })
+                    .expect(StatusCodes.OK);
 
-        test("Should sort by submissionDate descending", async () => {
-            const defaultQuery = await test_agent
-                .get("/applications/company/search");
+                expect(res.body.applications).toHaveLength(3);
+                expect(res.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(res.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.body.applications[2]).toHaveProperty("companyName", rejectedApplication.companyName);
+            });
 
-            expect(defaultQuery.status).toBe(StatusCodes.OK);
-            expect(defaultQuery.body.applications.length).toBe(3);
-            expect(defaultQuery.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
-            expect(defaultQuery.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
-            expect(defaultQuery.body.applications[2]).toHaveProperty("companyName", rejectedApplication.companyName);
+            test("Should sort by submission date in descending order", async () => {
+                const res = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        sortBy: buildOrderingParam("submittedAt", "desc")
+                    })
+                    .expect(StatusCodes.OK);
 
-            const query = await test_agent
-                .get("/applications/company/search?sortBy=submittedAt:desc");
+                expect(res.body.applications).toHaveLength(3);
+                expect(res.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
+                expect(res.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.body.applications[2]).toHaveProperty("companyName", rejectedApplication.companyName);
+            });
 
-            expect(query.status).toBe(StatusCodes.OK);
-            expect(query.body.applications.length).toBe(3);
-            expect(query.body.applications[0]).toHaveProperty("companyName", pendingApplication.companyName);
-            expect(query.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
-            expect(query.body.applications[2]).toHaveProperty("companyName", rejectedApplication.companyName);
+            test("Should sort by submission date in ascending order", async () => {
+                const res = await test_agent
+                    .get("/applications/company/search")
+                    .query({
+                        sortBy: buildOrderingParam("submittedAt", "asc")
+                    })
+                    .expect(StatusCodes.OK);
+
+                expect(res.body.applications).toHaveLength(3);
+                expect(res.body.applications[0]).toHaveProperty("companyName", rejectedApplication.companyName);
+                expect(res.body.applications[1]).toHaveProperty("companyName", approvedApplication.companyName);
+                expect(res.body.applications[2]).toHaveProperty("companyName", pendingApplication.companyName);
+            });
         });
     });
 });

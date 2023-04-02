@@ -11,6 +11,7 @@ describe("POST /auth/register", () => {
     describe("Input Validation", () => {
         const EndpointValidatorTester = ValidatorTester((params) => request().post("/auth/register").send(withGodToken(params)));
         const BodyValidatorTester = EndpointValidatorTester("body");
+
         describe("email", () => {
             const FieldValidatorTester = BodyValidatorTester("email");
             FieldValidatorTester.isRequired();

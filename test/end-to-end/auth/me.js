@@ -90,10 +90,9 @@ describe("GET /auth/me", () => {
     });
 
     test("should return an error since no user is logged in", async () => {
-        const res = await test_agent
+        await test_agent
             .get("/auth/me")
-            .send();
-
-        expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
+            .send()
+            .expect(StatusCodes.UNAUTHORIZED);
     });
 });

@@ -6,22 +6,6 @@ import withGodToken from "../../utils/GodToken";
 import hash from "../../../src/lib/passwordHashing";
 
 describe("POST /auth/login", () => {
-    describe("Input Validation", () => {
-        const EndpointValidatorTester = ValidatorTester((params) => request().post("/auth/login").send(withGodToken(params)));
-        const BodyValidatorTester = EndpointValidatorTester("body");
-        describe("email", () => {
-            const FieldValidatorTester = BodyValidatorTester("email");
-            FieldValidatorTester.isRequired();
-            FieldValidatorTester.mustBeEmail();
-        });
-
-        describe("password", () => {
-            const FieldValidatorTester = BodyValidatorTester("password");
-            FieldValidatorTester.isRequired();
-            FieldValidatorTester.mustBeString();
-        });
-    });
-
     const test_agent = agent();
 
     const test_user_admin = {
@@ -60,24 +44,38 @@ describe("POST /auth/login", () => {
         await Company.deleteMany({});
     });
 
+    describe("Input Validation", () => {
+        const EndpointValidatorTester = ValidatorTester((params) => request().post("/auth/login").send(withGodToken(params)));
+        const BodyValidatorTester = EndpointValidatorTester("body");
+
+        describe("email", () => {
+            const FieldValidatorTester = BodyValidatorTester("email");
+            FieldValidatorTester.isRequired();
+            FieldValidatorTester.mustBeEmail();
+        });
+
+        describe("password", () => {
+            const FieldValidatorTester = BodyValidatorTester("password");
+            FieldValidatorTester.isRequired();
+            FieldValidatorTester.mustBeString();
+        });
+    });
+
     test("should fail to login if password is wrong", async () => {
-        const res = await test_agent
+        await test_agent
             .post("/auth/login")
             .send({
                 email: "user@gmail.com",
                 password: "password",
-            });
-
-        expect(res.status).toBe(StatusCodes.UNAUTHORIZED);
+            })
+            .expect(StatusCodes.UNAUTHORIZED);
     });
 
-
     test("should successfully login with registered account", async () => {
-        const res = await test_agent
+        await test_agent
             .post("/auth/login")
-            .send(test_user_admin);
-
-        expect(res.status).toBe(StatusCodes.OK);
+            .send(test_user_admin)
+            .expect(StatusCodes.OK);
     });
 });
 
@@ -104,11 +102,10 @@ describe("DELETE /auth/login", () => {
     });
 
     test("should return OK since the logout is idempotent", async () => {
-        const res = await test_agent
+        await test_agent
             .delete("/auth/login")
-            .send();
-
-        expect(res.status).toBe(StatusCodes.OK);
+            .send()
+            .expect(StatusCodes.OK);
     });
 
     test("should be successful when logging out the current user", async () => {
@@ -118,10 +115,9 @@ describe("DELETE /auth/login", () => {
             .send(test_user_admin)
             .expect(StatusCodes.OK);
 
-        const res = await test_agent
+        await test_agent
             .delete("/auth/login")
-            .send();
-
-        expect(res.status).toBe(StatusCodes.OK);
+            .send()
+            .expect(StatusCodes.OK);
     });
 });
