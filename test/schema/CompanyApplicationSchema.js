@@ -1,7 +1,7 @@
-import CompanyApplication from "../src/models/CompanyApplication";
-import SchemaTester from "./utils/SchemaTester";
-import ApplicationStatus from "../src/models/constants/ApplicationStatus";
-import CompanyApplicationConstants from "../src/models/constants/CompanyApplication";
+import CompanyApplication from "../../src/models/CompanyApplication";
+import SchemaTester from "../utils/SchemaTester";
+import ApplicationStatus from "../../src/models/constants/ApplicationStatus";
+import CompanyApplicationConstants from "../../src/models/constants/CompanyApplication";
 
 const companyApplicationTester = SchemaTester(CompanyApplication);
 describe("# CompanyApplication schema tests", () => {

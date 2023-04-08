@@ -1,8 +1,8 @@
-import Offer from "../src/models/Offer";
-import JobTypes from "../src/models/constants/JobTypes";
-import { MIN_FIELDS, MAX_FIELDS, FieldTypes } from "../src/models/constants/FieldTypes";
-import { MIN_TECHNOLOGIES, MAX_TECHNOLOGIES, TechnologyTypes } from "../src/models/constants/TechnologyTypes";
-import { OFFER_MAX_LIFETIME_MONTHS } from "../src/models/constants/TimeConstants";
+import Offer from "../../src/models/Offer";
+import JobTypes from "../../src/models/constants/JobTypes";
+import { MIN_FIELDS, MAX_FIELDS, FieldTypes } from "../../src/models/constants/FieldTypes";
+import { MIN_TECHNOLOGIES, MAX_TECHNOLOGIES, TechnologyTypes } from "../../src/models/constants/TechnologyTypes";
+import { OFFER_MAX_LIFETIME_MONTHS } from "../../src/models/constants/TimeConstants";
 
 describe("# Offer Schema tests", () => {
     describe("Required and bound (between min and max elements) properties tests", () => {

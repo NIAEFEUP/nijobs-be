@@ -1,8 +1,8 @@
-import Company from "../src/models/Company";
-import SchemaTester from "./utils/SchemaTester";
-import CompanyConstants from "../src/models/constants/Company";
-import { DAY_TO_MS } from "./utils/TimeConstants";
-import Offer from "../src/models/Offer";
+import Company from "../../src/models/Company";
+import SchemaTester from "../utils/SchemaTester";
+import CompanyConstants from "../../src/models/constants/Company";
+import { DAY_TO_MS } from "../utils/TimeConstants";
+import Offer from "../../src/models/Offer";
 
 const CompanySchemaTester = SchemaTester(Company);
 
