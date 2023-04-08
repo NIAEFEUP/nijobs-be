@@ -1,13 +1,17 @@
 jest.mock("../../../../../src/lib/emailService");
-import EmailService, { EmailService as EmailServiceClass } from "../../../../../src/lib/emailService";
-jest.spyOn(EmailServiceClass.prototype, "verifyConnection").mockImplementation(() => Promise.resolve());
 import { StatusCodes } from "http-status-codes";
+import { ErrorTypes } from "../../../../../src/api/middleware/errorHandler";
+import { APPROVAL_NOTIFICATION } from "../../../../../src/email-templates/companyApplicationApproval";
+import EmailService, { EmailService as EmailServiceClass } from "../../../../../src/lib/emailService";
+import hash from "../../../../../src/lib/passwordHashing";
 import Account from "../../../../../src/models/Account";
 import CompanyApplication, { CompanyApplicationRules } from "../../../../../src/models/CompanyApplication";
-import hash from "../../../../../src/lib/passwordHashing";
-import { ErrorTypes } from "../../../../../src/api/middleware/errorHandler";
 import ApplicationStatus from "../../../../../src/models/constants/ApplicationStatus";
-import { APPROVAL_NOTIFICATION } from "../../../../../src/email-templates/companyApplicationApproval";
+jest.spyOn(EmailServiceClass.prototype, "verifyConnection").mockImplementation(() => Promise.resolve());
+
+import mongoose from "mongoose";
+
+const { ObjectId } = mongoose.Types;
 
 describe("POST /applications/company/:id/approve", () => {
 
@@ -44,7 +48,7 @@ describe("POST /applications/company/:id/approve", () => {
 
     test("Should fail if trying to approve inexistent application", async () => {
 
-        const id = "111111111111111111111111";
+        const id = new ObjectId();
 
         await test_agent
             .post(`/applications/company/${id}/approve`)
