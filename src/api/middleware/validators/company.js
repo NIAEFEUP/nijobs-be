@@ -10,6 +10,8 @@ export const MAX_LIMIT_RESULTS = 100;
 const DEFAULT_PUBLISH_DATE = new Date(Date.now()).toISOString();
 
 export const finish = useExpressValidators([
+    /* body("logo", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail(), */
     body("bio", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)

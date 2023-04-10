@@ -46,14 +46,16 @@ describe("POST /applications/company/:id/approve", () => {
             .expect(StatusCodes.OK);
     });
 
-    test("Should fail if trying to approve inexistent application", async () => {
+    describe("ID Validation", () => {
+        test("Should fail if trying to approve inexistent application", async () => {
 
-        const id = new ObjectId();
+            const id = new ObjectId();
 
-        await test_agent
-            .post(`/applications/company/${id}/approve`)
-            .expect(StatusCodes.NOT_FOUND);
+            await test_agent
+                .post(`/applications/company/${id}/approve`)
+                .expect(StatusCodes.NOT_FOUND);
 
+        });
     });
 
     describe("Without previous applications", () => {
@@ -188,7 +190,13 @@ describe("POST /applications/company/:id/approve", () => {
 
             expect(res.status).toBe(StatusCodes.CONFLICT);
             expect(res.body.error_code).toBe(ErrorTypes.VALIDATION_ERROR);
-            expect(res.body.errors[0].msg).toBe(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
+            expect(res.body.errors).toEqual(expect.arrayContaining(
+                [
+                    expect.objectContaining({
+                        msg: CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg
+                    })
+                ]
+            ));
 
             const result_application = await CompanyApplication.findById(sameEmailApplication._id);
             expect(result_application.state).toBe(ApplicationStatus.PENDING);

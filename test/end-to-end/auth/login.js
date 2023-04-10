@@ -2,7 +2,6 @@ import { StatusCodes } from "http-status-codes";
 import Account from "../../../src/models/Account";
 import Company from "../../../src/models/Company";
 import ValidatorTester from "../../utils/ValidatorTester";
-import withGodToken from "../../utils/GodToken";
 import hash from "../../../src/lib/passwordHashing";
 
 describe("POST /auth/login", () => {
@@ -18,8 +17,6 @@ describe("POST /auth/login", () => {
         password: "password123",
     };
 
-    let test_company;
-
     beforeAll(async () => {
         await Account.deleteMany({});
         await Company.deleteMany({});
@@ -30,7 +27,7 @@ describe("POST /auth/login", () => {
             isAdmin: true
         });
 
-        test_company = await Company.create({ name: "test company" });
+        const test_company = await Company.create({ name: "test company" });
 
         await Account.create({
             email: test_user_company.email,
@@ -45,7 +42,7 @@ describe("POST /auth/login", () => {
     });
 
     describe("Input Validation", () => {
-        const EndpointValidatorTester = ValidatorTester((params) => request().post("/auth/login").send(withGodToken(params)));
+        const EndpointValidatorTester = ValidatorTester((params) => request().post("/auth/login").send(params));
         const BodyValidatorTester = EndpointValidatorTester("body");
 
         describe("email", () => {
@@ -104,7 +101,6 @@ describe("DELETE /auth/login", () => {
     test("should return OK since the logout is idempotent", async () => {
         await test_agent
             .delete("/auth/login")
-            .send()
             .expect(StatusCodes.OK);
     });
 
@@ -117,7 +113,6 @@ describe("DELETE /auth/login", () => {
 
         await test_agent
             .delete("/auth/login")
-            .send()
             .expect(StatusCodes.OK);
     });
 });

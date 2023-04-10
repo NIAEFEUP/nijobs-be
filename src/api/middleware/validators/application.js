@@ -64,9 +64,6 @@ const isAfterSubmissionDateFrom = (submissionDateTo, { req }) => {
 
     const { submissionDateFrom } = req.query;
 
-    console.info(req.body);
-    console.info("Dates:", `\n\tFrom: ${submissionDateFrom};\n\tTo: ${submissionDateTo};`);
-
     return submissionDateFrom <= submissionDateTo;
 };
 

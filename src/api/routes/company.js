@@ -13,7 +13,7 @@ import { concurrentOffersNotExceeded } from "../middleware/validators/validatorU
 
 import { or } from "../middleware/utils.js";
 
-import * as fileMiddleware  from "../middleware/files.js";
+import * as fileMiddleware from "../middleware/files.js";
 import OfferService from "../../services/offer.js";
 import AccountService from "../../services/account.js";
 import Offer from "../../models/Offer.js";

@@ -44,14 +44,16 @@ describe("POST /applications/company/:id/reject", () => {
             .expect(StatusCodes.OK);
     });
 
-    test("Should fail if trying to reject inexistent application", async () => {
+    describe("ID Validation", () => {
+        test("Should fail if trying to reject inexistent application", async () => {
 
-        const id = new ObjectId();
+            const id = new ObjectId();
 
-        await test_agent
-            .post(`/applications/company/${id}/reject`)
-            .send({ rejectReason: "Some reason which is valid" })
-            .expect(StatusCodes.NOT_FOUND);
+            await test_agent
+                .post(`/applications/company/${id}/reject`)
+                .send({ rejectReason: "Some reason which is valid" })
+                .expect(StatusCodes.NOT_FOUND);
+        });
     });
 
     describe("Without previous applications", () => {
