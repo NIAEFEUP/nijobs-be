@@ -83,6 +83,10 @@ const OfferSchema = new Schema({
         type: Boolean,
         default: false
     },
+    isPending: {
+        type: Boolean,
+        default: false,
+    },
     isArchived: {
         type: Boolean,
         default: false
