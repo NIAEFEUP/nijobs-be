@@ -208,7 +208,7 @@ class CompanyApplicationService {
 
     buildConfirmationLink(id) {
         const token = generateToken({ _id: id }, config.jwt_secret, VALIDATION_LINK_EXPIRATION);
-        return `${config.application_confirmation_link}/${token}/confirm`;
+        return `${config.application_confirmation_link}${token}/confirm`;
     }
 
     async sendConfirmationNotification(email, link) {
