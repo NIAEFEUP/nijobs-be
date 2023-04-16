@@ -12,7 +12,7 @@ import {
     REJECTION_NOTIFICATION,
 } from "../email-templates/companyApplicationApproval.js";
 import config from "../config/env.js";
-import Account from "../models/constants/Account.js";
+import Account from "../models/Account.js";
 
 
 export class CompanyApplicationNotFound extends Error {
@@ -183,9 +183,7 @@ class CompanyApplicationService {
             console.error(e);
             throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
         }
-        return  Account.findOne({ email: application.email });
-
-        /* TODO: Make offers unpending */
+        return Account.findOne({ email: application.email });
     }
 
     async reject(id, reason, options) {

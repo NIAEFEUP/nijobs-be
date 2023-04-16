@@ -106,7 +106,7 @@ export default (app) => {
                 const params = {
                     ...req.body,
                     owner: req.targetOwner,
-                    isPending: application.state === ApplicationStatus.APPROVED ? false : true,
+                    isPending: !(application.state === ApplicationStatus.APPROVED),
                 };
 
                 const offer = await (new OfferService()).create(params);

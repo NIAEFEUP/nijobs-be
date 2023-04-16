@@ -8,6 +8,8 @@ import {
 import EmailService from "../lib/emailService.js";
 import Account from "../models/Account.js";
 import Company from "../models/Company.js";
+import Offer from "../models/Offer.js"
+
 class CompanyService {
     getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel) {
         return OfferModel.find({
@@ -191,6 +193,16 @@ class CompanyService {
             const company = await Company.findById(companyId);
             await Company.findByIdAndRemove(companyId);
             return company;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    }
+
+
+    async releaseOffers(companyId) {
+        try {
+            await Offer.updateMany({ company : companyId }, { $set: { "isPending" : false } });
         } catch (err) {
             console.error(err);
             throw err;
