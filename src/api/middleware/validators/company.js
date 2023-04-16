@@ -27,7 +27,9 @@ export const finish = useExpressValidators([
 export const list = useExpressValidators([
     query("limit", ValidationReasons.DEFAULT)
         .optional()
-        .isInt({ min: 1, max: MAX_LIMIT_RESULTS })
+        .isInt({ min: 1 })
+        .withMessage(ValidationReasons.MIN(1)).bail()
+        .isInt({ max: MAX_LIMIT_RESULTS })
         .withMessage(ValidationReasons.MAX(MAX_LIMIT_RESULTS)),
     query("offset", ValidationReasons.DEFAULT)
         .optional()
