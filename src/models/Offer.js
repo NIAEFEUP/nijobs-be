@@ -165,6 +165,10 @@ OfferSchema.query.current = function() {
     return this.where(this.model.filterCurrent());
 };
 
+OfferSchema.query.notPending= function(){
+    return this.where({ isPending: false });
+}
+
 /**
  * Currently active and non-hidden Offers
  */

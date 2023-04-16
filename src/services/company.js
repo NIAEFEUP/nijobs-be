@@ -202,7 +202,7 @@ class CompanyService {
 
     async releaseOffers(companyId) {
         try {
-            await Offer.updateMany({ company : companyId }, { $set: { "isPending" : false } });
+            await Offer.updateMany({ owner : companyId }, { $set: { "isPending" : false } });
         } catch (err) {
             console.error(err);
             throw err;

@@ -372,6 +372,7 @@ class OfferService {
 
     selectSearchOffers(offers, showHidden, showAdminReason) {
         offers.current();
+        offers.notPending();
         if (!showHidden) offers.withoutHidden();
         if (!showAdminReason) offers.select("-adminReason");
 
