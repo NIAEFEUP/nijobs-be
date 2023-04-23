@@ -77,7 +77,7 @@ describe("POST /company/:companyId/delete", () => {
         });
 
         afterAll(async () => {
-            await Company.delete({ _id: test_company._id });
+            await Company.deleteMany({ _id: test_company._id });
         });
 
         test("should fail to delete company if not logged", async () => {
