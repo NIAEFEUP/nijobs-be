@@ -35,15 +35,6 @@ describe("Company endpoint", () => {
         ...params,
     });
 
-    const generateTestCompany = (params) => ({
-        name: "Big Company",
-        bio: "Big Company Bio",
-        logo: "http://awebsite.com/alogo.jpg",
-        contacts: ["112", "122"],
-        hasFinishedRegistration: true,
-        ...params,
-    });
-
     describe("PUT /company/:companyId/block", () => {
         const test_agent = agent();
 
