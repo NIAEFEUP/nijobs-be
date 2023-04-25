@@ -3,8 +3,10 @@ import ValidationReasons from "../../../../src/api/middleware/validators/validat
 import hash from "../../../../src/lib/passwordHashing";
 import Account from "../../../../src/models/Account";
 import Company from "../../../../src/models/Company";
+import CompanyConstants from "../../../../src/models/constants/Company";
 import Offer from "../../../../src/models/Offer";
 import withGodToken from "../../../utils/GodToken";
+import ValidatorTester from "../../../utils/ValidatorTester";
 import { DAY_TO_MS } from "../../../utils/TimeConstants";
 
 describe("PUT /company/edit", () => {
@@ -27,10 +29,21 @@ describe("PUT /company/edit", () => {
         contacts: ["123", "456"],
     };
 
+    const test_user_admin = {
+        email: "admin@email.com",
+        password: "password123",
+    };
+
     beforeAll(async () => {
         await Account.deleteMany({});
         await Company.deleteMany({});
         await Offer.deleteMany({});
+
+        await Account.create({
+            email: test_user_admin.email,
+            password: await hash(test_user_admin.password),
+            isAdmin: true,
+        });
     });
 
     afterAll(async () => {
@@ -76,6 +89,56 @@ describe("PUT /company/edit", () => {
         });
     });
 
+    describe("Field Validation", () => {
+
+        const company_data = {
+            name: "Test Company",
+            logo: "http://awebsite.com/alogo.jpg",
+        };
+
+        let company;
+
+        beforeAll(async () => {
+            company = await Company.create(company_data);
+        });
+
+        afterAll(async () => {
+            await Company.deleteMany({ name: company.name });
+        });
+
+        const EndpointValidatorTester = ValidatorTester(
+            (params) => request().put(`/company/${company._id}/edit`).send(withGodToken(params))
+        );
+        const BodyValidatorTester = EndpointValidatorTester("body");
+
+        describe("name", () => {
+            const FieldValidatorTester = BodyValidatorTester("name");
+
+            FieldValidatorTester.mustBeString();
+            FieldValidatorTester.hasMaxLength(CompanyConstants.companyName.max_length);
+            FieldValidatorTester.hasMinLength(CompanyConstants.companyName.min_length);
+        });
+
+        describe("bio", () => {
+            const FieldValidatorTester = BodyValidatorTester("bio");
+
+            FieldValidatorTester.mustBeString();
+            FieldValidatorTester.hasMaxLength(CompanyConstants.bio.max_length);
+        });
+
+        describe("contacts", () => {
+            const FieldValidatorTester = BodyValidatorTester("contacts");
+
+            FieldValidatorTester.mustBeArray();
+            // FieldValidatorTester.mustHaveAtLeast(CompanyConstants.contacts.min_length);
+            FieldValidatorTester.mustBeArrayBetween(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length);
+        });
+
+        describe("logo", () => {
+            // TODO: Add tests for logo when the route has multer middleware to handle file uploads
+        });
+    });
+
     describe("Without auth", () => {
 
         const company_data = generateTestCompany({
@@ -109,10 +172,6 @@ describe("PUT /company/edit", () => {
     });
 
     describe("With auth", () => {
-        const test_user_admin = {
-            email: "admin@email.com",
-            password: "password123",
-        };
 
         const test_user_company_1 = {
             email: "company1@email.com",
@@ -148,11 +207,6 @@ describe("PUT /company/edit", () => {
             ]);
 
             await Account.create([
-                {
-                    email: test_user_admin.email,
-                    password: await hash(test_user_admin.password),
-                    isAdmin: true,
-                },
                 {
                     email: test_user_company_1.email,
                     password: await hash(test_user_company_1.password),

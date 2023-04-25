@@ -130,9 +130,10 @@ export const edit = useExpressValidators([
         .withMessage(ValidationReasons.TOO_LONG(CompanyConstants.bio.max_length)),
     body("contacts", ValidationReasons.DEFAULT)
         .optional()
-        .customSanitizer(ensureArray)
+        .isArray().withMessage(ValidationReasons.ARRAY).bail()
         .isArray({ min: CompanyConstants.contacts.min_length, max: CompanyConstants.contacts.max_length })
-        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length)),
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length))
+        .customSanitizer(ensureArray),
     body("logo", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING).bail()
