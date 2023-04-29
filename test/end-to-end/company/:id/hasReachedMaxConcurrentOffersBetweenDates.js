@@ -203,6 +203,7 @@ describe("GET /company/:companyId/hasReachedMaxConcurrentOffersBetweenDates", ()
 
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
+            // TODO: change to use expect's helpers
             expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
         });
 
