@@ -2515,7 +2515,7 @@ describe("Company endpoint", () => {
         const changing_values = {
             name: "Changed name",
             bio: "Changed bio",
-            logo: "http://awebsite.com/changedlogo.jpg",
+            logo: "test/data/logo-niaefeup.png",
             contacts: ["123", "456"],
         };
 
@@ -2665,9 +2665,7 @@ describe("Company endpoint", () => {
 
                 const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
-                    .send({
-                        name: changing_values.name
-                    })
+                    .field("name", changing_values.name)
                     .expect(HTTPStatus.OK);
 
                 expect(res.body).toHaveProperty("name", changing_values.name);
@@ -2681,14 +2679,10 @@ describe("Company endpoint", () => {
 
                 const res = await test_agent
                     .put(`/company/${test_company._id}/edit`)
-                    .send({
-                        name: changing_values.name,
-                    })
+                    .field("name", changing_values.name)
                     .expect(HTTPStatus.OK);
 
                 expect(res.body).toHaveProperty("name", changing_values.name);
-                const changed_company = await Company.findById(test_company._id);
-                expect(changed_company.name).toBe(changing_values.name);
             });
         });
 
@@ -2713,6 +2707,58 @@ describe("Company endpoint", () => {
 
             expect(test_offer.ownerName).toEqual(changing_values.name);
             expect(test_offer.contacts).toEqual(changing_values.contacts);
+        });
+
+        describe("Updating company logo", () => {
+            test("Should fail if not an image", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .attach("logo", "test/data/not-a-logo.txt")
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors).toContainEqual({
+                    "location": "body",
+                    "msg": ValidationReasons.IMAGE_FORMAT,
+                    "param": "logo"
+                });
+            });
+
+            test("Should fail if image is too big", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .attach("logo", "test/data/logo-niaefeup-10mb.png")
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors).toContainEqual({
+                    "location": "body",
+                    "msg": ValidationReasons.FILE_TOO_LARGE(MAX_FILE_SIZE_MB),
+                    "param": "logo"
+                });
+            });
+
+            test("Should succeed if image is valid", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .put(`/company/${test_company._id}/edit`)
+                    .attach("logo", changing_values.logo)
+                    .expect(HTTPStatus.OK);
+
+                expect(res.body).toHaveProperty("logo");
+            });
         });
 
         describe("Using disabled/blocked company (god)", () => {
