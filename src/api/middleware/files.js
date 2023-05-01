@@ -12,10 +12,10 @@ import { MAX_FILE_SIZE_MB } from "./utils.js";
 
 const parseError = (message) => message.toLowerCase().replace(/ /g, "-");
 
-export const parseSingleFile = (field_name) => (req, res, next) => {
+export const parseSingleFile = (field_name, required = true) => (req, res, next) => {
     const upload = multerConfig.single(field_name);
     upload(req, res, (error) => {
-        if (error || !req.file) {
+        if (error || (!req.file && required)) {
             let message = "required";
             let param = field_name;
             if (error) {
