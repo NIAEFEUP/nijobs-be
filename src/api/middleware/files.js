@@ -12,10 +12,10 @@ import { MAX_FILE_SIZE_MB } from "./utils.js";
 
 const parseError = (message) => message.toLowerCase().replace(/ /g, "-");
 
-export const parseSingleFile = (field_name) => (req, res, next) => {
+export const parseSingleFile = (field_name, required = true) => (req, res, next) => {
     const upload = multerConfig.single(field_name);
     upload(req, res, (error) => {
-        if (error || !req.file) {
+        if (error || (!req.file && required)) {
             let message = "required";
             let param = field_name;
             if (error) {
@@ -44,6 +44,7 @@ export const parseSingleFile = (field_name) => (req, res, next) => {
 };
 
 export const localSave = async (req, res, next) => {
+    if (!req.file) return next();
     const buffer = req.file.buffer;
     const extension = req.file.mimetype.substr(req.file.mimetype.indexOf("/") + 1);
     const filename = `${req.user.company}.${extension}`;
@@ -69,6 +70,7 @@ export const localSave = async (req, res, next) => {
 const upload = util.promisify(cloudinary.uploader.upload);
 
 export const cloudSave = async (req, res, next) => {
+    if (!req.file) return next();
     const filename = req.file.filename;
     const file_path = path.join(config.upload_folder, filename);
 
