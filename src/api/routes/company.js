@@ -13,7 +13,7 @@ import { concurrentOffersNotExceeded } from "../middleware/validators/validatorU
 
 import { or } from "../middleware/utils.js";
 import Company from "../../models/constants/Company.js";
-import * as fileMiddleware  from "../middleware/files.js";
+import * as fileMiddleware from "../middleware/files.js";
 import OfferService from "../../services/offer.js";
 import AccountService from "../../services/account.js";
 import Offer from "../../models/Offer.js";
@@ -35,20 +35,22 @@ export default (app) => {
         fileMiddleware.parseSingleFile("logo"),
         fileMiddleware.localSave,
         fileMiddleware.cloudSave,
-        validators.finish,
-        fileMiddleware.parseArrayOfFiles("images", Company.images.max_length),
+        fileMiddleware.parseArrayOfFiles("images", Company.images.max_length, true),
         fileMiddleware.localSaveArray,
         fileMiddleware.cloudSaveArray,
+        validators.finish,
         async (req, res, next) => {
 
             try {
                 const companyService = new CompanyService();
                 const { bio, contacts, social, locations } = req.body;
                 const logo = req?.file?.url || `${config.webserver_host}/static/${req.file.filename}`;
-                const images = req.files.map((file) => file.url || `${config.webserver_host}/static/${file.filename}`);
+                const images = req?.files?.map((file) => file?.url || `${config.webserver_host}/static/${file.filename}`) ?? [];
                 const company_id = req.user.company;
-                await companyService.changeAttributes(company_id, { bio, contacts, social,
-                    locations, logo, images, hasFinishedRegistration: true });
+                await companyService.changeAttributes(company_id, {
+                    bio, contacts, social,
+                    locations, logo, images, hasFinishedRegistration: true
+                });
                 return res.json({});
             } catch (err) {
                 console.error(err);

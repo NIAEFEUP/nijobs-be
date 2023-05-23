@@ -1045,7 +1045,6 @@ describe("Company endpoint", () => {
                         .post("/company/application/finish")
                         .attach("logo", "test/data/logo-niaefeup.png")
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
-
                     expect(res.body.errors).toContainEqual({
                         "location": "body",
                         "msg": ValidationReasons.REQUIRED,
@@ -1055,18 +1054,19 @@ describe("Company endpoint", () => {
             });
 
             describe("images", () => {
-                test("should return an error because the image array is too long", async () => {
+                test("should return an error because the images array is too long", async () => {
                     const images = new Array(CompanyConstants.images.max_length + 1)
-                        .fill("images");
+                        .fill("test/data/logo-niaefeup.png");
+
                     const res = await test_agent
                         .post("/company/application/finish")
                         .attach("logo", "test/data/logo-niaefeup.png")
-                        .field("images", images)
+                        .attach("images", images)
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
 
                     expect(res.body.errors).toContainEqual({
                         "location": "body",
-                        "msg": ValidationReasons.TOO_LONG(CompanyConstants.images.max_length),
+                        "msg": ValidationReasons.ARRAY_SIZE(CompanyConstants.images.min_length, CompanyConstants.images.max_length),
                         "param": "images",
                         "value": images
                     });
