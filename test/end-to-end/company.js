@@ -3,7 +3,6 @@ import { ErrorTypes } from "../../src/api/middleware/errorHandler";
 import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
 import {
     COMPANY_BLOCKED_NOTIFICATION,
-    COMPANY_DISABLED_NOTIFICATION,
     COMPANY_ENABLED_NOTIFICATION,
 } from "../../src/email-templates/companyManagement";
 import EmailService from "../../src/lib/emailService";
