@@ -12,7 +12,7 @@ import { DAY_TO_MS } from "../../../utils/TimeConstants";
 jest.mock("../../../../src/lib/emailService");
 jest.spyOn(EmailServiceClass.prototype, "verifyConnection").mockImplementation(() => Promise.resolve());
 
-describe("POST /company/:companyId/delete", () => {
+describe("POST /company/delete", () => {
 
     const test_agent = agent();
 
