@@ -76,7 +76,6 @@ describe("PUT /company/block", () => {
         });
     });
 
-
     test("should fail if not logged in", async () => {
         await test_agent
             .del("/auth/login");
@@ -160,6 +159,7 @@ describe("PUT /company/block", () => {
             .put(`/company/${id}/block`)
             .send({ adminReason })
             .expect(StatusCodes.UNPROCESSABLE_ENTITY);
+
         expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors[0]).toHaveProperty("param", "companyId");

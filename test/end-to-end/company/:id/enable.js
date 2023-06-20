@@ -320,7 +320,7 @@ describe("PUT /company/enable", () => {
             });
 
             afterAll(async () => {
-                await Account.delete({ email: account_with_offers.email });
+                await Account.deleteMany({ email: account_with_offers.email });
                 await Company.deleteMany({ name: disabled_company_with_offers_data.name });
                 await Offer.deleteMany({ owner: disabled_company_with_offers._id });
             });
