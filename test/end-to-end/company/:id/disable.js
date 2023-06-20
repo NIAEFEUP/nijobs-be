@@ -18,6 +18,18 @@ describe("PUT /company/disable", () => {
 
     const test_agent = agent();
 
+    beforeAll(async () => {
+        await Company.deleteMany({});
+        await Offer.deleteMany({});
+        await Account.deleteMany({});
+    });
+
+    afterAll(async () => {
+        await Company.deleteMany({});
+        await Offer.deleteMany({});
+        await Account.deleteMany({});
+    });
+
     describe("ID Validation", () => {
         test("Should fail if id is not a valid ObjectID", async () => {
             const id = "123";
@@ -152,6 +164,12 @@ describe("PUT /company/disable", () => {
                     ]
                 }
             });
+        });
+
+        afterEach(async () => {
+            await test_agent
+                .delete("/auth/login")
+                .expect(StatusCodes.OK);
         });
 
         test("should fail to disable company if logged as different company", async () => {
