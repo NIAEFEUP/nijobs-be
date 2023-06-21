@@ -272,8 +272,12 @@ describe("PUT /company/enable", () => {
 
         describe("With offers", () => {
             const assertOfferList = (offers, expectedIsHidden, expectedHiddenReason) => {
-                expect(offers.every(({ isHidden }) => isHidden === expectedIsHidden)).toBe(true);
-                expect(offers.every(({ hiddenReason }) => hiddenReason === expectedHiddenReason)).toBe(true);
+                expect(offers).not.toEqual(expect.arrayContaining([
+                    expect.objectContaining({
+                        isHidden: !expectedIsHidden,
+                        hiddenReason: !expectedHiddenReason
+                    })
+                ]));
             };
 
             let disabled_company_with_offers;
