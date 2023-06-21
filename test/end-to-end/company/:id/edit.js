@@ -1,13 +1,14 @@
 import { StatusCodes } from "http-status-codes";
+import { MAX_FILE_SIZE_MB } from "../../../../src/api/middleware/utils";
 import ValidationReasons from "../../../../src/api/middleware/validators/validationReasons";
 import hash from "../../../../src/lib/passwordHashing";
 import Account from "../../../../src/models/Account";
 import Company from "../../../../src/models/Company";
-import CompanyConstants from "../../../../src/models/constants/Company";
 import Offer from "../../../../src/models/Offer";
+import CompanyConstants from "../../../../src/models/constants/Company";
 import withGodToken from "../../../utils/GodToken";
-import ValidatorTester from "../../../utils/ValidatorTester";
 import { DAY_TO_MS } from "../../../utils/TimeConstants";
+import ValidatorTester from "../../../utils/ValidatorTester";
 
 describe("PUT /company/edit", () => {
 
@@ -25,7 +26,7 @@ describe("PUT /company/edit", () => {
     const edit_payload = {
         name: "Changed name",
         bio: "Changed bio",
-        logo: "http://awebsite.com/changedlogo.jpg",
+        logo: "test/data/logo-niaefeup.png",
         contacts: ["123", "456"],
     };
 
@@ -537,6 +538,71 @@ describe("PUT /company/edit", () => {
 
                 expect(test_offer).toHaveProperty("ownerName", edit_payload.name);
                 expect(test_offer).toHaveProperty("contacts", edit_payload.contacts);
+            });
+        });
+
+        describe("Updating company logo", () => {
+
+            let company_with_logo;
+            const company_with_logo_data = generateTestCompany({
+                name: "Test Company With Logo",
+                logo: "https://test.com/logo.png",
+            });
+
+            beforeAll(async () => {
+                company_with_logo = await Company.create(company_with_logo_data);
+            });
+
+            afterAll(async () => {
+                await Company.deleteMany({ _id: company_with_logo._id });
+            });
+
+            beforeEach(async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(StatusCodes.OK);
+            });
+
+            afterEach(async () => {
+                await test_agent
+                    .delete("/auth/login")
+                    .expect(StatusCodes.OK);
+            });
+
+            test("Should fail if not an image", async () => {
+                const res = await test_agent
+                    .put(`/company/${company_with_logo._id}/edit`)
+                    .attach("logo", "test/data/not-a-logo.txt")
+                    .expect(StatusCodes.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors).toContainEqual({
+                    "location": "body",
+                    "msg": ValidationReasons.IMAGE_FORMAT,
+                    "param": "logo"
+                });
+            });
+
+            test("Should fail if image is too big", async () => {
+                const res = await test_agent
+                    .put(`/company/${company_with_logo._id}/edit`)
+                    .attach("logo", "test/data/logo-niaefeup-10mb.png")
+                    .expect(StatusCodes.UNPROCESSABLE_ENTITY);
+
+                expect(res.body.errors).toContainEqual({
+                    "location": "body",
+                    "msg": ValidationReasons.FILE_TOO_LARGE(MAX_FILE_SIZE_MB),
+                    "param": "logo"
+                });
+            });
+
+            test("Should succeed if image is valid", async () => {
+                const res = await test_agent
+                    .put(`/company/${company_with_logo._id}/edit`)
+                    .attach("logo", edit_payload.logo)
+                    .expect(StatusCodes.OK);
+
+                expect(res.body).toHaveProperty("logo");
             });
         });
     });
