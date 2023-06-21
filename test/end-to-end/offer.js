@@ -1,27 +1,27 @@
+import base64url from "base64url";
 import { StatusCodes as HTTPStatus } from "http-status-codes";
-import Offer from "../../src/models/Offer";
-import JobTypes from "../../src/models/constants/JobTypes";
-import * as FieldConstants from "../../src/models/constants/FieldTypes";
-import * as TechnologyConstants from "../../src/models/constants/TechnologyTypes";
 import { ErrorTypes } from "../../src/api/middleware/errorHandler";
-import ValidatorTester from "../utils/ValidatorTester";
-import withGodToken from "../utils/GodToken";
-import { DAY_TO_MS } from "../utils/TimeConstants";
-import OfferConstants from "../../src/models/constants/Offer";
+import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
+import { concurrentOffersNotExceeded } from "../../src/api/middleware/validators/validatorUtils";
+import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
+import EmailService from "../../src/lib/emailService";
+import hash from "../../src/lib/passwordHashing";
 import Account from "../../src/models/Account";
 import Company from "../../src/models/Company";
-import hash from "../../src/lib/passwordHashing";
-import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
+import Offer from "../../src/models/Offer";
 import CompanyConstants from "../../src/models/constants/Company";
+import * as FieldConstants from "../../src/models/constants/FieldTypes";
+import JobTypes from "../../src/models/constants/JobTypes";
+import OfferConstants from "../../src/models/constants/Offer";
+import * as TechnologyConstants from "../../src/models/constants/TechnologyTypes";
 import {
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
 } from "../../src/models/constants/TimeConstants";
 import OfferService from "../../src/services/offer";
-import EmailService from "../../src/lib/emailService";
-import { concurrentOffersNotExceeded } from "../../src/api/middleware/validators/validatorUtils";
-import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
-import base64url from "base64url";
+import withGodToken from "../utils/GodToken";
+import { DAY_TO_MS } from "../utils/TimeConstants";
+import ValidatorTester from "../utils/ValidatorTester";
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -2704,6 +2704,7 @@ describe("Offer endpoint tests", () => {
                     await Offer.deleteMany({});
                 });
 
+                // TODO: This is perfect for the "test.each" Jest construct
                 test("should sort by publishDate by default", async () => {
                     const res = await request()
                         .get("/offers");
@@ -3195,6 +3196,7 @@ describe("Offer endpoint tests", () => {
 
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
             });
+
             test("should fail if an offer does not exist", async () => {
                 const id = "5facf0cdb8bc30016ee58952";
                 const res = await request()
@@ -3642,6 +3644,7 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors[0]).toHaveProperty("param", "jobMinDuration");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_BEFORE("jobMaxDuration"));
                 });
+
                 test("should fail if maxDuration smaller than offer's minDuration", async () => {
                     const res = await test_agent
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
@@ -3650,6 +3653,7 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
                 });
+
                 test("should fail if invalid combination of jobDuration in request", async () => {
                     const res = await test_agent
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
@@ -4136,6 +4140,7 @@ describe("Offer endpoint tests", () => {
 
     describe("POST /offers/:offerId/disable", () => {
         let test_offer, test_offer_2, hidden_default_test_offer, hidden_user_test_offer, email_test_offer;
+
         beforeAll(async () => {
             test_offer = await Offer.create({
                 ...generateTestOffer({
