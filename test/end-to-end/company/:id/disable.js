@@ -80,7 +80,7 @@ describe("PUT /company/disable", () => {
         });
 
         afterAll(async () => {
-            await Company.deleteMany({ name: company_data });
+            await Company.deleteMany({ name: company_data.name });
         });
 
         test("Should not disable company if not authenticated", async () => {
