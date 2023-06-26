@@ -8,7 +8,7 @@ import {
 import EmailService from "../lib/emailService.js";
 import Account from "../models/Account.js";
 import Company from "../models/Company.js";
-import Offer from "../models/Offer.js"
+import Offer from "../models/Offer.js";
 
 class CompanyService {
     getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel) {
@@ -202,7 +202,7 @@ class CompanyService {
 
     async releaseOffers(companyId) {
         try {
-            await Offer.updateMany({ owner : companyId }, { $set: { "isPending" : false } });
+            await Offer.updateMany({ owner: companyId }, { $set: { "isPending": false } });
         } catch (err) {
             console.error(err);
             throw err;

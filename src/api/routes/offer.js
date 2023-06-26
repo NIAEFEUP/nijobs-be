@@ -12,7 +12,7 @@ import { or, when } from "../middleware/utils.js";
 import OfferConstants from "../../models/constants/Offer.js";
 import * as companyValidators from "../middleware/validators/company.js";
 import CompanyApplication from "../../models/CompanyApplication.js";
-import Account from "../../models/Account.js"
+import Account from "../../models/Account.js";
 import ApplicationStatus from "../../models/constants/ApplicationStatus.js";
 
 const router = Router();
@@ -100,7 +100,7 @@ export default (app) => {
             (req, res, next) => companyMiddleware.isNotDisabled(req.targetOwner)(req, res, next)),
         validators.offersDateSanitizers,
         async (req, res, next) => {
-            try {    
+            try {
                 const account = await Account.findOne({ company: req.targetOwner });
                 const application = await CompanyApplication.findOne({ email: account.email });
                 const params = {
@@ -108,9 +108,7 @@ export default (app) => {
                     owner: req.targetOwner,
                     isPending: !(application.state === ApplicationStatus.APPROVED),
                 };
-
                 const offer = await (new OfferService()).create(params);
-
                 return res.json(offer);
             } catch (err) {
                 console.error(err);
