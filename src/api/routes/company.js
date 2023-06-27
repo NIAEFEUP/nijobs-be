@@ -17,6 +17,9 @@ import * as fileMiddleware  from "../middleware/files.js";
 import OfferService from "../../services/offer.js";
 import AccountService from "../../services/account.js";
 import Offer from "../../models/Offer.js";
+import Account from "../../models/Account.js";
+import CompanyApplication from "../../models/CompanyApplication.js";
+
 
 const router = Router();
 
@@ -253,4 +256,28 @@ export default (app) => {
             }
         }
     );
+
+    /**
+     * Get the application of a company
+     */
+    router.get("/:companyId/application",
+        or([
+            authMiddleware.isAdmin,
+            authMiddleware.isGod,
+            (req, res, next) => authMiddleware.hasCompanyAccess(req.params.companyId)(req, res, next),
+        ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
+        validators.getApplication,
+
+
+        async (req, res, next) => {
+
+            try {
+                const account = await Account.findOne({ "company": req.params.companyId });
+                const application = await CompanyApplication.findOne({ "email": account.email });
+                return res.json(application);
+            } catch (err) {
+                console.error(err);
+                return next(err);
+            }
+        });
 };

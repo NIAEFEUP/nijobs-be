@@ -95,3 +95,10 @@ export const validToken = (req, res, next) => {
         }
     }
 };
+
+export const hasCompanyAccess = (companyId) =>  (req, res, next) => {
+    if (!req.user?.company?._id.equals(companyId)) {
+        return next(new APIError(HTTPStatus.UNAUTHORIZED, ErrorTypes.FORBIDDEN, ValidationReasons.MUST_BE_ADMIN));
+    }
+    return next();
+};

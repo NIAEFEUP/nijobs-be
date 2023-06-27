@@ -134,3 +134,7 @@ export const edit = useExpressValidators([
         .isString().withMessage(ValidationReasons.STRING).bail()
         .isURL().withMessage(ValidationReasons.URL),
 ]);
+
+export const getApplication = useExpressValidators([
+    existingCompanyParamValidator,
+]);
