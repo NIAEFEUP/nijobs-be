@@ -179,8 +179,13 @@ class CompanyApplicationService {
         if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_APPROVE.msg);
         try {
             application.approve();
+            await EmailService.sendMail({
+                to: application.email,
+                ...APPROVAL_NOTIFICATION(application.companyName),
+            });
         } catch (e) {
-            console.error(e);
+            console.error("Error while approving company ", e);
+            application.undoApproval();
             throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
         }
         return Account.findOne({ email: application.email });
@@ -242,17 +247,10 @@ class CompanyApplicationService {
 
         try {
             const account = await (new AccountService()).registerCompany(application.email, application.password, application.companyName);
-
-            await EmailService.sendMail({
-                to: application.email,
-                ...APPROVAL_NOTIFICATION(application.companyName),
-            });
-
             return { application, account };
 
         } catch (err) {
-            console.error(`Error creating account for approved Company Application, rolling back approval of ${application._id}`, err);
-            application.undoApproval();
+            console.error(`Error creating account for validated Company Application`, err);
             if (err.name === "MongoServerError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.errmsg)) {
                 throw new CompanyApplicationEmailAlreadyInUse(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
             } else {
