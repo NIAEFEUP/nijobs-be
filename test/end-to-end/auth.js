@@ -175,7 +175,7 @@ describe("Login endpoint test", () => {
             expect(res.body).not.toHaveProperty("data.company");
         });
 
-        test("should return the informations of the logged in user (company)", async () => {
+        test("should return the information of the logged in user (company)", async () => {
             await test_agent
                 .post("/auth/login")
                 .send(test_user_company);

@@ -2,7 +2,6 @@ import CompanyApplication, { CompanyApplicationRules } from "../models/CompanyAp
 import { generateToken } from "../lib/token.js";
 import hash from "../lib/passwordHashing.js";
 import { VALIDATION_LINK_EXPIRATION } from "../models/constants/ApplicationStatus.js";
-import { APPLICATION_CONFIRMATION } from "../email-templates/companyApplicationConfirmation.js";
 import AccountService from "./account.js";
 import EmailService from "../lib/emailService.js";
 import {
@@ -10,6 +9,7 @@ import {
     NEW_COMPANY_APPLICATION_COMPANY,
     APPROVAL_NOTIFICATION,
     REJECTION_NOTIFICATION,
+    APPLICATION_CONFIRMATION
 } from "../email-templates/companyApplicationApproval.js";
 import config from "../config/env.js";
 import Account from "../models/Account.js";
@@ -211,7 +211,7 @@ class CompanyApplicationService {
 
     buildConfirmationLink(id) {
         const token = generateToken({ _id: id }, config.jwt_secret, VALIDATION_LINK_EXPIRATION);
-        return `${config.application_confirmation_link}${token}/confirm`;
+        return `${config.application_confirmation_link}${token}/validate`;
     }
 
     async sendConfirmationNotification(email, link) {
@@ -250,7 +250,7 @@ class CompanyApplicationService {
             return { application, account };
 
         } catch (err) {
-            console.error(`Error creating account for validated Company Application`, err);
+            console.error("Error creating account for validated Company Application", err);
             if (err.name === "MongoServerError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.errmsg)) {
                 throw new CompanyApplicationEmailAlreadyInUse(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
             } else {

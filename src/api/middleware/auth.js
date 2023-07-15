@@ -87,7 +87,6 @@ export const validToken = (req, res, next) => {
 
         return next();
     } catch (jwtErr) {
-        console.log(jwtErr);
         if (jwtErr.name === "TokenExpiredError") {
             return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.EXPIRED_TOKEN));
         } else {

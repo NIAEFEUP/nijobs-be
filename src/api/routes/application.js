@@ -26,7 +26,11 @@ export default (app) => {
             return next(err);
         }
     });
-    router.post("/validate/:token/confirm", validators.finishValidation, validToken, async (req, res, next) => {
+
+    /**
+     * Validates application
+     */
+    router.post("/:token/validate", validators.finishValidation, validToken, async (req, res, next) => {
         const { _id: id } = req.locals.token;
         try {
             await new ApplicationService().applicationValidation(id);
