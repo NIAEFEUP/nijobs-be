@@ -29,16 +29,11 @@ class AccountService {
 
         const company = await Company.create({ name: companyName });
 
-        const account = await Account.create({
+        await Account.create({
             email,
             password,
             company,
         });
-
-        return {
-            email: account.email,
-            companyName: account.company.name,
-        };
     }
 
     async updatePassword(email, password) {

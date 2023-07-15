@@ -246,12 +246,10 @@ class CompanyApplicationService {
         }
 
         try {
-            const account = await (new AccountService()).registerCompany(application.email, application.password, application.companyName);
-            return { application, account };
-
+            await (new AccountService()).registerCompany(application.email, application.password, application.companyName);
         } catch (err) {
             console.error("Error creating account for validated Company Application", err);
-            if (err.name === "MongoServerError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.errmsg)) {
+            if (err.name === "MongoServerError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.msg)) {
                 throw new CompanyApplicationEmailAlreadyInUse(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
             } else {
                 throw err;
