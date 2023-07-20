@@ -145,7 +145,6 @@ describe("Login endpoint test", () => {
                     email: "user@gmail.com",
                     password: "password",
                 });
-
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
         });
 
@@ -159,7 +158,7 @@ describe("Login endpoint test", () => {
             expect(res.status).toBe(HTTPStatus.OK);
         });
 
-        test("should return the informations of the logged in user (admin)", async () => {
+        test("should return the information of the logged in user (admin)", async () => {
 
             await test_agent
                 .post("/auth/login")
@@ -192,7 +191,7 @@ describe("Login endpoint test", () => {
             ));
         });
 
-        test("should be successful when loging out the current user", async () => {
+        test("should be successful when logging out the current user", async () => {
             const res = await test_agent
                 .delete("/auth/login")
                 .send();

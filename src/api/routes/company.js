@@ -258,9 +258,9 @@ export default (app) => {
     );
 
     /**
-     * Get the application of a company
+     * Get the state of a company with its id
      */
-    router.get("/:companyId/application",
+    router.get("/:companyId/state",
         or([
             authMiddleware.isAdmin,
             authMiddleware.isGod,
@@ -268,13 +268,12 @@ export default (app) => {
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.getApplication,
 
-
         async (req, res, next) => {
 
             try {
                 const account = await Account.findOne({ "company": req.params.companyId });
                 const application = await CompanyApplication.findOne({ "email": account.email });
-                return res.json(application);
+                return res.json(application.state);
             } catch (err) {
                 console.error(err);
                 return next(err);
