@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>services/company.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/NIAEFEUP/nijobs-be" target="_blank" class="menu-item" id="repository" >Github repo</a></h2><h3>Classes</h3><ul><li><a href="AccountService.html">AccountService</a><ul class='methods'><li data-type='method' style='display: none;'><a href="AccountService.html#registerAdmin">registerAdmin</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#checkDuplicatedEmail">checkDuplicatedEmail</a></li><li><a href="global.html#concurrentOffersNotExceeded">concurrentOffersNotExceeded</a></li><li><a href="global.html#ensureArray">ensureArray</a></li><li><a href="global.html#hideInsecureError">hideInsecureError</a></li><li><a href="global.html#or">or</a></li><li><a href="global.html#startServer">startServer</a></li><li><a href="global.html#valuesInSet">valuesInSet</a></li><li><a href="global.html#when">when</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">services/company.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {
+    COMPANY_BLOCKED_NOTIFICATION,
+    COMPANY_UNBLOCKED_NOTIFICATION,
+    COMPANY_DISABLED_NOTIFICATION,
+    COMPANY_ENABLED_NOTIFICATION,
+    COMPANY_DELETED_NOTIFICATION,
+} from "../email-templates/companyManagement.js";
+import EmailService from "../lib/emailService.js";
+import Account from "../models/Account.js";
+import Company from "../models/Company.js";
+class CompanyService {
+    getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel) {
+        return OfferModel.find({
+            owner,
+            $or:
+                [
+                    { $and: [{ publishEndDate: { $gte: publishDate } }, { publishEndDate: { $lte: publishEndDate } }] },
+                    { $and: [{ publishDate: { $gte: publishDate } }, { publishDate: { $lte: publishEndDate } }] },
+                    { $and: [{ publishDate: { $lte: publishDate } }, { publishEndDate: { $gte: publishEndDate } }] }
+                ]
+        });
+    }
+
+    /**
+     *
+     * @param {*} limit - Number of documents to return
+     * @param {*} offset - where to start the query (pagination - how many documents to skip, NOT how many pages to skip)
+     * @param {*} showHidden - weather to show the hidden companies or not, defaults to 'false'
+     *
+     * @returns {companies, totalDocCount}
+     */
+    async findAll(limit, offset, showHidden = false, showAdminReason = false) {
+
+
+        const companyQuery = Company.find({});
+
+        if (!showHidden) companyQuery.withoutBlocked().withoutDisabled();
+        if (!showAdminReason) companyQuery.hideAdminReason();
+
+        const companies = [...(await companyQuery
+            .sort({ name: "asc" })
+            .skip(offset)
+            .limit(limit)
+            .exec())]
+            .map((company) => company.toObject());
+
+        return {
+            totalDocCount: companies.length,
+            companies,
+
+        };
+    }
+
+    /**
+     * @param {*} company_id Id of the company
+     * @param {*} showHidden weather to show the company if it is hidden, defaults to false
+     * @param {*} showAdminReason weather to show the admin reason given to hide this company, defaults to false
+     */
+    async findById(company_id, showHidden = false, showAdminReason = false) {
+        const query = Company.findById(company_id);
+        if (!showHidden) query.withoutBlocked().withoutDisabled();
+        if (!showAdminReason) query.hideAdminReason();
+        const company = await query;
+        return company;
+    }
+
+    /**
+     * @param {@param} companyId Id of the company
+     */
+    async block(companyId, adminReason) {
+        const company = await Company.findByIdAndUpdate(
+            companyId,
+            {
+                isBlocked: true,
+                adminReason
+            },
+            { new: true });
+        return company;
+    }
+
+    /**
+     * @param {@param} companyId Id of the company
+     */
+    async unblock(companyId) {
+        const company = await Company.findByIdAndUpdate(
+            companyId,
+            {
+                isBlocked: false,
+                $unset: { adminReason: "" },
+            },
+            { new: true });
+        return company;
+    }
+
+    /**
+     * Changes the attributes of a company
+     * @param {*} company_id id of the company
+     * @param {*} attributes object containing the attributes to change in company
+     */
+    async changeAttributes(companyId, companyDetails) {
+        try {
+            const company = await Company.findOneAndUpdate(
+                { _id: companyId },
+                companyDetails,
+                { new: true }
+            );
+
+            return company;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    }
+
+    /**
+     * E-mails the given company using the provided notification template.
+     * @param {*} companyId the id of the company to whom the notifications is sent
+     * @param {*} notification the notification to send
+     */
+    async _sendCompanyNotification(companyId, notification) {
+        try {
+            const company = await Company.findById(companyId);
+            const companyAccount = await Account.findOne({
+                company
+            });
+            await EmailService.sendMail({
+                to: companyAccount.email,
+                ...notification(company.name),
+            });
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    }
+
+    async sendCompanyBlockedNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_BLOCKED_NOTIFICATION);
+    }
+
+    async sendCompanyUnblockedNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_UNBLOCKED_NOTIFICATION);
+    }
+
+    disable(companyId) {
+
+        try {
+            return this.changeAttributes(companyId, { isDisabled: true });
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    }
+
+    enable(companyId) {
+
+        try {
+            return this.changeAttributes(companyId, { isDisabled: false });
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    }
+
+    async sendCompanyDisabledNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_DISABLED_NOTIFICATION);
+    }
+
+
+    async sendCompanyEnabledNotification(companyId) {
+        await this._sendCompanyNotification(companyId, COMPANY_ENABLED_NOTIFICATION);
+    }
+
+    async sendCompanyDeletedNotification(email, companyName) {
+        try {
+            await EmailService.sendMail({
+                to: email,
+                ...COMPANY_DELETED_NOTIFICATION(companyName),
+            });
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    }
+
+    /**
+     * Deletes a company by its ID and returns it
+     * @param {*} companyId ID of the company
+     */
+    async findAndDeleteById(companyId) {
+        try {
+            const company = await Company.findById(companyId);
+            await Company.findByIdAndRemove(companyId);
+            return company;
+        } catch (err) {
+            console.error(err);
+            throw err;
+        }
+    }
+}
+
+export default CompanyService;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Thu Jul 20 2023 14:15:39 GMT+0100 (Western European Summer Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+<script src="scripts/collapse.js" defer></script>
+
+
+</body>
+</html>

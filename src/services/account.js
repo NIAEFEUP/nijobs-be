@@ -7,12 +7,21 @@ import EmailService from "../lib/emailService.js";
 import { REQUEST_ACCOUNT_RECOVERY } from "../email-templates/accountManagement.js";
 import { generateToken } from "../lib/token.js";
 
+/**
+ * Class gdajsgd
+ */
 class AccountService {
     // TODO: Use typedi or similar
     constructor() {
 
     }
 
+    /**
+     * dagsdjaghs
+     * @param email adf
+     * @param password asd
+     * @returns {Promise<{email}>} asdsd
+     */
     async registerAdmin(email, password) {
         const account = await Account.create({
             email,

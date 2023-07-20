@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>api/middleware/utils.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    <input type="text" id="nav-search" placeholder="Search" />
+    
+    
+    <h2><a href="index.html">Home</a></h2><h2><a href="https://github.com/NIAEFEUP/nijobs-be" target="_blank" class="menu-item" id="repository" >Github repo</a></h2><h3>Classes</h3><ul><li><a href="AccountService.html">AccountService</a><ul class='methods'><li data-type='method' style='display: none;'><a href="AccountService.html#registerAdmin">registerAdmin</a></li></ul></li></ul><h3>Global</h3><ul><li><a href="global.html#checkDuplicatedEmail">checkDuplicatedEmail</a></li><li><a href="global.html#concurrentOffersNotExceeded">concurrentOffersNotExceeded</a></li><li><a href="global.html#ensureArray">ensureArray</a></li><li><a href="global.html#hideInsecureError">hideInsecureError</a></li><li><a href="global.html#or">or</a></li><li><a href="global.html#startServer">startServer</a></li><li><a href="global.html#valuesInSet">valuesInSet</a></li><li><a href="global.html#when">when</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">api/middleware/utils.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { StatusCodes as HTTPStatus } from "http-status-codes";
+import lodash from "lodash";
+import { APIError, ErrorTypes, hideInsecureError } from "./errorHandler.js";
+import ValidationReasons from "./validators/validationReasons.js";
+
+export const DEFAULT_ERROR_CODE = ErrorTypes.VALIDATION_ERROR;
+export const DEFAULT_ERROR_MSG = ValidationReasons.UNKNOWN;
+export const DEFAULT_STATUS_CODE = HTTPStatus.BAD_REQUEST;
+export const MAX_FILE_SIZE_MB = 10;
+
+/**
+ * Combines array of middleware using OR logic. Only fails if ALL functions fail (either by throwing or calling next(error))
+ *
+ * Each middleware will receive a different req object, no not rely on it to be shared among them
+ *
+ * The failed middleware errors will be available in the `or` field of the response.
+ * However, only APIErrors will show the actual error message, in order to prevent unwanted errors (such as DB's) to leak here
+ *
+ * @param {Function[]} middleware: Array of express middleware to be run
+ * @param {object} Options:
+ *  - error_code: error code in case of error (default: ErrorTypes.VALIDATION_ERROR)
+ *  - msg: the message in case of error (default: ValidationReasons.UNKNOWN)
+ *  - status_code: The status used in the HTTP Response in case of error (default: BAD_REQUEST (400))
+ */
+export const or = (
+    [...middlewares],
+    {
+        error_code = DEFAULT_ERROR_CODE,
+        msg = DEFAULT_ERROR_MSG,
+        status_code = DEFAULT_STATUS_CODE
+    } = {}
+) => async (initialReq, res, next) => {
+    let success = false;
+    const errors = [];
+    for (const middleware of middlewares) {
+        const req = lodash.cloneDeep(initialReq);
+        try {
+            await middleware(req, res, (error) => {
+                if (error) errors.push(hideInsecureError(error).toObject());
+                else success = true;
+            });
+        } catch (error) {
+            console.error(error);
+            errors.push(hideInsecureError(error).toObject());
+        }
+        if (success) return next();
+    }
+
+    return next(new APIError(status_code, error_code, msg, { or: errors }));
+};
+
+/**
+ * Util to allow running conditionally a middleware
+ *
+ *
+ * @param verify: Function that returns a boolean or a boolean itself indicating if the validator should be ran
+ * @param {Function} middleware: Express middleware to be run
+ * @param {object} Options:
+ *  - error_code: error code in case of error (default: ErrorTypes.VALIDATION_ERROR)
+ *  - msg: the message in case of error (default: ValidationReasons.UNKNOWN)
+ *  - status_code: The status used in the HTTP Response in case of error (default: BAD_REQUEST (400))
+ */
+export const when = (
+    verify,
+    middleware,
+    {
+        error_code = DEFAULT_ERROR_CODE,
+        msg = DEFAULT_ERROR_MSG,
+        status_code = DEFAULT_STATUS_CODE
+    } = {}
+) => async (req, res, next) => {
+    if ((typeof verify !== "function" &amp;&amp; verify) ||
+            (typeof verify === "function" &amp;&amp; verify(req))) {
+        try {
+            return await middleware(req, res, next);
+        } catch (error) {
+            console.error(error);
+            if (error instanceof APIError) {
+                return next(error);
+            }
+            return next(new APIError(status_code, error_code, msg, hideInsecureError(error).toObject()));
+        }
+    }
+    return next();
+};
+
+export const storeInLocals = (req, obj) => {
+    if (!req.locals) {
+        req.locals = {};
+    }
+
+    req.locals = {
+        ...req.locals,
+        ...obj,
+    };
+};
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Thu Jul 20 2023 14:15:39 GMT+0100 (Western European Summer Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+<script src="scripts/search.js" defer></script>
+
+
+<script src="scripts/collapse.js" defer></script>
+
+
+</body>
+</html>
