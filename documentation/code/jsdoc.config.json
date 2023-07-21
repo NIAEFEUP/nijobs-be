@@ -12,7 +12,9 @@
     "collapse": true,
     "typedefs": true,
     "removeQuotes": "none",
-    "scripts": [],
+    "scripts": [
+      "documentation/code/template/static"
+    ],
     "menu":{
       "Github repo": {
         "href":"https://github.com/NIAEFEUP/nijobs-be",
@@ -24,7 +26,13 @@
   },
   "templates": {
     "default": {
-      "useLongnameInNav": true
+      "useLongnameInNav": true,
+      "layoutFile": "documentation/code/template/tmpl/layout.tmpl",
+      "staticFiles": {
+        "include": [
+          "documentation/code/template/static"
+        ]
+      }
     }
   }
 }

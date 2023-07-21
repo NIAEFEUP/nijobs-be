@@ -304,8 +304,8 @@ nav ul a:active {
 
 nav a:hover,
 nav a:active {
-  color:hsl(207, 1%, 60%);
-  background: #eee;
+
+  background: hsl(207, 1%, 60%);
 
 }
 
