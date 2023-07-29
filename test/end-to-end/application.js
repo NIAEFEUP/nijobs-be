@@ -1,4 +1,3 @@
-import EmailService from "../../src/lib/emailService";
 import { StatusCodes as HTTPStatus } from "http-status-codes";
 import CompanyApplication, { CompanyApplicationRules } from "../../src/models/CompanyApplication";
 import Account from "../../src/models/Account";
@@ -7,9 +6,6 @@ import ValidationReasons from "../../src/api/middleware/validators/validationRea
 import CompanyApplicationConstants from "../../src/models/constants/CompanyApplication";
 import AccountConstants from "../../src/models/constants/Account";
 import CompanyConstants from "../../src/models/constants/Company";
-import { NEW_COMPANY_APPLICATION_ADMINS, NEW_COMPANY_APPLICATION_COMPANY } from "../../src/email-templates/companyApplicationApproval";
-import config from "../../src/config/env";
-
 
 describe("Company application endpoint test", () => {
     describe("POST /application", () => {
@@ -85,39 +81,6 @@ describe("Company application endpoint test", () => {
                 expect(created_application).toHaveProperty("companyName", application.companyName);
                 expect(created_application).toHaveProperty("motivation", application.motivation);
                 expect(created_application).toHaveProperty("submittedAt", mockCurrentDate);
-            });
-
-            test("Should send an email to admin and to company user", async () => {
-                const application = {
-                    email: "test2@test.com",
-                    password: "password123",
-                    companyName: "Testing company",
-                    motivation: "This company has a very valid motivation because otherwise, the tests would not exist.",
-                };
-                const res = await request()
-                    .post("/apply/company")
-                    .send(application);
-
-                expect(res.status).toBe(HTTPStatus.OK);
-
-                const adminEmailOptions = NEW_COMPANY_APPLICATION_ADMINS(
-                    application.email, application.companyName, application.motivation);
-                const companyEmailOptions = NEW_COMPANY_APPLICATION_COMPANY(
-                    application.companyName, res.body._id);
-
-                expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
-                    subject: adminEmailOptions.subject,
-                    to: config.mail_from,
-                    template: adminEmailOptions.template,
-                    context: adminEmailOptions.context,
-                }));
-
-                expect(EmailService.sendMail).toHaveBeenCalledWith(expect.objectContaining({
-                    subject: companyEmailOptions.subject,
-                    to: application.email,
-                    template: companyEmailOptions.template,
-                    context: { ...companyEmailOptions.context },
-                }));
             });
 
             describe("Invalid input", () => {

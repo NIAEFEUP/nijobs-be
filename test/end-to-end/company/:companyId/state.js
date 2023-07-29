@@ -1,7 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import CompanyApplication from "../../../../src/models/CompanyApplication";
 import Account from "../../../../src/models/Account";
-import * as token from "../../../../src/lib/token.js";
 import Company from "../../../../src/models/Company.js";
 import AccountService from "../../../../src/services/account.js";
 import CompanyApplicationService from "../../../../src/services/application.js";
