@@ -87,7 +87,7 @@ export default (app) => {
                 const account = await (new ApplicationService()).approve(req.params.id);
                 const company = await Company.findOne({ _id: account.company });
                 await (new CompanyService()).releaseOffers(company._id);
-                return res.json({ account });
+                return res.json(account);
             } catch (err) {
                 console.error(err);
                 if (err instanceof CompanyApplicationNotFound) {

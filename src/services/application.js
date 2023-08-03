@@ -183,9 +183,8 @@ class CompanyApplicationService {
                 to: application.email,
                 ...APPROVAL_NOTIFICATION(application.companyName),
             });
-        } catch (e) {
-            console.error("Error while approving company ", e);
-            application.undoApproval();
+        } catch (err) {
+            console.error("Error while approving company ", err);
             throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
         }
         return Account.findOne({ email: application.email });

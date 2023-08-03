@@ -62,6 +62,7 @@ describe("Offer endpoint tests", () => {
     beforeAll(async () => {
         await Company.deleteMany({});
         await CompanyApplication.deleteMany({});
+        await Account.deleteMany({});
         await CompanyApplication.create({
             email: test_user_company.email,
             password: test_user_company.password,
@@ -77,7 +78,7 @@ describe("Offer endpoint tests", () => {
             hasFinishedRegistration: true,
             logo: "http://awebsite.com/alogo.jpg",
         });
-        await Account.deleteMany({});
+
         await Account.create({
             email: test_user_admin.email,
             password: await hash(test_user_admin.password),

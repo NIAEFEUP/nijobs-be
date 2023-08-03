@@ -1,14 +1,16 @@
+
+
 jest.mock("../../src/lib/emailService");
 import EmailService, { EmailService as EmailServiceClass } from "../../src/lib/emailService";
 jest.spyOn(EmailServiceClass.prototype, "verifyConnection").mockImplementation(() => Promise.resolve());
 import { StatusCodes as HTTPStatus } from "http-status-codes";
-import CompanyApplication, { CompanyApplicationRules } from "../../src/models/CompanyApplication";
+import CompanyApplication from "../../src/models/CompanyApplication";
 import hash from "../../src/lib/passwordHashing";
 import Account from "../../src/models/Account";
-import { ErrorTypes } from "../../src/api/middleware/errorHandler";
 import ApplicationStatus from "../../src/models/constants/ApplicationStatus";
 import { APPROVAL_NOTIFICATION, REJECTION_NOTIFICATION } from "../../src/email-templates/companyApplicationApproval";
 import mongoose from "mongoose";
+import AccountService from "../../src/services/account.js";
 
 const { ObjectId } = mongoose.Types;
 
@@ -141,7 +143,7 @@ describe("Company application review endpoint test", () => {
                     expect(wrongFormatQuery.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(wrongFormatQuery.body.errors[0]).toStrictEqual({
                         location: "query",
-                        msg: "must-be-in:[PENDING,APPROVED,REJECTED]",
+                        msg: "must-be-in:[UNVERIFIED,PENDING,APPROVED,REJECTED]",
                         param: "state",
                         value: [`<["${ApplicationStatus.APPROVED}"]`]
                     });
@@ -291,6 +293,12 @@ describe("Company application review endpoint test", () => {
                     beforeEach(async () => {
                         await Account.deleteMany({ email: pendingApplication.email });
                         application = await CompanyApplication.create(pendingApplication);
+                        await (new AccountService()).registerCompany(
+                            pendingApplication.email,
+                            pendingApplication.password,
+                            pendingApplication.companyName
+                        );
+
                     });
 
                     afterEach(async () => {
@@ -298,13 +306,14 @@ describe("Company application review endpoint test", () => {
                     });
 
                     test("Should approve pending application", async () => {
-
                         const res = await test_agent
                             .post(`/applications/company/${application._id}/approve`);
 
                         expect(res.status).toBe(HTTPStatus.OK);
                         expect(res.body.email).toBe(pendingApplication.email);
-                        expect(res.body.companyName).toBe(pendingApplication.companyName);
+                        const approved_application = await CompanyApplication.findById(application._id);
+                        expect(approved_application.state).toBe(ApplicationStatus.APPROVED);
+
                     });
 
                     test("Should send approval email to company email", async () => {
@@ -348,26 +357,12 @@ describe("Company application review endpoint test", () => {
                             .post(`/applications/company/${application._id}/reject`)
                             .send({ rejectReason: "Some reason which is valid" });
 
-
                         const res = await test_agent
                             .post(`/applications/company/${application._id}/approve`);
 
                         expect(res.status).toBe(HTTPStatus.CONFLICT);
                     });
 
-                    test("Should fail if approving application with an existing account with same email, and then rollback", async () => {
-                        await Account.create({ email: application.email, password: "passwordHashedButNotReally", isAdmin: true });
-
-                        const res = await test_agent
-                            .post(`/applications/company/${application._id}/approve`);
-
-                        expect(res.status).toBe(HTTPStatus.CONFLICT);
-                        expect(res.body.error_code).toBe(ErrorTypes.VALIDATION_ERROR);
-                        expect(res.body.errors[0].msg).toBe(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
-
-                        const result_application = await CompanyApplication.findById(application._id);
-                        expect(result_application.state).toBe(ApplicationStatus.PENDING);
-                    });
                 });
 
                 describe("Reject application", () => {
