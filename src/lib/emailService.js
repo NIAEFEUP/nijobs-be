@@ -6,14 +6,16 @@ export class EmailService {
 
     async init({ email: user, password: pass }) {
         this.email = user;
-        const transporter = nodemailer.createTransport({
-            host: 'smtp.ethereal.email',
-            port: 587,
-            secure: false, // true for 465, false for other ports
+        const transporter = await nodemailer.createTransport({
+            pool: true,
+            host: "smtp.gmail.com",
+            port: 465,
+            secure: true,
             auth: {
-                user: "magdalen.labadie@ethereal.email", // generated ethereal user
-                pass: "GjdJdafFyj5svQBzJJ"// generated ethereal password
-            }
+                user,
+                pass
+            },
+            connectionTimeout: 30000
         });
 
         transporter.use("compile", hbs({

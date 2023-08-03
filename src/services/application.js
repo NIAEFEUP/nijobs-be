@@ -38,6 +38,11 @@ export class CompanyApplicationAlreadyValidated extends Error {
         super(msg);
     }
 }
+export class CompanyApplicationUnverified extends Error {
+    constructor(msg) {
+        super(msg);
+    }
+}
 
 class CompanyApplicationService {
 
@@ -184,8 +189,8 @@ class CompanyApplicationService {
                 ...APPROVAL_NOTIFICATION(application.companyName),
             });
         } catch (err) {
-            console.error("Error while approving company ", err);
-            throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+            console.error("Error while approving company ", err.msg);
+            throw err;
         }
         return Account.findOne({ email: application.email });
     }
@@ -204,7 +209,7 @@ class CompanyApplicationService {
             return application.toObject();
         } catch (e) {
             console.error(e);
-            throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+            throw e;
         }
     }
 

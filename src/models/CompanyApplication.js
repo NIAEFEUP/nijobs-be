@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import ApplicationStatus from "./constants/ApplicationStatus.js";
 import CompanyApplicationConstants from "./constants/CompanyApplication.js";
 import { checkDuplicatedEmail } from "../api/middleware/validators/validatorUtils.js";
+import { CompanyApplicationAlreadyReviewed, CompanyApplicationUnverified } from "../services/application.js";
 
 
 const { Schema } = mongoose;
@@ -39,6 +40,9 @@ export const CompanyApplicationRules = Object.freeze({
     },
     APPLICATION_ALREADY_VALIDATED: {
         msg: "application-already-validated",
+    },
+    MUST_BE_VERIFIED: {
+        msg: "application-must-be-verified",
     }
 });
 
@@ -148,16 +152,22 @@ async function validateSingleActiveApplication(value) {
 
 export const isApprovable = (application) => {
 
+    if (application.state === ApplicationStatus.UNVERIFIED)
+        throw new CompanyApplicationUnverified(CompanyApplicationRules.MUST_BE_VERIFIED.msg);
+
     if (application.state !== ApplicationStatus.PENDING)
-        throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+        throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
 
     return true;
 };
 
 export const isRejectable = (application) => {
 
+    if (application.state === ApplicationStatus.UNVERIFIED)
+        throw new CompanyApplicationUnverified(CompanyApplicationRules.MUST_BE_VERIFIED.msg);
+
     if (application.state !== ApplicationStatus.PENDING)
-        throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+        throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
 
     return true;
 };

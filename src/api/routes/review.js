@@ -6,7 +6,7 @@ import * as companyApplicationValidators from "../middleware/validators/applicat
 import ApplicationService, {
     CompanyApplicationAlreadyReviewed,
     CompanyApplicationEmailAlreadyInUse,
-    CompanyApplicationNotFound
+    CompanyApplicationNotFound, CompanyApplicationUnverified
 } from "../../services/application.js";
 
 import { buildErrorResponse, ErrorTypes } from "../middleware/errorHandler.js";
@@ -96,7 +96,8 @@ export default (app) => {
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
                 } else if (
                     err instanceof CompanyApplicationAlreadyReviewed ||
-                    err instanceof CompanyApplicationEmailAlreadyInUse
+                    err instanceof CompanyApplicationEmailAlreadyInUse ||
+                    err instanceof CompanyApplicationUnverified
                 ) {
                     return res
                         .status(HTTPStatus.CONFLICT)
@@ -125,7 +126,10 @@ export default (app) => {
                     return res
                         .status(HTTPStatus.NOT_FOUND)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
-                } else if (err instanceof CompanyApplicationAlreadyReviewed) {
+                } else if (
+                    err instanceof CompanyApplicationAlreadyReviewed ||
+                    err instanceof CompanyApplicationUnverified
+                ) {
                     return res
                         .status(HTTPStatus.CONFLICT)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
