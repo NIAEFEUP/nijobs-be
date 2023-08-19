@@ -22,7 +22,9 @@ module.exports = {
         ],
         Companies: [
             "companies/list",
+            "companies/get",
             "companies/finish-registration",
+            "companies/edit",
             "companies/block",
             "companies/unblock",
             "companies/disable",
