@@ -258,9 +258,9 @@ export default (app) => {
     );
 
     /**
-     * Get the state of a company with its id
+     * Get the application of a company with its id
      */
-    router.get("/:companyId/state",
+    router.get("/:companyId/application",
         or([
             authMiddleware.isAdmin,
             authMiddleware.isGod,
@@ -272,8 +272,8 @@ export default (app) => {
 
             try {
                 const account = await Account.findOne({ "company": req.params.companyId });
-                const application = await CompanyApplication.findOne({ "email": account.email });
-                return res.json(application.state);
+                const application = (await CompanyApplication.findOne({ "email": account.email })).toObject();
+                return res.json(application);
             } catch (err) {
                 console.error(err);
                 return next(err);

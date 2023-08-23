@@ -31,7 +31,7 @@ class AccountService {
 
         await Account.create({
             email,
-            password: await hash(password),
+            password: (password),
             company,
         });
     }
