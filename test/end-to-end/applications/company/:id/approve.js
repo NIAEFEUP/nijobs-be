@@ -10,6 +10,7 @@ import ApplicationStatus from "../../../../../src/models/constants/ApplicationSt
 jest.spyOn(EmailServiceClass.prototype, "verifyConnection").mockImplementation(() => Promise.resolve());
 
 import mongoose from "mongoose";
+import ValidationReasons from "../../../../../src/api/middleware/validators/validationReasons.js";
 
 const { ObjectId } = mongoose.Types;
 
@@ -47,7 +48,7 @@ describe("POST /applications/company/:id/approve", () => {
     });
 
     describe("ID Validation", () => {
-        test("Should fail if trying to approve inexistent application", async () => {
+        test("Should fail if trying to approve not existent application", async () => {
 
             const id = new ObjectId();
 
@@ -74,6 +75,13 @@ describe("POST /applications/company/:id/approve", () => {
             motivation: "This company has a very valid motivation, because otherwise the tests would not exist.",
             submittedAt: new Date("2019-11-25"),
         };
+        const pendingApplication3Data = {
+            email: "pending3@test.com",
+            password: "password123",
+            companyName: "Testing company",
+            motivation: "This company has a very valid motivation, because otherwise the tests would not exist.",
+            submittedAt: new Date("2019-11-25"),
+        };
         const unverifiedApplicationData = {
             email: "unverified@test.com",
             password: "password123",
@@ -83,7 +91,7 @@ describe("POST /applications/company/:id/approve", () => {
             isVerified: false
         };
 
-        let pendingApplication1, pendingApplication2, unverifiedApplication;
+        let pendingApplication1, pendingApplication2, pendingApplication3, unverifiedApplication;
 
         beforeAll(async () => {
             await CompanyApplication.deleteMany({});
@@ -91,11 +99,13 @@ describe("POST /applications/company/:id/approve", () => {
             [
                 pendingApplication1,
                 pendingApplication2,
+                pendingApplication3,
                 unverifiedApplication
 
             ] = await CompanyApplication.create([
                 pendingApplication1Data,
                 pendingApplication2Data,
+                pendingApplication3Data,
                 unverifiedApplicationData
             ]);
 
@@ -109,6 +119,11 @@ describe("POST /applications/company/:id/approve", () => {
                 pendingApplication2Data.email,
                 pendingApplication2Data.password,
                 pendingApplication2Data.companyName
+            );
+            await (new AccountService()).registerCompany(
+                pendingApplication3Data.email,
+                pendingApplication3Data.password,
+                pendingApplication3Data.companyName
             );
         });
 
@@ -152,6 +167,19 @@ describe("POST /applications/company/:id/approve", () => {
             expect(res.body.errors).toContainEqual(CompanyApplicationRules.MUST_BE_VERIFIED);
             const approved_application = await CompanyApplication.findById(unverifiedApplication._id);
             expect(approved_application.state).toBe(ApplicationStatus.UNVERIFIED);
+        });
+        test("if email fails to be sent application should not be approved", async () => {
+            jest.spyOn(EmailServiceClass.prototype, "sendMail").mockImplementation(() => {
+                throw Error();
+            });
+            const res = await test_agent
+                .post(`/applications/company/${pendingApplication3._id}/approve`)
+                .expect(StatusCodes.INTERNAL_SERVER_ERROR);
+
+            jest.spyOn(EmailServiceClass.prototype, "sendMail").mockClear();
+            expect(res.body.errors).toContainEqual({ msg: ValidationReasons.UNKNOWN });
+            const pending_application = await CompanyApplication.findById(pendingApplication3._id);
+            expect(pending_application.state).toBe(ApplicationStatus.PENDING);
         });
     });
 

@@ -183,12 +183,14 @@ class CompanyApplicationService {
         const application = await CompanyApplication.findById(id, {}, options);
         if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_APPROVE.msg);
         try {
-            application.approve();
+            await application.approve();
             await EmailService.sendMail({
                 to: application.email,
                 ...APPROVAL_NOTIFICATION(application.companyName),
             });
         } catch (err) {
+            if (!(err instanceof CompanyApplicationUnverified || err instanceof CompanyApplicationAlreadyReviewed))
+                await application.undoApproval();
             console.error("Error while approving company ", err.msg);
             throw err;
         }
@@ -218,18 +220,6 @@ class CompanyApplicationService {
         return `${config.application_confirmation_link}${token}/validate`;
     }
 
-    async sendConfirmationNotification(email, link) {
-        try {
-            await EmailService.sendMail({
-                to: email,
-                ...APPLICATION_CONFIRMATION(link),
-            });
-        } catch (err) {
-            console.error(err);
-            throw err;
-        }
-    }
-
     async applicationValidation(id) {
         const application = await this.findById(id);
 
@@ -253,11 +243,8 @@ class CompanyApplicationService {
             await (new AccountService()).registerCompany(application.email, application.password, application.companyName);
         } catch (err) {
             console.error("Error creating account for validated Company Application", err);
-            if (err.name === "MongoServerError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.msg)) {
-                throw new CompanyApplicationEmailAlreadyInUse(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
-            } else {
-                throw err;
-            }
+            throw err;
+
         }
     }
 

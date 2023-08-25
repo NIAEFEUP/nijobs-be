@@ -5,7 +5,6 @@ import * as authMiddleware from "../middleware/auth.js";
 import * as companyApplicationValidators from "../middleware/validators/application.js";
 import ApplicationService, {
     CompanyApplicationAlreadyReviewed,
-    CompanyApplicationEmailAlreadyInUse,
     CompanyApplicationNotFound, CompanyApplicationUnverified
 } from "../../services/application.js";
 
@@ -96,7 +95,6 @@ export default (app) => {
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
                 } else if (
                     err instanceof CompanyApplicationAlreadyReviewed ||
-                    err instanceof CompanyApplicationEmailAlreadyInUse ||
                     err instanceof CompanyApplicationUnverified
                 ) {
                     return res
