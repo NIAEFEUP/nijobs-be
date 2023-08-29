@@ -66,7 +66,7 @@ Filters the applications by the name of the respective companies.
 Array of strings which filters the application by their state.
 
 :::caution
-Must be a valid state (currently `["PENDING", "APPROVED", "REJECTED"]`).
+Must be a valid state (currently `["UNVERIFIED", "PENDING", "APPROVED", "REJECTED"]`).
 :::
 
 ### submissionDateFrom
@@ -153,6 +153,7 @@ values={[
       "companyName": "Company name",
       "motivation": "We wish to revolutionize the industry with young engineers.",
       "submittedAt": "2022-09-08T16:31:11.784Z",
+      "isVerified": true,
       "__v": 0,
       "state": "PENDING"
     },
@@ -162,6 +163,7 @@ values={[
       "companyName": "Example Company",
       "motivation": "We are a brand new tech company in Porto, Portugal",
       "submittedAt": "2022-09-07T13:15:15.971Z",
+      "isVerified": true,
       "__v": 0,
       "approvedAt": "2022-09-07T13:17:30.908Z",
       "state": "APPROVED"
@@ -172,13 +174,24 @@ values={[
       "companyName": "Bad Company",
       "motivation": "We want to exploit workers.",
       "submittedAt": "2022-09-07T13:15:15.971Z",
+      "isVerified": true,
       "__v": 0,
       "rejectedAt": "2022-09-07T13:17:30.908Z",
       "rejectReason": "Motivation doesn't seem right",
       "state": "REJECTED"
+    },
+    {
+      "_id": "63189963541e53a45a423dce",
+      "email": "notVerified@company.com",
+      "companyName": "Unverified",
+      "motivation": "We are a new company in Lisbon",
+      "submittedAt": "2022-09-07T13:15:15.971Z",
+      "isVerified": false,
+      "__v": 0,
+      "state": "PENDING"
     }
   ],
-  "docCount": 3
+  "docCount": 4
 }
 ```
 

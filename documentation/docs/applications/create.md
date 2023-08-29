@@ -13,7 +13,7 @@ import Highlight from "../../src/highlight.js"
 ## Details
 
 This endpoint is used to create company applications.
-In order of a Company to use its account, the application must be accepted by an Admin and then the Company should
+In order of a Company to use its account, the company must verify its application by clicking in a link sent by email after the creation of the application and then the Company should
 finish its registration.
 
 **URL** : `/apply/company`
@@ -249,7 +249,48 @@ values={[
 </TabItem>
 </Tabs>
 
-### Example 5 - Invalid Password
+### Example 5 - Application with the same email created recently
+
+**Code** : <Highlight level="danger" inline>403 FORBIDDEN</Highlight>
+
+<Tabs
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
+>
+
+<TabItem value="request">
+
+```json
+{
+  "email": "company@company.com",
+  "password": "password123",
+  "companyName": "Company",
+  "motivation": "We wish to revolutionize the industry with young engineers."
+}
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+  "error_code": 1,
+  "errors": [
+    {
+      "msg": "company-application-recently-created",
+    }
+  ]
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example 6 - Invalid Password
 
 **Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 

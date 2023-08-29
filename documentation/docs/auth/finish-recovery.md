@@ -66,7 +66,7 @@ values={[
 
 ### Example 2 - Invalid Token
 
-**Code** : <Highlight level="danger" inline>403 FORBIDDEN</Highlight>
+**Code** : <Highlight level="danger" inline>404 NOT_FOUND</Highlight>
 
 <Tabs
 defaultValue="request"
@@ -100,7 +100,42 @@ values={[
 </TabItem>
 </Tabs>
 
-### Example 3 - Password Without Numbers
+
+**Code** : <Highlight level="danger" inline>410 GONE</Highlight>
+
+<Tabs
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
+>
+
+<TabItem value="request">
+
+```bash
+/auth/recover/expired/confirm
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+  "error_code": 3,
+  "errors": [
+    {
+      "msg": "expired-token"
+    }
+  ]
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example 4 - Password Without Numbers
 
 **Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
