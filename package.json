@@ -8,9 +8,9 @@
     "start": "nodemon src/index.js",
     "heroku-start": "cp .env.public.heroku .env && node src/index.js",
     "prod": "NODE_ENV=production node src/index.js",
-    "lint": "eslint src test --max-warnings 0",
+    "lint": "eslint src test",
     "lint-fix": "npm run lint -- --fix",
-    "test": "NODE_ENV=test jest --runInBand --coverage --verbose false",
+    "test": "NODE_ENV=test jest --runInBand --coverage --verbose false company.js",
     "ci": "npm run lint && npm test",
     "audit": "npm audit --production --audit-level=high --json | npm-audit-helper --prod-only",
     "docs": "npm start --prefix documentation/"

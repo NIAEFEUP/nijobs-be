@@ -12,7 +12,6 @@ import ValidationReasons from "../middleware/validators/validationReasons.js";
 import { concurrentOffersNotExceeded } from "../middleware/validators/validatorUtils.js";
 
 import { or } from "../middleware/utils.js";
-import Company from "../../models/constants/Company.js";
 import * as fileMiddleware from "../middleware/files.js";
 import OfferService from "../../services/offer.js";
 import AccountService from "../../services/account.js";
@@ -32,13 +31,12 @@ export default (app) => {
         authMiddleware.authRequired,
         authMiddleware.isCompany,
         companyMiddleware.profileNotComplete,
-        fileMiddleware.parseSingleFile("logo"),
+        fileMiddleware.parseFiles("logo", "images"),
+        validators.finish,
         fileMiddleware.localSave,
         fileMiddleware.cloudSave,
-        fileMiddleware.parseArrayOfFiles("images", Company.images.max_length, true),
         fileMiddleware.localSaveArray,
         fileMiddleware.cloudSaveArray,
-        validators.finish,
         async (req, res, next) => {
 
             try {
@@ -242,7 +240,7 @@ export default (app) => {
             authMiddleware.isGod
         ], { status_code: HTTPStatus.UNAUTHORIZED, error_code: ErrorTypes.FORBIDDEN, msg: ValidationReasons.INSUFFICIENT_PERMISSIONS }),
         validators.edit,
-        fileMiddleware.parseSingleFile("logo", false),
+        fileMiddleware.parseFiles("logo", "images"),
         fileMiddleware.localSave,
         fileMiddleware.cloudSave,
         (req, res, next) => companyMiddleware.canManageAccountSettings(req.params.companyId)(req, res, next),
