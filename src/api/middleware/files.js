@@ -19,7 +19,7 @@ export const parseFiles = (field_name_file, field_name_array) => (req, res, next
     ]);
     upload(req, res, (error) => {
         if (error) {
-            let param = error.field ? error.field : param;
+            let param = field_name_file;
 
             if (error.code === "LIMIT_FILE_COUNT") {
                 error.message = ValidationReasons.ARRAY_SIZE(0, 5);
@@ -207,7 +207,7 @@ export const parseArrayOfFiles = (field_name, max_count, required = true) => (re
 
 export const localSaveArray = async (req, res, next) => {
     let sequenceNumber = 0;
-    console.log("local save array");
+    console.log("here are the files", req.files);
     for (const file of req.files) {
         const buffer = file.buffer;
         const extension = file.mimetype.substr(file.mimetype.indexOf("/") + 1);
