@@ -188,7 +188,7 @@ values={[
       "submittedAt": "2022-09-07T13:15:15.971Z",
       "isVerified": false,
       "__v": 0,
-      "state": "PENDING"
+      "state": "UNVERIFIED"
     }
   ],
   "docCount": 4

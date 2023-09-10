@@ -77,7 +77,7 @@ values={[
 
 ### Example 2 - Insufficient permission
 
-**Code** : <Highlight level="success" inline>401 UNAUTHORIZED</Highlight>
+**Code** : <Highlight level="danger" inline>401 UNAUTHORIZED</Highlight>
 
 <Tabs
 defaultValue="request"
@@ -113,7 +113,7 @@ values={[
 
 ### Example 3 - Invalid ID
 
-**Code** : <Highlight level="success" inline>422 UNPROCESSABLE ENTITY</Highlight>
+**Code** : <Highlight level="danger" inline>422 UNPROCESSABLE ENTITY</Highlight>
 
 <Tabs
 defaultValue="request"
