@@ -1,4 +1,5 @@
 import { hasAdminPrivileges } from "../../src/api/middleware/auth";
+import { AccountTypes } from "../../src/models/Account";
 import withGodToken from "../utils/GodToken";
 
 describe("Auth middleware tests", () => {
@@ -8,7 +9,7 @@ describe("Auth middleware tests", () => {
         const test_user_admin = {
             email: "admin@email.com",
             password: "password123",
-            isAdmin: true,
+            type: AccountTypes.ADMIN
         };
 
         const test_user = {
