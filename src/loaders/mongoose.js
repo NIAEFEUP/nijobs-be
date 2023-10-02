@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import config from "../config/env.js";
-import Account from "../models/Account.js";
+import Account, { AccountTypes } from "../models/Account.js";
 import hash from "../lib/passwordHashing.js";
 
 export default async () => {
@@ -40,11 +40,11 @@ const createDefaultAdmin = async () => {
         return;
     }
 
-    await Account.create({
+    await Account.create([{
         email: config.admin_email,
         password: await hash(config.admin_password),
-        isAdmin: true,
-    });
+        type: AccountTypes.ADMIN
+    }]);
 
     console.info("Created default admin!");
 };
