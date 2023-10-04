@@ -11,6 +11,7 @@ import ValidationReasons from "../middleware/validators/validationReasons.js";
 import { or, when } from "../middleware/utils.js";
 import OfferConstants from "../../models/constants/Offer.js";
 import * as companyValidators from "../middleware/validators/company.js";
+import { isPast } from "../middleware/offer.js";
 
 const router = Router();
 
@@ -82,6 +83,7 @@ export default (app) => {
      */
     router.post("/new",
         validators.setDefaultValuesCreate,
+        (offerMiddleware.isPast),
         or([
             authMiddleware.isCompany,
             authMiddleware.isAdmin,
@@ -98,7 +100,6 @@ export default (app) => {
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
-
                 const params = {
                     ...req.body,
                     owner: req.targetOwner
@@ -115,6 +116,7 @@ export default (app) => {
 
     router.post(
         "/edit/:offerId",
+        isPast,
         or([
             authMiddleware.isCompany,
             authMiddleware.isAdmin,

@@ -24,3 +24,9 @@ export const setTargetOwner = (req, res, next) => {
 
     return next();
 };
+export const isPast = (req, res, next) => {
+    if (new Date(req.body.publishDate).getTime() < Date.now()) {
+        req.body.publishDate = new Date(Date.now()).toISOString();
+    }
+    return next();
+};
