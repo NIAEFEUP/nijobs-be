@@ -34,7 +34,7 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 // This one depends on where your file is located
-import Highlight from "../../src/highlight.js"
+import Highlight from "./highlight.js"
 ```
 
 Each file should only contain documentation for a specific endpoint, and it should contain, at least, the following sections:

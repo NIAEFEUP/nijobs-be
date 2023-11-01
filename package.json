@@ -13,7 +13,8 @@
     "test": "NODE_ENV=test jest --runInBand --coverage --verbose false",
     "ci": "npm run lint && npm test",
     "audit": "npm audit --production --audit-level=high --json | npm-audit-helper --prod-only",
-    "docs": "npm start --prefix documentation/"
+    "docs": "npm start --prefix documentation/api",
+    "generate-docs": "jsdoc --configure documentation/code/jsdoc.json --verbose"
   },
   "repository": {
     "type": "git",
@@ -26,8 +27,12 @@
     "@types/jest": "^29.2.4",
     "babel-jest": "^29.3.1",
     "babel-plugin-transform-import-meta": "^2.2.0",
+    "clean-jsdoc-theme": "^4.2.14",
+    "docdash": "^2.0.1",
     "eslint": "^8.29.0",
     "jest": "^29.3.1",
+    "jsdoc": "^4.0.2",
+    "jsdoc-to-markdown": "^8.0.0",
     "nodemon": "^2.0.20",
     "npm-audit-helper": "^3.1.1",
     "supertest": "^6.3.3"
