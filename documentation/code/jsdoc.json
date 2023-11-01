@@ -1,0 +1,24 @@
+{
+  "source": {
+    "include": [ "src","package.json", "README.md"],
+    "includePattern": ".js$",
+    "excludePattern": "(node_modules/|docs)"
+  },
+  "plugins": ["plugins/markdown"],
+  "opts": {
+    "readme": "./README.md",
+    "destination": "documentation/code/docs/",
+    "recurse": true,
+    "verbose": true,
+    "default_theme": "light",
+    "template": "./node_modules/clean-jsdoc-theme",
+    "theme_opts": {
+      "default_theme": "light"
+    },
+    "homepageTitle": "NIJobs Documentation"
+  },
+  "markdown": {
+    "hardwrap": false,
+    "idInHeadings": true
+  }
+}
