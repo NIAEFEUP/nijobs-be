@@ -32,5 +32,9 @@ export default Object.freeze({
         "jobType",
         "ownerName",
         "location",
-    ]
+    ],
+    locations: {
+        min_length: 1,
+        max_length: 20,
+    }
 });
