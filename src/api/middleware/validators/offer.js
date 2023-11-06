@@ -161,8 +161,9 @@ export const create = useExpressValidators([
 
     body("location", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
-        .isString().withMessage(ValidationReasons.STRING)
-        .trim(),
+        .customSanitizer(ensureArray)
+        .isArray({ min: OfferConstants.locations.min_length, max: OfferConstants.locations.max_length })
+        .withMessage(ValidationReasons.ARRAY_SIZE(OfferConstants.locations.min_length, OfferConstants.locations.max_length)),
 
     // TODO: Figure out how to handle this field
     // We should probably only receive the array part and inject the type that PointSchema requires in a custom sanitizer
@@ -409,9 +410,11 @@ export const edit = useExpressValidators([
         .custom(checkBooleanField).withMessage(ValidationReasons.BOOLEAN),
 
     body("location", ValidationReasons.DEFAULT)
-        .optional()
-        .isString().withMessage(ValidationReasons.STRING)
-        .trim(),
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .customSanitizer(ensureArray)
+        .isArray({ min: OfferConstants.locations.min_length, max: OfferConstants.locations.max_length })
+        .withMessage(ValidationReasons.ARRAY_SIZE(OfferConstants.locations.min_length, OfferConstants.locations.max_length)),
+
     body("requirements", ValidationReasons.DEFAULT)
         .optional()
         .isArray({ min: OfferConstants.requirements.min_length })
