@@ -19,7 +19,7 @@ import {
 } from "../../src/models/constants/TimeConstants";
 import OfferService from "../../src/services/offer";
 import EmailService from "../../src/lib/emailService";
-import { concurrentOffersNotExceeded } from "../../src/api/middleware/validators/validatorUtils";
+import { concurrentOffersNotExceeded, ensureArray } from "../../src/api/middleware/validators/validatorUtils";
 import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
 import base64url from "base64url";
 
@@ -36,7 +36,7 @@ describe("Offer endpoint tests", () => {
         jobType: "SUMMER INTERNSHIP",
         fields: ["DEVOPS", "BACKEND", "OTHER"],
         technologies: ["React", "CSS"],
-        location: "Testing Street, Test City, 123",
+        location: ["Porto"],
         isHidden: false,
         isArchived: false,
         requirements: ["The candidate must be tested", "Fluent in testJS"],
@@ -124,7 +124,7 @@ describe("Offer endpoint tests", () => {
                     expect(res.status).toBe(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("title", offer.title);
                     expect(res.body).toHaveProperty("description", offer.description);
-                    expect(res.body).toHaveProperty("location", offer.location);
+                    expect(res.body).toHaveProperty("location", ensureArray(offer.location));
                 });
 
                 test("should create offer if logged in to company account", async () => {
@@ -143,7 +143,7 @@ describe("Offer endpoint tests", () => {
                     expect(res.status).toBe(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("title", offer.title);
                     expect(res.body).toHaveProperty("description", offer.description);
-                    expect(res.body).toHaveProperty("location", offer.location);
+                    expect(res.body).toHaveProperty("location", ensureArray(offer.location));
                     expect(res.body).toHaveProperty("owner", test_company._id.toString());
                     expect(res.body).toHaveProperty("ownerName", test_company.name);
                     expect(res.body).toHaveProperty("ownerLogo", test_company.logo);
@@ -202,7 +202,7 @@ describe("Offer endpoint tests", () => {
                     expect(res.status).toBe(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("title", offer.title);
                     expect(res.body).toHaveProperty("description", offer.description);
-                    expect(res.body).toHaveProperty("location", offer.location);
+                    expect(res.body).toHaveProperty("location", ensureArray(offer.location));
                 });
             });
         });
@@ -303,7 +303,7 @@ describe("Offer endpoint tests", () => {
             describe("location", () => {
                 const FieldValidatorTester = BodyValidatorTester("location");
                 FieldValidatorTester.isRequired();
-                FieldValidatorTester.mustBeString();
+                FieldValidatorTester.mustBeArrayBetween(OfferConstants.locations.min_length, OfferConstants.locations.max_length);
             });
 
             describe("requirements", () => {
@@ -377,7 +377,7 @@ describe("Offer endpoint tests", () => {
                 // However, no matter what I tried, I couldn't get it to work :upside_down_face:
                 expect(created_offer).toHaveProperty("title", offer.title);
                 expect(created_offer).toHaveProperty("description", offer.description);
-                expect(created_offer).toHaveProperty("location", offer.location);
+                expect(created_offer).toHaveProperty("location", ensureArray(offer.location));
                 expect(created_offer).toHaveProperty("ownerName", test_company.name);
                 expect(created_offer).toHaveProperty("ownerLogo", test_company.logo);
             });
@@ -485,7 +485,7 @@ describe("Offer endpoint tests", () => {
                 expect(res.status).toBe(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("title", offer_params.title);
                 expect(res.body).toHaveProperty("description", offer_params.description);
-                expect(res.body).toHaveProperty("location", offer_params.location);
+                expect(res.body).toHaveProperty("location", ensureArray(offer_params.location));
                 expect(res.body).toHaveProperty("ownerName", test_company.name);
                 expect(res.body).toHaveProperty("ownerLogo", test_company.logo);
             });
@@ -657,7 +657,7 @@ describe("Offer endpoint tests", () => {
                     owner: test_company._id,
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
-                    location: "Testing Street, Test City, 123",
+                    location: ["Porto", "Lisboa", "NI"],
                     requirements: ["The candidate must be tested", "Fluent in testJS"],
                 };
 
@@ -673,7 +673,7 @@ describe("Offer endpoint tests", () => {
                 expect(created_offer).toBeDefined();
                 expect(created_offer).toHaveProperty("title", offer.title);
                 expect(created_offer).toHaveProperty("description", offer.description);
-                expect(created_offer).toHaveProperty("location", offer.location);
+                expect(created_offer).toHaveProperty("location", ensureArray(offer.location));
                 expect(created_offer).toHaveProperty("publishDate");
                 expect(created_offer).toHaveProperty("ownerName", test_company.name);
                 expect(created_offer).toHaveProperty("ownerLogo", test_company.logo);
@@ -1850,7 +1850,7 @@ describe("Offer endpoint tests", () => {
                     portoFrontend = {
                         ...test_offer,
                         title: "This offer is from Porto",
-                        location: "Porto",
+                        location: ["Porto"],
                         jobType: "FULL-TIME",
                         fields: ["FRONTEND", "OTHER"],
                         jobMinDuration: 3,
@@ -1858,19 +1858,19 @@ describe("Offer endpoint tests", () => {
                     };
                     portoBackend = {
                         ...test_offer,
-                        location: "Porto",
+                        location: ["Porto"],
                         fields: ["BACKEND", "OTHER"],
                         jobMinDuration: 2,
                         jobMaxDuration: 4
                     };
                     lisboaBackend = {
                         ...test_offer,
-                        location: "Lisboa",
+                        location: ["Lisboa"],
                         fields: ["BACKEND", "DEVOPS"]
                     };
                     niaefeupOffer = {
                         ...test_offer,
-                        location: "FEUP",
+                        location: ["FEUP"],
                         fields: ["BLOCKCHAIN", "OTHER"],
                         ownerName: "NIAEFEUP"
                     };
@@ -2184,7 +2184,7 @@ describe("Offer endpoint tests", () => {
                             const worstScore = {
                                 ...test_offer,
                                 title: "This offer is from Braga",
-                                location: "Porto",
+                                location: ["Porto"],
                                 "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
                                 "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
                             };
@@ -2694,7 +2694,7 @@ describe("Offer endpoint tests", () => {
                         publishEndDate: "2019-11-29T00:00:00.000Z",
                         description: "Ability to have an incredible job",
                         jobType: "OTHER",
-                        location: "Aveiro",
+                        location: ["Aveiro"],
                         vacancies: 1,
                         ownerName: "Awesome Company",
                     });
@@ -2902,7 +2902,7 @@ describe("Offer endpoint tests", () => {
                             publishEndDate: "2019-11-29T00:00:00.000Z",
                             description: "Ability to have an incredible job",
                             jobType: "OTHER",
-                            location: "Aveiro",
+                            location: ["Aveiro"],
                             ownerName: "Awesome Company",
                             vacancies: 3,
                         });
@@ -3780,7 +3780,7 @@ describe("Offer endpoint tests", () => {
 
                     describe("location", () => {
                         const FieldValidatorTester = BodyValidatorTester("location");
-                        FieldValidatorTester.mustBeString();
+                        FieldValidatorTester.mustBeArrayBetween(OfferConstants.locations.min_length, OfferConstants.locations.max_length);
                     });
 
                     describe("isHidden", () => {
@@ -3910,7 +3910,7 @@ describe("Offer endpoint tests", () => {
                         "title": "This is a new title",
                         "description": "This is a new description",
                         "jobMinDuration": valid_test_offer_1.jobMinDuration - 1,
-                        "location": "Porto",
+                        "location": ["Porto"],
                         "technologies": ["CSS"]
                     };
                     const res = await test_agent.post(`/offers/edit/${valid_test_offer_2._id}`)
