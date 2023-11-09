@@ -3,6 +3,7 @@ import JobTypes from "../src/models/constants/JobTypes";
 import { MIN_FIELDS, MAX_FIELDS, FieldTypes } from "../src/models/constants/FieldTypes";
 import { MIN_TECHNOLOGIES, MAX_TECHNOLOGIES, TechnologyTypes } from "../src/models/constants/TechnologyTypes";
 import { OFFER_MAX_LIFETIME_MONTHS } from "../src/models/constants/TimeConstants";
+import OfferConstants from "../src/models/constants/Offer";
 
 describe("# Offer Schema tests", () => {
     describe("Required and bound (between min and max elements) properties tests", () => {
@@ -111,9 +112,13 @@ describe("# Offer Schema tests", () => {
                 try {
                     await offer.validate();
                 } catch (err) {
+                    console.info(err.errors.location);
                     expect(err.errors.location).toBeDefined();
-                    expect(err.errors.location).toHaveProperty("kind", "required");
-                    expect(err.errors.location).toHaveProperty("message", "Path `location` is required.");
+                    expect(err.errors.location).toHaveProperty("kind", "user defined");
+                    expect(err.errors.location).toHaveProperty(
+                        "message",
+                        `There must be between ${OfferConstants.locations.min_length} and ${OfferConstants.locations.max_length} locations`
+                    );
                 }
             });
 

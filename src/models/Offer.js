@@ -106,8 +106,10 @@ const OfferSchema = new Schema({
     location: {
         type: [String],
         required: true,
-        minlength: OfferConstants.locations.min_length,
-        maxlength: OfferConstants.locations.max_length,
+        validate: [
+            (val) => val.length >= OfferConstants.locations.min_length && val.length <= OfferConstants.locations.max_length,
+            `There must be between ${OfferConstants.locations.min_length} and ${OfferConstants.locations.max_length} locations`,
+        ],
     },
     coordinates: { type: PointSchema, required: false },
     applyURL: { type: String, validate: (val) => validApplyURL(val) },

@@ -162,8 +162,7 @@ export const create = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .customSanitizer(ensureArray)
         .isArray({ min: OfferConstants.locations.min_length, max: OfferConstants.locations.max_length })
-        .withMessage(ValidationReasons.ARRAY_SIZE(OfferConstants.locations.min_length, OfferConstants.locations.max_length))
-        .bail(),
+        .withMessage(ValidationReasons.ARRAY_SIZE(OfferConstants.locations.min_length, OfferConstants.locations.max_length)),
 
     // TODO: Figure out how to handle this field
     // We should probably only receive the array part and inject the type that PointSchema requires in a custom sanitizer
