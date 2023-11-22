@@ -114,7 +114,7 @@ export default (app) => {
         });
 
     router.post(
-        "/edit/:offerId",
+        "/:offerId/edit",
         or([
             authMiddleware.isCompany,
             authMiddleware.isAdmin,
