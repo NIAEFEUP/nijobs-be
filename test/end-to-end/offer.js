@@ -3361,7 +3361,7 @@ describe("Offer endpoint tests", () => {
         });
     });
 
-    describe("POST /offers/edit/:offerId", () => {
+    describe("POST /offers/:offerId/edit", () => {
         let createOffer,
             future_test_offer,
             valid_test_offer_1,
@@ -3423,7 +3423,7 @@ describe("Offer endpoint tests", () => {
 
         test("should fail not logged in", async () => {
             const res = await test_agent
-                .post(`/offers/edit/${future_test_offer._id}`)
+                .post(`/offers/${future_test_offer._id}/edit`)
                 .expect(HTTPStatus.UNAUTHORIZED);
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
@@ -3434,7 +3434,7 @@ describe("Offer endpoint tests", () => {
         describe("testing validations with god token", () => {
             test("should fail with invalid id", async () => {
                 const res = await test_agent
-                    .post("/offers/edit/not-a-valid-id")
+                    .post("/offers/not-a-valid-id/edit")
                     .send(withGodToken())
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                 expect(res.body.errors[0]).toHaveProperty("param", "offerId");
@@ -3444,7 +3444,7 @@ describe("Offer endpoint tests", () => {
             test("should fail if offer does not exist", async () => {
                 const _id = "111111111111111111111111";
                 const res = await test_agent
-                    .post(`/offers/edit/${_id}`)
+                    .post(`/offers/${_id}/edit`)
                     .send(withGodToken())
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                 expect(res.body.errors[0]).toHaveProperty("param", "offerId");
@@ -3454,7 +3454,7 @@ describe("Offer endpoint tests", () => {
 
             test("should allow editing offer in the future", async () => {
                 await test_agent
-                    .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                    .post(`/offers/${future_test_offer._id.toString()}/edit`)
                     .send(withGodToken())
                     .expect(HTTPStatus.OK);
             });
@@ -3462,7 +3462,7 @@ describe("Offer endpoint tests", () => {
             describe("testing edit dates in the past", () => {
                 test("should fail if publishDate in the past", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ "publishDate": "2019-02-01" }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body.errors[0]).toHaveProperty("param", "publishDate");
@@ -3471,7 +3471,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should fail if publishEndDate in the past", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ "publishEndDate": "2019-02-01" }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
@@ -3482,7 +3482,7 @@ describe("Offer endpoint tests", () => {
             describe("testing publish dates editing", () => {
                 test("should fail if publishDate after offer publishEndDate", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({
                             "publishDate":
                                 (new Date(new Date(future_test_offer.publishEndDate).getTime() + DAY_TO_MS))
@@ -3495,7 +3495,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should fail if publishEndDate before offer publishDate", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({
                             "publishEndDate":
                                 (new Date(new Date(future_test_offer.publishDate).getTime() - DAY_TO_MS))
@@ -3508,7 +3508,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should fail to edit if publishEndDate is after publishDate more than the time limit", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({
                             "publishEndDate":
                                 (new Date(
@@ -3529,7 +3529,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should fail if sending invalid date combination in request", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({
                             "publishEndDate": new Date(Date.now() + DAY_TO_MS).toISOString(),
                             "publishDate": new Date(Date.now() + (2 * DAY_TO_MS)).toISOString(),
@@ -3542,7 +3542,7 @@ describe("Offer endpoint tests", () => {
                 test("should edit if is after offer's publishEndDate", async () => {
                     const newDate = (new Date(new Date(future_test_offer.publishEndDate).getTime() - DAY_TO_MS));
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ "publishDate": newDate.toISOString() }))
                         .expect(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("publishDate", newDate.toISOString());
@@ -3552,7 +3552,7 @@ describe("Offer endpoint tests", () => {
                     const newPublishDate = (new Date(new Date(future_test_offer.publishEndDate).getTime() + DAY_TO_MS));
                     const newPublishEndDate = (new Date(new Date(future_test_offer.publishEndDate).getTime() + (2 * DAY_TO_MS)));
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({
                             "publishDate": newPublishDate.toISOString(),
                             "publishEndDate": newPublishEndDate.toISOString()
@@ -3566,7 +3566,7 @@ describe("Offer endpoint tests", () => {
             describe("applyURL validation", () => {
                 test("should fail if applyURL is neither a URL or an email", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ "applyURL": "this_is_not_valid" }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
@@ -3575,7 +3575,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should fail if applyURL is a URL with an unsupported protocol", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ "applyURL": "ftp://www.coolwebsite.com" }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body.errors[0]).toHaveProperty("param", "applyURL");
@@ -3585,7 +3585,7 @@ describe("Offer endpoint tests", () => {
                 test("should edit if applyURL is a valid email", async () => {
                     const applyURL = "mailto:nicemail@gmail.com";
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ applyURL }))
                         .expect(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("applyURL", applyURL);
@@ -3594,7 +3594,7 @@ describe("Offer endpoint tests", () => {
                 test("should edit if applyURL is a valid HTTP URL", async () => {
                     const applyURL = "http://www.coolwebsite.com";
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ applyURL }))
                         .expect(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("applyURL", applyURL);
@@ -3603,7 +3603,7 @@ describe("Offer endpoint tests", () => {
                 test("should edit if applyURL is a valid HTTPS URL", async () => {
                     const applyURL = "https://www.coolwebsite.com";
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ applyURL }))
                         .expect(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("applyURL", applyURL);
@@ -3612,7 +3612,7 @@ describe("Offer endpoint tests", () => {
                 test("Should edit if applyURL is specified as null", async () => {
                     const applyURL = null;
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ applyURL }))
                         .expect(HTTPStatus.OK);
                     expect(res.body).toHaveProperty("applyURL", applyURL);
@@ -3627,7 +3627,7 @@ describe("Offer endpoint tests", () => {
                         .send(test_user_company)
                         .expect(HTTPStatus.OK);
                     const res = await test_agent
-                        .post(`/offers/edit/${disabled_test_offer._id}`)
+                        .post(`/offers/${disabled_test_offer._id}/edit`)
                         .expect(HTTPStatus.FORBIDDEN);
                     expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                     expect(res.body).toHaveProperty("errors");
@@ -3636,7 +3636,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should fail if minDuration bigger than offer's maxDuration", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ "jobMinDuration": future_test_offer.jobMaxDuration + 1 }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body.errors[0]).toHaveProperty("param", "jobMinDuration");
@@ -3644,7 +3644,7 @@ describe("Offer endpoint tests", () => {
                 });
                 test("should fail if maxDuration smaller than offer's minDuration", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ "jobMaxDuration": future_test_offer.jobMinDuration - 1 }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
@@ -3652,7 +3652,7 @@ describe("Offer endpoint tests", () => {
                 });
                 test("should fail if invalid combination of jobDuration in request", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({
                             "jobMaxDuration": 11,
                             "jobMinDuration": 12
@@ -3664,7 +3664,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should fail if requirements is empty array", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ "requirements": [] }))
                         .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                     expect(res.body.errors[0]).toHaveProperty("param", "requirements");
@@ -3673,35 +3673,35 @@ describe("Offer endpoint tests", () => {
 
                 test("should edit if valid requirements", async () => {
                     await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ "requirements": future_test_offer.requirements }))
                         .expect(HTTPStatus.OK);
                 });
 
                 test("Should edit if jobStartDate is specified as null", async () => {
                     await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ jobStartDate: null }))
                         .expect(HTTPStatus.OK);
                 });
 
                 test("Should edit if isPaid is specified as null", async () => {
                     await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ isPaid: null }))
                         .expect(HTTPStatus.OK);
                 });
 
                 test("Should edit if vacancies is specified as null", async () => {
                     await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ vacancies: null }))
                         .expect(HTTPStatus.OK);
                 });
 
                 test("Should edit if coordinates is specified as null", async () => {
                     await test_agent
-                        .post(`/offers/edit/${future_test_offer._id.toString()}`)
+                        .post(`/offers/${future_test_offer._id.toString()}/edit`)
                         .send(withGodToken({ coordinates: null }))
                         .expect(HTTPStatus.OK);
                 });
@@ -3723,7 +3723,7 @@ describe("Offer endpoint tests", () => {
                     });
 
                     const EndpointValidatorTester = ValidatorTester(
-                        (params) => request().post(`/offers/edit/${offer._id}`).send(withGodToken(params)));
+                        (params) => request().post(`/offers/${offer._id}/edit`).send(withGodToken(params)));
                     const BodyValidatorTester = EndpointValidatorTester("body");
 
                     describe("title", () => {
@@ -3799,7 +3799,7 @@ describe("Offer endpoint tests", () => {
             });
 
             test("should edit as an admin", async () => {
-                await test_agent.post(`/offers/edit/${future_test_offer._id}`)
+                await test_agent.post(`/offers/${future_test_offer._id}/edit`)
                     .expect(HTTPStatus.OK);
             });
         });
@@ -3835,7 +3835,7 @@ describe("Offer endpoint tests", () => {
                 };
 
                 const res = await request()
-                    .post(`/offers/edit/${offer._id}`)
+                    .post(`/offers/${offer._id}/edit`)
                     .send(withGodToken(edits));
 
                 expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
@@ -3877,7 +3877,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should fail if the company is not the owner", async () => {
                     const res = await test_agent
-                        .post(`/offers/edit/${future_test_offer._id}`)
+                        .post(`/offers/${future_test_offer._id}/edit`)
                         .expect(HTTPStatus.FORBIDDEN);
                     expect(res.body).toHaveProperty("or");
                     expect(res.body.or[0]).toHaveProperty("errors");
@@ -3896,7 +3896,7 @@ describe("Offer endpoint tests", () => {
 
                 test("should edit title", async () => {
                     const edits = { "title": "This is a new title" };
-                    const res = await test_agent.post(`/offers/edit/${valid_test_offer_1._id}`)
+                    const res = await test_agent.post(`/offers/${valid_test_offer_1._id}/edit`)
                         .send(edits)
                         .expect(HTTPStatus.OK);
                     expect(res.body).toMatchObject({
@@ -3913,7 +3913,7 @@ describe("Offer endpoint tests", () => {
                         "location": "Porto",
                         "technologies": ["CSS"]
                     };
-                    const res = await test_agent.post(`/offers/edit/${valid_test_offer_2._id}`)
+                    const res = await test_agent.post(`/offers/${valid_test_offer_2._id}/edit`)
                         .send(edits)
                         .expect(HTTPStatus.OK);
                     expect(res.body).toMatchObject({
@@ -3948,7 +3948,7 @@ describe("Offer endpoint tests", () => {
 
             test("should fail to edit offer if company blocked", async () => {
                 const res = await request()
-                    .post(`/offers/edit/${test_offer.id}`)
+                    .post(`/offers/${test_offer.id}/edit`)
                     .send(withGodToken());
 
                 expect(res.status).toBe(HTTPStatus.FORBIDDEN);
@@ -4026,7 +4026,7 @@ describe("Offer endpoint tests", () => {
                     publishEndDate: new Date(new Date(test_offer_before.publishEndDate).getTime() + (1 * DAY_TO_MS)).toISOString()
                 };
 
-                const res = await test_agent.post(`/offers/edit/${test_offer_before._id}`)
+                const res = await test_agent.post(`/offers/${test_offer_before._id}/edit`)
                     .send(edits)
                     .expect(HTTPStatus.CONFLICT);
 
@@ -4040,7 +4040,7 @@ describe("Offer endpoint tests", () => {
                 const edits = {
                     publishDate: new Date(new Date(test_offer_after.publishDate).getTime() - (1 * DAY_TO_MS)).toISOString()
                 };
-                const res = await test_agent.post(`/offers/edit/${test_offer_after._id}`)
+                const res = await test_agent.post(`/offers/${test_offer_after._id}/edit`)
                     .send(edits)
                     .expect(HTTPStatus.CONFLICT);
 
@@ -4055,7 +4055,7 @@ describe("Offer endpoint tests", () => {
                     publishDate: test_offer_current.publishDate,
                     publishEndDate: test_offer_current.publishEndDate
                 };
-                await test_agent.post(`/offers/edit/${test_offer_current._id}`)
+                await test_agent.post(`/offers/${test_offer_current._id}/edit`)
                     .send(edits)
                     .expect(HTTPStatus.OK);
             });
@@ -4064,7 +4064,7 @@ describe("Offer endpoint tests", () => {
                 const edits = {
                     publishDate: new Date(new Date(test_offer_current.publishDate).getTime() + (1 * DAY_TO_MS)).toISOString()
                 };
-                await test_agent.post(`/offers/edit/${test_offer_current._id}`)
+                await test_agent.post(`/offers/${test_offer_current._id}/edit`)
                     .send(edits)
                     .expect(HTTPStatus.OK);
             });
@@ -4074,7 +4074,7 @@ describe("Offer endpoint tests", () => {
                     const edits = {
                         publishEndDate: new Date(new Date(test_offer_current.publishEndDate).getTime() - (1 * DAY_TO_MS)).toISOString()
                     };
-                    await test_agent.post(`/offers/edit/${test_offer_current._id}`)
+                    await test_agent.post(`/offers/${test_offer_current._id}/edit`)
                         .send(edits)
                         .expect(HTTPStatus.OK);
                 });
@@ -4124,7 +4124,7 @@ describe("Offer endpoint tests", () => {
                     .expect(HTTPStatus.OK);
 
                 const res = await test_agent
-                    .post(`/offers/edit/${test_offer._id}`);
+                    .post(`/offers/${test_offer._id}/edit`);
 
                 expect(res.status).toBe(HTTPStatus.FORBIDDEN);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
