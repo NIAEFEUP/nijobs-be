@@ -13,8 +13,8 @@ export const APPROVAL_NOTIFICATION = (companyName) => ({
     template: "approval_notification",
     context: { companyName },
 });
-export const REJECTION_NOTIFICATION = (companyName) => ({
+export const REJECTION_NOTIFICATION = (companyName, reason) => ({
     subject: "Your NIJobs Application",
     template: "rejection_notification",
-    context: { companyName },
+    context: { companyName, reason },
 });

@@ -204,10 +204,10 @@ class CompanyApplicationService {
         if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_REJECT.msg);
         try {
             application.reject(reason);
-
+            console.log("reason is", reason);
             await EmailService.sendMail({
                 to: application.email,
-                ...REJECTION_NOTIFICATION(application.companyName),
+                ...REJECTION_NOTIFICATION(application.companyName, reason),
             });
 
             return application.toObject();
