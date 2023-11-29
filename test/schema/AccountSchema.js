@@ -1,4 +1,4 @@
-import Account from "../src/models/Account.js";
+import Account from "../../src/models/Account.js";
 
 describe("# Account schema tests", () => {
     describe("Testing required fields", () => {

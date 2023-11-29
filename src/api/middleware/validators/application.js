@@ -60,6 +60,13 @@ export const reject = useExpressValidators([
         .withMessage(ValidationReasons.TOO_SHORT(CompanyApplicationConstants.rejectReason.min_length)),
 ]);
 
+const isAfterSubmissionDateFrom = (submissionDateTo, { req }) => {
+
+    const { submissionDateFrom } = req.query;
+
+    return submissionDateFrom <= submissionDateTo;
+};
+
 const sortByParamValidator = (val) => {
 
     const regex = /^(\w+(:(desc|asc))?)(,\w+(:(desc|asc))?)*$/;
@@ -84,31 +91,43 @@ const parseSortByField = (val) => val.split(",");
 export const search = useExpressValidators([
     query("limit", ValidationReasons.DEFAULT)
         .optional()
-        .isInt({ min: 1, max: MAX_LIMIT_RESULTS })
-        .withMessage(ValidationReasons.MAX(MAX_LIMIT_RESULTS)),
+        .isInt().withMessage(ValidationReasons.INT).bail()
+        .toInt()
+        /*
+        Split validation checks in order to provide better error messages.
+        Another solution would be to return a "compound" error message, aka, one that contains both pieces of information.
+        The latter could help keep validation chains smaller.
+        */
+        .isInt({ min: 1 }).withMessage(ValidationReasons.MIN(1)).bail()
+        .isInt({ max: MAX_LIMIT_RESULTS }).withMessage(ValidationReasons.MAX(MAX_LIMIT_RESULTS)).bail()
+        .toInt(),
     query("offset", ValidationReasons.DEFAULT)
         .optional()
-        .isInt({ min: 0 })
-        .withMessage(ValidationReasons.MIN(0)),
+        .isInt().withMessage(ValidationReasons.INT).bail()
+        .toInt()
+        .isInt({ min: 0 }).withMessage(ValidationReasons.MIN(0)).bail()
+        .toInt(),
     query("companyName", ValidationReasons.DEFAULT)
         .optional()
-        .isString().withMessage(ValidationReasons.STRING),
+        .isString().withMessage(ValidationReasons.STRING).bail(),
     query("state", ValidationReasons.DEFAULT)
         .optional()
-        .customSanitizer(ensureArray)
         .isArray().withMessage(ValidationReasons.ARRAY).bail()
+        .customSanitizer(ensureArray)
         .custom(valuesInSet(Object.keys(ApplicationStatus))),
     query("submissionDateFrom", ValidationReasons.DEFAULT)
         .optional()
-        .toDate()
-        .isISO8601().withMessage(ValidationReasons.DATE),
+        .isISO8601().withMessage(ValidationReasons.DATE).bail()
+        .toDate(),
     query("submissionDateTo", ValidationReasons.DEFAULT)
         .optional()
+        .isISO8601().withMessage(ValidationReasons.DATE).bail()
         .toDate()
-        .isISO8601().withMessage(ValidationReasons.DATE),
+        .if((_, { req }) => req.query.submissionDateFrom !== undefined)
+        .custom(isAfterSubmissionDateFrom).withMessage(ValidationReasons.MUST_BE_AFTER("submissionDateFrom")),
     query("sortBy", ValidationReasons.DEFAULT)
         .optional()
-        .isString().withMessage(ValidationReasons.STRING)
+        .isString().withMessage(ValidationReasons.STRING).bail()
         .custom(sortByParamValidator)
         .customSanitizer(parseSortByField),
 ]);

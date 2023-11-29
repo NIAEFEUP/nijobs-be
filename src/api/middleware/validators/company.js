@@ -10,6 +10,8 @@ export const MAX_LIMIT_RESULTS = 100;
 const DEFAULT_PUBLISH_DATE = new Date(Date.now()).toISOString();
 
 export const finish = useExpressValidators([
+    /* body("logo", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail(), */
     body("bio", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isString().withMessage(ValidationReasons.STRING)
@@ -25,7 +27,9 @@ export const finish = useExpressValidators([
 export const list = useExpressValidators([
     query("limit", ValidationReasons.DEFAULT)
         .optional()
-        .isInt({ min: 1, max: MAX_LIMIT_RESULTS })
+        .isInt({ min: 1 })
+        .withMessage(ValidationReasons.MIN(1)).bail()
+        .isInt({ max: MAX_LIMIT_RESULTS })
         .withMessage(ValidationReasons.MAX(MAX_LIMIT_RESULTS)),
     query("offset", ValidationReasons.DEFAULT)
         .optional()
@@ -126,9 +130,10 @@ export const edit = useExpressValidators([
         .withMessage(ValidationReasons.TOO_LONG(CompanyConstants.bio.max_length)),
     body("contacts", ValidationReasons.DEFAULT)
         .optional()
-        .customSanitizer(ensureArray)
+        .isArray().withMessage(ValidationReasons.ARRAY).bail()
         .isArray({ min: CompanyConstants.contacts.min_length, max: CompanyConstants.contacts.max_length })
-        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length)),
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length))
+        .customSanitizer(ensureArray),
     body("logo", ValidationReasons.DEFAULT)
         .optional()
         .isString().withMessage(ValidationReasons.STRING).bail()

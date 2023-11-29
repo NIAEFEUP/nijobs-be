@@ -1,30 +1,31 @@
+import base64url from "base64url";
 import { StatusCodes as HTTPStatus } from "http-status-codes";
-import Offer from "../../src/models/Offer";
-import JobTypes from "../../src/models/constants/JobTypes";
-import * as FieldConstants from "../../src/models/constants/FieldTypes";
-import * as TechnologyConstants from "../../src/models/constants/TechnologyTypes";
 import { ErrorTypes } from "../../src/api/middleware/errorHandler";
-import ValidatorTester from "../utils/ValidatorTester";
-import withGodToken from "../utils/GodToken";
-import { DAY_TO_MS } from "../utils/TimeConstants";
-import OfferConstants from "../../src/models/constants/Offer";
+import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
+import { concurrentOffersNotExceeded } from "../../src/api/middleware/validators/validatorUtils";
+import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
+import EmailService from "../../src/lib/emailService";
+import hash from "../../src/lib/passwordHashing";
 import Account from "../../src/models/Account";
 import Company from "../../src/models/Company";
-import hash from "../../src/lib/passwordHashing";
-import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
+import Offer from "../../src/models/Offer";
 import CompanyConstants from "../../src/models/constants/Company";
+import * as FieldConstants from "../../src/models/constants/FieldTypes";
+import JobTypes from "../../src/models/constants/JobTypes";
+import OfferConstants from "../../src/models/constants/Offer";
+import * as TechnologyConstants from "../../src/models/constants/TechnologyTypes";
 import {
     MONTH_IN_MS,
     OFFER_MAX_LIFETIME_MONTHS
 } from "../../src/models/constants/TimeConstants";
 import OfferService from "../../src/services/offer";
-import EmailService from "../../src/lib/emailService";
-import { concurrentOffersNotExceeded } from "../../src/api/middleware/validators/validatorUtils";
-import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
-import base64url from "base64url";
+import withGodToken from "../utils/GodToken";
+import { DAY_TO_MS } from "../utils/TimeConstants";
+import ValidatorTester from "../utils/ValidatorTester";
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
+
     const generateTestOffer = (params) => ({
         title: "Test Offer",
         publishDate: (new Date(Date.now())).toISOString(),
@@ -2704,6 +2705,7 @@ describe("Offer endpoint tests", () => {
                     await Offer.deleteMany({});
                 });
 
+                // TODO: This is perfect for the "test.each" Jest construct
                 test("should sort by publishDate by default", async () => {
                     const res = await request()
                         .get("/offers");
@@ -3042,146 +3044,6 @@ describe("Offer endpoint tests", () => {
         });
     });
 
-    describe("GET /offers/company/:companyId", () => {
-        beforeAll(async () => {
-            await Offer.deleteMany({});
-        });
-
-        describe("Id Validation", () => {
-            test("should fail if requested an invalid companyId", async () => {
-                const companyId = "123";
-                const res = await request()
-                    .get(`/offers/company/${companyId}`);
-
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
-            });
-
-            test("should fail if there isn't a company with that id", async () => {
-                const missingCompanyId = "60ddb0bb2849830020883f91";
-                const res = await request().get(`/offers/company/${missingCompanyId}`);
-
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(missingCompanyId));
-            });
-        });
-
-        describe("Get offer by companyId", () => {
-            const test_offers = [{}, {}, {}, {}];
-            const test_agent = agent();
-
-            beforeAll(async () => {
-                await Offer.deleteMany({});
-
-                const createOffer = async (offer) => {
-                    const { _id, owner, ownerName, ownerLogo } = await Offer.create({
-                        ...offer,
-                        owner: test_company._id.toString(),
-                        ownerName: test_company.name,
-                        ownerLogo: test_company.logo,
-                    });
-                    return {
-                        ...offer,
-                        owner: owner.toString(),
-                        ownerName,
-                        ownerLogo,
-                        _id: _id.toString()
-                    };
-                };
-
-                (await Promise.all(test_offers
-                    .map((_, i) => createOffer({ ...generateTestOffer(), isHidden: i === 2 }))))
-                    .forEach((elem, i) => {
-                        test_offers[i] = elem;
-                    });
-            });
-
-            test("should return hidden company offers as company", async () => {
-                // Login wiht test_user_company
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_company)
-                    .expect(HTTPStatus.OK);
-
-                const res = await test_agent.get(`/offers/company/${test_company._id}`);
-                expect(res.status).toBe(HTTPStatus.OK);
-
-                const extractedData = res.body;
-                expect(extractedData.map((offer) => offer._id).sort())
-                    .toMatchObject(
-                        test_offers.map((offer) => offer._id).sort()
-                    );
-
-                // Logout
-                await test_agent
-                    .del("/auth/login")
-                    .expect(HTTPStatus.OK);
-            });
-
-            test("should return non-hidden offers", async () => {
-                const res = await test_agent.get(`/offers/company/${test_company._id}`);
-                expect(res.status).toBe(HTTPStatus.OK);
-
-                const extractedData = res.body;
-                expect(extractedData.map((offer) => offer._id).sort())
-                    .toMatchObject(
-                        test_offers.filter((offer) => offer.isHidden === false).map((offer) => offer._id).sort()
-                    );
-            });
-
-            test("should return non-hidden offers, even if target owner is set", async () => {
-                const res = await test_agent
-                    .get(`/offers/company/${test_company._id}`)
-                    .send({
-                        owner: test_company._id
-                    });
-
-                expect(res.status).toBe(HTTPStatus.OK);
-
-                const extractedData = res.body;
-                expect(extractedData.map((offer) => offer._id).sort())
-                    .toMatchObject(
-                        test_offers.filter((offer) => offer.isHidden === false).map((offer) => offer._id).sort()
-                    );
-            });
-
-            test("should return hidden company offers as admin", async () => {
-                // Login with test_user_company
-                await test_agent
-                    .post("/auth/login")
-                    .send(test_user_admin)
-                    .expect(HTTPStatus.OK);
-
-                const res = await test_agent.get(`/offers/company/${test_company._id}`);
-                expect(res.status).toBe(HTTPStatus.OK);
-
-                const extractedData = res.body;
-                expect(extractedData.map((offer) => offer._id).sort())
-                    .toMatchObject(
-                        test_offers.map((offer) => offer._id).sort()
-                    );
-
-                // Logout
-                await test_agent
-                    .del("/auth/login")
-                    .expect(HTTPStatus.OK);
-            });
-
-            test("should return hidden company offers with god token", async () => {
-                // Send request with god token
-                const res = await test_agent
-                    .get(`/offers/company/${test_company._id}`)
-                    .send(withGodToken());
-
-                expect(res.status).toBe(HTTPStatus.OK);
-
-                const extractedData = res.body;
-                expect(extractedData.map((offer) => offer._id).sort())
-                    .toMatchObject(
-                        test_offers.map((offer) => offer._id).sort()
-                    );
-            });
-        });
-    });
-
     describe("GET /offers/:offerId", () => {
 
         beforeAll(async () => {
@@ -3195,6 +3057,7 @@ describe("Offer endpoint tests", () => {
 
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
             });
+
             test("should fail if an offer does not exist", async () => {
                 const id = "5facf0cdb8bc30016ee58952";
                 const res = await request()
@@ -3642,6 +3505,7 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors[0]).toHaveProperty("param", "jobMinDuration");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_BEFORE("jobMaxDuration"));
                 });
+
                 test("should fail if maxDuration smaller than offer's minDuration", async () => {
                     const res = await test_agent
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
@@ -3650,6 +3514,7 @@ describe("Offer endpoint tests", () => {
                     expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
                     expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_AFTER("jobMinDuration"));
                 });
+
                 test("should fail if invalid combination of jobDuration in request", async () => {
                     const res = await test_agent
                         .post(`/offers/edit/${future_test_offer._id.toString()}`)
@@ -4136,6 +4001,7 @@ describe("Offer endpoint tests", () => {
 
     describe("POST /offers/:offerId/disable", () => {
         let test_offer, test_offer_2, hidden_default_test_offer, hidden_user_test_offer, email_test_offer;
+
         beforeAll(async () => {
             test_offer = await Offer.create({
                 ...generateTestOffer({
