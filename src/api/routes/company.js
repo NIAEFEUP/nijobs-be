@@ -6,7 +6,6 @@ import * as validators from "../middleware/validators/company.js";
 import * as companyMiddleware from "../middleware/company.js";
 import * as authMiddleware from "../middleware/auth.js";
 import * as offerMiddleware from "../middleware/offer.js";
-import * as companyValidators from "../middleware/validators/company.js";
 import CompanyService from "../../services/company.js";
 import { ErrorTypes } from "../middleware/errorHandler.js";
 import ValidationReasons from "../middleware/validators/validationReasons.js";
@@ -14,7 +13,7 @@ import { concurrentOffersNotExceeded } from "../middleware/validators/validatorU
 
 import { or } from "../middleware/utils.js";
 
-import * as fileMiddleware  from "../middleware/files.js";
+import * as fileMiddleware from "../middleware/files.js";
 import OfferService from "../../services/offer.js";
 import AccountService from "../../services/account.js";
 import Offer from "../../models/Offer.js";
@@ -258,7 +257,7 @@ export default (app) => {
     /**
      * Gets all the offers of a certain company from the db
      */
-    router.get("/:companyId/offers", companyValidators.getOffers, async (req, res, next) => {
+    router.get("/:companyId/offers", validators.getOffers, async (req, res, next) => {
         try {
             const offers = await (new OfferService())
                 .getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges);
