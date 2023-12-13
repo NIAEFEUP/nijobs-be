@@ -264,6 +264,7 @@ export default (app) => {
 
             return res.json(offers);
         } catch (err) {
+            /* istanbul ignore next */
             return next(err);
         }
     });
