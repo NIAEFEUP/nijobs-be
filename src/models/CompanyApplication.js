@@ -80,6 +80,10 @@ export const CompanyApplicationProps = {
             return !!this.rejectedAt;
         },
     },
+    isHidden: {
+        type: Boolean,
+        default: false
+    }
 };
 
 const CompanyApplicationSchema = new Schema(CompanyApplicationProps);
