@@ -54,6 +54,18 @@ class CompanyApplicationService {
         return application.toObject();
     }
 
+    async disable(
+        _id
+    ) {
+        const company = await CompanyApplication.findOneAndUpdate(
+            { _id },
+            {
+                isHidden: true
+            },
+            { new: true }
+        );
+        return company;
+    }
     async findById(id) {
         const company = await CompanyApplication.findById(id).exec();
         return company;

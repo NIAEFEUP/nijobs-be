@@ -72,6 +72,34 @@ export default (app) => {
         }
     );
 
+    router.post("/:id/hide",
+    authMiddleware.authRequired,
+    authMiddleware.isAdmin,
+    companyApplicationValidators.approve,
+    async (req, res, next) => {
+
+        try {
+            const { account } = await (new ApplicationService()).disable(req.params.id);
+            return res.json(account);
+        } catch (err) {
+            console.error(err);
+            if (err instanceof CompanyApplicationNotFound) {
+                return res
+                    .status(HTTPStatus.NOT_FOUND)
+                    .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
+            } else if (
+                err instanceof CompanyApplicationAlreadyReviewed ||
+                err instanceof CompanyApplicationEmailAlreadyInUse
+            ) {
+                return res
+                    .status(HTTPStatus.CONFLICT)
+                    .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
+            } else {
+                return next(err);
+            }
+        }
+    });
+
     /**
      * Approves a Pending Company Application
      */
