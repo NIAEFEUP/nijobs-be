@@ -6,18 +6,20 @@ import Account from "../models/Account.js";
 // Passport configuration
 passport.use(new LocalStrategy({
     usernameField: "email",
-    passwordField: "password",
+    passwordField: "password"
 },
-(email, password, done) => {
-    Account.findOne({ email }, async (err, user) => {
-        if (err) {
-            return done(err);
-        }
+async (email, password, done) => {
+    try {
+        const user = await Account.findOne({ email });
+
         if (!user || !(await user.validatePassword(password))) {
             return done(null, false, { message: "Incorrect email or password." });
         }
+
         return done(null, user);
-    });
+    } catch (err) {
+        return done(err);
+    }
 }
 ));
 
@@ -25,8 +27,12 @@ passport.serializeUser(function(user, done) {
     done(null, user.id);
 });
 
-passport.deserializeUser(function(id, done) {
-    Account.findById(id, function(err, user) {
-        done(err, user);
-    });
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await Account.findById(id);
+
+        done(null, user);
+    } catch (err) {
+        done(err);
+    }
 });
