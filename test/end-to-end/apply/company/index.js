@@ -121,11 +121,17 @@ describe("POST /apply/company", () => {
             }));
         });
 
-        test("Should replace application if new one is created after 10 minutes", async () => {
+        test("Should update old application if new one is created after 10 minutes", async () => {
             const application = {
                 email: "test3@test.com",
                 password: "password123",
                 companyName: "Testing company",
+                motivation: "This company has a very valid motivation, because otherwise the tests would not exist.",
+            };
+            const updated_application = {
+                email: "test3@test.com",
+                password: "password123",
+                companyName: "Updated Testing company",
                 motivation: "This company has a very valid motivation, because otherwise the tests would not exist.",
             };
 
@@ -140,11 +146,12 @@ describe("POST /apply/company", () => {
 
             const res2 = await request()
                 .post("/apply/company")
-                .send(application)
+                .send(updated_application)
                 .expect(StatusCodes.OK);
 
-            expect(await CompanyApplication.findOne({ _id: res1.body._id })).toBeFalsy();
-            expect(await CompanyApplication.findOne({ _id: res2.body._id })).toBeTruthy();
+            expect(await CompanyApplication.findOne({ _id: res1.body._id })).toBeTruthy();
+            expect(res1.body.id).toBe(res2.body.id);
+            expect(res2.body.companyName).toBe(updated_application.companyName);
 
             Date.now = TempRealDate;
         });

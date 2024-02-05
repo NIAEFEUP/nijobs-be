@@ -173,7 +173,7 @@ export const isRejectable = (application) => {
 };
 
 
-CompanyApplicationSchema.methods.companyValidation = function() {
+CompanyApplicationSchema.methods.verifyCompany = function() {
     if (this.isVerified)
         throw new Error(CompanyApplicationRules.APPLICATION_ALREADY_VALIDATED.msg);
 

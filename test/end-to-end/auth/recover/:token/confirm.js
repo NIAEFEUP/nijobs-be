@@ -74,7 +74,7 @@ describe("GET /auth/recover/:token/confirm", () => {
         res = await request()
             .get(`/auth/recover/${generatedToken}/confirm`);
 
-        expect(res.status).toBe(StatusCodes.GONE);
+        expect(res.status).toBe(StatusCodes.FORBIDDEN);
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.EXPIRED_TOKEN);
 
@@ -164,7 +164,7 @@ describe("POST /auth/recover/:token/confirm", () => {
             .post(`/auth/recover/${generatedToken}/confirm`)
             .send({ password: newPassword });
 
-        expect(res.status).toBe(StatusCodes.GONE);
+        expect(res.status).toBe(StatusCodes.FORBIDDEN);
         expect(res.body).toHaveProperty("errors");
         expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.EXPIRED_TOKEN);
 

@@ -325,7 +325,7 @@ describe("Password recovery endpoint test", () => {
             res = await request()
                 .get(`/auth/recover/${generatedToken}/confirm`);
 
-            expect(res.status).toBe(HTTPStatus.GONE);
+            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.EXPIRED_TOKEN);
 
@@ -380,7 +380,7 @@ describe("Password recovery endpoint test", () => {
                 .post(`/auth/recover/${generatedToken}/confirm`)
                 .send({ password: newPassword });
 
-            expect(res.status).toBe(HTTPStatus.GONE);
+            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.EXPIRED_TOKEN);
 
