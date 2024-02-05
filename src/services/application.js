@@ -220,11 +220,11 @@ class CompanyApplicationService {
         return `${config.application_confirmation_link}${token}/validate`;
     }
 
-    async applicationValidation(id) {
+    async validateApplication(id) {
         const application = await this.findById(id);
 
         try {
-            application.companyValidation();
+            application.verifyCompany();
             await EmailService.sendMail({
                 to: config.mail_from,
                 ...NEW_COMPANY_APPLICATION_ADMINS(application.email, application.companyName, application.motivation)
@@ -248,6 +248,12 @@ class CompanyApplicationService {
         }
     }
 
+    async updateOrCreate(query, update) {
+        let application = await CompanyApplication.findOne(query);
+        if (!application) application = await this.create(update);
+        else application = await CompanyApplication.findOneAndUpdate(query, update, { new: true });
+        return application;
+    }
     async deleteApplications(email) {
         await CompanyApplication.deleteMany({ email: email, isVerified: false });
     }

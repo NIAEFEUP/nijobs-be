@@ -73,7 +73,7 @@ describe("POST /apply/company/:token/validate", () => {
 
             const companyEmailOptions = NEW_COMPANY_APPLICATION_COMPANY(
                 application.companyName,
-                res.body._id
+                res.body.id
             );
 
             expect(EmailService.sendMail).toHaveBeenNthCalledWith(2, expect.objectContaining({
@@ -127,7 +127,7 @@ describe("POST /apply/company/:token/validate", () => {
             Date.now = () => mockCurrentDate;
             await request()
                 .post(`/apply/company/${generatedToken}/validate`)
-                .expect(StatusCodes.GONE);
+                .expect(StatusCodes.FORBIDDEN);
 
             Date.now = RealDateNow;
         });

@@ -17,9 +17,7 @@ export default (app) => {
     router.post("/", validators.create, applicationMiddleware.exceededCreationTimeLimit, async (req, res, next) => {
         try {
             const applicationService = new ApplicationService();
-            await applicationService.deleteApplications(req.body.email);
-            // This is safe since the service is destructuring the passed object and the fields have been validated
-            const application = await applicationService.create(req.body);
+            const application = await applicationService.updateOrCreate({ email: req.body.email }, req.body);
             return res.json(application);
         } catch (err) {
             console.error(err);
@@ -33,7 +31,7 @@ export default (app) => {
     router.post("/:token/validate", validators.finishValidation, validToken, async (req, res, next) => {
         const { _id: id } = req.locals.token;
         try {
-            await new ApplicationService().applicationValidation(id);
+            await new ApplicationService().validateApplication(id);
             return res.status(HTTPStatus.OK).json({});
         } catch (err) {
             if (err instanceof CompanyApplicationAlreadyValidated) {
