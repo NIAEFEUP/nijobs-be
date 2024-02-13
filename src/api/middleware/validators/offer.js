@@ -82,10 +82,12 @@ export const create = useExpressValidators([
 
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
+        .optional()
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isInt().withMessage(ValidationReasons.INT),
 
     body("jobMaxDuration", ValidationReasons.DEFAULT)
+        .optional()
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isInt().withMessage(ValidationReasons.INT).bail()
         .custom(jobMaxDurationGreaterOrEqualThanJobMinDuration),

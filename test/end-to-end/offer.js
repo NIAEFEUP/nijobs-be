@@ -235,13 +235,11 @@ describe("Offer endpoint tests", () => {
 
             describe("jobMinDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMinDuration");
-                FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeNumber();
             });
 
             describe("jobMaxDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMaxDuration");
-                FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeNumber();
                 FieldValidatorTester.mustBeGreaterThanOrEqualToField("jobMinDuration");
             });

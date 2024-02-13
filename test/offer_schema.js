@@ -127,28 +127,6 @@ describe("# Offer Schema tests", () => {
                     expect(err.errors.requirements).toHaveProperty("message", "There must be at least one requirement");
                 }
             });
-
-            test("'jobMinDuration' is required", async () => {
-                const offer = new Offer({});
-                try {
-                    await offer.validate();
-                } catch (err) {
-                    expect(err.errors.jobMinDuration).toBeDefined();
-                    expect(err.errors.jobMinDuration).toHaveProperty("kind", "required");
-                    expect(err.errors.jobMinDuration).toHaveProperty("message", "Path `jobMinDuration` is required.");
-                }
-            });
-
-            test("'jobMaxDuration' is required", async () => {
-                const offer = new Offer({});
-                try {
-                    await offer.validate();
-                } catch (err) {
-                    expect(err.errors.jobMaxDuration).toBeDefined();
-                    expect(err.errors.jobMaxDuration).toHaveProperty("kind", "required");
-                    expect(err.errors.jobMaxDuration).toHaveProperty("message", "Path `jobMaxDuration` is required.");
-                }
-            });
         });
 
         describe("required using custom validators (checking for array lengths, etc)", () => {
