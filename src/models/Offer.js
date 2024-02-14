@@ -107,7 +107,7 @@ const OfferSchema = new Schema({
         type: [String],
         required: true,
         validate: [
-            (val) => val.length >= OfferConstants.locations.min_length && val.length <= OfferConstants.locations.max_length,
+            (val) => lengthBetweenValidator(val, OfferConstants.locations.min_length, OfferConstants.locations.max_length),
             `There must be between ${OfferConstants.locations.min_length} and ${OfferConstants.locations.max_length} locations`,
         ],
     },
