@@ -32,15 +32,20 @@ const OfferSchema = new Schema({
     },
 
     jobMinDuration: {
-        type: Number
+        type: Number,
+        required: validateMinDuration,
     },
+
     jobMaxDuration: {
+        required: true,
         type: Number,
         validate: [
             validateJobMaxDuration,
             "`jobMaxDuration` must be larger than `jobMinDuration`",
+
         ],
     },
+
     jobStartDate: { type: Date },
     description: {
         type: String,
@@ -133,7 +138,13 @@ export function validatePublishEndDateLimit(publishDate, publishEndDate) {
 
 // jobMaxDuration must be larger than jobMinDuration
 function validateJobMaxDuration(value) {
+    if (this.jobType === "FREELANCE" && this.jobMinDuration === undefined) return true;
     return value >= this.jobMinDuration;
+}
+
+function validateMinDuration() {
+    if (this.jobType === "FREELANCE") return false;
+    return true;
 }
 
 function validateOwnerConcurrentOffers(value) {

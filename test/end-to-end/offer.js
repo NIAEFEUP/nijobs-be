@@ -232,18 +232,19 @@ describe("Offer endpoint tests", () => {
                 FieldValidatorTester.mustBeFuture();
                 FieldValidatorTester.mustBeAfter("publishDate");
             });
-
             describe("jobMinDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMinDuration");
-                FieldValidatorTester.mustBeNumber();
+                if (BodyValidatorTester("jobType") !== "freelance") {
+                    FieldValidatorTester.isRequired();
+                    FieldValidatorTester.mustBeNumber();
+                }
             });
-
             describe("jobMaxDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMaxDuration");
+                FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeNumber();
                 FieldValidatorTester.mustBeGreaterThanOrEqualToField("jobMinDuration");
             });
-
             describe("jobStartDate", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobStartDate");
                 FieldValidatorTester.mustBeDate();
