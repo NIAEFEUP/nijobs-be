@@ -83,7 +83,11 @@ export const CompanyApplicationProps = {
     state: {
         type: String,
         enum: ApplicationStatus,
-        default: ApplicationStatus.PENDING,
+        default: function() {
+            if (this.rejectedAt) return ApplicationStatus.REJECTED;
+            if (this.approvedAt) return ApplicationStatus.APPROVED;
+            return ApplicationStatus.PENDING;
+        },
         required: true,
     },
 };
