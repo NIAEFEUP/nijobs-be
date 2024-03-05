@@ -234,7 +234,7 @@ describe("Offer endpoint tests", () => {
             });
             describe("jobMinDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMinDuration");
-                if (BodyValidatorTester("jobType") !== "freelance") {
+                if (BodyValidatorTester("jobType") !== "FREELANCE") {
                     FieldValidatorTester.isRequired();
                     FieldValidatorTester.mustBeNumber();
                 }
@@ -680,22 +680,31 @@ describe("Offer endpoint tests", () => {
         });
 
         describe("Job Duration", () => {
-            test("should fail if jobMinDuration is greater than jobMaxDuration", async () => {
+
+            test("should succeed if jobMinDuration doesn't exist in freelance offer", async () => {
                 const offer_params = generateTestOffer({
-                    jobMinDuration: 10,
+                    jobType: "FREELANCE",
                     jobMaxDuration: 8,
+                    jobMinDuration: null,
+                    owner: test_company._id,
+                });
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+                expect(res.status).toBe(HTTPStatus.OK);
+            });
+
+            test("should fail if jobMinDuration doesn't exist in any offer besides freelance", async () => {
+                const offer_params = generateTestOffer({
+                    jobMaxDuration: 8,
+                    jobMinDuration: null,
                     owner: test_company._id,
                 });
 
                 const res = await request()
                     .post("/offers/new")
                     .send(withGodToken(offer_params));
-
                 expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_GREATER_THAN_OR_EQUAL_TO("jobMinDuration"));
             });
 
             test("should succeed if jobMaxDuration is greater than jobMinDuration", async () => {
