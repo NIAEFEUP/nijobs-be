@@ -20,6 +20,16 @@ const CompanySchema = new Schema({
         type: String,
         maxlength: CompanyConstants.bio.max_length,
     },
+    social: {
+        type: [String],
+        maxlength: CompanyConstants.social.max_length,
+    },
+    locations: {
+        type: [String],
+        required: true,
+        minlength: CompanyConstants.locations.min_length,
+        maxlength: CompanyConstants.locations.max_length,
+    },
     hasFinishedRegistration: {
         type: Boolean,
         default: false
