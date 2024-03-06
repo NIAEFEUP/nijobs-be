@@ -54,6 +54,8 @@ describe("Company endpoint", () => {
         bio: "Big Company Bio",
         logo: "http://awebsite.com/alogo.jpg",
         contacts: ["112", "122"],
+        locations: ["Lisbon"],
+        social: ["coolFacebook", "coolInstagram"],
         hasFinishedRegistration: true,
         ...params,
     });
@@ -845,12 +847,16 @@ describe("Company endpoint", () => {
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", ["contact1", "contact2"])
+                    .field("locations", ["Porto", "Lisbon"])
+                    .field("social", ["coolFacebook", "coolInstagram"])
                     .expect(HTTPStatus.OK);
 
                 const test_company = [... await Company.find({})][0];
                 expect([...test_company.contacts]).toEqual(["contact1", "contact2"]);
                 expect(test_company.hasFinishedRegistration).toBe(true);
                 expect(test_company.bio).toBe("A very interesting and compelling bio");
+                expect([...test_company.locations]).toEqual(["Porto", "Lisbon"]);
+                expect([...test_company.social]).toEqual(["coolFacebook", "coolInstagram"]);
                 const filename = path.join(`${config.upload_folder}/${test_company.id}.png`);
                 expect(fs.existsSync(filename)).toBe(true);
 
@@ -859,6 +865,8 @@ describe("Company endpoint", () => {
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", ["contact1", "contact2"])
+                    .field("locations", ["Porto", "Lisbon"])
+                    .field("social", ["coolFacebook", "coolInstagram"])
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual(
@@ -875,12 +883,16 @@ describe("Company endpoint", () => {
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", "contact1")
+                    .field("locations", ["Porto", "Lisbon"])
+                    .field("social", ["coolFacebook", "coolInstagram"])
                     .expect(HTTPStatus.OK);
 
                 const test_company = [... await Company.find({})][0];
                 expect([...test_company.contacts]).toEqual(["contact1"]);
                 expect(test_company.hasFinishedRegistration).toBe(true);
                 expect(test_company.bio).toBe("A very interesting and compelling bio");
+                expect([...test_company.locations]).toEqual(["Porto", "Lisbon"]);
+                expect([...test_company.social]).toEqual(["coolFacebook", "coolInstagram"]);
                 const filename = path.join(`${config.upload_folder}/${test_company.id}.png`);
                 expect(fs.existsSync(filename)).toBe(true);
 
@@ -889,6 +901,8 @@ describe("Company endpoint", () => {
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", "contact2")
+                    .field("locations", ["Porto", "Lisbon"])
+                    .field("social", ["coolFacebook", "coolInstagram"])
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual(
@@ -2517,6 +2531,8 @@ describe("Company endpoint", () => {
             bio: "Changed bio",
             logo: "test/data/logo-niaefeup.png",
             contacts: ["123", "456"],
+            locations: ["Coimbra", "Aveiro"],
+            social: ["beReal", "whattsapp"]
         };
 
         /* Admin, Company, Blocked, Disabled*/
@@ -2636,6 +2652,8 @@ describe("Company endpoint", () => {
                     .send({
                         bio: changing_values.bio,
                         contacts: changing_values.contacts,
+                        locations: changing_values.locations,
+                        social: changing_values.social
                     })
                     .expect(HTTPStatus.UNAUTHORIZED);
 

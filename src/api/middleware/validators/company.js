@@ -19,7 +19,17 @@ export const finish = useExpressValidators([
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .customSanitizer(ensureArray)
         .isArray({ min: CompanyConstants.contacts.min_length, max: CompanyConstants.contacts.max_length })
-        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length))
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length)),
+    body("locations", ValidationReasons.DEFAULT)
+        .exists().withMessage(ValidationReasons.REQUIRED).bail()
+        .customSanitizer(ensureArray)
+        .isArray({ min: CompanyConstants.locations.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(CompanyConstants.locations.min_length)),
+    body("social", ValidationReasons.DEFAULT)
+        .optional()
+        .isArray({ min: CompanyConstants.social.min_length, max: CompanyConstants.social.max_length })
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.social.min_length, CompanyConstants.social.max_length))
+
 ]);
 
 export const list = useExpressValidators([
@@ -133,4 +143,14 @@ export const edit = useExpressValidators([
         .optional()
         .isString().withMessage(ValidationReasons.STRING).bail()
         .isURL().withMessage(ValidationReasons.URL),
+    body("locations", ValidationReasons.DEFAULT)
+        .optional()
+        .customSanitizer(ensureArray)
+        .isArray({ min: CompanyConstants.locations.min_length })
+        .withMessage(ValidationReasons.TOO_SHORT(CompanyConstants.locations.min_length)),
+    body("social", ValidationReasons.DEFAULT)
+        .optional()
+        .isArray({ min: CompanyConstants.social.min_length, max: CompanyConstants.social.max_length })
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.social.min_length, CompanyConstants.social.max_length))
+
 ]);
