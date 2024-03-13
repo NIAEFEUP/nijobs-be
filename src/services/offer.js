@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-import Company  from "../models/Company.js";
-import Offer  from "../models/Offer.js";
-import Account  from "../models/Account.js";
-import EmailService  from "../lib/emailService.js";
-import { OFFER_DISABLED_NOTIFICATION }  from "../email-templates/companyOfferDisabled.js";
-import OfferConstants  from "../models/constants/Offer.js";
+import Company from "../models/Company.js";
+import Offer from "../models/Offer.js";
+import Account from "../models/Account.js";
+import EmailService from "../lib/emailService.js";
+import { OFFER_DISABLED_NOTIFICATION } from "../email-templates/companyOfferDisabled.js";
+import OfferConstants from "../models/constants/Offer.js";
 import CompanyConstants from "../models/constants/Company.js";
 import base64url from "base64url";
 
@@ -273,10 +273,12 @@ class OfferService {
      * Otherwise, use _buildSearchContinuationQuery().
      */
     _buildInitialSearchQuery(value, showHidden, showAdminReason, filters) {
-        const offers = (value ? Offer.find({ "$and": [
-            this._buildFilterQuery(filters),
-            { "$text": { "$search": value } }
-        ] }, { score: { "$meta": "textScore" } }
+        const offers = (value ? Offer.find({
+            "$and": [
+                this._buildFilterQuery(filters),
+                { "$text": { "$search": value } }
+            ]
+        }, { score: { "$meta": "textScore" } }
 
         ) : Offer.find(this._buildFilterQuery(filters)));
 
@@ -296,26 +298,36 @@ class OfferService {
             offers = Offer.aggregate([
                 { $match: { $text: { $search: value } } },
                 { $match: this._buildFilterQuery(filters) },
-                { $addFields: {
-                    score: { $meta: "textScore" },
-                    adminReason: { $cond: [showAdminReason, "$adminReason", "$$REMOVE"] }
-                } },
-                { $match: { "$or": [
-                    { score: { "$lt": lastOfferScore } },
-                    { score: lastOfferScore, [lastSortField]: { [sortFieldOperator]: lastSortValue } },
-                    { score: lastOfferScore, [lastSortField]: lastSortValue, _id: { "$gt": ObjectId(lastOfferId) } }
-                ] } },
+                {
+                    $addFields: {
+                        score: { $meta: "textScore" },
+                        adminReason: { $cond: [showAdminReason, "$adminReason", "$$REMOVE"] }
+                    }
+                },
+                {
+                    $match: {
+                        "$or": [
+                            { score: { "$lt": lastOfferScore } },
+                            { score: lastOfferScore, [lastSortField]: { [sortFieldOperator]: lastSortValue } },
+                            { score: lastOfferScore, [lastSortField]: lastSortValue, _id: { "$gt": ObjectId(lastOfferId) } }
+                        ]
+                    }
+                },
                 { $match: Offer.filterCurrent() },
                 { $match: showHidden ? {} : Offer.filterNonHidden() }
             ]);
         } else {
-            offers = Offer.find({ "$and": [
-                this._buildFilterQuery(filters),
-                { "$or": [
-                    { [lastSortField]: { [sortFieldOperator]: lastSortValue } },
-                    { [lastSortField]: lastSortValue, _id: { "$gt": ObjectId(lastOfferId) } }
-                ] }
-            ] });
+            offers = Offer.find({
+                "$and": [
+                    this._buildFilterQuery(filters),
+                    {
+                        "$or": [
+                            { [lastSortField]: { [sortFieldOperator]: lastSortValue } },
+                            { [lastSortField]: lastSortValue, _id: { "$gt": ObjectId(lastOfferId) } }
+                        ]
+                    }
+                ]
+            });
 
             this.selectSearchOffers(offers, showHidden, showAdminReason);
         }
@@ -338,10 +350,12 @@ class OfferService {
                     {
                         "$and": [
                             { jobMinDuration: { "$lt": jobMinDuration } },
-                            { "$or": [
-                                { jobMaxDuration: { "$exists": false } },
-                                { jobMaxDuration: { "$gte": jobMinDuration } },
-                            ] }
+                            {
+                                "$or": [
+                                    { jobMaxDuration: { "$exists": false } },
+                                    { jobMaxDuration: { "$gte": jobMinDuration } },
+                                ]
+                            }
                         ]
                     },
                 ]
@@ -355,17 +369,19 @@ class OfferService {
                     {
                         "$and": [
                             { jobMaxDuration: { "$gt": jobMaxDuration } },
-                            { "$or": [
-                                { jobMinDuration: { "$exists": false } },
-                                { jobMinDuration: { "$lte": jobMaxDuration } },
-                            ] }
+                            {
+                                "$or": [
+                                    { jobMinDuration: { "$exists": false } },
+                                    { jobMinDuration: { "$lte": jobMaxDuration } },
+                                ]
+                            }
                         ]
                     },
                 ]
             });
         }
-        if (fields?.length) constraints.push({ fields: {  "$elemMatch": { "$in": fields } } });
-        if (technologies?.length) constraints.push({ technologies: {  "$elemMatch": { "$in": technologies } } });
+        if (fields?.length) constraints.push({ fields: { "$elemMatch": { "$in": fields } } });
+        if (technologies?.length) constraints.push({ technologies: { "$elemMatch": { "$in": technologies } } });
 
         return constraints.length ? { "$and": constraints } : {};
     }

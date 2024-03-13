@@ -13,7 +13,7 @@ import { concurrentOffersNotExceeded } from "../middleware/validators/validatorU
 
 import { or } from "../middleware/utils.js";
 
-import * as fileMiddleware  from "../middleware/files.js";
+import * as fileMiddleware from "../middleware/files.js";
 import OfferService from "../../services/offer.js";
 import AccountService from "../../services/account.js";
 import Offer from "../../models/Offer.js";
@@ -248,7 +248,8 @@ export default (app) => {
             try {
                 const companyService = new CompanyService();
                 const offerService = new OfferService();
-                const company = await companyService.changeAttributes(req.params.companyId, req.body);
+                const logo = req.file && (req?.file?.url || `${config.webserver_host}/static/${req.file.filename}`);
+                const company = await companyService.changeAttributes(req.params.companyId, { ...req.body, logo });
                 await offerService.updateAllOffersByCompanyId(company);
                 return res.json(company);
             } catch (err) {
