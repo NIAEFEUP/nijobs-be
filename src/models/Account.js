@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 const { Schema } = mongoose;
 
+export const AccountTypes = {
+    ADMIN: "ADMIN",
+    COMPANY: "COMPANY",
+    STUDENT: "STUDENT",
+};
+
 const AccountSchema = new Schema({
     email: {
         type: String,
@@ -10,32 +16,17 @@ const AccountSchema = new Schema({
         unique: true,
         required: true,
     },
+    type: {
+        type: String,
+        required: true,
+        enum: Object.values(AccountTypes),
+    },
     password: { type: String, required: true },
-    isAdmin: {
-        type: Boolean,
-        default: false,
-        validate: {
-            validator: function(isAdmin) {
-                return isAdmin !== !!this.company;
-            },
-            message: "A user cannot be an admin and a company representative",
-        },
-    },
-    company: {
-        type: Schema.Types.ObjectId,
-        ref: "Company",
-        required: function() {
-            return !this.isAdmin;
-        },
-        validate: {
-            validator: function(company) {
-                return !!company !== this.isAdmin;
-            },
-            message: "A user cannot be a company representative and an admin",
-
-        },
-    },
 });
+
+
+AccountSchema.virtual("isAdmin").get(() => this.type === AccountTypes.ADMIN);
+AccountSchema.virtual("isCompany").get(() => this.type === AccountTypes.COMPANY);
 
 AccountSchema.methods.validatePassword = async function(password) {
     try {

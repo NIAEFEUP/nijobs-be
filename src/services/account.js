@@ -1,4 +1,4 @@
-import Account from "../models/Account.js";
+import Account, { AccountTypes } from "../models/Account.js";
 import hash from "../lib/passwordHashing.js";
 import Company from "../models/Company.js";
 import { RECOVERY_LINK_EXPIRATION } from "../models/constants/Account.js";
@@ -17,7 +17,7 @@ class AccountService {
         const account = await Account.create({
             email,
             password: await hash(password),
-            isAdmin: true,
+            type: AccountTypes.ADMIN
         });
 
         return {
@@ -26,18 +26,17 @@ class AccountService {
     }
 
     async registerCompany(email, password, companyName) {
-
-        const company = await Company.create({ name: companyName });
-
         const account = await Account.create({
             email,
             password,
-            company,
+            type: AccountTypes.COMPANY,
         });
+
+        const company = await Company.create({ name: companyName, account });
 
         return {
             email: account.email,
-            companyName: account.company.name,
+            companyName: company.name,
         };
     }
 

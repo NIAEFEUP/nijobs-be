@@ -1,6 +1,6 @@
 import { StatusCodes as HTTPStatus } from "http-status-codes";
 import { ErrorTypes } from "../../src/api/middleware/errorHandler";
-import Account from "../../src/models/Account";
+import Account, { AccountTypes } from "../../src/models/Account";
 import ValidatorTester from "../utils/ValidatorTester";
 import withGodToken from "../utils/GodToken";
 import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
@@ -100,16 +100,29 @@ describe("Login endpoint test", () => {
             email: "company@email.com",
             password: "password123",
         };
-        let test_company;
+        let test_company, expected_test_company;
 
         beforeAll(async () => {
             await Account.deleteMany({});
-            await Account.create({ email: test_user_admin.email, password: await hash(test_user_admin.password), isAdmin: true });
-            test_company = await Company.create({ name: "test comapny" });
             await Account.create({
+                email: test_user_admin.email,
+                password: await hash(test_user_admin.password),
+                type: AccountTypes.ADMIN
+            });
+            const account = await Account.create({
                 email: test_user_company.email,
                 password: await hash(test_user_admin.password),
-                company: test_company._id });
+                type: AccountTypes.COMPANY,
+            });
+            test_company = await Company.create({ name: "test comapny", account });
+            expected_test_company = {
+                _id: test_company._id.toString(),
+                name: test_company.name,
+                contacts: test_company.contacts,
+                hasFinishedRegistration: test_company.hasFinishedRegistration,
+                isBlocked: test_company.isBlocked,
+                isDisabled: test_company.isDisabled,
+            };
         });
 
         test("should return an error when registering with an already existing email", async () => {
@@ -171,7 +184,7 @@ describe("Login endpoint test", () => {
 
             expect(res.status).toBe(HTTPStatus.OK);
             expect(res.body).toHaveProperty("data.email", test_user_admin.email);
-            expect(res.body).toHaveProperty("data.isAdmin", true);
+            expect(res.body).toHaveProperty("data.type", AccountTypes.ADMIN);
             expect(res.body).not.toHaveProperty("data.company");
         });
 
@@ -186,9 +199,9 @@ describe("Login endpoint test", () => {
 
             expect(res.status).toBe(HTTPStatus.OK);
             expect(res.body).toHaveProperty("data.email", test_user_company.email);
-            expect(res.body).toHaveProperty("data.isAdmin", false);
+            expect(res.body).toHaveProperty("data.type", AccountTypes.COMPANY);
             expect(res.body).toHaveProperty("data.company", expect.objectContaining(
-                JSON.parse(JSON.stringify(test_company.toObject())) // Necessary since mongoose objects don't play well with jest...
+                JSON.parse(JSON.stringify(expected_test_company)) // Necessary since mongoose objects don't play well with jest...
             ));
         });
 
@@ -235,7 +248,7 @@ describe("Password recovery endpoint test", () => {
         await Account.create({
             email: test_account.email,
             password: await hash(test_account.password),
-            isAdmin: true,
+            type: AccountTypes.ADMIN
         });
         jest.clearAllMocks();
     });

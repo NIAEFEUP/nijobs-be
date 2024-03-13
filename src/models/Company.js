@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
+import { AccountTypes } from "./Account.js";
 import CompanyConstants from "./constants/Company.js";
 import Offer from "./Offer.js";
+import { validateAccountTypes } from "./validators/accountValidators.js";
 
 const { Schema } = mongoose;
 
@@ -10,6 +12,14 @@ const CompanySchema = new Schema({
         required: true,
         maxlength: CompanyConstants.companyName.max_length,
         minlength: CompanyConstants.companyName.min_length,
+        index: true,
+    },
+    account: {
+        type: Schema.Types.ObjectId,
+        ref: "Account",
+        required: true,
+        index: true,
+        validate: validateAccountTypes(AccountTypes.COMPANY),
     },
     contacts: {
         type: [String],

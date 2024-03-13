@@ -6,6 +6,7 @@ import { authRequired, isGod, validToken } from "../middleware/auth.js";
 import * as validators from "../middleware/validators/auth.js";
 import AccountService from "../../services/account.js";
 import Company from "../../models/Company.js";
+import { AccountTypes } from "../../models/Account.js";
 
 const router = Router();
 
@@ -14,23 +15,23 @@ export default (app) => {
 
     // Get logged in user info
     router.get("/me", authRequired, async (req, res) => {
-        const { email, isAdmin, company: companyId } = req.user;
+        const { email, type } = req.user;
 
-        let company = undefined;
+        const sessionData = {
+            email,
+            type,
+        };
 
         try {
-            if (companyId)
-                company = await Company.findById(companyId);
+            if (req.user.type === AccountTypes.COMPANY) {
+                sessionData.company = await Company.findOne({ account: req.user._id }).select("-account");
+            }
         } catch (e) {
-            console.error(`Could not find the respective company of user ${req.user._id}, with id ${companyId}`, e);
+            console.error(e);
         }
 
         return res.status(HTTPStatus.OK).json({
-            data: {
-                email,
-                isAdmin,
-                company
-            },
+            data: sessionData
         });
     });
 
@@ -55,10 +56,10 @@ export default (app) => {
 
         // Inserting user into db and replying with success or not
         try {
-            const data = await (new AccountService()).registerAdmin(email, password);
+            const sessionData = await (new AccountService()).registerAdmin(email, password);
 
             return res.status(HTTPStatus.OK).json({
-                data,
+                sessionData,
             });
         } catch (err) {
             console.error(err);
