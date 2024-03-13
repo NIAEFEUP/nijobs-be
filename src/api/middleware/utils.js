@@ -94,3 +94,17 @@ export const storeInLocals = (req, obj) => {
         ...obj,
     };
 };
+
+export const existingModel = (fn, param, variable, error) => async (req, res, next) => {
+    const model = await fn(req.params[param], req);
+
+    if (!model) return next(new APIError(
+        HTTPStatus.NOT_FOUND,
+        ErrorTypes.FORBIDDEN,
+        error(req.params[param])
+    ));
+
+    req[variable] = model;
+
+    return next();
+};

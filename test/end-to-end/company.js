@@ -1144,7 +1144,7 @@ describe("Company endpoint", () => {
             const res = await test_agent
                 .put(`/company/${id}/block`)
                 .send({ adminReason })
-                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                .expect(HTTPStatus.NOT_FOUND);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors[0]).toHaveProperty("param", "companyId");
@@ -1385,7 +1385,7 @@ describe("Company endpoint", () => {
             const id = "111111111111111111111111";
             const res = await test_agent
                 .put(`/company/${id}/unblock`)
-                .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                .expect(HTTPStatus.NOT_FOUND);
             expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors[0]).toHaveProperty("param", "companyId");
@@ -1696,7 +1696,7 @@ describe("Company endpoint", () => {
                 const res = await test_agent
                     .put(`/company/${id}/enable`)
                     .send(withGodToken())
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    .expect(HTTPStatus.NOT_FOUND);
 
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
@@ -1941,7 +1941,7 @@ describe("Company endpoint", () => {
                 const res = await test_agent
                     .put(`/company/${id}/disable`)
                     .send(withGodToken())
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    .expect(HTTPStatus.NOT_FOUND);
 
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
@@ -2140,7 +2140,7 @@ describe("Company endpoint", () => {
                 const res = await test_agent
                     .post(`/company/${id}/delete`)
                     .send(withGodToken())
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    .expect(HTTPStatus.NOT_FOUND);
 
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
@@ -2339,7 +2339,7 @@ describe("Company endpoint", () => {
                 const res = await test_agent
                     .get(`/company/${id}/hasReachedMaxConcurrentOffersBetweenDates`)
                     .send(withGodToken({ publishDate, publishEndDate }))
-                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                    .expect(HTTPStatus.NOT_FOUND);
 
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
                 expect(res.body).toHaveProperty("errors");
