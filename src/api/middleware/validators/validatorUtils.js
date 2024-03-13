@@ -48,7 +48,7 @@ export const ensureArray = (val) => {
 
 export const isObjectId = (id) => {
     try {
-        Types.ObjectId(id);
+        new Types.ObjectId(id);
     } catch {
         return false;
     }

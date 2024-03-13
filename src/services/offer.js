@@ -307,7 +307,7 @@ class OfferService {
                         "$or": [
                             { score: { "$lt": lastOfferScore } },
                             { score: lastOfferScore, [lastSortField]: { [sortFieldOperator]: lastSortValue } },
-                            { score: lastOfferScore, [lastSortField]: lastSortValue, _id: { "$gt": ObjectId(lastOfferId) } }
+                            { score: lastOfferScore, [lastSortField]: lastSortValue, _id: { "$gt": new ObjectId(lastOfferId) } }
                         ]
                     }
                 },
@@ -321,7 +321,7 @@ class OfferService {
                     {
                         "$or": [
                             { [lastSortField]: { [sortFieldOperator]: lastSortValue } },
-                            { [lastSortField]: lastSortValue, _id: { "$gt": ObjectId(lastOfferId) } }
+                            { [lastSortField]: lastSortValue, _id: { "$gt": new ObjectId(lastOfferId) } }
                         ]
                     }
                 ]
