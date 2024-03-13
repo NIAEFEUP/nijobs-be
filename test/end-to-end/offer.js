@@ -234,10 +234,8 @@ describe("Offer endpoint tests", () => {
             });
             describe("jobMinDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMinDuration");
-                if (BodyValidatorTester("jobType") !== "FREELANCE") {
-                    FieldValidatorTester.isRequired();
-                    FieldValidatorTester.mustBeNumber();
-                }
+                FieldValidatorTester.isRequired();
+                FieldValidatorTester.mustBeNumber();
             });
             describe("jobMaxDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMaxDuration");
@@ -706,6 +704,19 @@ describe("Offer endpoint tests", () => {
                     .send(withGodToken(offer_params));
                 expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
             });
+
+            test("should fail jobMinDuration isn't numeric value", async () => {
+                const offer_params = generateTestOffer({
+                    jobMaxDuration: 8,
+                    jobMinDuration: "nonNumeric",
+                    owner: test_company._id,
+                });
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+            });
+
 
             test("should succeed if jobMaxDuration is greater than jobMinDuration", async () => {
                 const offer_params = generateTestOffer({
