@@ -78,15 +78,26 @@ export const hasAdminPrivileges = async (req, res, next) => {
 };
 
 export const validToken = (req, res, next) => {
-    const decoded = verifyAndDecodeToken(req.params.token, config.jwt_secret);
+    try {
+        const decoded = verifyAndDecodeToken(req.params.token, config.jwt_secret);
 
-    if (!decoded) {
-        return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.INVALID_TOKEN));
+        storeInLocals(req, {
+            token: decoded,
+        });
+
+        return next();
+    } catch (jwtErr) {
+        if (jwtErr.name === "TokenExpiredError") {
+            return next(new APIError(HTTPStatus.FORBIDDEN, ErrorTypes.FORBIDDEN, ValidationReasons.EXPIRED_TOKEN));
+        } else {
+            return next(new APIError(HTTPStatus.NOT_FOUND, ErrorTypes.FORBIDDEN, ValidationReasons.INVALID_TOKEN));
+        }
     }
+};
 
-    storeInLocals(req, {
-        token: decoded,
-    });
-
+export const hasCompanyAccess = (companyId) =>  (req, res, next) => {
+    if (!req.user?.company?._id.equals(companyId)) {
+        return next(new APIError(HTTPStatus.UNAUTHORIZED, ErrorTypes.FORBIDDEN, ValidationReasons.MUST_BE_ADMIN));
+    }
     return next();
 };

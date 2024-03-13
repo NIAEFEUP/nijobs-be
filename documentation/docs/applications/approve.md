@@ -13,6 +13,7 @@ import Highlight from "../../src/highlight.js"
 ## Details
 
 This endpoint is used to approve a company Application, specified by applicationId.
+It changes all the companies offers to not pending.
 
 **URL** : `/applications/company/:applicationId/approve`
 
@@ -162,6 +163,42 @@ values={[
   "errors": [
     {
       "msg": "company-application-already-reviewed"
+    }
+  ]
+}
+```
+
+</TabItem>
+</Tabs>
+
+### Example 5 - Application is not verified
+
+**Code** : <Highlight level="danger" inline>409 CONFLICT</Highlight>
+
+<Tabs
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
+>
+
+<TabItem value="request">
+
+```bash
+/applications/company/631a18cf8e61e0acea76e5e1/approve
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+  "error_code": 1,
+  "errors": [
+    {
+      "msg": "application-must-be-verified"
     }
   ]
 }

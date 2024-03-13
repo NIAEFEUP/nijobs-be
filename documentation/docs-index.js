@@ -28,13 +28,15 @@ module.exports = {
             "companies/disable",
             "companies/enable",
             "companies/delete",
-            "companies/concurrent-offers"
+            "companies/concurrent-offers",
+            "companies/get-application"
         ],
         Applications: [
             "applications/create",
             "applications/search",
             "applications/approve",
-            "applications/reject"
+            "applications/reject",
+            "applications/validate"
         ],
         Auth: [
             "auth/login",

@@ -14,6 +14,7 @@ import Highlight from "../../src/highlight.js"
 
 This endpoint returns offers based on search criteria. It allows for _Full-Text Search_ as well as results filtering.
 Perfect for a search component!
+Only returns offers that are not pending.
 
 **URL** : `/offers`
 
@@ -271,6 +272,7 @@ values={[
         "React Native"
       ],
       "isHidden": false,
+      "isPending": false,
       "isArchived": false,
       "requirements": [
         "Recent graduate/master's degree in Computer Science, Engineering or similar areas"

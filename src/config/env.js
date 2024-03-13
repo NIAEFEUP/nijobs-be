@@ -23,6 +23,7 @@ export default Object.freeze({
     session_secret: process.env.SESSION_SECRET,
     jwt_secret: process.env.JWT_SECRET,
     password_recovery_link: process.env.PASSWORD_RECOVERY_LINK,
+    application_confirmation_link: process.env.APPLICATION_CONFIRMATION_LINK,
     port: process.env.PORT,
     god_token: process.env.GOD_TOKEN,
     test_log_requests: JSON.parse(process.env.TEST_LOG_REQUESTS),

@@ -22,6 +22,7 @@ import EmailService from "../../src/lib/emailService";
 import { concurrentOffersNotExceeded } from "../../src/api/middleware/validators/validatorUtils";
 import { OFFER_DISABLED_NOTIFICATION } from "../../src/email-templates/companyOfferDisabled";
 import base64url from "base64url";
+import CompanyApplication from "../../src/models/CompanyApplication.js";
 
 //----------------------------------------------------------------
 describe("Offer endpoint tests", () => {
@@ -60,6 +61,16 @@ describe("Offer endpoint tests", () => {
 
     beforeAll(async () => {
         await Company.deleteMany({});
+        await CompanyApplication.deleteMany({});
+        await Account.deleteMany({});
+        await CompanyApplication.create({
+            email: test_user_company.email,
+            password: test_user_company.password,
+            companyName: "test verified company",
+            motivation: "I want people for job :)",
+            isVerified: true,
+            submittedAt: Date.now()
+        });
         test_company = await Company.create({
             name: "test company",
             bio: "a bio",
@@ -67,7 +78,7 @@ describe("Offer endpoint tests", () => {
             hasFinishedRegistration: true,
             logo: "http://awebsite.com/alogo.jpg",
         });
-        await Account.deleteMany({});
+
         await Account.create({
             email: test_user_admin.email,
             password: await hash(test_user_admin.password),
@@ -78,6 +89,11 @@ describe("Offer endpoint tests", () => {
             password: await hash(test_user_company.password),
             company: test_company._id
         });
+    });
+    afterAll(async () => {
+        await Company.deleteMany({});
+        await Account.deleteMany({});
+        await CompanyApplication.deleteMany({});
     });
 
     describe("POST /offers", () => {
@@ -1062,6 +1078,7 @@ describe("Offer endpoint tests", () => {
                     owner: test_company._id,
                     ownerName: test_company.name,
                     ownerLogo: test_company.logo,
+                    isPending: false
                 };
 
                 await Offer.deleteMany({});

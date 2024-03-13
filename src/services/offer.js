@@ -35,6 +35,7 @@ class OfferService {
         fields,
         technologies,
         isHidden,
+        isPending,
         owner,
         location,
         coordinates,
@@ -58,6 +59,7 @@ class OfferService {
             fields,
             technologies,
             isHidden,
+            isPending,
             owner,
             ownerName,
             ownerLogo,
@@ -386,6 +388,7 @@ class OfferService {
 
     selectSearchOffers(offers, showHidden, showAdminReason) {
         offers.current();
+        offers.notPending();
         if (!showHidden) offers.withoutHidden();
         if (!showAdminReason) offers.select("-adminReason");
 

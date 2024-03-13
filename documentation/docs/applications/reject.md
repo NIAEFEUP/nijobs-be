@@ -197,3 +197,42 @@ values={[
 
 </TabItem>
 </Tabs>
+
+### Example 5 - Application is not verified
+
+**Code** : <Highlight level="danger" inline>409 CONFLICT</Highlight>
+
+<Tabs
+defaultValue="request"
+values={[
+{label: 'Request', value: 'request'},
+{label: 'Response', value: 'response'},
+]}
+>
+
+<TabItem value="request">
+
+```json
+{
+ "rejectReason": "The motivation of the company is not convincing" 
+}
+```
+
+</TabItem>
+
+<TabItem value="response">
+
+```json
+{
+  "error_code": 1,
+  "errors": [
+    {
+      "msg": "application-must-be-verified"
+    }
+  ]
+}
+```
+
+</TabItem>
+</Tabs>
+

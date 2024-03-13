@@ -145,7 +145,6 @@ describe("Login endpoint test", () => {
                     email: "user@gmail.com",
                     password: "password",
                 });
-
             expect(res.status).toBe(HTTPStatus.UNAUTHORIZED);
         });
 
@@ -159,7 +158,7 @@ describe("Login endpoint test", () => {
             expect(res.status).toBe(HTTPStatus.OK);
         });
 
-        test("should return the informations of the logged in user (admin)", async () => {
+        test("should return the information of the logged in user (admin)", async () => {
 
             await test_agent
                 .post("/auth/login")
@@ -175,7 +174,7 @@ describe("Login endpoint test", () => {
             expect(res.body).not.toHaveProperty("data.company");
         });
 
-        test("should return the informations of the logged in user (company)", async () => {
+        test("should return the information of the logged in user (company)", async () => {
             await test_agent
                 .post("/auth/login")
                 .send(test_user_company);
@@ -192,7 +191,7 @@ describe("Login endpoint test", () => {
             ));
         });
 
-        test("should be successful when loging out the current user", async () => {
+        test("should be successful when logging out the current user", async () => {
             const res = await test_agent
                 .delete("/auth/login")
                 .send();
@@ -287,7 +286,7 @@ describe("Password recovery endpoint test", () => {
             const res = await request()
                 .get("/auth/recover/token/confirm");
 
-            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+            expect(res.status).toBe(HTTPStatus.NOT_FOUND);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_TOKEN);
         });
@@ -328,7 +327,7 @@ describe("Password recovery endpoint test", () => {
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_TOKEN);
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.EXPIRED_TOKEN);
 
             Date.now = realTime;
         });
@@ -340,7 +339,7 @@ describe("Password recovery endpoint test", () => {
                 .post("/auth/recover/token/confirm")
                 .send({ password: newPassword });
 
-            expect(res.status).toBe(HTTPStatus.FORBIDDEN);
+            expect(res.status).toBe(HTTPStatus.NOT_FOUND);
             expect(res.body).toHaveProperty("errors");
             expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_TOKEN);
         });
@@ -383,7 +382,7 @@ describe("Password recovery endpoint test", () => {
 
             expect(res.status).toBe(HTTPStatus.FORBIDDEN);
             expect(res.body).toHaveProperty("errors");
-            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INVALID_TOKEN);
+            expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.EXPIRED_TOKEN);
 
             Date.now = realTime;
         });

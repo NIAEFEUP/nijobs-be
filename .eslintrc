@@ -1,4 +1,4 @@
-{   
+{
     "extends": [
         "eslint:recommended"
     ],
@@ -99,6 +99,6 @@
         "no-var": "error",
         "prefer-const": ["error", { "destructuring": "all" }],
         "prefer-template": "error",
-        "template-curly-spacing": "error",
+        "template-curly-spacing": "error"
     }
 }

@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import ApplicationStatus from "./constants/ApplicationStatus.js";
 import CompanyApplicationConstants from "./constants/CompanyApplication.js";
 import { checkDuplicatedEmail } from "../api/middleware/validators/validatorUtils.js";
+import { CompanyApplicationAlreadyReviewed, CompanyApplicationUnverified } from "../services/application.js";
+
 
 const { Schema } = mongoose;
 
@@ -33,6 +35,15 @@ export const CompanyApplicationRules = Object.freeze({
     CANNOT_REVIEW_TWICE: {
         msg: "company-application-already-reviewed",
     },
+    APPLICATION_RECENTLY_CREATED: {
+        msg: "company-application-recently-created",
+    },
+    APPLICATION_ALREADY_VALIDATED: {
+        msg: "application-already-validated",
+    },
+    MUST_BE_VERIFIED: {
+        msg: "application-must-be-verified",
+    }
 });
 
 export const CompanyApplicationProps = {
@@ -80,6 +91,10 @@ export const CompanyApplicationProps = {
             return !!this.rejectedAt;
         },
     },
+    isVerified: {
+        type: Boolean,
+        default: true,
+    },
 };
 
 const CompanyApplicationSchema = new Schema(CompanyApplicationProps);
@@ -87,7 +102,8 @@ const CompanyApplicationSchema = new Schema(CompanyApplicationProps);
 CompanyApplicationSchema.index({ companyName: "text" });
 
 CompanyApplicationSchema.virtual("state").get(function() {
-    if (!this.approvedAt && !this.rejectedAt) return ApplicationStatus.PENDING;
+    if (!this.isVerified) return ApplicationStatus.UNVERIFIED;
+    else if (!this.approvedAt && !this.rejectedAt) return ApplicationStatus.PENDING;
     else if (this.approvedAt) return ApplicationStatus.APPROVED;
     else return ApplicationStatus.REJECTED;
 });
@@ -117,7 +133,7 @@ export const applicationUniqueness = async (email) => {
     const existingApplications = await CompanyApplication.find({ email });
     if (existingApplications.some((application) =>
         application.state === ApplicationStatus.PENDING ||
-    application.state === ApplicationStatus.APPROVED)
+            application.state === ApplicationStatus.APPROVED)
     ) {
         throw new Error(CompanyApplicationRules.ONLY_ONE_APPLICATION_ACTIVE_PER_EMAIL.msg);
     }
@@ -136,18 +152,33 @@ async function validateSingleActiveApplication(value) {
 
 export const isApprovable = (application) => {
 
+    if (application.state === ApplicationStatus.UNVERIFIED)
+        throw new CompanyApplicationUnverified(CompanyApplicationRules.MUST_BE_VERIFIED.msg);
+
     if (application.state !== ApplicationStatus.PENDING)
-        throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+        throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
 
     return true;
 };
 
 export const isRejectable = (application) => {
 
+    if (application.state === ApplicationStatus.UNVERIFIED)
+        throw new CompanyApplicationUnverified(CompanyApplicationRules.MUST_BE_VERIFIED.msg);
+
     if (application.state !== ApplicationStatus.PENDING)
-        throw new Error(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+        throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
 
     return true;
+};
+
+
+CompanyApplicationSchema.methods.verifyCompany = function() {
+    if (this.isVerified)
+        throw new Error(CompanyApplicationRules.APPLICATION_ALREADY_VALIDATED.msg);
+
+    this.isVerified = true;
+    return this.save({ validateModifiedOnly: true });
 };
 
 CompanyApplicationSchema.methods.approve = function() {

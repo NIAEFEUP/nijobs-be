@@ -13,6 +13,7 @@ import Highlight from "../../src/highlight.js"
 ## Details
 
 This endpoint is used to create offers. Both Admins and Companies can use it.
+Companies which are yet to be approved will have its offer pending.
 
 :::info
 If the logged-in user is a Company, that account will be the Offer owner. Otherwise, the creation will be done in

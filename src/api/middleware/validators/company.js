@@ -132,3 +132,7 @@ export const edit = useExpressValidators([
     body("logo", ValidationReasons.DEFAULT)
         .optional()
 ]);
+
+export const getApplication = useExpressValidators([
+    existingCompanyParamValidator,
+]);

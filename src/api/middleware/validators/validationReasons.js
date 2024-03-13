@@ -41,6 +41,7 @@ const ValidationReasons = Object.freeze({
     OFFER_EDIT_PERIOD_OVER: (value) => `offer-edit-period-over:${value}-hours`,
     INVALID_QUERY_TOKEN: "invalid-query-token",
     INVALID_TOKEN: "invalid-token",
+    EXPIRED_TOKEN: "expired-token",
     JOB_MIN_DURATION_NOT_SPECIFIED: "job-max-duration-requires-job-min-duration",
     REGISTRATION_FINISHED: "registration-already-finished",
     REGISTRATION_NOT_FINISHED: "registration-not-finished-yet",
@@ -48,8 +49,10 @@ const ValidationReasons = Object.freeze({
     IMAGE_FORMAT: "formats-supported-png-jpeg-jpg",
     OFFER_BLOCKED_ADMIN: "offer-blocked-by-admin",
     OFFER_HIDDEN: "offer-is-hidden",
+    NON_EXISTING_APPLICATION: "application-does-not-exist",
     FILE_TOO_LARGE: (max) => `file-cant-be-larger-than-${max}MB`,
     MUST_BE_GREATER_THAN_OR_EQUAL_TO: (field) => `must-be-greater-than-or-equal-to:${field}`,
+
 });
 
 export default ValidationReasons;

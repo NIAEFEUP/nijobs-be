@@ -5,11 +5,12 @@ import * as authMiddleware from "../middleware/auth.js";
 import * as companyApplicationValidators from "../middleware/validators/application.js";
 import ApplicationService, {
     CompanyApplicationAlreadyReviewed,
-    CompanyApplicationEmailAlreadyInUse,
-    CompanyApplicationNotFound
+    CompanyApplicationNotFound, CompanyApplicationUnverified
 } from "../../services/application.js";
 
 import { buildErrorResponse, ErrorTypes } from "../middleware/errorHandler.js";
+import Company from "../../models/Company.js";
+import CompanyService from "../../services/company.js";
 
 const router = Router();
 
@@ -82,7 +83,9 @@ export default (app) => {
         async (req, res, next) => {
 
             try {
-                const { account } = await (new ApplicationService()).approve(req.params.id);
+                const account = await (new ApplicationService()).approve(req.params.id);
+                const company = await Company.findOne({ _id: account.company });
+                await (new CompanyService()).releaseOffers(company._id);
                 return res.json(account);
             } catch (err) {
                 console.error(err);
@@ -92,7 +95,7 @@ export default (app) => {
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
                 } else if (
                     err instanceof CompanyApplicationAlreadyReviewed ||
-                    err instanceof CompanyApplicationEmailAlreadyInUse
+                    err instanceof CompanyApplicationUnverified
                 ) {
                     return res
                         .status(HTTPStatus.CONFLICT)
@@ -121,7 +124,10 @@ export default (app) => {
                     return res
                         .status(HTTPStatus.NOT_FOUND)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));
-                } else if (err instanceof CompanyApplicationAlreadyReviewed) {
+                } else if (
+                    err instanceof CompanyApplicationAlreadyReviewed ||
+                    err instanceof CompanyApplicationUnverified
+                ) {
                     return res
                         .status(HTTPStatus.CONFLICT)
                         .json(buildErrorResponse(ErrorTypes.VALIDATION_ERROR, [{ msg: err.message }]));

@@ -1,5 +1,7 @@
 import { verifyAndDecodeToken, generateToken } from "../../src/lib/token";
 import { SECOND_IN_MS } from "../../src/models/constants/TimeConstants";
+import { JsonWebTokenError } from "jsonwebtoken";
+
 
 describe("JWT Token tests", () => {
     const data = {
@@ -20,7 +22,9 @@ describe("JWT Token tests", () => {
     });
 
     test("should fail to decode token if invalid secret", () => {
-        expect(verifyAndDecodeToken(token, `${secret}o`)).toBeNull();
+        expect(() => verifyAndDecodeToken(token, `${secret}o`)).toThrow(JsonWebTokenError);
+        expect(() => verifyAndDecodeToken(token, `${secret}o`)).toThrow("invalid signature");
+
     });
 
     test("should fail to decode token if expired", () => {
@@ -28,7 +32,8 @@ describe("JWT Token tests", () => {
         const mockDate = Date.now() + (11 * SECOND_IN_MS);
         Date.now = () => mockDate;
 
-        expect(verifyAndDecodeToken(token, `${secret}`)).toBeNull();
+        expect(() => verifyAndDecodeToken(token, `${secret}`)).toThrow(JsonWebTokenError);
+        expect(() => verifyAndDecodeToken(token, `${secret}`)).toThrow("jwt expired");
 
         Date.now = realTime;
     });

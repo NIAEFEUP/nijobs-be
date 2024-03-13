@@ -1,5 +1,7 @@
 import CompanyApplication, { CompanyApplicationRules } from "../models/CompanyApplication.js";
+import { generateToken } from "../lib/token.js";
 import hash from "../lib/passwordHashing.js";
+import { VALIDATION_LINK_EXPIRATION } from "../models/constants/ApplicationStatus.js";
 import AccountService from "./account.js";
 import EmailService from "../lib/emailService.js";
 import {
@@ -7,8 +9,11 @@ import {
     NEW_COMPANY_APPLICATION_COMPANY,
     APPROVAL_NOTIFICATION,
     REJECTION_NOTIFICATION,
+    APPLICATION_CONFIRMATION
 } from "../email-templates/companyApplicationApproval.js";
 import config from "../config/env.js";
+import Account from "../models/Account.js";
+
 
 export class CompanyApplicationNotFound extends Error {
     constructor(msg) {
@@ -28,6 +33,17 @@ export class CompanyApplicationEmailAlreadyInUse extends Error {
     }
 }
 
+export class CompanyApplicationAlreadyValidated extends Error {
+    constructor(msg) {
+        super(msg);
+    }
+}
+export class CompanyApplicationUnverified extends Error {
+    constructor(msg) {
+        super(msg);
+    }
+}
+
 class CompanyApplicationService {
 
     async create({
@@ -39,18 +55,13 @@ class CompanyApplicationService {
             companyName,
             motivation,
             submittedAt: Date.now(),
+            isVerified: false,
         });
-
+        const link = this.buildConfirmationLink(application._id);
         await EmailService.sendMail({
-            to: config.mail_from,
-            ...NEW_COMPANY_APPLICATION_ADMINS(application.email, companyName, motivation)
+            to: email,
+            ...APPLICATION_CONFIRMATION(link),
         });
-
-        await EmailService.sendMail({
-            to: application.email,
-            ...NEW_COMPANY_APPLICATION_COMPANY(companyName, application._id.toString())
-        });
-
         return application.toObject();
     }
 
@@ -172,31 +183,18 @@ class CompanyApplicationService {
         const application = await CompanyApplication.findById(id, {}, options);
         if (!application) throw new CompanyApplicationNotFound(CompanyApplicationRules.MUST_EXIST_TO_APPROVE.msg);
         try {
-            application.approve();
-        } catch (e) {
-            console.error(e);
-            throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
-        }
-
-        try {
-            const account = await (new AccountService()).registerCompany(application.email, application.password, application.companyName);
-
+            await application.approve();
             await EmailService.sendMail({
                 to: application.email,
                 ...APPROVAL_NOTIFICATION(application.companyName),
             });
-
-            return { application, account };
-
         } catch (err) {
-            console.error(`Error creating account for approved Company Application, rolling back approval of ${application._id}`, err);
-            application.undoApproval();
-            if (err.name === "MongoServerError" && /E11000\s.*collection:\s.*\.accounts.*/.test(err.errmsg)) {
-                throw new CompanyApplicationEmailAlreadyInUse(CompanyApplicationRules.EMAIL_ALREADY_IN_USE.msg);
-            } else {
-                throw err;
-            }
+            if (!(err instanceof CompanyApplicationUnverified || err instanceof CompanyApplicationAlreadyReviewed))
+                await application.undoApproval();
+            console.error("Error while approving company ", err.msg);
+            throw err;
         }
+        return Account.findOne({ email: application.email });
     }
 
     async reject(id, reason, options) {
@@ -213,9 +211,53 @@ class CompanyApplicationService {
             return application.toObject();
         } catch (e) {
             console.error(e);
-            throw new CompanyApplicationAlreadyReviewed(CompanyApplicationRules.CANNOT_REVIEW_TWICE.msg);
+            throw e;
         }
     }
+
+    buildConfirmationLink(id) {
+        const token = generateToken({ _id: id }, config.jwt_secret, VALIDATION_LINK_EXPIRATION);
+        return `${config.application_confirmation_link}${token}/validate`;
+    }
+
+    async validateApplication(id) {
+        const application = await this.findById(id);
+
+        try {
+            application.verifyCompany();
+            await EmailService.sendMail({
+                to: config.mail_from,
+                ...NEW_COMPANY_APPLICATION_ADMINS(application.email, application.companyName, application.motivation)
+            });
+
+            await EmailService.sendMail({
+                to: application.email,
+                ...NEW_COMPANY_APPLICATION_COMPANY(application.companyName, application._id.toString())
+            });
+        } catch (err) {
+            console.error(err);
+            throw new CompanyApplicationAlreadyValidated(CompanyApplicationRules.APPLICATION_ALREADY_VALIDATED.msg);
+        }
+
+        try {
+            await (new AccountService()).registerCompany(application.email, application.password, application.companyName);
+        } catch (err) {
+            console.error("Error creating account for validated Company Application", err);
+            throw err;
+
+        }
+    }
+
+    async updateOrCreate(query, update) {
+        let application = await CompanyApplication.findOne(query);
+        if (!application) application = await this.create(update);
+        else application = await CompanyApplication.findOneAndUpdate(query, update, { new: true });
+        return application;
+    }
+    async deleteApplications(email) {
+        await CompanyApplication.deleteMany({ email: email, isVerified: false });
+    }
 }
+
 
 export default CompanyApplicationService;

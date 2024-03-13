@@ -83,6 +83,10 @@ const OfferSchema = new Schema({
         type: Boolean,
         default: false
     },
+    isPending: {
+        type: Boolean,
+        default: false,
+    },
     isArchived: {
         type: Boolean,
         default: false
@@ -159,6 +163,10 @@ OfferSchema.statics.filterCurrent = () => ({
 });
 OfferSchema.query.current = function() {
     return this.where(this.model.filterCurrent());
+};
+
+OfferSchema.query.notPending = function() {
+    return this.where({ isPending: false });
 };
 
 /**
