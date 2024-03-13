@@ -103,7 +103,14 @@ const OfferSchema = new Schema({
     },
     ownerName: { type: String, required: true },
     ownerLogo: { type: String, required: true, validate: (val) => validImageURL(val) },
-    location: { type: String, required: true },
+    location: {
+        type: [String],
+        required: true,
+        validate: [
+            (val) => lengthBetweenValidator(val, OfferConstants.locations.min_length, OfferConstants.locations.max_length),
+            `There must be between ${OfferConstants.locations.min_length} and ${OfferConstants.locations.max_length} locations`,
+        ],
+    },
     coordinates: { type: PointSchema, required: false },
     applyURL: { type: String, validate: (val) => validApplyURL(val) },
 });
