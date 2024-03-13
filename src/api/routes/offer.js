@@ -10,7 +10,6 @@ import { ErrorTypes, APIError } from "../middleware/errorHandler.js";
 import ValidationReasons from "../middleware/validators/validationReasons.js";
 import { or, when } from "../middleware/utils.js";
 import OfferConstants from "../../models/constants/Offer.js";
-import * as companyValidators from "../middleware/validators/company.js";
 
 const router = Router();
 
@@ -59,20 +58,6 @@ export default (app) => {
 
         } catch (err) {
             console.error(err);
-            return next(err);
-        }
-    });
-
-    /**
-     * Gets all the offers of a certain company from the db
-     */
-    router.get("/company/:companyId", companyValidators.getOffers, async (req, res, next) => {
-        try {
-            const offers = await (new OfferService())
-                .getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges);
-
-            return res.json(offers);
-        } catch (err) {
             return next(err);
         }
     });

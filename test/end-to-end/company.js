@@ -13,11 +13,13 @@ import fs from "fs";
 import path from "path";
 import { ErrorTypes } from "../../src/api/middleware/errorHandler";
 import EmailService from "../../src/lib/emailService";
-import { COMPANY_UNBLOCKED_NOTIFICATION,
+import {
+    COMPANY_UNBLOCKED_NOTIFICATION,
     COMPANY_BLOCKED_NOTIFICATION,
     COMPANY_ENABLED_NOTIFICATION,
     COMPANY_DISABLED_NOTIFICATION,
-    COMPANY_DELETED_NOTIFICATION } from "../../src/email-templates/companyManagement";
+    COMPANY_DELETED_NOTIFICATION
+} from "../../src/email-templates/companyManagement";
 import { MAX_FILE_SIZE_MB } from "../../src/api/middleware/utils";
 import { fileURLToPath } from "url";
 
@@ -804,6 +806,178 @@ describe("Company endpoint", () => {
         });
     });
 
+    describe("GET /company/:companyId/offers", () => {
+
+        let test_company;
+
+        const test_user_admin = {
+            email: "admin@email.com",
+            password: "password123"
+        };
+
+        const test_user_company = {
+            email: "company@email.com",
+            password: "password123"
+        };
+
+        beforeAll(async () => {
+            await Offer.deleteMany({});
+            await Company.deleteMany({});
+            test_company = await Company.create({
+                name: "test company",
+                bio: "a bio",
+                contacts: ["a contact"],
+                hasFinishedRegistration: true,
+                logo: "http://awebsite.com/alogo.jpg",
+            });
+            await Account.deleteMany({});
+            await Account.create({
+                email: test_user_admin.email,
+                password: await hash(test_user_admin.password),
+                isAdmin: true
+            });
+            await Account.create({
+                email: test_user_company.email,
+                password: await hash(test_user_company.password),
+                company: test_company._id
+            });
+        });
+
+        describe("Id Validation", () => {
+            test("should fail if requested an invalid companyId", async () => {
+                const companyId = "123";
+                const res = await request()
+                    .get(`/company/${companyId}/offers`);
+
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+            });
+
+            test("should fail if there isn't a company with that id", async () => {
+                const missingCompanyId = "60ddb0bb2849830020883f91";
+                const res = await request().get(`/company/${missingCompanyId}/offers`);
+
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(missingCompanyId));
+            });
+        });
+
+        describe("Get offer by companyId", () => {
+            const test_offers = [{}, {}, {}, {}];
+            const test_agent = agent();
+
+            beforeAll(async () => {
+                await Offer.deleteMany({});
+
+                const createOffer = async (offer) => {
+                    const { _id, owner, ownerName, ownerLogo } = await Offer.create({
+                        ...offer,
+                        owner: test_company._id.toString(),
+                        ownerName: test_company.name,
+                        ownerLogo: test_company.logo,
+                    });
+                    return {
+                        ...offer,
+                        owner: owner.toString(),
+                        ownerName,
+                        ownerLogo,
+                        _id: _id.toString()
+                    };
+                };
+
+                (await Promise.all(test_offers
+                    .map((_, i) => createOffer({ ...generateTestOffer(), isHidden: i === 2 }))))
+                    .forEach((elem, i) => {
+                        test_offers[i] = elem;
+                    });
+            });
+
+            test("should return hidden company offers as company", async () => {
+                // Login wiht test_user_company
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent.get(`/company/${test_company._id}/offers`);
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extractedData = res.body;
+                expect(extractedData.map((offer) => offer._id).sort())
+                    .toMatchObject(
+                        test_offers.map((offer) => offer._id).sort()
+                    );
+
+                // Logout
+                await test_agent
+                    .del("/auth/login")
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should return non-hidden offers", async () => {
+                const res = await test_agent.get(`/company/${test_company._id}/offers`);
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extractedData = res.body;
+                expect(extractedData.map((offer) => offer._id).sort())
+                    .toMatchObject(
+                        test_offers.filter((offer) => offer.isHidden === false).map((offer) => offer._id).sort()
+                    );
+            });
+
+            test("should return non-hidden offers, even if target owner is set", async () => {
+                const res = await test_agent
+                    .get(`/company/${test_company._id}/offers`)
+                    .send({
+                        owner: test_company._id
+                    });
+
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extractedData = res.body;
+                expect(extractedData.map((offer) => offer._id).sort())
+                    .toMatchObject(
+                        test_offers.filter((offer) => offer.isHidden === false).map((offer) => offer._id).sort()
+                    );
+            });
+
+            test("should return hidden company offers as admin", async () => {
+                // Login with test_user_company
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent.get(`/company/${test_company._id}/offers`);
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extractedData = res.body;
+                expect(extractedData.map((offer) => offer._id).sort())
+                    .toMatchObject(
+                        test_offers.map((offer) => offer._id).sort()
+                    );
+
+                // Logout
+                await test_agent
+                    .del("/auth/login")
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should return hidden company offers with god token", async () => {
+                // Send request with god token
+                const res = await test_agent
+                    .get(`/company/${test_company._id}/offers`)
+                    .send(withGodToken());
+
+                expect(res.status).toBe(HTTPStatus.OK);
+
+                const extractedData = res.body;
+                expect(extractedData.map((offer) => offer._id).sort())
+                    .toMatchObject(
+                        test_offers.map((offer) => offer._id).sort()
+                    );
+            });
+        });
+    });
+
     describe("POST /company/application/finish", () => {
 
         describe("Without Auth", () => {
@@ -1204,7 +1378,8 @@ describe("Company endpoint", () => {
                 await Account.create({
                     email: company.email,
                     password: await hash(company.password),
-                    company: test_company._id });
+                    company: test_company._id
+                });
 
                 await Account.create({
                     email: test_user_admin.email,
@@ -1445,7 +1620,8 @@ describe("Company endpoint", () => {
                 await Account.create({
                     email: company.email,
                     password: await hash(company.password),
-                    company: test_company._id });
+                    company: test_company._id
+                });
 
                 await Account.create({
                     email: test_user_admin.email,

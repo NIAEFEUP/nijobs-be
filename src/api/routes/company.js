@@ -254,4 +254,20 @@ export default (app) => {
             }
         }
     );
+
+    /**
+     * Gets all the offers of a certain company from the db
+     */
+    router.get("/:companyId/offers", validators.getOffers, async (req, res, next) => {
+        try {
+            const offers = await (new OfferService())
+                .getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges);
+
+            return res.json(offers);
+        } catch (err) {
+            /* istanbul ignore next */
+            return next(err);
+        }
+    });
+
 };
