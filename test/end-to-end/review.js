@@ -94,12 +94,15 @@ describe("Company application review endpoint test", () => {
                     ...pendingApplication,
                     submittedAt: new Date("2019-11-24"),
                     approvedAt: pendingApplication.submittedAt.getTime() + 1,
+                    state: ApplicationStatus.APPROVED,
                     companyName: "approved Testing company",
                     email: `approved${pendingApplication.email}`,
                 };
+
                 const rejectedApplication = { ...pendingApplication,
                     submittedAt: new Date("2019-11-23"),
                     rejectedAt: pendingApplication.submittedAt.getTime() + 1,
+                    state: ApplicationStatus.REJECTED,
                     companyName: "rejected Testing company",
                     email: `rejected${pendingApplication.email}`,
                     rejectReason: "2bad4nij0bs",

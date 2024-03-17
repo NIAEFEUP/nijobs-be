@@ -80,17 +80,21 @@ export const CompanyApplicationProps = {
             return !!this.rejectedAt;
         },
     },
+    state: {
+        type: String,
+        enum: ApplicationStatus,
+        default: function() {
+            if (this.rejectedAt) return ApplicationStatus.REJECTED;
+            if (this.approvedAt) return ApplicationStatus.APPROVED;
+            return ApplicationStatus.PENDING;
+        },
+        required: true,
+    },
 };
 
 const CompanyApplicationSchema = new Schema(CompanyApplicationProps);
 
 CompanyApplicationSchema.index({ companyName: "text" });
-
-CompanyApplicationSchema.virtual("state").get(function() {
-    if (!this.approvedAt && !this.rejectedAt) return ApplicationStatus.PENDING;
-    else if (this.approvedAt) return ApplicationStatus.APPROVED;
-    else return ApplicationStatus.REJECTED;
-});
 
 async function validateEmailUniqueAccount(value) {
     try {
@@ -107,7 +111,6 @@ function validateDecisionDate(value) {
 }
 
 function validateMutuallyExclusiveEvents(field) {
-
     return function(value) {
         return !value || !this[field];
     };
@@ -153,6 +156,7 @@ export const isRejectable = (application) => {
 CompanyApplicationSchema.methods.approve = function() {
     isApprovable(this);
     this.approvedAt = Date.now();
+    this.state = ApplicationStatus.APPROVED;
     // Need to prevent validation, otherwise it will fail the email uniqueness,
     // Since there is already an application with same email: itself :)
     return this.save({ validateModifiedOnly: true });
@@ -162,6 +166,7 @@ CompanyApplicationSchema.methods.reject = function(reason) {
     isRejectable(this);
     this.rejectedAt = Date.now();
     this.rejectReason = reason;
+    this.state = ApplicationStatus.REJECTED;
     // Need to prevent validation, otherwise it will fail the email uniqueness,
     // Since there is already an application with same email: itself :)
     return this.save({ validateModifiedOnly: true });
@@ -170,6 +175,7 @@ CompanyApplicationSchema.methods.reject = function(reason) {
 CompanyApplicationSchema.methods.undoApproval = function() {
     if (!this.approvedAt) throw new Error("Cannot undo approval of yet-to-be approved Company Application");
     this.approvedAt = undefined;
+    this.state = ApplicationStatus.PENDING;
     // Need to prevent validation, otherwise it will fail the email uniqueness,
     // Since there is already an application with same email: itself :)
     return this.save({ validateModifiedOnly: true });
