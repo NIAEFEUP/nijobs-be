@@ -82,13 +82,16 @@ export const create = useExpressValidators([
 
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
+        .if((value, { req }) => req.body.jobType !== "FREELANCE")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isInt().withMessage(ValidationReasons.INT),
+
 
     body("jobMaxDuration", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isInt().withMessage(ValidationReasons.INT).bail()
         .custom(jobMaxDurationGreaterOrEqualThanJobMinDuration),
+
 
     body("jobStartDate", ValidationReasons.DEFAULT)
         .optional()
