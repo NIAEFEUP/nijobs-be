@@ -23,12 +23,13 @@ export const finish = useExpressValidators([
     body("locations", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .customSanitizer(ensureArray)
-        .isArray({ min: CompanyConstants.locations.min_length })
-        .withMessage(ValidationReasons.TOO_SHORT(CompanyConstants.locations.min_length)),
+        .isArray({ min: CompanyConstants.locations.min_length, max: CompanyConstants.locations.max_length})
+        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.locations.min_length, CompanyConstants.locations.max_length)),
     body("social", ValidationReasons.DEFAULT)
         .optional()
-        .isArray({ min: CompanyConstants.social.min_length, max: CompanyConstants.social.max_length })
-        .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.social.min_length, CompanyConstants.social.max_length))
+        .customSanitizer(ensureArray)
+        .isArray({max: CompanyConstants.social.max_length })
+        .withMessage(ValidationReasons.TOO_LONG(CompanyConstants.social.max_length))
 
 ]);
 

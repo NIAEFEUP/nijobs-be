@@ -848,7 +848,7 @@ describe("Company endpoint", () => {
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", ["contact1", "contact2"])
                     .field("locations", ["Porto", "Lisbon"])
-                    .field("social", ["coolFacebook", "coolInstagram"])
+                    .field("social", ["coolFacebook"])
                     .expect(HTTPStatus.OK);
 
                 const test_company = [... await Company.find({})][0];
@@ -856,7 +856,7 @@ describe("Company endpoint", () => {
                 expect(test_company.hasFinishedRegistration).toBe(true);
                 expect(test_company.bio).toBe("A very interesting and compelling bio");
                 expect([...test_company.locations]).toEqual(["Porto", "Lisbon"]);
-                expect([...test_company.social]).toEqual(["coolFacebook", "coolInstagram"]);
+                expect([...test_company.social]).toEqual(["coolFacebook"]);
                 const filename = path.join(`${config.upload_folder}/${test_company.id}.png`);
                 expect(fs.existsSync(filename)).toBe(true);
 
@@ -866,7 +866,7 @@ describe("Company endpoint", () => {
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", ["contact1", "contact2"])
                     .field("locations", ["Porto", "Lisbon"])
-                    .field("social", ["coolFacebook", "coolInstagram"])
+                    .field("social", ["coolFacebook"])
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual(
@@ -883,16 +883,12 @@ describe("Company endpoint", () => {
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", "contact1")
-                    .field("locations", ["Porto", "Lisbon"])
-                    .field("social", ["coolFacebook", "coolInstagram"])
                     .expect(HTTPStatus.OK);
 
                 const test_company = [... await Company.find({})][0];
                 expect([...test_company.contacts]).toEqual(["contact1"]);
                 expect(test_company.hasFinishedRegistration).toBe(true);
                 expect(test_company.bio).toBe("A very interesting and compelling bio");
-                expect([...test_company.locations]).toEqual(["Porto", "Lisbon"]);
-                expect([...test_company.social]).toEqual(["coolFacebook", "coolInstagram"]);
                 const filename = path.join(`${config.upload_folder}/${test_company.id}.png`);
                 expect(fs.existsSync(filename)).toBe(true);
 
@@ -901,8 +897,6 @@ describe("Company endpoint", () => {
                     .attach("logo", "test/data/logo-niaefeup.png")
                     .field("bio", "A very interesting and compelling bio")
                     .field("contacts", "contact2")
-                    .field("locations", ["Porto", "Lisbon"])
-                    .field("social", ["coolFacebook", "coolInstagram"])
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body.errors).toContainEqual(

@@ -14,12 +14,13 @@ export default Object.freeze({
         min_length: 1,
         max_length: 10
     },
-    social: {
-        max_length: 5
-    },
     locations: {
         min_length: 1,
         max_length: 10
+    },
+    social: {
+        max_length: 5
     }
+
 
 });
