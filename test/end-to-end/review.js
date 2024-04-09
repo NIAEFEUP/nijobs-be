@@ -402,14 +402,12 @@ describe("Company application review endpoint test", () => {
 
                     test("Should send rejection email to company email", async () => {
 
+                        const reason = "Some reason which is valid";
                         const res = await test_agent
                             .post(`/applications/company/${application._id}/reject`)
-                            .send({ rejectReason: "Some reason which is valid" });
-
+                            .send({ rejectReason: reason });
                         expect(res.status).toBe(HTTPStatus.OK);
-
-                        const emailOptions = REJECTION_NOTIFICATION(application.companyName);
-
+                        const emailOptions = REJECTION_NOTIFICATION(application.companyName, reason);
                         expect(EmailService.sendMail).toHaveBeenCalledWith({
                             subject: emailOptions.subject,
                             to: application.email,
