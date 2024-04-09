@@ -159,3 +159,6 @@ $RECYCLE.BIN/
 
 # Ignore public folder
 /static
+
+# Ignore data dumps from MongoDB
+dump/ 

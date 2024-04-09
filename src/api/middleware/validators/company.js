@@ -131,6 +131,4 @@ export const edit = useExpressValidators([
         .withMessage(ValidationReasons.ARRAY_SIZE(CompanyConstants.contacts.min_length, CompanyConstants.contacts.max_length)),
     body("logo", ValidationReasons.DEFAULT)
         .optional()
-        .isString().withMessage(ValidationReasons.STRING).bail()
-        .isURL().withMessage(ValidationReasons.URL),
 ]);
