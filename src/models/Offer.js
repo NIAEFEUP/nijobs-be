@@ -138,7 +138,7 @@ export function validatePublishEndDateLimit(publishDate, publishEndDate) {
 
 // jobMaxDuration must be larger than jobMinDuration
 function validateJobMaxDuration(value) {
-    if (this.jobType === "FREELANCE" && this.jobMinDuration === undefined) return true;
+    if (this.jobType === "FREELANCE" && this.jobMinDuration === null) return true;
     return value >= this.jobMinDuration;
 }
 
