@@ -33,7 +33,11 @@ const OfferSchema = new Schema({
 
     jobMinDuration: {
         type: Number,
-        required: validateMinDuration,
+        required: isMinDurationRequired,
+        validate: [
+            validateJobMinDuration,
+            "`jobMinDuration` is not valid for freelance job",
+        ],
     },
 
     jobMaxDuration: {
@@ -138,11 +142,20 @@ export function validatePublishEndDateLimit(publishDate, publishEndDate) {
 
 // jobMaxDuration must be larger than jobMinDuration
 function validateJobMaxDuration(value) {
-    if (this.jobType === "FREELANCE" && this.jobMinDuration === null) return true;
+    if (this.jobType === "FREELANCE") return true;
     return value >= this.jobMinDuration;
 }
 
-function validateMinDuration() {
+function validateJobMinDuration() {
+    if (this.jobType === "FREELANCE") {
+        if (this.jobMinDuration === null) return true;
+        return false;
+    }
+    if (this.jobMinDuration === null) return false;
+    return true;
+}
+
+function isMinDurationRequired() {
     if (this.jobType === "FREELANCE") return false;
     return true;
 }
