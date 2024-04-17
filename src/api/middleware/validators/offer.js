@@ -18,6 +18,13 @@ import {
 import * as companyMiddleware from "../company.js";
 import config from "../../../config/env.js";
 import { validApplyURL } from "../../../models/modelUtils.js";
+const jobMinDurationMustNotExistInFreelance = (jobMinDuration,  { req }) => {
+    if (req.body.jobType !== "FREELANCE") return true;
+    if (jobMinDuration !== null && jobMinDuration !== undefined) {
+        throw new Error(ValidationReasons.FREELANCE_OFFER_CANT_HAVE_MIN_DURATION);
+    }
+    return true;
+};
 
 const jobMaxDurationGreaterOrEqualThanJobMinDuration = (jobMaxDuration, { req }) => {
 
@@ -82,13 +89,17 @@ export const create = useExpressValidators([
 
 
     body("jobMinDuration", ValidationReasons.DEFAULT)
+        .custom(jobMinDurationMustNotExistInFreelance)
+        .if((value, { req }) => req.body.jobType !== "FREELANCE")
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isInt().withMessage(ValidationReasons.INT),
+
 
     body("jobMaxDuration", ValidationReasons.DEFAULT)
         .exists().withMessage(ValidationReasons.REQUIRED).bail()
         .isInt().withMessage(ValidationReasons.INT).bail()
         .custom(jobMaxDurationGreaterOrEqualThanJobMinDuration),
+
 
     body("jobStartDate", ValidationReasons.DEFAULT)
         .optional()

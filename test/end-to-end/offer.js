@@ -232,20 +232,17 @@ describe("Offer endpoint tests", () => {
                 FieldValidatorTester.mustBeFuture();
                 FieldValidatorTester.mustBeAfter("publishDate");
             });
-
             describe("jobMinDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMinDuration");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeNumber();
             });
-
             describe("jobMaxDuration", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobMaxDuration");
                 FieldValidatorTester.isRequired();
                 FieldValidatorTester.mustBeNumber();
                 FieldValidatorTester.mustBeGreaterThanOrEqualToField("jobMinDuration");
             });
-
             describe("jobStartDate", () => {
                 const FieldValidatorTester = BodyValidatorTester("jobStartDate");
                 FieldValidatorTester.mustBeDate();
@@ -681,23 +678,45 @@ describe("Offer endpoint tests", () => {
         });
 
         describe("Job Duration", () => {
-            test("should fail if jobMinDuration is greater than jobMaxDuration", async () => {
+
+            test("should succeed if jobMinDuration doesn't exist in freelance offer", async () => {
                 const offer_params = generateTestOffer({
-                    jobMinDuration: 10,
+                    jobType: "FREELANCE",
                     jobMaxDuration: 8,
+                    jobMinDuration: null,
+                    owner: test_company._id,
+                });
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+                expect(res.status).toBe(HTTPStatus.OK);
+            });
+
+            test("should fail if jobMinDuration doesn't exist in any offer besides freelance", async () => {
+                const offer_params = generateTestOffer({
+                    jobMaxDuration: 8,
+                    jobMinDuration: null,
                     owner: test_company._id,
                 });
 
                 const res = await request()
                     .post("/offers/new")
                     .send(withGodToken(offer_params));
-
                 expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
-                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
-                expect(res.body).toHaveProperty("errors");
-                expect(res.body.errors[0]).toHaveProperty("param", "jobMaxDuration");
-                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.MUST_BE_GREATER_THAN_OR_EQUAL_TO("jobMinDuration"));
             });
+
+            test("should fail jobMinDuration isn't numeric value", async () => {
+                const offer_params = generateTestOffer({
+                    jobMaxDuration: 8,
+                    jobMinDuration: "nonNumeric",
+                    owner: test_company._id,
+                });
+                const res = await request()
+                    .post("/offers/new")
+                    .send(withGodToken(offer_params));
+                expect(res.status).toBe(HTTPStatus.UNPROCESSABLE_ENTITY);
+            });
+
 
             test("should succeed if jobMaxDuration is greater than jobMinDuration", async () => {
                 const offer_params = generateTestOffer({
