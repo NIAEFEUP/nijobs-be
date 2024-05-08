@@ -15,6 +15,10 @@ export default Object.freeze({
         min_length: 2,
         max_length: 200,
     },
+    events: {
+        min_length: 2,
+        max_length: 200,
+    },
     cvFileUrl: {
         min_length: 2,
         max_length: 200,

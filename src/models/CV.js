@@ -26,9 +26,9 @@ const CVSchema = new Schema({
                 type: String,
                 required: true,
                 enum: ["Beginner", "Intermediate", "Advanced", "Fluent"],
-                default: "Intermediate"
             }
         }],
+        required: true,
         validate: [arrayLengthValidator, "At least one language must be provided"]
     },
     skills: [{
@@ -39,7 +39,7 @@ const CVSchema = new Schema({
     achievements: {
         type: String,
         maxlength: CVconstants.achievements.max_length,
-        minlength: CVconstants.achievement.min_length,
+        minlength: CVconstants.achievements.min_length,
         default: null // Make it optional, set default to null
     },
     events: {
