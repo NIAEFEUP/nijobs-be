@@ -3,6 +3,10 @@ import CVconstants from "./constants/CV.js";
 
 const { Schema } = mongoose;
 const CVSchema = new Schema({
+    UserId: {
+        type: Schema.Types.ObjectId,
+        required: true
+    },
     projects: [{
         type: {
             name: {
@@ -11,7 +15,7 @@ const CVSchema = new Schema({
                 maxlength: CVconstants.projectName.max_length,
                 minlength: CVconstants.projectName.min_length
             },
-            isExternal: { type: Boolean, default: false } // Default to internal project
+            isExternal: { type: Boolean, default: false }
         }
     }],
     languages: {

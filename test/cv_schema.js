@@ -4,6 +4,16 @@ import CV from "../src/models/CV.js";
 describe("# CV Schema tests", () => {
     describe("Required and bound properties tests", () => {
 
+        test("'UserId' field is required", async () => {
+            const cv = new CV();
+            try {
+                await cv.validate();
+            } catch (err) {
+                expect(err.errors.UserId).toBeDefined();
+                expect(err.errors.UserId.kind).toBe("required");
+            }
+        });
+
         test("'cvFileUrl' field is not required", async () => {
             const cv = new CV({});
             try {
