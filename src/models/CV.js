@@ -7,6 +7,11 @@ const CVSchema = new Schema({
         type: Schema.Types.ObjectId,
         required: true
     },
+    description: {
+        type: String,
+        maxlength: CVconstants.description.max_length,
+        minlength: CVconstants.description.min_length,
+    },
     projects: [{
         type: {
             name: {
@@ -44,26 +49,34 @@ const CVSchema = new Schema({
         type: String,
         maxlength: CVconstants.achievements.max_length,
         minlength: CVconstants.achievements.min_length,
-        default: null // Make it optional, set default to null
     },
     events: {
         type: String,
         maxlength: CVconstants.events.max_length,
         minlength: CVconstants.events.min_length,
-        default: null // Make it optional, set default to null
     },
     cvFileUrl: {
         type: String,
         maxlength: CVconstants.cvFileUrl.max_length,
         minlength: CVconstants.cvFileUrl.min_length,
-        default: null // Make it optional, set default to null
     },
     personalWebsite: {
         type: String,
         maxlength: CVconstants.personalWebsite.max_length,
         minlength: CVconstants.personalWebsite.min_length,
-        default: null // Make it optional, set default to null
-    }
+    },
+    personalizedFields: [{
+        fieldName: {
+            type: String,
+            required: true,
+            maxlength: CVconstants.personalizedFields.fieldName.max_length,
+        },
+        value: {
+            type: String,
+            required: true,
+            maxlength: CVconstants.personalizedFields.value.max_length,
+        },
+    }],
 });
 
 function arrayLengthValidator(arr) {

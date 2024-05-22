@@ -3,6 +3,10 @@ export default Object.freeze({
         min_length: 2,
         max_length: 50,
     },
+    description: {
+        min_length: 2,
+        max_length: 200,
+    },
     language: {
         min_length: 2,
         max_length: 50,
@@ -27,15 +31,15 @@ export default Object.freeze({
         min_length: 2,
         max_length: 200,
     },
-    personalizedFields: [{
+    personalizedFields: {
         fieldName: {
             type: String,
             required: true,
-            maxlength: 100, // Adjust the max length as needed
+            maxlength: 100,
         },
         value: {
             type: String,
-            maxlength: 255, // Adjust the max length as needed
+            maxlength: 300,
         },
-    }],
+    },
 });

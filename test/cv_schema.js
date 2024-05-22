@@ -111,6 +111,40 @@ describe("# CV Schema tests", () => {
                 expect(err.errors.personalWebsite).toBeUndefined();
             }
         });
+        test("'personalizedFields' field", async () => {
+            const cv = new CV({});
+            try {
+                await cv.validate();
+            } catch (err) {
+                expect(err.errors.personalizedFields).toBeUndefined();
+            }
+        });
+        test("'personalizedFields' array item must have fieldName", async () => {
+            const cv = new CV({ personalizedFields: [{ value: "value" }] });
+            try {
+                await cv.validate();
+            } catch (err) {
+                expect(err.errors["personalizedFields.0.fieldName"]).toBeDefined();
+                expect(err.errors["personalizedFields.0.fieldName"].kind).toBe("required");
+            }
+        });
+        test("'personalizedFields' array item must have value", async () => {
+            const cv = new CV({ personalizedFields: [{ fieldName: "fieldName" }] });
+            try {
+                await cv.validate();
+            } catch (err) {
+                expect(err.errors["personalizedFields.0.value"]).toBeDefined();
+                expect(err.errors["personalizedFields.0.value"].kind).toBe("required");
+            }
+        });
+        test("'description' ", async () => {
+            const cv = new CV({});
+            try {
+                await cv.validate();
+            } catch (err) {
+                expect(err.errors.description).toBeUndefined();
+            }
+        });
     });
 
 
