@@ -6,6 +6,8 @@ import { authRequired, isGod, validToken } from "../middleware/auth.js";
 import * as validators from "../middleware/validators/auth.js";
 import AccountService from "../../services/account.js";
 import Company from "../../models/Company.js";
+import CompanyAccount from "../../models/CompanyAccount.js";
+import AdminAccount from "../../models/AdminAccount.js";
 
 const router = Router();
 
@@ -14,24 +16,30 @@ export default (app) => {
 
     // Get logged in user info
     router.get("/me", authRequired, async (req, res) => {
-        const { email, isAdmin, company: companyId } = req.user;
+        const email = req.user.email;
 
-        let company = undefined;
-
-        try {
-            if (companyId)
-                company = await Company.findById(companyId);
-        } catch (e) {
-            console.error(`Could not find the respective company of user ${req.user._id}, with id ${companyId}`, e);
+        if (req.user instanceof CompanyAccount) {
+            const companyId = req.user.company;
+            try {
+                const company = await Company.findById(companyId);
+                return res.status(HTTPStatus.OK).json({
+                    data: {
+                        email, isAdmin: false, company
+                    }
+                });
+            } catch (e) {
+                console.error(`Could not find the respective company of user ${req.user._id}, with id ${companyId}`, e);
+            }
+        } else if (req.user instanceof AdminAccount) {
+            return res.status(HTTPStatus.OK).json({
+                data: {
+                    email, isAdmin: true, company: null
+                }
+            });
+        } else {
+            console.error(`Unknown user type: ${req.user}`);
         }
-
-        return res.status(HTTPStatus.OK).json({
-            data: {
-                email,
-                isAdmin,
-                company
-            },
-        });
+        return res.status(HTTPStatus.INTERNAL_SERVER_ERROR).json({});
     });
 
     // Login endpoint
