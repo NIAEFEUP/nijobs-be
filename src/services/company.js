@@ -6,7 +6,7 @@ import {
     COMPANY_DELETED_NOTIFICATION,
 } from "../email-templates/companyManagement.js";
 import EmailService from "../lib/emailService.js";
-import Account from "../models/Account.js";
+import CompanyAccount from "../models/CompanyAccount.js";
 import Company from "../models/Company.js";
 class CompanyService {
     getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel) {
@@ -120,7 +120,7 @@ class CompanyService {
     async _sendCompanyNotification(companyId, notification) {
         try {
             const company = await Company.findById(companyId);
-            const companyAccount = await Account.findOne({
+            const companyAccount = await CompanyAccount.findOne({
                 company
             });
             await EmailService.sendMail({

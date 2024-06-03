@@ -1,4 +1,6 @@
 import Account from "../models/Account.js";
+import AdminAccount from "../models/AdminAccount.js";
+import CompanyAccount from "../models/CompanyAccount.js";
 import hash from "../lib/passwordHashing.js";
 import Company from "../models/Company.js";
 import { RECOVERY_LINK_EXPIRATION } from "../models/constants/Account.js";
@@ -14,30 +16,28 @@ class AccountService {
     }
 
     async registerAdmin(email, password) {
-        const account = await Account.create({
+        const adminAccount = await AdminAccount.create({
             email,
-            password: await hash(password),
-            isAdmin: true,
+            password: await hash(password)
         });
 
         return {
-            email: account.email,
+            email: adminAccount.email,
         };
     }
 
     async registerCompany(email, password, companyName) {
 
         const company = await Company.create({ name: companyName });
-
-        const account = await Account.create({
+        const companyAccount = await CompanyAccount.create({
             email,
             password,
-            company,
+            company
         });
 
         return {
-            email: account.email,
-            companyName: account.company.name,
+            email: companyAccount.email,
+            companyName: companyAccount.company.name,
         };
     }
 
@@ -69,8 +69,9 @@ class AccountService {
 
     async findAndDeleteByCompanyId(company) {
         try {
-            const account = await Account.findOne({ company });
-            await Account.findByIdAndRemove(account._id);
+            const account = CompanyAccount.findOne({ company });
+            await CompanyAccount.findByIdAndRemove(account._id);
+
             return account;
         } catch (err) {
             console.error(err);

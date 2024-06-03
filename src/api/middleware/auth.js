@@ -5,6 +5,8 @@ import OfferService from "../../services/offer.js";
 import ValidationReasons from "./validators/validationReasons.js";
 import { or, storeInLocals } from "./utils.js";
 import { verifyAndDecodeToken } from "../../lib/token.js";
+import CompanyAccount from "../../models/CompanyAccount.js";
+import AdminAccount from "../../models/AdminAccount.js";
 
 // Middleware to require login in an endpoint
 export const authRequired = (req, res, next) => {
@@ -27,12 +29,12 @@ export const isGod = (req, res, next) => {
 };
 
 export const isCompany = (req, res, next) => {
-    if (req?.user?.company) return next();
+    if (req.user instanceof CompanyAccount) return next();
     else return next(new APIError(HTTPStatus.UNAUTHORIZED, ErrorTypes.FORBIDDEN, ValidationReasons.MUST_BE_COMPANY));
 };
 
 export const isAdmin = (req, res, next) => {
-    if (!req.user?.isAdmin) {
+    if (!(req.user instanceof AdminAccount)) {
         return next(new APIError(HTTPStatus.UNAUTHORIZED, ErrorTypes.FORBIDDEN, ValidationReasons.MUST_BE_ADMIN));
     }
 

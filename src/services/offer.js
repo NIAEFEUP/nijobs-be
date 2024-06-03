@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Company from "../models/Company.js";
 import Offer from "../models/Offer.js";
-import Account from "../models/Account.js";
+import CompanyAccount from "../models/CompanyAccount.js";
 import EmailService from "../lib/emailService.js";
 import { OFFER_DISABLED_NOTIFICATION } from "../email-templates/companyOfferDisabled.js";
 import OfferConstants from "../models/constants/Offer.js";
@@ -483,7 +483,7 @@ class OfferService {
         const offer = await Offer.findById(offerId);
         if (!offer) return;  // validation of offerId should be done before with an error
 
-        const companyAccount = await Account.findOne({
+        const companyAccount = await CompanyAccount.findOne({
             company: await Company.findOne({ _id: offer.owner })
         });
 
